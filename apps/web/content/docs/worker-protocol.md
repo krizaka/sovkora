@@ -1,8 +1,8 @@
-# Orazaka — Worker protocol (v1)
+# Sovkora — Worker protocol (v1)
 
 > **This document is the extension point.** Not `JobExecutor`, not any Java interface. A worker is
 > **anything that honours the contract below** — the existing media worker is Python, links no
-> Orazaka library, and participates fully (ADR-037 §3.4, ADR-038).
+> Sovkora library, and participates fully (ADR-037 §3.4, ADR-038).
 >
 > The Java `JobExecutor` SPI is a _convenience_ for executors cheap enough to run inside the job
 > service. It is not the mechanism, and a worker that never touches Java is not a lesser citizen.

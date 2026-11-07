@@ -1,6 +1,6 @@
 # Concepts
 
-Orazaka is an AI platform you run yourself. Your documents, prompts and results stay on your machine. There is no telemetry.
+Sovkora is an AI platform you run yourself. Your documents, prompts and results stay on your machine. There is no telemetry.
 
 ## Three layers
 

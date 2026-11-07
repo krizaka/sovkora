@@ -11,7 +11,7 @@ audio?[assetId]  ──listen (transcript) ── read (chat model judges the tr
 
 * **Pictures**: three yes/no questions to a vision model — nudity or sexual content, graphic violence, a minor in an unsafe context.
   A video is judged on **frames the caller samples** (the pack never sees the video), a photo on itself.
-* **Sound**: Orazaka transcribes it (`orazaka.core.media.audio.analysis`), and a chat model judges the transcript on threats or
+* **Sound**: Sovkora transcribes it (`orazaka.core.media.audio.analysis`), and a chat model judges the transcript on threats or
   harassment, sexual content, hate. Sound is judged **on its words only** — not on tone.
 * **Fails closed**: a model answer that is not the expected JSON, a missing field, fewer answers than pictures, or nothing examined is
   **`UNREADABLE`, never `APPROVED`** — the product holds the media for a person to look at. A step that errors fails the run (nothing is

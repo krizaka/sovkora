@@ -1,6 +1,6 @@
 # bill96-french-first
 
-French-first documents for a Québec business (Bill 96), prepared on the client's own Orazaka: every Québec SME and every company
+French-first documents for a Québec business (Bill 96), prepared on the client's own Sovkora: every Québec SME and every company
 selling into Québec needs it every week, and generic machine translation misses Québec terminology and the legal register. Category
 **Business & compliance** (language).
 
@@ -23,7 +23,7 @@ professional review, above all for a legal document.
 - Statutes are referred to by name, never quoted (`sources.json`; no text pinned, orazaka#393). The references await the client's
   counsel (`verifiedBy: null`; krizaka/.github#22).
 - `regulatoryClass: SENSITIVE` and a scope guard: certified or sworn translation, legal advice and any guarantee of compliance are refused.
-- Documents stay home: the pack runs on the client's Orazaka.
+- Documents stay home: the pack runs on the client's Sovkora.
 
 ## Tests
 

@@ -1,6 +1,6 @@
 ---
 title: "Infrastructure portability and cost — local first, cheap and fast in the cloud"
-description: "How Orazaka runs today on a Mac, on RunPod and on DigitalOcean; where latency and money actually go; an options matrix (serverless GPU, model loading on the fly, serving engines, routing, portability, UX) scored on cost, latency and on-prem fit; and a recommended path in phases, with the issues that carry it."
+description: "How Sovkora runs today on a Mac, on RunPod and on DigitalOcean; where latency and money actually go; an options matrix (serverless GPU, model loading on the fly, serving engines, routing, portability, UX) scored on cost, latency and on-prem fit; and a recommended path in phases, with the issues that carry it."
 category: Guidelines
 order: 22
 ---
@@ -12,7 +12,7 @@ order: 22
 > smoothest experience**. Every number marked *(est.)* is an estimate to be replaced by a measurement; the others come
 > from ADR-078 and `docs/measurements/`.
 
-## 1. How Orazaka runs today (read from the code)
+## 1. How Sovkora runs today (read from the code)
 
 | Layer | Local (Mac / on-prem) | Cloud (dev) | Source |
 |:---|:---|:---|:---|
@@ -42,7 +42,7 @@ weights kept off the image (`/models`).
 4. **Relay hop.** Every pod job crosses chisel (core to `gpu-relay` to pod), plus a sealed hand-over of outputs. It adds
    little latency per job but one more moving part and a fixed-port limit (orazaka#205: a second pod cannot join).
 5. **Generation itself** is not the lever: 175 s per 5 s clip on the 5B. It is paid once; idle and load are paid again.
-6. **LLM path.** In dev, chat is per token with no GPU to hold: cheap and fast to start. Cost appears only if Orazaka
+6. **LLM path.** In dev, chat is per token with no GPU to hold: cheap and fast to start. Cost appears only if Sovkora
    self-serves LLMs (on-prem clients, high volume), where the Ollama default (one model, little concurrency, no shared
    prefix cache) is the ceiling.
 

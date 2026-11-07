@@ -29,7 +29,7 @@ const repos = [
   {
     name: "orazaka-studio",
     description: "Studio runs",
-    url: "https://github.com/krizaka/orazaka-studio",
+    url: "https://github.com/krizaka/sovkora/tree/main/services/studio",
     pushedAt: "2026-10-20T00:00:00Z",
   },
 ];
@@ -40,7 +40,7 @@ describe("/open-source", () => {
     const list = screen.getByRole("list", { name: o.repos.label });
     expect(within(list).getByRole("link", { name: /orazaka-studio/ })).toHaveAttribute(
       "href",
-      "https://github.com/krizaka/orazaka-studio",
+      "https://github.com/krizaka/sovkora/tree/main/services/studio",
     );
   });
 

@@ -774,7 +774,7 @@ function extractMessaging(reactor, extra) {
 
 /** UseCase catalog from business/usecases. */
 function extractUseCases() {
-  const dir = sourceDir("engine/sovkora-engine-business", "business/usecases");
+  const dir = sourceDir("engine/sovkora-engine-business", "engine/business/usecases");
   return javaFiles(dir)
     .filter((f) => /implements\s+UseCase\b/.test(read(f)))
     .map((f) => {
@@ -834,7 +834,7 @@ function classSummary(src, name) {
 
 /** Interceptor registry: classes + concern package + core rank or DB order. */
 function extractInterceptors(pipeline) {
-  const dir = sourceDir("engine/sovkora-engine-interceptors", "sovkora/interceptor");
+  const dir = sourceDir("engine/sovkora-engine-interceptors", "sovkora/engine/interceptors");
   const orderByName = new Map(pipeline.map((p) => [p.interceptor.toLowerCase(), p]));
   const core = coreInterceptorKeys();
   return javaFiles(dir)
@@ -866,7 +866,7 @@ function extractInterceptors(pipeline) {
 function hostedTier3Dirs(serviceRoot) {
   const pom = read(join(serviceRoot, "pom.xml"));
   const dirs = [];
-  for (const m of pom.matchAll(/<artifactId>(sovkora-(?:business|persistence[\w-]*)|krizaka-users-(?:core|persistence))<\/artifactId>/g)) {
+  for (const m of pom.matchAll(/<artifactId>(sovkora-engine-(?:business|persistence[\w-]*)|krizaka-users-(?:core|persistence))<\/artifactId>/g)) {
     const moduleDir = MODULES.get(m[1]);
     const candidate = moduleDir && join(moduleDir, "src/main/java");
     if (candidate && existsSync(candidate) && !dirs.includes(candidate)) dirs.push(candidate);
@@ -1004,7 +1004,7 @@ function summaryAbove(src, index) {
 /**
  * Every REST endpoint of every deployable service, with the authorisation rule that guards it.
  *
- * Scans all of `orazaka-apps/services`, not the conversation service alone: four services'
+ * Scans all of `services/`, not the conversation service alone: four services'
  * surfaces — including the credit ledger's `/internal/v1` — were absent from this reference
  * entirely, which is the failure mode a generated document is supposed to prevent.
  *
@@ -1211,7 +1211,7 @@ function extractGovernance() {
   // class that holds it, rather than by matching a bare method name anywhere in the file. Two
   // holders may legitimately offer the same method name, and a name that appears in a comment is
   // not a call.
-  for (const root of ["orazaka-apps", "sovkora-libs"]) {
+  for (const root of ["services", "engine", "contracts", "build"]) {
     const dir = join(ROOT, root);
     if (!existsSync(dir)) continue;
     for (const f of walk(dir, (x) => x.endsWith("Test.java") || x.endsWith("IT.java"))) {
@@ -1545,7 +1545,7 @@ const mdCli = (rows) => {
     "",
     "```bash",
     `${runner} install   # no workspace here? clones the platform into ./orazaka, then configures it`,
-    "cd orazaka && ./mvnw install && (cd orazaka-apps/ui && npm install)",
+    "cd sovkora && ./mvnw install && pnpm install",
     `${runner} start     # Docker infrastructure (PostgreSQL + pgvector, Redis, RabbitMQ)`,
     `${runner} dev       # the whole stack: services, web, admin, mobile`,
     "```",
@@ -1877,7 +1877,7 @@ function extractBusiness() {
   const errors = [...src("UseCaseDispatcherImpl").matchAll(/"(ERR-\d+): ([^"]+)"/g)].map((m) => ({ code: m[1], message: m[2].trim() }));
 
   // Who calls into the layer from outside it: the transport adapters a request arrives through.
-  const outside = walk(join(ROOT, "orazaka-apps"), (p) => p.endsWith(".java") && p.includes(`${"/"}src${"/"}main${"/"}`));
+  const outside = walk(join(ROOT, "services"), (p) => p.endsWith(".java") && p.includes(`${"/"}src${"/"}main${"/"}`));
   const callers = outside
     .filter((f) => /\bUseCaseDispatcher\b|\bimplements\s+WorkflowOrchestrator\b/.test(read(f)) && /@(RestController|Component|Service)\b/.test(read(f)))
     .map((f) => {
@@ -2012,7 +2012,7 @@ function extractTools() {
   });
 
   // How the pipeline picks tools for a turn: ToolInterceptor in orazaka-interceptors.
-  const interceptorFile = walk(join(ROOT, "sovkora-libs"), (p) => basename(p) === "ToolInterceptor.java" && p.includes("/src/main/"))[0];
+  const interceptorFile = walk(join(ROOT, "engine"), (p) => basename(p) === "ToolInterceptor.java" && p.includes("/src/main/"))[0];
   const interceptor = interceptorFile ? read(interceptorFile) : "";
   const skippedModels = [...(interceptor.match(/modelLower\.contains[\s\S]*?\)\s*\{/)?.[0] ?? "").matchAll(/contains\("([^"]+)"\)/g)].map((m) => m[1]);
   const demands = [...interceptor.matchAll(/"(\w+)"\.equals\(toolName\)\s*&&\s*(\w+)\(/g)].map((m) => {
@@ -2162,13 +2162,13 @@ function extractSchedules() {
 
 function extractJobs(arch) {
   const executors = [];
-  for (const f of javaFiles(join(ROOT, "orazaka-apps")).filter((p) => p.includes("/src/main/"))) {
+  for (const f of javaFiles(join(ROOT, "services")).filter((p) => p.includes("/src/main/"))) {
     const s = read(f);
     const key = s.match(/String handlerKey\(\)\s*\{\s*return\s+"([^"]+)"/)?.[1];
     if (key) executors.push({ key, type: basename(f, ".java"), repo: repoOfFile(f), summary: typeInfo(s, basename(f, ".java"))?.summary ?? "" });
   }
-  const contract = walk(join(ROOT, "sovkora-libs"), (p) => basename(p) === "JobExecutor.java" && p.includes("/src/main/"))[0];
-  const listener = walk(join(ROOT, "orazaka-apps"), (p) => basename(p) === "JobListener.java" && p.includes("/src/main/"))[0];
+  const contract = walk(join(ROOT, "contracts"), (p) => basename(p) === "JobExecutor.java" && p.includes("/src/main/"))[0];
+  const listener = walk(join(ROOT, "services"), (p) => basename(p) === "JobListener.java" && p.includes("/src/main/"))[0];
 
   const auto = REPOSITORIES.find((r) => r.name === "automation");
   const autoDir = auto ? join(ROOT, auto.path) : null;
@@ -2191,7 +2191,7 @@ function extractJobs(arch) {
     clustered: yml.match(/isClustered:\s*(\S+)/)?.[1],
   };
   // Who publishes automation jobs, besides the service itself.
-  const producers = javaFiles(join(ROOT, "orazaka-apps"))
+  const producers = javaFiles(join(ROOT, "services"))
     .filter((p) => p.includes("/src/main/") && !(autoDir && p.startsWith(autoDir)))
     .filter((p) => /"job\.automation\.[\w*]+"/.test(read(p)))
     .map((p) => ({ type: basename(p, ".java"), repo: repoOfFile(p), key: read(p).match(/"(job\.automation\.[\w*]+)"/)[1] }));

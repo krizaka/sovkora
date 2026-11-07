@@ -151,6 +151,15 @@ Dispatch refuses an intention with:
 | `ERR-410` | no use-case registered for capability |
 | `ERR-403` | actor not authorized for use-case |
 
+## Entry points
+
+The adapters that hand work to the business layer:
+
+| Adapter | Repository | Role |
+|:---|:---|:---|
+| `IntentController` | `conversation` | REST controller for the `intent` resource. |
+| `WorkflowAdapter` | `conversation` | Router adapter translating the Business layer's `WorkflowContext` into the Core infrastructure's `Context` and `ChatRequest`. |
+
 Call it over HTTP through the edge with a session token (see the [API reference](API_REFERENCE.md)):
 
 ```bash

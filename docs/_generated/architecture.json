@@ -1902,77 +1902,99 @@
       "order": 1,
       "enabled": true,
       "phase": "core",
-      "implemented": false
+      "implemented": true,
+      "concern": "context",
+      "summary": "Extracts user profile attributes and RBAC security configurations from the Spring Security context and enriches the `PromptContext`'s user metadata."
     },
     {
       "interceptor": "SystemContextInjector",
       "order": 2,
       "enabled": true,
       "phase": "core",
-      "implemented": false
+      "implemented": true,
+      "concern": "context",
+      "summary": "Single atomic service responsible for both resolving system/environment state and injecting it into the timeline."
     },
     {
       "interceptor": "RagInterceptor",
       "order": 3,
       "enabled": true,
       "phase": "core",
-      "implemented": false
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "RAG (Retrieval-Augmented Generation) interceptor — enriches the prompt with relevant knowledge base context retrieved via `KnowledgeService`."
     },
     {
       "interceptor": "EntitlementInterceptor",
       "order": 4,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "governance",
+      "summary": "Gates the synchronous chat path on what the actor may do and can afford (ADR-033 §6.2)."
     },
     {
       "interceptor": "McpInterceptor",
       "order": 5,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "MCP (Model Context Protocol) interceptor — puts the external context resolved via the `McpOrchestrator` in front of the model as data."
     },
     {
       "interceptor": "BrandContextInterceptor",
       "order": 6,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "Injects an installed Studio's brand kit into the prompt (ADR-034 §9.1)."
     },
     {
       "interceptor": "MemoryInterceptor",
       "order": 7,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "Conversation memory interceptor — injects historical messages before inference and persists new messages after completion."
     },
     {
       "interceptor": "RefinerInterceptor",
       "order": 8,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "reformulation",
+      "summary": "Resolves fuzzy user questions against compiled context matrices and reformulates them into clear, explicit instructions using an LLM call."
     },
     {
       "interceptor": "SemanticCacheInterceptor",
       "order": 8,
       "enabled": false,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "cache",
+      "summary": "Answers a turn from a cache, before any model — placed in Phase 2 just before the router by a `pipeline_interceptor_config` row, never by an `@Order`."
     },
     {
       "interceptor": "RouterInterceptor",
       "order": 9,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "reformulation",
+      "summary": "Analyzes user intent and selects the optimal AI provider using an LLM classification call with temperature 0.0 for determinism."
     },
     {
       "interceptor": "ToolInterceptor",
       "order": 9,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "tooling",
+      "summary": "Tool execution interceptor — analyzes prompt content to selectively attach relevant `EngineTool` definitions to the chat options."
     },
     {
       "interceptor": "MediaInterceptor",
@@ -1986,36 +2008,50 @@
       "order": 11,
       "enabled": true,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "context",
+      "summary": "ContextInterceptor that dynamically injects onboarding profile details (ai_behavior, primary_industry) as structural system prompt constraints right before executing model inference or streaming."
     },
     {
       "interceptor": "CitationVerifierInterceptor",
       "order": 12,
       "enabled": false,
       "phase": "dynamic",
-      "implemented": false
+      "implemented": true,
+      "concern": "validation",
+      "summary": "The verifier stage of grounded research (ADR-087 §3): an answer in the citation shape is checked claim by claim against the documents research read for this turn — the ones the grounding stage recorded in the context (`PromptContext#researchRead()`) — by the `CitationVerifier`, before it is served; the served answer is the one the verifier renders from the claims, never the model's prose."
     }
   ],
   "coreChain": [
     {
       "interceptor": "SafetyInterceptor",
-      "rank": 1
+      "rank": 1,
+      "concern": "validation",
+      "summary": "Stops a turn that carries crisis content and answers it with the pack's fixed, reviewed text."
     },
     {
       "interceptor": "ScopeGuardInterceptor",
-      "rank": 2
+      "rank": 2,
+      "concern": "governance",
+      "summary": "Refuses a turn that strays into the domain its pack declared out of bounds (ADR-051)."
     },
     {
       "interceptor": "UserContextResolver",
-      "rank": 3
+      "rank": 3,
+      "concern": "context",
+      "summary": "Extracts user profile attributes and RBAC security configurations from the Spring Security context and enriches the `PromptContext`'s user metadata."
     },
     {
       "interceptor": "SystemContextInjector",
-      "rank": 4
+      "rank": 4,
+      "concern": "context",
+      "summary": "Single atomic service responsible for both resolving system/environment state and injecting it into the timeline."
     },
     {
       "interceptor": "RagInterceptor",
-      "rank": 5
+      "rank": 5,
+      "concern": "enrichment",
+      "summary": "RAG (Retrieval-Augmented Generation) interceptor — enriches the prompt with relevant knowledge base context retrieved via `KnowledgeService`."
     }
   ],
   "messaging": {

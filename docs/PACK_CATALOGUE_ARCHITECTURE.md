@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — Packs: the categorised marketplace"
+title: "Sovkora — Packs: the categorised marketplace"
 description: "Overview and target architecture for the Pack catalogue: categories, packs, the Pack↔Studio relation, the admin authoring surface, and the regulatory class that a wellbeing pack forces the platform to introduce."
 category: Architecture
 order: 8
 ---
 
-# Orazaka — Packs: the categorised marketplace
+# Sovkora — Packs: the categorised marketplace
 
 > **Your goal, restated.** An admin configures Packs. A user adds a Pack to their space. Every Pack
 > belongs to a Category. Two categories: **Business** (Prospection, Validation) and **Life Style**
@@ -151,7 +151,7 @@ then you own **two divergent i18n tables** and a money service that is also a CM
 pack: the money service accumulates marketing columns and a second i18n table, and every marketing
 copy change becomes a deploy of the service that holds the credit ledger. *Option C (a third
 "catalogue" context)* is correct on paper and unjustifiable in practice — it would be a service whose
-only job is to join two tables, and AGENTS.md §2 names a growing `sovkora-libs` as the primary health
+only job is to join two tables, and AGENTS.md §2 names a growing `engine/` as the primary health
 gauge; a growing service count is the same disease.
 
 **Migration cost is near zero today** — one seeded pack. It will not be near zero after three.
@@ -450,7 +450,7 @@ CREATE  ADR-036 (internal)
 # UI
 MODIFY  apps/web/src/features/billing/components/PackMarketplace.tsx  (group by category)
 CREATE  apps/web/src/features/pack/components/{CategoryShelf,PackCard,ConsentDialog}.tsx
-MODIFY  orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/src/schemas/pack.ts
+MODIFY  sovkora-ui-kit (now krizaka-ui) orazaka-shared/src/schemas/pack.ts
 ```
 
 ---

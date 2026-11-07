@@ -37,7 +37,7 @@ services:
       # on these scripts for DDL. Each context's file lives in the repository that
       # owns the context (<repo>/infra/initdb/NN-*.sql, AGENTS.md §5); the workspace
       # only owns the reset (dev data comes from `tools/seed-dev.sh`, krizaka-internal#2255). Every repository must be cloned
-      # (`node scripts/workspace.mjs clone`) before the first `orazaka start`.
+      # (a krizaka-java checkout at the imported release in `.krizaka-java/`) before the first `orazaka start`.
       - ./initdb/00-reset.sql:/docker-entrypoint-initdb.d/00-reset.sql:ro
       - ../.krizaka-java/krizaka-users/infra/initdb/10-identity.sql:/docker-entrypoint-initdb.d/10-identity.sql:ro
       - ../services/conversation/sovkora-conversation-service/infra/initdb/20-conversation.sql:/docker-entrypoint-initdb.d/20-conversation.sql:ro

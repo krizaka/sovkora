@@ -1,73 +1,27 @@
-<!-- krizaka-header -->
-<div align="center">
+# Sovkora web app
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-dark.svg">
-  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-light.svg" alt="Orazaka" width="96">
-</picture>
+> `apps/web` of [Sovkora](../../README.md), one repository (pnpm, app layer). Depends on nothing else of Sovkora. Licence: [FSL-1.1-ALv2](../../LICENSE).
 
-# Orazaka Web Client
-
-**The AI that never leaves home.**
-
-Next.js (App Router) client of the Orazaka platform with its mandatory BFF.
-
-**Users read the commercial name, Sovkora** (Orazaka is the code name: repository, packages, hosts and API paths keep it). `npm run check:code-names` runs the `krizaka-code-names` guard of `@krizaka/org` on the built pages (`/docs` and `/open-source`, the developer pages, are allowed), and `src/__tests__/code-names.test.ts` checks the messages.
-
-**Users read the commercial name, Sovkora** (Orazaka is the code name: repository, packages, hosts and API paths keep it). `npm run check:code-names` runs the `krizaka-code-names` guard of `@krizaka/org` on the built pages (`/docs` and `/open-source`, the developer pages, are allowed), and `src/__tests__/code-names.test.ts` checks the messages.
-
-[![CI](https://github.com/krizaka/orazaka-web-client/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/orazaka-web-client/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/krizaka/orazaka-web-client/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/orazaka-web-client)
-[![License: FSL-1.1-ALv2](https://img.shields.io/badge/license-FSL--1.1--ALv2-blue.svg)](LICENSE.md)
-[![Orazaka](https://img.shields.io/badge/part%20of-Orazaka-f67e23)](https://github.com/krizaka/orazaka#repositories)
-[![Docs](https://img.shields.io/badge/docs-krizaka.com%2Fdocs%2Forazaka-f67e23)](https://www.krizaka.com/docs/orazaka)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-web-client&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-web-client) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-web-client&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-web-client) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-web-client&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-web-client) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-web-client&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-web-client) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-web-client&metric=coverage)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-web-client)
-
-[Documentation](https://www.krizaka.com/docs/orazaka) · [Demos](https://www.krizaka.com/en/products/orazaka/demos) · [Website](https://www.krizaka.com) · [Krizaka on GitHub](https://github.com/krizaka)
-
-</div>
-<!-- /krizaka-header -->
+Next.js (App Router) client of the Sovkora platform with its mandatory BFF.
 
 <p align="center">
   <br><sub>Recorded on this application: Eric answers a customer from his own returns policy, then generates the product photo — everything ran on one Mac. <a href="https://www.krizaka.com/en/products/orazaka/demos">More demos</a></sub>
 </p>
 
 **Layer:** Client application · **Version:** `1.0.0-SNAPSHOT` · **License:** FSL-1.1-ALv2 ·
-part of the [Orazaka platform](https://github.com/krizaka/orazaka) by [Krizaka](https://krizaka.com)
+part of the [Sovkora platform](https://github.com/krizaka/orazaka) by [Krizaka](https://krizaka.com)
 
 ## What it provides
 
 The Next.js (App Router) client of the platform (port `3000`). The browser **never** calls a service
 directly: every request goes through the BFF routes (`/api/**`) authenticated by the next-auth
-session. Built on [`@krizaka/ui`](https://www.krizaka.com/docs/ui) and the Orazaka identity,
-[`@krizaka/orazaka-design-system`](https://www.npmjs.com/package/@krizaka/orazaka-design-system) (Orazaka Orange).
+session. Built on [`@krizaka/ui`](https://www.krizaka.com/docs/ui) and the Sovkora identity,
+[`@krizaka/orazaka-design-system`](https://www.npmjs.com/package/@krizaka/orazaka-design-system) (Sovkora Orange).
 
 ```bash
 npm install && npm run dev
 pre-commit install   # once: the gitleaks and zizmor hooks on each commit
 ```
-
-## Position in the platform
-
-|                |                                                               |
-| :------------- | :------------------------------------------------------------ |
-| Depends on     | [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
-| Used by        | _no other Orazaka repository._                                |
-| Workspace path | `apps/web`                          |
-
-## Build
-
-**Inside the Orazaka workspace** (npm workspaces link `@krizaka/*` packages from source):
-
-```bash
-git clone https://github.com/krizaka/orazaka.git && cd orazaka
-node scripts/workspace.mjs clone
-cd orazaka-apps/ui && npm install
-```
-
-**Standalone**: `npm install` — the `@krizaka/*` packages come from the public npm registry, no `.npmrc` or token.
-
-Requirements: Node.js 22+.
 
 ## UI: roles, one theme mechanism, platform primitives
 
@@ -79,7 +33,7 @@ Requirements: Node.js 22+.
   `:root`, light on `html.light`, a named theme (`custom`, `cyberpunk`, `solarized`, `krizaka`) on
   `html.theme-<name>`. `useAppearance()` maps the profile's single preference onto it.
 - **Primitives.** `Card.*`, `Dialog`, `Toaster`/`toast`, `Popover`, `Alert`, `Button` come from `@krizaka/ui`;
-  the Orazaka identity (Orazaka Orange, `#f67e23`, and the named themes) from `@krizaka/orazaka-design-system/theme.css`.
+  the Sovkora identity (Sovkora Orange, `#f67e23`, and the named themes) from `@krizaka/orazaka-design-system/theme.css`.
 - The one-shot migration that got here (`scripts/codemods/roles.mjs`) was deleted once it had run; git history keeps it.
 
 ## Product tour (krizaka.com)
@@ -93,7 +47,7 @@ site says so) → his Studios → plan and credits → appearance. What Eric wor
 `scripts/tour/eric.mjs`; the browser clock is set to 18:40 so the greeting reads "Good evening, Eric" (`TOUR_TIME`).
 
 ```bash
-# from the workspace (`npx orazaka` = @krizaka/orazaka-cli on npm, or the workspace copy inside orazaka-apps/ui)
+# from the workspace (`npx orazaka` = @krizaka/orazaka-cli on npm, or the copy in apps/cli)
 npx orazaka start && npx orazaka dev    # the stack, with the image engine (sd-server)
 npx orazaka demo seed --fresh           # Eric, with an empty history
 npm run build && npm run start
@@ -116,52 +70,20 @@ Scripts a person runs by hand (ADR-026: nothing runs unlisted); each header says
 
 `scripts/qa-on-screen.mjs` is a shared library (imported by the UI crawl, `landing-take.mjs` and `record-web-steps.mjs`), not a tool.
 
-## Governance
+## Public site (dev.sovkora.com) and the dev address
 
-This repository follows the Orazaka governance contract — [AGENTS.md](https://github.com/krizaka/orazaka/blob/main/AGENTS.md)
-in the workspace is normative; the local [AGENTS.md](AGENTS.md) only scopes it to this repository.
-
-<!-- krizaka:workflows:start -->
-
-## Workflows
-
-What runs in the Actions tab of this repository.
-
-- **Bump @krizaka packages** (`bump-krizaka.yml`): Opens one auto-merged PR that bumps the @krizaka packages after a release. Runs when another repository triggers it, on demand.
-- **CI** (`ci.yml`): Lint, tests and build of the repository. Runs on push, on every pull request, on demand.
-- **Dependabot auto-merge** (`dependabot-automerge.yml`): Auto-merges safe Dependabot updates. Runs on every pull request.
-- **Dev preview live** (`dev-preview-live.yml`): Checks the deployed dev site after a push (SEO family, UI crawl). Runs on push, on demand.
-- **Download videos** (`download-videos.yml`): Records the app videos for the download page. Runs on a schedule, on demand.
-- **Live smoke** (`live-smoke.yml`): Smoke-tests the deployed site after a push. Runs on push, on demand.
-- **Merge resolution** (`merge-resolution.yml`): Fails a PR that drops what main added without a deletion-explained line. Runs on every pull request.
-- **Release notes** (`release-notes.yml`): Writes the release notes. Runs on push.
-- **Scorecard** (`scorecard.yml`): OpenSSF Scorecard of the repository. Runs when branch rules change, on a schedule, on demand.
-- **Security scan** (`security.yml`): Secret scan (gitleaks) and workflow scan (zizmor); both are required checks. Runs on every pull request, on push.
-
-<!-- krizaka:workflows:end -->
-
-## License
-
-[FSL-1.1-ALv2](LICENSE.md) (Functional Source License, Apache-2.0 future licence) © Technologies Krizaka Inc. — read,
-run, modify and self-host it for any purpose except offering a competing service; each version becomes Apache-2.0 two
-years after its release. Commits before the licence change remain [Apache-2.0](LICENSE-APACHE) — see [NOTICE](NOTICE)
-and [ADR-012](https://github.com/krizaka/.github/blob/main/docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md).
-The Krizaka names and birds are not licensed: [trademark policy](https://github.com/krizaka/.github/blob/main/TRADEMARKS.md).
-
-## Public site (www.orazaka.com) and the dev address
-
-The same app runs as a read-only public site: no sign-in, no sign-up, no call to the backend. `www.orazaka.com` is
+The same app runs as a read-only public site: no sign-in, no sign-up, no call to the backend. `dev.sovkora.com` is
 indexed; any `dev.*` address is never indexed (`dev.orazaka.com` itself was removed on 2026-11-05).
 
 | Variable              | Default                            | Effect                                                                                                                                                                                                       |
 | --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AUTH_LOGIN_ENABLED`  | `false`                            | Sign-in, forgot-password and verify show "Orazaka is in development — sign-in is closed on this site"; the BFF routes (`/api/v1`, `/api/auth`, `/api/chat`, `/uploads`) answer 404 while both flags are off. |
+| `AUTH_LOGIN_ENABLED`  | `false`                            | Sign-in, forgot-password and verify show "Sovkora is in development — sign-in is closed on this site"; the BFF routes (`/api/v1`, `/api/auth`, `/api/chat`, `/uploads`) answer 404 while both flags are off. |
 | `AUTH_SIGNUP_ENABLED` | `false`                            | Same for `/register`; the entry points are hidden from the landing.                                                                                                                                          |
 | `APP_VERSION`         | `package.json` version + short sha | Shown in the footer (`NEXT_PUBLIC_APP_VERSION`, set at build).                                                                                                                                               |
 
-No edge URL is needed to build or run it. The documentation (`/docs`) is generated: `node scripts/sync-docs.mjs <orazaka checkout>` (what is published, in which journey and order: `scripts/docs-manifest.mjs`; a wrong or unclear page is fixed in the Orazaka repository, then re-synced); the demo recordings and packs of the home page: `node scripts/sync-showcase.mjs <krizaka-com checkout>` — never hand-edit `content/docs` or `showcase.generated.json`. Media stay on Bunny.
+No edge URL is needed to build or run it. The documentation (`/docs`) is generated: `node scripts/sync-docs.mjs <orazaka checkout>` (what is published, in which journey and order: `scripts/docs-manifest.mjs`; a wrong or unclear page is fixed in the Sovkora repository, then re-synced); the demo recordings and packs of the home page: `node scripts/sync-showcase.mjs <krizaka-com checkout>` — never hand-edit `content/docs` or `showcase.generated.json`. Media stay on Bunny.
 
-## Operator console (admin.orazaka.com)
+## Operator console (admin.sovkora.com)
 
 The same app serves the operator console (usage, credits, prices, Studios, accounts) on the host `admin.*`: `src/proxy.ts`
 rewrites that host to the internal `/console` tree (`src/app/console/`, code in `src/console/`); on any other host
@@ -194,3 +116,12 @@ audited); every refusal is worded by its Problem `code`. Its words are in Englis
 ---
 
 <sub>A Krizaka product · [krizaka.com](https://www.krizaka.com) · FSL-1.1-ALv2</sub>
+
+## Build and test
+
+```bash
+pnpm install                      # from the repository root: every app, each with its own lockfile
+pnpm --dir apps/web run validate    # lint, types and tests, as CI runs them
+```
+
+CI runs it on every pull request that touches `apps/web/` (ADR-029: one repository, one CI).

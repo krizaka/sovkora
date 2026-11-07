@@ -1,31 +1,8 @@
-<!-- krizaka-header -->
-<div align="center">
+# Media worker
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-dark.svg">
-  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-light.svg" alt="Orazaka" width="96">
-</picture>
+> `workers/media` of [Sovkora](../../README.md), one repository (python, worker layer). Depends on nothing else of Sovkora. Licence: [FSL-1.1-ALv2](../../LICENSE).
 
-# Orazaka Media Worker
-
-**The AI that never leaves home.**
-
-Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol.
-
-[![CI](https://github.com/krizaka/orazaka-worker-media/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/orazaka-worker-media/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/krizaka/orazaka-worker-media/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/orazaka-worker-media)
-[![License: FSL-1.1-ALv2](https://img.shields.io/badge/license-FSL--1.1--ALv2-blue.svg)](LICENSE.md)
-[![Orazaka](https://img.shields.io/badge/part%20of-Orazaka-f67e23)](https://github.com/krizaka/orazaka#repositories)
-[![Docs](https://img.shields.io/badge/docs-krizaka.com-f67e23)](https://www.krizaka.com/en/products/orazaka)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-worker-media&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-worker-media) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-worker-media&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-worker-media) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-worker-media&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-worker-media) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-worker-media&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-worker-media) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka-worker-media&metric=coverage)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka-worker-media)
-
-[Documentation](https://www.krizaka.com/en/products/orazaka) · [Website](https://www.krizaka.com) · [Krizaka on GitHub](https://github.com/krizaka)
-
-</div>
-<!-- /krizaka-header -->
-
-**Layer:** Native worker · **Version:** `1.0.0-SNAPSHOT` · **License:** FSL-1.1-ALv2 ·
-part of the [Orazaka platform](https://github.com/krizaka/orazaka) by [Krizaka](https://krizaka.com)
+Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol.
 
 ## What it provides
 
@@ -51,7 +28,7 @@ On the Mac, inference never runs in Docker (AGENTS.md §1): this worker runs on 
 |---|---|---|---|---|---|
 | `wan2.2-ti2v-5b` | Wan 2.2 TI2V 5B, text- **and image-to-video** (a photo is cut to the aspect around its subject, never letterboxed; on a small card the size steps down 1280×704 → 960×544 → 832×480 and the run says which) | Apache-2.0 | 704×1280 · 1280×704 | 5 s @ 24 fps | `big` (48 GB), `small` (20 GB, CPU offload) |
 | `wan2.1-t2v-1.3b` | Wan 2.1 T2V 1.3B, text-to-video | Apache-2.0 | 480×832 | 5 s @ 16 fps | `small` (20 GB), `big` |
-| `wan2-2-t2v-a14b` | Wan 2.2 T2V A14B, text-to-video, **served by DigitalOcean serverless inference and routed by Orazaka** (`app/remote_video.py`; nothing runs on this host) | Apache-2.0 | 832×480 (16:9 only) | 5 s @ 16 fps, $0.60/clip | `AI_INFERENCE_KEY` |
+| `wan2-2-t2v-a14b` | Wan 2.2 T2V A14B, text-to-video, **served by DigitalOcean serverless inference and routed by Sovkora** (`app/remote_video.py`; nothing runs on this host) | Apache-2.0 | 832×480 (16:9 only) | 5 s @ 16 fps, $0.60/clip | `AI_INFERENCE_KEY` |
 | `flux-2-klein-4b` | FLUX.2 [klein] 4B via sd-server | Apache-2.0 | any size | image | both |
 
 `models.yaml` says how each model is fetched (pinned revisions, checksums) and shaped; the platform's catalogue
@@ -75,29 +52,6 @@ What the deployment declares (never assumed):
 ```bash
 python -m app.fetch_models big     # weights of a profile onto MEDIA_MODELS_DIR (/models), verified, once
 ```
-
-## Position in the platform
-
-| | |
-|:---|:---|
-| Depends on | _none — this repository is a root of the dependency graph._ |
-| Used by | _no other Orazaka repository._ |
-| Workspace path | `workers/media` |
-
-
-
-## Governance
-
-This repository follows the Orazaka governance contract — [AGENTS.md](https://github.com/krizaka/orazaka/blob/main/AGENTS.md)
-in the workspace is normative; the local [AGENTS.md](AGENTS.md) only scopes it to this repository.
-
-## License
-
-[FSL-1.1-ALv2](LICENSE.md) (Functional Source License, Apache-2.0 future licence) © Technologies Krizaka Inc. — read,
-run, modify and self-host it for any purpose except offering a competing service; each version becomes Apache-2.0 two
-years after its release. Commits before the licence change remain [Apache-2.0](LICENSE-APACHE) — see [NOTICE](NOTICE)
-and [ADR-012](https://github.com/krizaka/.github/blob/main/docs/adr/ADR-012-licensing-libraries-open-products-fair-source.md).
-The Krizaka names and birds are not licensed: [trademark policy](https://github.com/krizaka/.github/blob/main/TRADEMARKS.md).
 
 ## Hosted-only mode (a cheap CPU consumer)
 
@@ -124,3 +78,12 @@ corrupt file is reported, a verified model is never fetched again). `MEDIA_MODEL
 snapshot there with parallel readers before the load and loads from it (the volume stays the source of truth; unusable stage dir,
 plain load); `MEDIA_MODELS_PREFETCH=1` warms the page cache with parallel readers instead. Every Wan load logs its seconds.
 Both feed `StageReporter.weights` (the `STREAMING_WEIGHTS_NVME` percentage). Code: `app/model_cache.py`.
+
+## Build and test
+
+```bash
+cd workers/media && uv sync              # the worker's environment, from its uv.lock
+uv run pytest -q                  # the suites (CI runs the ones a runner without a GPU can run)
+```
+
+CI runs it on every pull request that touches `workers/media/` (ADR-029: one repository, one CI).

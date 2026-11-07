@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — Interface contracts (ports & adapters)"
+title: "Sovkora — Interface contracts (ports & adapters)"
 description: "All interfaces for the interactions between layers: transport, business, core, interceptors, identity, persistence (split), messaging, and UI tier (client/admin/mobile/cli)."
 category: Architecture
 order: 2
 ---
 
-# Orazaka — Interface contracts
+# Sovkora — Interface contracts
 
 > This document freezes **the interfaces of all interactions**. Each interface is tagged by its hexagonal role:
 > **[IN]** inbound port (what a layer offers) · **[OUT]** outbound port (what it needs, implemented elsewhere) · **[SPI]** extension point · **[DTO]** immutable data · **[ADAPTER]** implementation.

@@ -24,6 +24,9 @@ tools the turn needs.
 
 ## When a tool is attached
 
+- Never on a streaming turn, nor for a vision model (model name containing `vision`, `llava`, `bakllava`).
+- `analyzePoster` only when the turn mentions `poster`, `image`, `visual`, `picture`.
+- `analyzeAudioExtract` only when the turn mentions `audio`, `clip`, `voice`, `music`, `sound`.
 - Every other registered tool is offered on every eligible turn.
 
 ## Configuration in the database

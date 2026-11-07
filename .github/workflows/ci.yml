@@ -301,6 +301,16 @@ jobs:
           node-version: "22"
       - name: Repository layout
         uses: krizaka/.github/actions/repo-layout@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+      # The tests and the generated docs read krizaka-java at the release sovkora-parent imports (billing migrations, building blocks).
+      - name: The krizaka-java release sovkora-parent imports
+        id: krizaka
+        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: krizaka/krizaka-java
+          ref: ${{ steps.krizaka.outputs.ref }}
+          path: .krizaka-java
+          persist-credentials: false
       - name: Script tests (with the layout and naming guards of ADR-029)
         timeout-minutes: 10 # these tests take seconds: a hang is a bug, not a slow run
         run: |
@@ -312,16 +322,6 @@ jobs:
             'scripts/test/*.test.mjs'
       - name: The Java layout (ADR-029 N3, N4)
         run: node scripts/check-java-layout.mjs
-      # The generated docs read krizaka-java's code at the release sovkora-parent imports (scripts/generate-docs.mjs).
-      - name: The krizaka-java release sovkora-parent imports
-        id: krizaka
-        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: krizaka/krizaka-java
-          ref: ${{ steps.krizaka.outputs.ref }}
-          path: .krizaka-java
-          persist-credentials: false
       - name: Docs are generated from this code
         run: node scripts/generate-docs.mjs --check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

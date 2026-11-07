@@ -213,7 +213,7 @@ describe("LandingPage while sign-in and sign-up are closed (the default)", () =>
     expect(bar).not.toHaveTextContent(/dev · v/);
     expect(within(bar).getByRole("link", { name: translations.en.landing.nav.repo })).toHaveAttribute(
       "href",
-      "https://github.com/krizaka/orazaka-web-client",
+      "https://github.com/krizaka/sovkora/tree/main/apps/web",
     );
     expect(within(bar).getAllByRole("link", { name: translations.en.landing.nav.signIn })[0]).toHaveAttribute(
       "href",

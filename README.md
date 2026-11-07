@@ -2,245 +2,211 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-dark.svg">
-  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/orazaka-light.svg" alt="Orazaka" width="96">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/sovkora-dark.svg">
+  <img src="https://raw.githubusercontent.com/krizaka/.github/main/profile/assets/sovkora-light.svg" alt="Sovkora" width="96">
 </picture>
 
-# Orazaka
+# Sovkora
 
 **The AI that never leaves home.**
 
-**[Orazaka](https://www.orazaka.com)** is the source-available sovereign AI platform (Apache-2.0 after two years) by [Krizaka](https://www.krizaka.com) (Montréal) — chat, documents, images, video and agents on your own machines — and this is the **workspace** that assembles it. Website: [www.orazaka.com](https://www.orazaka.com).
+**[Sovkora](https://www.sovkora.com)** is the source-available sovereign AI platform of [Krizaka](https://www.krizaka.com) (Montréal):
+chat, documents, images, video and agents on your own machines. Every request crosses a deterministic pipeline to the best
+local model: your documents, your models, your network, nothing leaves.
 
-[![CI](https://github.com/krizaka/orazaka/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/orazaka/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/krizaka/orazaka/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/orazaka)
+[![CI](https://github.com/krizaka/sovkora/actions/workflows/ci.yml/badge.svg)](https://github.com/krizaka/sovkora/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/krizaka/sovkora/badge)](https://scorecard.dev/viewer/?uri=github.com/krizaka/sovkora)
 [![License: FSL-1.1-ALv2](https://img.shields.io/badge/license-FSL--1.1--ALv2-blue.svg)](LICENSE)
-[![Orazaka](https://img.shields.io/badge/part%20of-Orazaka-f67e23)](https://github.com/krizaka/orazaka#repositories)
-[![Website](https://img.shields.io/badge/site-dev.orazaka.com-f67e23)](https://www.orazaka.com)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=krizaka_orazaka&metric=coverage)](https://sonarcloud.io/summary/new_code?id=krizaka_orazaka)
+[![Dev](https://img.shields.io/badge/dev-dev.sovkora.com-2f6fde)](https://dev.sovkora.com)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=krizaka_sovkora&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=krizaka_sovkora)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=krizaka_sovkora&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=krizaka_sovkora)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=krizaka_sovkora&metric=coverage)](https://sonarcloud.io/summary/new_code?id=krizaka_sovkora)
 
-[Website](https://www.orazaka.com) · [Documentation](https://www.orazaka.com/docs) · [Krizaka](https://www.krizaka.com) · [Krizaka on GitHub](https://github.com/krizaka)
+[Website](https://www.sovkora.com) · [Dev](https://dev.sovkora.com) · [Docs](docs/README.md) · [Krizaka](https://www.krizaka.com) · [Krizaka on GitHub](https://github.com/krizaka)
 
 </div>
 <!-- /krizaka-header -->
 
-<p align="center">
-  <br><sub>Eric answers a customer from his own returns policy, then generates the product photo — everything ran on one Mac, nothing left it. <a href="https://www.krizaka.com/en/products/orazaka/demos">More demos</a></sub>
-</p>
+## What Sovkora is
 
-A multimodal AI orchestration engine — chat, RAG, agents, image, audio, video — where every request crosses a
-deterministic interceptor pipeline to the best **local** model. Your documents, your models, your network: nothing
-leaves it. Law 25 and GDPR by design.
+A multimodal AI orchestration engine (chat, RAG, agents, image, audio, video) where every request crosses a
+deterministic interceptor pipeline to the best **local** model. A product (Verikora, Folioviv) or a person brings a
+question; Sovkora routes it through its packs and Studios, runs it on models you host, and accounts for every turn.
+Québec Law 25 and GDPR by design: nothing leaves your network unless you say so.
 
-**Unfiltered models, your rules.** Hosted assistants apply their vendor's refusal policy to every answer. Orazaka
-serves open-weight models without that layer — Qwen 2.5, Dolphin Llama 3 and Gemma 3, abliterated or fine-tuned
-without refusals ([`infra/migrations/2026-10-11-uncensored-models.sql`](infra/migrations/2026-10-11-uncensored-models.sql))
-— so a security team, a clinician, a reporter or a novelist gets a straight answer, on your own machines. The policy
-is the operator's: a pack declares what it refuses (`scopeGuard`) and the crisis text it answers (`safety`), the engine
-enforces both before any model runs, and every turn is accounted for. "Uncensored" means not over-refusing legitimate
-work; it never covers content sexualising minors, explicit sexual content, real persons, weapons or bio-chemical
-procedures, working malware, or anything that enables serious harm. [See the answers](https://www.krizaka.com/en/products/orazaka/demos#unfiltered).
+**Unfiltered models, your rules.** Sovkora serves open-weight models without a vendor's refusal layer, so a security
+team, a clinician, a reporter or a novelist gets a straight answer. The policy is the operator's: a pack declares what it
+refuses (`scopeGuard`) and the crisis text it answers (`safety`), the engine enforces both before any model runs. It
+never covers content sexualising minors, explicit sexual content, real persons, weapons or bio-chemical procedures,
+working malware, or anything that enables serious harm.
 
-This repository is the entry point of the Orazaka platform. It holds the governance contract
-([AGENTS.md](AGENTS.md)), the workspace manifest ([`orazaka.workspace.json`](orazaka.workspace.json)),
-the local infrastructure (`infra/`), the hermetic end-to-end suite (`e2e/sovkora-e2e/`) and the
-architecture documentation (`docs/`). Every component lives in its own repository so that any
-Krizaka application can pick only what it needs.
+## One repository
 
-## Repositories
+Everything Sovkora is lives here, in one tree (ADR-029, 2026-11-08): the Java reactor, the clients, the workers, the
+packs, the infrastructure and the docs. Each folder kept its history (`git log -- <folder>`). The list of modules, with
+what each is and what it depends on, is [`modules.json`](modules.json); the generated map is
+[docs/_generated/MODULES.md](docs/_generated/MODULES.md).
 
-### Orazaka foundation
-
-| Repository | What it is |
-|:---|:---|
-| [`orazaka-build`](https://github.com/krizaka/orazaka-build) | Parent POM of every Orazaka JVM repository: inherits `krizaka-parent`, imports `krizaka-bom` 0.2.0 and the Spring AI BOM, and carries the Orazaka governance tests. |
-| [`orazaka-contracts`](https://github.com/krizaka/orazaka-contracts) | Tier-1 platform contracts shared by every Orazaka service: the job plane (jobs-api) and the application-persistence ports (persistence-app-api). Pure interfaces and records, zero implementation. |
-| [`orazaka-edge`](https://github.com/krizaka/orazaka-edge) | Transparent HTTP edge in front of every Orazaka service: routing, API-key → JWT exchange, CORS and tracing. Spring MVC + virtual threads. |
-| [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) | @krizaka/orazaka-shared (TypeScript types, Zod schemas, design tokens) and @krizaka/orazaka-design-system (React components, Tailwind preset, theme, icon registry) for Next.js and React Native apps. |
-
-### Krizaka building blocks — reusable by any application
-
-Released on [Maven Central](https://central.sonatype.com/namespace/com.krizaka) (`com.krizaka`, BOM 0.2.0) and
-cloned under `krizaka/` so the reactor builds them from source. Documentation: [krizaka.com/docs/java](https://www.krizaka.com/docs/java).
-
-| Repository | What it is |
-|:---|:---|
-| [`krizaka-build`](https://github.com/krizaka/krizaka-build) | Parent POM, `krizaka-bom` and the test kit (ArchUnit rules, Testcontainers helpers) of every Krizaka JVM repository. |
-| [`krizaka-platform-kit`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-platform-kit) | Web (problem details, correlation id), security (session JWT, `SERVICE` tokens), messaging (outbox, deduplication, retry / DLQ), observability — and their Spring Boot starters. |
-| [`krizaka-users`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-users) | Reusable user management: registration, e-mail verification, login (password + Google/GitHub OAuth), forgot/reset password, profile & preferences, API keys, RBAC and JWT issuance. |
-| `krizaka-notifications` (modules of [`krizaka-platform-kit`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-platform-kit)) | Channel-based notification delivery: e-mail (SMTP), SMS (Twilio) and webhooks behind one DeliveryClient port, driven by platform events or explicit requests over AMQP. |
-
-### Orazaka AI engine
-
-| Repository | What it is |
-|:---|:---|
-| [`orazaka-studio`](https://github.com/krizaka/orazaka-studio) | Studio & pack marketplace: pack catalogue, studio blueprints, installations and saga-driven runs, with its contract (studio-api) and HTTP client (studio-client). |
-| [`orazaka-ai-engine`](https://github.com/krizaka/orazaka-ai-engine) | The Orazaka cognitive SDK: AiClient & provider mesh (core), the interceptor pipeline, tools (MCP · RAG · sandbox), use-case orchestration (business), application persistence and asset encryption. |
-| [`orazaka-conversation-service`](https://github.com/krizaka/orazaka-conversation-service) | Interactive ingress of the Orazaka engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic. |
-| [`orazaka-job-service`](https://github.com/krizaka/orazaka-job-service) | Asynchronous job executor of the Orazaka engine: drains the interactive and batch lanes, owns the capability registry and the worker registry. |
-| [`orazaka-knowledge-service`](https://github.com/krizaka/orazaka-knowledge-service) | Knowledge & RAG retrieval service (pgvector) with asynchronous indexing. |
-| [`orazaka-automation-service`](https://github.com/krizaka/orazaka-automation-service) | Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry. |
-| [`orazaka-worker-media`](https://github.com/krizaka/orazaka-worker-media) | Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol. |
-
-### Applications & content
-
-| Repository | What it is |
-|:---|:---|
-| [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) | Next.js (App Router) client of the Orazaka platform with its mandatory BFF. |
-| ~~`orazaka-web-admin`~~ | **Retired** — the operator console is served by [`orazaka-web-client`](https://github.com/krizaka/orazaka-web-client) on `admin.orazaka.com` (host routing). The repository is archived and deleted on 2026-10-23. |
-| [`orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client) | Expo / React Native client of the Orazaka platform (talks to the edge with Bearer tokens). |
-| [`orazaka-cli`](https://github.com/krizaka/orazaka-cli) | The `orazaka` developer CLI: install, start, dev, `demo seed`, test, docs and pack tooling for the Orazaka workspace, with an offline SQLite queue. |
-| [`orazaka-packs`](https://github.com/krizaka/orazaka-packs) | Reference packs for the Orazaka Studio marketplace (document validation, media, prospection, real-estate, wellbeing…) and the pack manifest schema. |
-
-## Dependency graph
-
-```mermaid
-graph LR
-  krizaka_build --> krizaka_platform_kit
-  krizaka_build --> krizaka_users
-  krizaka_platform_kit --> krizaka_users
-  krizaka_build --> krizaka_notifications
-  krizaka_platform_kit --> krizaka_notifications
-  krizaka_build --> orazaka_build
-  orazaka_build --> orazaka_contracts
-  orazaka_build --> orazaka_studio
-  orazaka_contracts --> orazaka_studio
-  krizaka_build --> orazaka_studio
-  orazaka_build --> orazaka_ai_engine
-  orazaka_contracts --> orazaka_ai_engine
-  krizaka_build --> orazaka_ai_engine
-  orazaka_studio --> orazaka_ai_engine
-  orazaka_build --> orazaka_conversation_service
-  orazaka_contracts --> orazaka_conversation_service
-  krizaka_users --> orazaka_conversation_service
-  krizaka_build --> orazaka_conversation_service
-  orazaka_ai_engine --> orazaka_conversation_service
-  orazaka_build --> orazaka_job_service
-  orazaka_contracts --> orazaka_job_service
-  krizaka_users --> orazaka_job_service
-  krizaka_build --> orazaka_job_service
-  orazaka_ai_engine --> orazaka_job_service
-  orazaka_build --> orazaka_knowledge_service
-  orazaka_build --> orazaka_automation_service
-  krizaka_build --> orazaka_automation_service
-  orazaka_build --> orazaka_edge
-  orazaka_ui_kit --> orazaka_web_client
-  orazaka_ui_kit --> orazaka_web_admin
-  orazaka_ui_kit --> orazaka_mobile_client
+```
+sovkora/
+├── build/                  the parent POM (krizaka-parent from Maven Central) and the governance test kit
+├── contracts/              the platform contracts: job plane, persistence ports, secret sealing
+├── engine/                 the engine: core, interceptors, tools, Spring AI, business, persistence, assets
+├── services/               one Spring Boot deployable per bounded context
+│   ├── edge/               the HTTP edge: routing, API key → JWT, CORS, tracing
+│   ├── conversation/       chat (SSE), intents, models, MCP: the interactive ingress
+│   ├── job/                the job lanes, the capability and worker registries
+│   ├── knowledge/          RAG retrieval (pgvector) and the recommender
+│   ├── automation/         connectors (Jira, Slack, WhatsApp…), schedules, CLI agents
+│   └── studio/             the Studio and pack marketplace: blueprints, installations, runs
+├── e2e/                    the cross-service journeys
+├── workers/media/          the Python media and GPU worker (uv)
+├── packs/                  the capability packs (Apache-2.0)
+├── apps/                   the clients, one pnpm workspace
+│   ├── web/                Next.js: the site, the Studios and the operator console (BFF)
+│   ├── mobile/             Expo / React Native
+│   ├── desktop/            Sovkora for Mac (Tauri 2)
+│   └── cli/                the developer CLI (`orazaka`, on npm as @krizaka/orazaka-cli)
+├── infra/                  local stack, dev deployment, migrations, OpenTofu
+├── scripts/                the repository's tooling and its tests
+├── tests/load/             the k6 load tests of the edge
+└── docs/                   the documentation (start at docs/README.md)
 ```
 
-Rules (AGENTS.md §2): a repository depends only on repositories **before** it in
-`orazaka.workspace.json` (no cycle); a service depends on another context's **contract**
-(`*-api`) or **client**, never on its implementation.
+## Architecture
 
-## Run Orazaka on your own infrastructure
+Sovkora's C1 and C2, current and target, are code: [docs/architecture/sovkora.c4](docs/architecture/sovkora.c4)
+(LikeC4, ADR-027). Each container is a folder of this repository (`repo 'sovkora'` + `path`).
 
-On a Mac (Apple Silicon) or a Linux server with an NVIDIA GPU — your data never leaves your machine,
-no telemetry, offline once the models are downloaded. Requirements, the 3 steps per target, update,
-backup and uninstall: **[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md)**. How it is packaged and signed:
-[docs/DELIVERY.md](docs/DELIVERY.md). Security reports: [SECURITY.md](SECURITY.md).
+**C1, the context.** People use the web app, the mobile app, the Mac app or the CLI; the products Verikora and Folioviv
+call the edge with an API key. Sovkora runs the models it routes to on your machines (Ollama, sd-server, the media
+worker on a GPU host) or, when the operator allows it, on a hosted provider. It relies on Krizaka's users and billing
+services and on PostgreSQL, RabbitMQ and an object store.
 
-## Quick start
+**C2, the containers.**
 
-Requirements: git, JDK 21, Node.js 22+, Docker, Python 3.11+ (media worker), macOS recommended for native
-inference.
+| Container | Folder | What it does |
+|:---|:---|:---|
+| Web app and console | [`apps/web`](apps/web) | the site, chat, Studios and the operator console, with its server routes (the only door for a browser) |
+| Mobile app | [`apps/mobile`](apps/mobile) | chat and Studios on the phone, against the edge with a Bearer token |
+| Sovkora for Mac | [`apps/desktop`](apps/desktop) | installer and control panel, the folders the user picks, local automations |
+| CLI | [`apps/cli`](apps/cli) | install, start, dev, test, docs and packs, for the local stack |
+| Edge | [`services/edge`](services/edge) | the one HTTP entry (:8088): routes `/api/v1/**`, exchanges keys for JWTs |
+| Conversation | [`services/conversation`](services/conversation) | chat over SSE, intents, models, the pipeline, MCP |
+| Jobs | [`services/job`](services/job) | the interactive and batch lanes, the capability registry |
+| Studio | [`services/studio`](services/studio) | packs, blueprints, installations and saga-driven runs |
+| Knowledge | [`services/knowledge`](services/knowledge) | RAG retrieval and asynchronous indexing |
+| Automation | [`services/automation`](services/automation) | connectors, Quartz schedules, execution telemetry |
+| Engine (library) | [`engine`](engine) | the cognitive SDK every service runs: AiClient, interceptors, tools, routing |
+| Media worker | [`workers/media`](workers/media) | images, video, sound and composition, on Metal or CUDA |
+| Packs | [`packs`](packs) | the Studios and rules a tenant installs |
+
+## Run it
+
+Requirements: git, JDK 21, Node.js 22+, pnpm 12, Docker, Python 3.12 with uv (the media worker), macOS recommended for
+native inference.
 
 ```bash
-npx orazaka install                    # clones this workspace and every repository into ./orazaka, verifies the tools, configures it
-cd orazaka
-./mvnw install                         # builds and tests every JVM repository in one reactor
-(cd orazaka-apps/ui && npm install)    # links the cloned UI repositories
-npx orazaka start                      # local infrastructure: Docker middleware and AI engines
-npx orazaka dev                        # the whole stack: every service, Web, Admin and Mobile
-npx orazaka demo seed                  # second terminal, stack up: Eric, the demo persona (account, plan, packs, Studios)
+git clone https://github.com/krizaka/sovkora.git && cd sovkora
+./mvnw verify                           # every Java module, unit and integration tests (Testcontainers)
+pnpm install                            # the clients: apps/web, mobile, cli, desktop (each keeps its own lockfile)
+npx orazaka start                       # the local infrastructure: Docker middleware and AI engines
+npx orazaka dev                         # the whole stack: every service, the web app, the console, mobile
+npx orazaka demo seed                   # second terminal, stack up: Eric, the demo persona
 ```
 
-Sign in on the web client as Eric — the account `orazaka demo seed` prints — and replay the demo above on your
-own machine. `npx orazaka` is [`@krizaka/orazaka-cli`](https://www.npmjs.com/package/@krizaka/orazaka-cli) on npm
-(`orazaka` is its short name; `npx @krizaka/orazaka-cli …` is the canonical form). By hand instead of `install`:
-`git clone https://github.com/krizaka/orazaka.git && cd orazaka && node scripts/workspace.mjs clone`.
+The users and billing services come from [krizaka-java](https://github.com/krizaka/krizaka-java), at the release
+`build/sovkora-parent/pom.xml` imports (`krizaka.version`). The local stack and the docs generator read it from
+`.krizaka-java/`, a checkout of that tag (git-ignored).
 
-`node scripts/workspace.mjs status` shows the branch and state of every repository;
-`node scripts/workspace.mjs pull` updates them all.
+| Part | Build and test it |
+|:---|:---|
+| One Java module | `./mvnw verify -pl services/studio/sovkora-studio-service -am` (and `-amd` for what depends on it) |
+| The web app | `pnpm --dir apps/web run validate && pnpm --dir apps/web run build` |
+| The mobile app | `pnpm --dir apps/mobile run validate` |
+| The CLI | `pnpm --dir apps/cli run validate` |
+| The Mac app | `pnpm --dir apps/desktop run check` (macOS) |
+| The media worker | `cd workers/media && uv sync && uv run pytest -q` |
+| The packs | `cd packs && npm ci && npm test`, then each pack worker's `python -m pytest` |
+| The tooling and its guards | `node --test scripts/test/*.test.mjs` and `node scripts/check-java-layout.mjs` |
+| The generated docs | `node scripts/generate-docs.mjs` (`--check` in CI) |
 
-## Follow Studio runs without polling
+Self-hosting (a Mac or a Linux server with an NVIDIA GPU, offline once the models are downloaded):
+[docs/SELF_HOSTING.md](docs/SELF_HOSTING.md). Packaging and signing: [docs/DELIVERY.md](docs/DELIVERY.md). The dev
+environment (dev.sovkora.com on DigitalOcean App Platform): [docs/DEPLOY_DEV.md](docs/DEPLOY_DEV.md).
 
-Studio runs expose per-run and per-key Server-Sent Events streams, and signed `run.completed` /
-`run.failed` webhooks for server-to-server integrations. Webhook endpoints are managed in **Settings →
-Webhooks**; delivery is at-least-once, so receivers should deduplicate on `webhook-id`. See the
-[Studio guide](docs/STUDIO_GUIDE.md#follow-a-run) for event resumption, signatures, retries, and the
-delivery log.
+## The packs
 
-## Grounded research (proposed)
+A pack is a folder of [`packs/`](packs) with a `pack.yaml` (validated against [`pack.schema.json`](packs/pack.schema.json)):
+its Studios (semver'd blueprints), their texts in French and English, and, when it needs one, its own worker.
 
-The engine looking things up, reading the source and citing it, instead of answering from memory: ADR-087 and its [design](docs/design/grounded-research.md) (proposed, not built yet).
+| Pack | What a tenant gets | Studios | Worker |
+|:---|:---|:---:|:---:|
+| [`document-validation`](packs/document-validation) | compliance check of a document against dated rules and their sources; authenticity signals of a PDF | 2 | yes |
+| [`identity-document-check`](packs/identity-document-check) | the ICAO check digits and cross-checks of an identity document | 1 | yes |
+| [`tenant-screening-qc`](packs/tenant-screening-qc) | the gated saga of a rental application: documents, court records, credit | 1 | yes |
+| [`privacy-law25`](packs/privacy-law25) | Québec Law 25: privacy impact, incident register, consent texts | 4 | — |
+| [`bill96-french-first`](packs/bill96-french-first) | Bill 96: French first, for a business's texts | 4 | — |
+| [`message-authenticity`](packs/message-authenticity) | the authenticity signals of a message | 1 | yes |
+| [`media-safety`](packs/media-safety) | the safety check of photos, video frames and voice messages (fails closed) | 1 | yes |
+| [`profile-photo-check`](packs/profile-photo-check) | a profile photo is a real, single, visible face | 1 | yes |
+| [`orazaka-media`](packs/orazaka-media) | the media toolkit: image, video, sound and art direction | 16 | — |
+| [`data-analytics`](packs/data-analytics) | recommendations, product analytics, video understanding | 3 | — |
+| [`outbound-prospection`](packs/outbound-prospection) | lead research, outbound angles and follow-up sequences | 3 | — |
+| [`business-brief`](packs/business-brief) | a business brief from a few answers | 1 | — |
+| [`code-contributor`](packs/code-contributor) | an agent that turns an issue into a pull request | 2 | — |
+| [`realestate-studio`](packs/realestate-studio) | listing reels from room photos | 1 | — |
+| [`trade-showcase`](packs/trade-showcase) | a tradesperson's showcase | 1 | — |
+| [`wellbeing`](packs/wellbeing) | wellbeing Studios, with the crisis guard | 4 | — |
+| [`echo-toolkit`](packs/echo-toolkit) | the reference used by the platform tests (draft, never on the shelf) | 1 | yes |
 
-The compliance checks built from the law, on top of it — identify the document, read the dated articles, propose rules, promote them to dated rulesets: ADR-089 (proposed, not built yet).
+Writing a pack: [packs/README.md](packs/README.md) and the generated [docs/_generated/PACKS.md](docs/_generated/PACKS.md).
+
+## Workflows
+
+One CI for the whole repository, and a few workflows that run on their own schedule. Each says what it does in its name.
+
+| Workflow | What it does | When |
+|:---|:---|:---|
+| [CI](.github/workflows/ci.yml) | the Java reactor (the changed modules and their dependents on a pull request), the web, mobile and CLI apps, the media and pack workers, the packs, the tooling and its guards, the generated docs, one SonarCloud scan; the gate `workspace` | every pull request, the merge queue, main, nightly |
+| [Security scan](.github/workflows/security.yml) | secrets (gitleaks), workflows (zizmor), commit trailers | every pull request and the merge queue |
+| [lang-guards](.github/workflows/lang-guards.yml) | the Rust of the Mac app; ruff and pyright on the media worker and the packs, counted in their ratchets | every pull request, main |
+| [Desktop](.github/workflows/desktop.yml) | the Mac app's checks and, on a `desktop-v*` tag, the signed dmg | changes in `apps/desktop`, tags |
+| [Dev image build](.github/workflows/dev-image-build.yml) | builds the dev `core` image (never pushed) | changes to the image, weekly |
+| [Dev redeploy](.github/workflows/dev-redeploy.yml) | rebuilds dev when main moved; fails on a rollback, a stale source or a schema drift | every 15 minutes |
+| [Dev persona smoke](.github/workflows/dev-persona-smoke.yml) | the demo persona signs in on dev | after a deploy, every 30 minutes |
+| [Web live](.github/workflows/web-live.yml) | waits for the merged commit on dev, then the live smoke, the SEO contract, the console gate and the UI crawl | main, when `apps/web` changed |
+| [Web videos](.github/workflows/web-videos.yml) | records the download page's videos from the deployed app | daily |
+| [Mobile E2E](.github/workflows/mobile-e2e.yml) | the Maestro flows of the mobile app on an Android emulator | changes in `apps/mobile` |
+| [Mobile release](.github/workflows/mobile-release.yml) | the Android APK on a `mobile-v*` tag; a TestFlight submission on demand | tags, on demand |
+| [Media worker image](.github/workflows/media-image.yml) | the CUDA image of the media worker (`ghcr.io/krizaka/sovkora-media-worker`) | changes to the worker's image |
+| [GPU smoke](.github/workflows/gpu-smoke.yml) | Sovkora's own engines on a rented GPU, through dev | on demand |
+| [load-smoke](.github/workflows/load-smoke.yml) | the edge under the k6 smoke load, thresholds from the SLO table | changes to the edge or the load tests, weekly |
+| [Packs golden stack](.github/workflows/packs-golden.yml) | the packs' goldens against a real stack, on the trusted runner | main, when enabled |
+| [Docs regenerate](.github/workflows/docs-regen.yml) / [docs-sync](.github/workflows/docs-sync.yml) | keep `docs/_generated` in step with the code | pull requests, daily |
+| [Dependabot auto-merge](.github/workflows/dependabot-automerge.yml), [merge resolution](.github/workflows/merge-resolution.yml), [Scorecard](.github/workflows/scorecard.yml) | the org's shared workflows | as their names say |
 
 ## Manual tools
 
 Scripts a person runs by hand (ADR-026: nothing runs unlisted). Each opens with a header saying why, what, how and who owns it.
 
 | Script | What it does | Doc |
-| :-- | :-- | :-- |
+|:---|:---|:---|
 | `scripts/journey-dev.mjs` | replays the core journey (chat, image, analysis, clip) on the dev edge as the demo persona | [docs/DEPLOY_DEV.md](docs/DEPLOY_DEV.md) |
 | `scripts/dev-persona-runs.mjs` | puts a few real Studio runs on a dev persona's shelf before a recording | its header |
-| `scripts/dev-reset.mjs` | clears and re-seeds a product's DEV databases | [docs/DEV_DATABASE.md](docs/DEV_DATABASE.md) |
+| `scripts/dev-reset.mjs` | clears and re-seeds a product's dev databases | [docs/DEV_DATABASE.md](docs/DEV_DATABASE.md) |
+| `apps/mobile/scripts/record-story.mjs` | records the mobile app's story clips | its header |
+| `apps/mobile/scripts/frame-clips.mjs` | puts those clips in a device frame, with their captions | its header |
+| `apps/web/scripts/record-dev-clip.mjs` | records a clip of the web app on dev | its header |
 
-## Workspace layout
+## Licence
 
-```
-orazaka/                               ← this repository
-├── AGENTS.md · orazaka.workspace.json · pom.xml (reactor)
-├── infra/        docker-compose, initdb (reset), migrations
-├── docs/         architecture, ADRs, generated references
-├── e2e/sovkora-e2e/                   hermetic E2E
-├── sovkora-libs/                      ← cloned: orazaka-build, orazaka-contracts, orazaka-ai-engine
-├── krizaka/                           ← cloned: krizaka-build (with the platform kit), krizaka-users, krizaka-billing (both inside krizaka-build)
-├── orazaka-apps/services/             ← cloned: orazaka-studio, conversation, job, knowledge, automation, edge
-├── orazaka-apps/workers/              ← cloned: orazaka-worker-media
-├── orazaka-apps/ui/                   ← npm workspace root; cloned: orazaka-ui-kit, web, mobile, cli
-└── orazaka-packs/                     ← cloned: orazaka-packs
-```
+Each folder kept the licence it had as its own repository ([NOTICE](NOTICE)):
 
-Cloned directories are ignored by this repository's git; each is its own repository.
+- **FSL-1.1-ALv2** ([LICENSE](LICENSE)): any use except a Competing Use; each version becomes Apache-2.0 two years after it
+  is published. It covers every folder without a licence of its own.
+- **Apache-2.0**: [`build/`](build/LICENSE), [`contracts/`](contracts/LICENSE), [`services/edge/`](services/edge/LICENSE),
+  [`apps/cli/`](apps/cli/LICENSE) and [`packs/`](packs/LICENSE).
 
-## Building a new application from Orazaka components
-
-1. Import `com.krizaka:krizaka-bom` 0.2.0 from Maven Central and add the starters you need
-   (`krizaka-spring-boot-starter-web`, `-security`, `-rabbitmq`, `-observability`) — or inherit
-   `com.krizaka.orazaka:orazaka-parent` (from [orazaka-build](https://github.com/krizaka/orazaka-build)) for the
-   full Orazaka stack and quality gates.
-2. Run the services you need — e.g. [krizaka-users](https://github.com/krizaka/krizaka-build/tree/main/krizaka-users) for
-   registration / login / forgot password / profile, krizaka-notifications ([in krizaka-build](https://github.com/krizaka/krizaka-build/tree/main/krizaka-platform-kit/docs/notifications.md))
-   for e-mail / SMS / webhook delivery, [krizaka-billing](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing) for credits and
-   subscriptions, [orazaka-edge](https://github.com/krizaka/orazaka-edge) in front of them.
-3. Depend only on their contracts (`krizaka-users-api`, `krizaka-notifications-api`,
-   `krizaka-billing-api`) or clients.
-4. Build the UI with [`@krizaka/ui`](https://www.krizaka.com/docs/ui) and the Orazaka identity,
-   [`@krizaka/orazaka-design-system`](https://www.npmjs.com/package/@krizaka/orazaka-design-system).
-
-## Consuming packages
-
-- **Krizaka building blocks** (`com.krizaka`) are on **Maven Central** — no repository to declare. Import the BOM:
-  `com.krizaka:krizaka-bom:0.2.0` ([all artifacts](https://central.sonatype.com/namespace/com.krizaka)).
-- **npm packages** (`@krizaka/ui`, `@krizaka/orazaka-design-system`, `@krizaka/orazaka-shared`, …) are on the
-  **public npm registry** — no `.npmrc`, no token.
-- **Orazaka JVM artifacts** (`com.krizaka.orazaka`) are still published to GitHub Packages on a `v*` tag. Maven, in
-  `~/.m2/settings.xml`:
-
-```xml
-<servers>
-  <server><id>github</id><username>YOUR_GITHUB_USER</username><password>${env.GITHUB_TOKEN}</password></server>
-</servers>
-<!-- and a <repository> with id "github" per Orazaka repository you consume, e.g.
-     https://maven.pkg.github.com/krizaka/orazaka-build -->
-```
-
-## License
-
-[FSL-1.1-ALv2](LICENSE) (Functional Source License, Apache-2.0 future licence) © Technologies Krizaka Inc. — read,
-run, modify and self-host it for any purpose except offering a competing service; each version becomes Apache-2.0 two
-years after its release. Commits before the licence change remain [Apache-2.0](LICENSE-APACHE) — see [NOTICE](NOTICE)
-and ADR-012.
-The Krizaka names and birds are not licensed: [trademark policy](https://github.com/krizaka/.github/blob/main/TRADEMARKS.md).
+External contributions sign the Krizaka Contributor Licence Agreement. Security reports: [SECURITY.md](SECURITY.md).
+Agents and contributors read [AGENTS.md](AGENTS.md) first.

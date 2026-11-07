@@ -2045,7 +2045,7 @@ my-pack/
     …
 ```
 
-Nothing here names a path inside Orazaka. Put the directory anywhere you like — `~/packs/my-pack`
+Nothing here names a path inside Sovkora. Put the directory anywhere you like — `~/packs/my-pack`
 is fine.
 
 ### 2. The manifest
@@ -2089,7 +2089,7 @@ studios:
 > unknown properties outright, so an invented key fails validation rather than being ignored.
 >
 > ⚠ **`pricing` is `priceCents` + `includedCredits`.** Not `bundledCredits`. `priceCents` is in cents of the
-> billing service's currency (`billing.currency` — Canadian dollars for Orazaka: `7900` is 79 $ CA); a manifest never
+> billing service's currency (`billing.currency` — Canadian dollars for Sovkora: `7900` is 79 $ CA); a manifest never
 > names a currency.
 
 Everything else is optional and has a default. `orazaka pack validate` names the exact line when
@@ -2254,7 +2254,7 @@ requires:
 ```
 
 — and write a process that honours [`docs/WORKER_PROTOCOL.md`](../WORKER_PROTOCOL.md). **The
-broker is the plugin boundary**: your worker links no Orazaka library and implements no interface.
+broker is the plugin boundary**: your worker links no Sovkora library and implements no interface.
 It must
 
 1. **declare its own topology** — exchange, queue, bindings, DLQ — so installing your pack needs no
@@ -2387,7 +2387,7 @@ stack; stale versions, cached runs, or idempotent replays fail, not pass. No cac
 assumed, and lower-level model caches are outside this runner's visibility.
 The shared component workflow itself does not start that stack.
 
-Generated platform documentation lives in the Orazaka workspace, not this repository. After
+Generated platform documentation lives in the Sovkora workspace, not this repository. After
 assembling the workspace, regenerate it with `orazaka docs build`: generated pages change only through their generator.
 
 ### 9. Licence

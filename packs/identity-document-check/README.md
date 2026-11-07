@@ -6,7 +6,7 @@ value, region of the document) and a **confidence**.
 
 ## How it works
 
-1. **Read** — a vision model routed by Orazaka transcribes the document: the machine-readable zone (MRZ) character by character, the
+1. **Read** — a vision model routed by Sovkora transcribes the document: the machine-readable zone (MRZ) character by character, the
    printed fields, and what it can *see* (signs of tampering, a poor capture). One strict JSON answer; the model is told not to
    describe the person, not to say who they are and not to judge whether the document is genuine.
 2. **Verify** — a worker (`worker/`, no model, no network, it never receives the image) decides by arithmetic:

@@ -2,7 +2,7 @@
 
 The first pack on the **Data & Analytics** shelf ([orazaka-packs#16](https://github.com/krizaka/orazaka-packs/issues/16),
 [RFC #174](https://github.com/krizaka/orazaka/discussions/174)). It packages the recommender of
-ADR-078: a product sends what its users do, Orazaka serves a feed per person
+ADR-078: a product sends what its users do, Sovkora serves a feed per person
 and analytics per creator, and every item it returns says why it is there.
 
 ## What you get
@@ -39,7 +39,7 @@ tenants.
 ## Personal data (Loi 25)
 
 - **Users are pseudonyms.** The product sends `HMAC-SHA256(AI_PSEUDONYM_KEY, userId)` — a key only the product holds —
-  never its user id, an e-mail, a name or a message. Orazaka cannot reverse a pseudonym.
+  never its user id, an e-mail, a name or a message. Sovkora cannot reverse a pseudonym.
 - **Purpose-limited.** Ranking and creator analytics for that tenant only: never training a shared model, never joined
   with another tenant, never resold.
 - **Retention.** Events older than the tenant's `retentionDays` setting (default 180, a versioned database row) are
@@ -63,8 +63,8 @@ The first consumer is a product (ADR-078): For you, More like this, and the crea
 
 ## Seen running (dev, 2026-10-17)
 
-In Orazaka's chat, the QA account picks **Data-driven UI**, pastes a product's real activity per day (aggregated from
-Orazaka's analytics, ADR-081) and asks how the audience is doing; the answer arrives as figures, a chart and a callout,
+In Sovkora's chat, the QA account picks **Data-driven UI**, pastes a product's real activity per day (aggregated from
+Sovkora's analytics, ADR-081) and asks how the audience is doing; the answer arrives as figures, a chart and a callout,
 drawn by `@krizaka/ui/genui` (ADR-082). Run `186125cd-f9f3-47ed-8976-db52e9ac3d06` (blueprint 1.2.0, default chat model).
 
 [![The chat answering with a dashboard](https://krizaka-assets.b-cdn.net/site/products/orazaka/video/genui-chat-poster.64cb1eafca.webp)](https://krizaka-assets.b-cdn.net/site/products/orazaka/video/genui-chat.fa80de9821.mp4)

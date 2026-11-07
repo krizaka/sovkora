@@ -141,7 +141,7 @@ pre-integration-test:
 
 integration-test:
   Tier 1: npx httpyac send src/test/resources/api-contracts/ --all --bail
-  Tier 2: npm run test:e2e (orazaka-apps/orazaka-cli)
+  Tier 2: npm run test:e2e (apps/cli)
   Tier 3: Failsafe → *IT.java (Playwright Java, headless Chromium)
 
 post-integration-test:

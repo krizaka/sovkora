@@ -21,7 +21,7 @@ AI-text detectors are unreliable, above all on **short texts** and on **non-nati
   are not clear, so **they are not in this repository** — only the script that fetches them and their SHA-256 (`human-manifest.json`).
   This is not dating chat: the genre differs from what the product judges, which flatters or hurts a detector in ways we cannot
   measure without a corpus of real dating messages (which we neither have nor should).
-* **Generated** texts (`generated.json`): first messages on a dating app, written through Orazaka's chat (one model family), in
+* **Generated** texts (`generated.json`): first messages on a dating app, written through Sovkora's chat (one model family), in
   varied tones, lengths and « write like a real person » styles. Other models, and people who edit a generated text by hand, will
   fool it more.
 

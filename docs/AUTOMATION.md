@@ -1,6 +1,6 @@
 ---
 title: Automations & local agents
-description: Work Orazaka does on its own, on your Mac, with your local model — scheduled, scoped to one folder, asking before it writes, audited.
+description: Work Sovkora does on its own, on your Mac, with your local model — scheduled, scoped to one folder, asking before it writes, audited.
 category: Core Features
 order: 8
 ---
@@ -15,7 +15,7 @@ order: 8
 the filesystem MCP server limited to `Inbox`, `qwen2.5:7b` served by Ollama, three PDFs (a Québec lease, a power bill,
 an insurance renewal); 3 notes written, 1 040 → 515 tokens, 36 s, audit chain verified (13 entries).*
 
-## What you can do today (Orazaka for Mac)
+## What you can do today (Sovkora for Mac)
 
 **"Every morning at 8:00, summarise the new PDFs in ~/Documents/Inbox and save a summary note next to them."**
 
@@ -79,6 +79,6 @@ pilot needs one.
 
 ## Related Documentation
 - ADR-079 — Automations and local agents
-- [Orazaka Desktop](../apps/desktop/README.md)
+- [Sovkora Desktop](../apps/desktop/README.md)
 - [Content policy](CONTENT_POLICY.md)
 - [CLI Reference](_generated/CLI.md)

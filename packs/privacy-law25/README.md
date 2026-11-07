@@ -1,6 +1,6 @@
 # privacy-law25
 
-Privacy governance for a Québec firm (Law 25), prepared on the client's own Orazaka: law and accounting practices, clinics and
+Privacy governance for a Québec firm (Law 25), prepared on the client's own Sovkora: law and accounting practices, clinics and
 agencies that cannot send their files to a US cloud. Category **Business & compliance**.
 
 These are **matrices for extracting information from documents and parameterizable technology templates**, technical tools validated
@@ -23,7 +23,7 @@ decided for the person in charge.
 - **Sources are references, never quoted text** (`sources.json`: the Act, section numbers, the CAI guides). No wording of a Québec
   section is pinned in this public repository (licence question, krizaka/orazaka#393). The references await the client's counsel
   (`verifiedBy: null`; krizaka/.github#22 tracks the lawyer).
-- Data never leaves the machine: the pack runs on the client's Orazaka.
+- Data never leaves the machine: the pack runs on the client's Sovkora.
 
 ## Tests
 

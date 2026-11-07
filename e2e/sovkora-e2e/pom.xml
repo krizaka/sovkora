@@ -483,7 +483,7 @@
                                              (orazaka.events.{user,password}.notifications) and
                                              orazaka.notifications.requests, each with its DLQ — asserted by
                                              AmqpContractIT. -->
-                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/krizaka/krizaka-build/krizaka-platform-kit/krizaka-notifications-service/target/orazaka-notification-service-${project.version}.jar --server.port=8097</argument>
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-service-kit/krizaka-notifications-service/target/orazaka-notification-service-${project.version}.jar --server.port=8097</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -528,7 +528,7 @@
                                         <!-- Dual-run window: the identity service boots in the constellation
                                              (smoked by its healthcheck) while the router still serves the
                                              identity routes; the Phase 2f cutover flips the edge route table. -->
-                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/krizaka/krizaka-build/krizaka-users/krizaka-users-service/target/krizaka-users-service-*.jar</argument>
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-users/krizaka-users-service/target/krizaka-users-service-*.jar</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -601,7 +601,7 @@
                                              allowing through" on every request, so the gate had never once
                                              exercised the check it is supposed to protect. Started BEFORE the
                                              studio service, which provisions into it during pack bootstrap. -->
-                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/krizaka/krizaka-build/krizaka-billing/krizaka-billing-service/target/orazaka-billing-service-${project.version}.jar</argument>
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-billing/krizaka-billing-service/target/orazaka-billing-service-${project.version}.jar</argument>
                                     </arguments>
                                 </configuration>
                             </execution>

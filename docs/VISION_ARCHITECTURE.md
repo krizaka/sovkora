@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — Target architecture vision"
+title: "Sovkora — Target architecture vision"
 description: "Target architecture: intention-driven, hexagonal, CQRS, app factory, native macOS AI runtime. Implementation basis for Claude Code."
 category: Architecture
 order: 1
 ---
 
-# Orazaka — Target architecture vision
+# Sovkora — Target architecture vision
 
 > A **vision** document, not an as-is audit. It describes what the project **must become** before implementation.
 > See [`VISION_ARCHITECTURE.md`](VISION_ARCHITECTURE.md) for the existing system.
@@ -417,7 +417,7 @@ Benefits: a single artifact to version, a single `AutoConfiguration`, boundaries
 ### 8.1 No Spring Cloud Gateway
 
 - The router **is not a dumb L7 proxy**: it hosts rich inbound adapters (GraphQL, SSE, BFF, auth) and the **`Intention` translation**. Spring Cloud Gateway (SCG) is designed for **declarative routing to downstream services**, not for hosting controllers and orchestration.
-- Orazaka is a **modular monolith**: `business`, `core`, `tools` are Maven modules **linked in-process**, not microservices behind a gateway.
+- Sovkora is a **modular monolith**: `business`, `core`, `tools` are Maven modules **linked in-process**, not microservices behind a gateway.
 - **When to reconsider**: the day we split into separately deployed services, we will introduce a dedicated edge gateway (`orazaka-edge`) **in front of** the router.
 
 ### 8.2 MVC + virtual threads, not WebFlux
@@ -470,7 +470,7 @@ orazaka/
 ├── docs/                         # auto-generated + curated, consumed by the Krizaka site
 ├── infra/                        # docker-compose (PG/pgvector, Redis, RabbitMQ) + terraform
 │   └── docker-compose.yml        #   (AI runtimes are NOT here → native macOS)
-├── orazaka-apps/                 # RUN, never imported — grouped by role/runtime
+├── apps/ and services/                 # RUN, never imported — grouped by role/runtime
 │   ├── services/                 # JVM Spring Boot deployables (the Maven reactor)
 │   │   ├── orazaka-edge/         #   transport facade (:8088)
 │   │   ├── orazaka-conversation-service/  # headless ingress, ex-router (:8080)
@@ -486,7 +486,7 @@ orazaka/
 │       ├── orazaka-cli/
 │       ├── orazaka-shared/
 │       └── orazaka-design-system/
-└── sovkora-libs/                 # IMPORTED, never run — grouped by sharing tier (§2)
+└── engine/                 # IMPORTED, never run — grouped by sharing tier (§2)
     ├── contracts/                # Tier 1 — pure *-api contracts (semver, zero impl deps)
     │   ├── krizaka-users-api/ #   identity contract (domain.model / domain.exception)
     │   └── orazaka-persistence-app-api/  # persistence contract (inbound ports + DTOs, no JPA)

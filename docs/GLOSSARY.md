@@ -6,7 +6,7 @@ order: 16
 ---
 # Glossary
 
-> Quick reference for Orazaka ecosystem terms, patterns, themes, and environment variables.
+> Quick reference for Sovkora ecosystem terms, patterns, themes, and environment variables.
 
 ---
 
@@ -147,7 +147,7 @@ UI theme accents are resolved from the database (`theme` category in `orazaka_mo
 | :--- | :--- | :--- |
 | ERR-102 | Module Separation | Strict module boundary enforcement |
 | ERR-103 | Structuring | One top-level class per file, 1:1 test matching |
-| ERR-104 | Naming | Banned: prefixing classes with `Orazaka` or `orazaka-` |
+| ERR-104 | Naming | Banned: prefixing classes with `Sovkora` or `orazaka-` |
 | ERR-106 | Domain Contracts | Self-validating records, compact constructor validation |
 | ERR-107 | Mapper Isolation | Mapping logic in package-private static `*Mapper` files |
 | ERR-108 | Date Formatting | `date-fns` only. Banned: moment.js, dayjs, native Date methods |

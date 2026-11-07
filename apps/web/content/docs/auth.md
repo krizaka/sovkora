@@ -1,6 +1,6 @@
 # Authentication Reference
 
-> Complete guide to Orazaka's authentication architecture (local credentials, OAuth2, password recovery).
+> Complete guide to Sovkora's authentication architecture (local credentials, OAuth2, password recovery).
 
 ---
 

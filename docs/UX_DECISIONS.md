@@ -1,6 +1,6 @@
-# UX decisions — why Orazaka is built like this
+# UX decisions — why Sovkora is built like this
 
-Each notable choice of experience in Orazaka, on its three surfaces — the web app and public site, the operator console, the
+Each notable choice of experience in Sovkora, on its three surfaces — the web app and public site, the operator console, the
 phone: the decision, the problem, the principle behind it (with its source), what was refused, what it costs, and the signal
 that would tell us we are wrong. Only choices that exist in the code are written here, each with the place that carries it and
 the test that keeps its shape. The longer reasoning, with before/after of the menus, is
@@ -20,7 +20,7 @@ request as its test.
 - **Decision** — Product ▾ (what does it do?) · Platforms ▾ (where does it run?) · Docs (how do I use it?); at most four
   entries a menu, none in two menus, no entry that stands alone while belonging to a group (no top-level Demo, Mobile or Mac).
 - **Problem** — Six mixed items (Product, Demo, Mobile, Documentation, a version chip): a visitor scanned all of them to find
-  where Orazaka runs.
+  where Sovkora runs.
 - **Principle** — Choice time grows with the number of options (Hick, 1952; Hick–Hyman law); grouping by goals found by card
   sorting rather than by the team's org chart (Spencer, *Card Sorting*, 2009); working memory holds about four chunks (Cowan, 2001),
   which is why a menu stops at four entries.
@@ -78,7 +78,7 @@ request as its test.
 
 ---
 
-## Console — admin.orazaka.com
+## Console — admin.sovkora.com
 
 ### Five places, two of them tabbed
 
@@ -110,7 +110,7 @@ request as its test.
 
 ---
 
-## Phone — the Orazaka app
+## Phone — the Sovkora app
 
 ### Four tabs at the thumb, Studios first
 

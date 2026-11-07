@@ -10,7 +10,7 @@ Requirements: git, JDK 21, Node.js >=22, Docker (Python 3.11+ for the media work
 
 ```bash
 npx orazaka install   # no workspace here? clones the platform into ./orazaka, then configures it
-cd orazaka && ./mvnw install && (cd orazaka-apps/ui && npm install)
+cd sovkora && ./mvnw install && pnpm install
 npx orazaka start     # Docker infrastructure (PostgreSQL + pgvector, Redis, RabbitMQ)
 npx orazaka dev       # the whole stack: services, web, admin, mobile
 ```
@@ -39,10 +39,10 @@ What each command of the quick start does, in order — the phases it announces,
 orazaka install — Setup wizard — verify tools, install dependencies, and configure deployment topology
   1. Tool Verification
   2. Install Missing Tools via Homebrew
-  · Workspace (no Orazaka workspace here)
+  · Workspace (no Sovkora workspace here)
   3. Media Worker Python Environment
   4. Deployment Topology Configuration
-orazaka start — Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)
+orazaka start — Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)
   1. Docker Services (Postgres, Redis, RabbitMQ)
   2. AI Engine (Ollama)
   3. Image Generation (LocalAI)
@@ -50,7 +50,7 @@ orazaka start — Start Orazaka infrastructure — dev mode (Docker middleware +
   4. Media Generation Worker
   5a. Starting Router (Spring Boot) (--mode full)
   5b. Starting Next.js UI (--mode full)
-orazaka dev — Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)
+orazaka dev — Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)
   EDGE :8088
   ROUTER :8080
   IDENTITY :8083
@@ -92,7 +92,7 @@ hands-off boot. Tear everything down with `orazaka stop`. On a local stack,
 
 | Command                                      | Description                                                                                                         |
 | :------------------------------------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `orazaka agent`                              | Manage Orazaka local executing agent                                                                                |
+| `orazaka agent`                              | Manage Sovkora local executing agent                                                                                |
 | `orazaka agent listen`                       | Start CLI agent listener and reverse tunnel                                                                         |
 | `orazaka chat [prompt...]`                   | Execute interactive REPL or single-shot chat                                                                        |
 | `orazaka cinema`                             | A cinematic short (30–60 s) from a brief: script, keyframes, shots, cut, sound — each an ordinary Studio run        |
@@ -116,7 +116,7 @@ hands-off boot. Tear everything down with `orazaka stop`. On a local stack,
 | `orazaka db reseed`                          | Drop & re-apply infra/initdb/*.sql (schema + seed). Destroys all local dev data.                                    |
 | `orazaka demo`                               | Demonstration persona on the local stack (never on a deployed one)                                                  |
 | `orazaka demo seed`                          | Create or refresh Eric, the demo persona: account, onboarding, plan, packs and Studios (replayable)                 |
-| `orazaka dev`                                | Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)                                    |
+| `orazaka dev`                                | Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)                                    |
 | `orazaka docs`                               | Code-driven documentation: build (generate) \| sync (to the site)                                                   |
 | `orazaka docs build`                         | Regenerate docs/_generated/ from the code                                                                           |
 | `orazaka docs sync`                          | Copy docs/ (+ generated) into the Krizaka site content tree                                                         |
@@ -152,9 +152,9 @@ hands-off boot. Tear everything down with `orazaka stop`. On a local stack,
 | `orazaka settings`                           | Manage user settings and preferences                                                                                |
 | `orazaka settings get`                       | Get all settings and preferences                                                                                    |
 | `orazaka settings set <key> <value>`         | Set a user preference key-value pair                                                                                |
-| `orazaka start`                              | Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)            |
-| `orazaka status`                             | Show live status of all Orazaka services                                                                            |
-| `orazaka stop`                               | Teardown the Orazaka infrastructure — containers, workers, and state                                                |
+| `orazaka start`                              | Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)            |
+| `orazaka status`                             | Show live status of all Sovkora services                                                                            |
+| `orazaka stop`                               | Teardown the Sovkora infrastructure — containers, workers, and state                                                |
 | `orazaka studio`                             | Browse, install and run installable business workflows                                                              |
 | `orazaka studio list`                        | Browse the Studio catalogue                                                                                         |
 | `orazaka studio installed`                   | List the Studios you have installed                                                                                 |
@@ -369,7 +369,7 @@ Create or refresh Eric, the demo persona: account, onboarding, plan, packs and S
 
 ### `orazaka dev`
 
-Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)
+Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)
 
 | Argument / option      | Description                                                                                                                         |
 | :--------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
@@ -555,7 +555,7 @@ Set a user preference key-value pair
 
 ### `orazaka start`
 
-Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)
+Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)
 
 | Argument / option     | Description                                                                                         |
 | :-------------------- | :-------------------------------------------------------------------------------------------------- |
@@ -569,7 +569,7 @@ Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or fu
 
 ### `orazaka status`
 
-Show live status of all Orazaka services
+Show live status of all Sovkora services
 
 | Argument / option | Description             |
 | :---------------- | :---------------------- |
@@ -578,7 +578,7 @@ Show live status of all Orazaka services
 
 ### `orazaka stop`
 
-Teardown the Orazaka infrastructure — containers, workers, and state
+Teardown the Sovkora infrastructure — containers, workers, and state
 
 | Argument / option | Description                                     |
 | :---------------- | :---------------------------------------------- |

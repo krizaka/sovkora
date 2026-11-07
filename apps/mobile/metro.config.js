@@ -1,4 +1,4 @@
-// Metro for the mobile client inside the Orazaka npm workspace (orazaka-apps/ui).
+// Metro for the mobile client inside the Sovkora pnpm workspace (apps/).
 //
 // React Native renders with its own copy of React's renderer, which must be the exact React version the app runs:
 // React Native 0.86 (Expo SDK 57) ships the 19.2.3 renderer, while the web apps of the workspace run React 19.2.x,

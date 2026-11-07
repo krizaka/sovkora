@@ -1,12 +1,12 @@
 ---
 title: 'Concepts'
-description: 'The whole Orazaka model on one page: clients, engine, workers, packs, Studios and runs.'
+description: 'The whole Sovkora model on one page: clients, engine, workers, packs, Studios and runs.'
 category: Getting Started
 order: 2
 ---
 # Concepts
 
-Orazaka is an AI platform you run yourself. Your documents, prompts and results stay on your machine. There is no telemetry.
+Sovkora is an AI platform you run yourself. Your documents, prompts and results stay on your machine. There is no telemetry.
 
 ## Three layers
 

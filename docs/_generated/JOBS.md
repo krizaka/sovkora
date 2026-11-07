@@ -18,7 +18,7 @@ Three mechanisms run work in the background, each with one owner:
 
 ## The job plane
 
-
+Asynchronous RabbitMQ listener that consumes task execution requests. Manages the state of jobs from PENDING → PROCESSING → COMPLETED or FAILED. Delegates feature-specific execution to the registered `JobExecutor` whose `handlerKey()` matches the capability's `handler_key` column. The executors arrive by the AutoConfiguration SPI, so an out-of-tree jar contributes one without touching this class (ADR-038).
 
 A capability row (`orazaka_capabilities`) says **where** a job goes (`routing_key`, the queue a process drains)
 and **which code** runs it (`handler_key`). Both are data: a pack adds a capability with a row, not a deploy.
@@ -26,25 +26,33 @@ and **which code** runs it (`handler_key`). Both are data: a pack adds a capabil
 | Capability | Handler | Routing key | Runs in |
 |:---|:---|:---|:---|
 | `orazaka.studio.media.compose` | `media.compose` | `job.compose.assemble` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.vision` | `image.analyze` | `job.media.analyze` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.audio.analysis` | `audio.analyze` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.image` | `image.generate` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.video.analysis` | `video.analyze` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.media.vision` | `image.analyze` | `job.media.analyze` | `VisionAnalysisStrategy` (in process) |
+| `orazaka.core.media.audio.analysis` | `audio.analyze` | `job.media.generate` | `AudioAnalysisStrategy` (in process) |
+| `orazaka.core.media.image` | `image.generate` | `job.media.generate` | `ImageGenerationStrategy` (in process) |
+| `orazaka.core.media.video.analysis` | `video.analyze` | `job.media.generate` | `VideoAnalysisStrategy` (in process) |
 | `orazaka.studio.media.sound` | `media.sound` | `job.sound.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.chat.completion` | `text.generate` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.checks.courtrecords` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.checks.credit` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.checks.identity` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.speech` | `speech.synthesize` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.research.grounded` | `research.grounded` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.chat.completion` | `text.generate` | `job.text.process` | `ChatGenerationStrategy` (in process) |
+| `orazaka.core.checks.courtrecords` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
+| `orazaka.core.checks.credit` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
+| `orazaka.core.checks.identity` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
+| `orazaka.core.media.speech` | `speech.synthesize` | `job.text.process` | `SpeechSynthesisStrategy` (in process) |
+| `orazaka.core.research.grounded` | `research.grounded` | `job.text.process` | `GroundedResearchStrategy` (in process) |
 | `orazaka.core.media.video` | `video.generate` | `job.video.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
 
 ### In-process executors
 
-
+One capability's execution, in process.
 
 | Handler key | Executor | Repository | Summary |
 |:---|:---|:---|:---|
+| `audio.analyze` | `AudioAnalysisStrategy` | `job` | Executes audio transcription/analysis jobs by delegating to the `AudioPreProcessor`. |
+| `check.external` | `ExternalCheckStrategy` | `job` | Runs the engine's external checks as job steps (sovkora-packs#138): the capabilities `orazaka.core.checks.courtrecords`, `.credit` and `.identity`, whose rows all name the handler `check.external`. |
+| `image.analyze` | `VisionAnalysisStrategy` | `job` | Executes vision/image analysis jobs using the AI chat client with vision models. |
+| `image.generate` | `ImageGenerationStrategy` | `job` | Executes image generation jobs via the AI client's image endpoint. |
+| `research.grounded` | `GroundedResearchStrategy` | `job` | Runs grounded research as a job step (ADR-087 slice 5): the capability `orazaka.core.research.grounded`, whose row names the handler `research.grounded`. |
+| `speech.synthesize` | `SpeechSynthesisStrategy` | `job` | Executes text-to-speech synthesis jobs via the AI client's audio endpoint. |
+| `text.generate` | `ChatGenerationStrategy` | `job` | Default fallback strategy for text/chat generation jobs. |
+| `video.analyze` | `VideoAnalysisStrategy` | `job` | Executes video analysis jobs by delegating to the `VideoPreProcessor`. |
 
 ### Capability and worker registries
 
@@ -105,6 +113,10 @@ the service's `application.yml` or environment.
 Connector actions are jobs too: a producer publishes on `job.automation.*` (exchange `orazaka.jobs`), the
 automation service consumes `orazaka.jobs.automation` (failures dead-letter to `orazaka.jobs.automation.dlq`), runs the connector and
 reports each state change on `evt.automation.telemetry` (exchange `orazaka.events`).
+
+| Producer | Repository | Routing key |
+|:---|:---|:---|
+| `AmqpStepExecutionAdapter` | `studio` | `job.automation.approved` |
 
 | Connector | Behaviour |
 |:---|:---|

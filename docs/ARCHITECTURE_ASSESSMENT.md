@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — État des lieux technique et reste à faire"
+title: "Sovkora — État des lieux technique et reste à faire"
 description: "Analyse du code réel après la vague 1 de remédiation : ce qui est solide, ce qui reste ouvert, et les tâches priorisées."
 category: Architecture
 order: 21
 ---
 
-# Orazaka — État des lieux technique
+# Sovkora — État des lieux technique
 
 > **Méthode.** Toute affirmation ci-dessous a été vérifiée dans le code, pas reprise d'un document.
 > C'est une précaution née de l'expérience : l'audit précédent (`PRODUCTION_READINESS_AUDIT.md`)

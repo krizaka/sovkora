@@ -675,7 +675,7 @@ capability rows, a price, catalogue entries — and changes no code.
    "key": "outbound-prospection",
    "label": "Outbound Prospecting",
    "summary": "Your prospect list becomes a sequence ready to send.",
-   "description": "Describe your target and your offer: Orazaka writes a per-prospect angle, then a sequence ready to leave for your channel.",
+   "description": "Describe your target and your offer: Sovkora writes a per-prospect angle, then a sequence ready to leave for your channel.",
    "inputs": [
     {
      "key": "prospects",
@@ -1308,7 +1308,7 @@ capability rows, a price, catalogue entries — and changes no code.
    "key": "trade-showcase",
    "label": "Trade Showcase",
    "summary": "Your job sites become a showcase that sells.",
-   "description": "Drop in photos of your work: Orazaka describes them, then composes a branded showcase visual.",
+   "description": "Drop in photos of your work: Sovkora describes them, then composes a branded showcase visual.",
    "inputs": [
     {
      "key": "photos",
@@ -1408,7 +1408,7 @@ my-pack/
     …
 ```
 
-Nothing here names a path inside Orazaka. Put the directory anywhere you like — `~/packs/my-pack`
+Nothing here names a path inside Sovkora. Put the directory anywhere you like — `~/packs/my-pack`
 is fine.
 
 ### 2. The manifest
@@ -1452,7 +1452,7 @@ studios:
 > unknown properties outright, so an invented key fails validation rather than being ignored.
 >
 > ⚠ **`pricing` is `priceCents` + `includedCredits`.** Not `bundledCredits`. `priceCents` is in cents of the
-> billing service's currency (`billing.currency` — Canadian dollars for Orazaka: `7900` is 79 $ CA); a manifest never
+> billing service's currency (`billing.currency` — Canadian dollars for Sovkora: `7900` is 79 $ CA); a manifest never
 > names a currency.
 
 Everything else is optional and has a default. `orazaka pack validate` names the exact line when
@@ -1624,7 +1624,7 @@ requires:
 ```
 
 — and write a process that honours [`docs/WORKER_PROTOCOL.md`](../WORKER_PROTOCOL.md). **The
-broker is the plugin boundary**: your worker links no Orazaka library and implements no interface.
+broker is the plugin boundary**: your worker links no Sovkora library and implements no interface.
 It must
 
 1. **declare its own topology** — exchange, queue, bindings, DLQ — so installing your pack needs no
@@ -1637,7 +1637,7 @@ It must
 > ⚠ **The success key is `result`, not `output`.** Getting it wrong gives you a `SUCCEEDED` run
 > with an empty output and no error anywhere.
 
-The worked example is [`orazaka-packs/echo-toolkit`](https://github.com/krizaka/orazaka-packs/tree/main/echo-toolkit) — a manifest, a
+The worked example is [`orazaka-packs/echo-toolkit`](https://github.com/krizaka/sovkora/tree/main/packs/echo-toolkit) — a manifest, a
 Studio and a ~120-line Python worker that reverses a string. It is deliberately trivial: everything
 in it that is not about the extension point would hide the extension point.
 

@@ -172,7 +172,7 @@ A kind may carry a `retrieval` block (optional, `kinds/kind.schema.json`): the *
 and the articles of each, such as `CCQ-1991` art. 1931 to 1933 for `qc-visit-notice` — and the **`question`** in French and English
 the grounded call is asked. `identify.retrieval_request(kind, language, asOf)` turns it into the input of the grounded step
 (`orazaka.core.research.grounded` with `sources: ["law-corpus"]`): the engine
-([orazaka-ai-engine](https://github.com/krizaka/orazaka-ai-engine), `LawRetrievalService`) reads **those articles only**, at `asOf`,
+([orazaka-ai-engine](https://github.com/krizaka/sovkora/tree/main/engine), `LawRetrievalService`) reads **those articles only**, at `asOf`,
 from the dated corpus — a visit notice brings art. 1931 to 1933 and no rent article — has the model write claims, checks every
 quote with the ADR-087 verifier, and caches the result per (jurisdiction, kind, as-of bucket) until a cited article changes. The
 engine never names an article: this file does. A kind without the block retrieves nothing; a language other than `fr`/`en` or an
@@ -183,7 +183,7 @@ engine never names an article: this file does. A kind without the block retrieve
 ## Derivation — proposed rules from the law (ADR-089 §3)
 
 The engine proposes the checks of a kind from its law; nothing it proposes judges a document until it is promoted into
-`rulesets/` (stage 5, through a pull request here). The derivation runs in [orazaka-ai-engine](https://github.com/krizaka/orazaka-ai-engine)
+`rulesets/` (stage 5, through a pull request here). The derivation runs in [orazaka-ai-engine](https://github.com/krizaka/sovkora/tree/main/engine)
 (`RuleDerivationService`, krizaka/orazaka-ai-engine#82): the retrieval above, its **verified** claims only, one model call per
 article under `law.derive.max-credits`, then `vet` (`RuleProposalVet`, no model) and `rule_proposal` (`PROPOSED` or
 `REJECTED_AUTO` with its reasons). `derivation/` holds what this pack owns of it:
@@ -281,7 +281,7 @@ pip install pika pyyaml
 cd worker && python3 validation_worker.py     # reads RABBITMQ_HOST / _USER / _PASS
 ```
 
-A TLS broker (the dev broker of Orazaka is TLS only, 5671): `RABBITMQ_SSL_ENABLED=true` (or the Java services'
+A TLS broker (the dev broker of Sovkora is TLS only, 5671): `RABBITMQ_SSL_ENABLED=true` (or the Java services'
 `SPRING_RABBITMQ_SSL_ENABLED`), the private CA in `RABBITMQ_SSL_CA_FILE` (or `SPRING_RABBITMQ_SSL_CA_FILE`), and
 `RABBITMQ_SSL_SERVER_NAME` when the address dialled is not the certificate's name. The certificate and the host name are
 always verified (`worker/broker.py` re-exporting `worker-common/worker_broker.py`, tested once by `worker-common/test_worker_broker.py`).

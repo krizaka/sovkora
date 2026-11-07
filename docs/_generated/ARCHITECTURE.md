@@ -183,27 +183,27 @@ Who calls whom while the platform runs: HTTP (UI defaults, the edge route table,
 
 | # | Interceptor | Concern |
 |:--|:---|:---|
-| 1 | `SafetyInterceptor` | — |
-| 2 | `ScopeGuardInterceptor` | — |
-| 3 | `UserContextResolver` | — |
-| 4 | `SystemContextInjector` | — |
-| 5 | `RagInterceptor` | — |
+| 1 | `SafetyInterceptor` | validation |
+| 2 | `ScopeGuardInterceptor` | governance |
+| 3 | `UserContextResolver` | context |
+| 4 | `SystemContextInjector` | context |
+| 5 | `RagInterceptor` | enrichment |
 
 **Phase 2 — configured chain** (order and switch in `pipeline_interceptor_config`)
 
 | Order | Interceptor | Enabled | Implemented |
 |:--|:---|:--|:--|
-| 4 | `EntitlementInterceptor` | ✅ | ⚠ no class |
-| 5 | `McpInterceptor` | ✅ | ⚠ no class |
-| 6 | `BrandContextInterceptor` | ✅ | ⚠ no class |
-| 7 | `MemoryInterceptor` | ✅ | ⚠ no class |
-| 8 | `RefinerInterceptor` | ✅ | ⚠ no class |
-| 8 | `SemanticCacheInterceptor` | — | ⚠ no class |
-| 9 | `RouterInterceptor` | ✅ | ⚠ no class |
-| 9 | `ToolInterceptor` | ✅ | ⚠ no class |
+| 4 | `EntitlementInterceptor` | ✅ | ✅ |
+| 5 | `McpInterceptor` | ✅ | ✅ |
+| 6 | `BrandContextInterceptor` | ✅ | ✅ |
+| 7 | `MemoryInterceptor` | ✅ | ✅ |
+| 8 | `RefinerInterceptor` | ✅ | ✅ |
+| 8 | `SemanticCacheInterceptor` | — | ✅ |
+| 9 | `RouterInterceptor` | ✅ | ✅ |
+| 9 | `ToolInterceptor` | ✅ | ✅ |
 | 10 | `MediaInterceptor` | ✅ | ⚠ no class |
-| 11 | `UserContextInterceptor` | ✅ | ⚠ no class |
-| 12 | `CitationVerifierInterceptor` | — | ⚠ no class |
+| 11 | `UserContextInterceptor` | ✅ | ✅ |
+| 12 | `CitationVerifierInterceptor` | — | ✅ |
 
 ## Messaging topology (AGENTS.md §6)
 

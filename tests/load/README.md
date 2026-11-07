@@ -1,4 +1,4 @@
-# Orazaka load suite
+# Sovkora load suite
 
 The proof of ADR-083: k6 scenarios with thresholds tied to the SLO table (`lib/slo.js`).
 
@@ -16,8 +16,8 @@ k6 run -e BASE_URL=http://127.0.0.1:8088 -e PROFILE=smoke -e USE_API_KEY=1 \
 
 # Dev: a few requests a second, off-peak, announced in orchestration.md. Credentials come from the
 # environment (secret.sh); nothing is printed.
-BASE_URL=https://www.orazaka.com/edge PROFILE=dev SCENARIOS=sync,login,run NO_REPLAY=1 k6 run tests/load/orazaka.js
-CHAT_BEARER=<jwt> BASE_URL=https://www.orazaka.com/edge node tests/load/chat-ttft.mjs --n 6 --gap 10
+BASE_URL=https://www.sovkora.com/edge PROFILE=dev SCENARIOS=sync,login,run NO_REPLAY=1 k6 run tests/load/orazaka.js
+CHAT_BEARER=<jwt> BASE_URL=https://www.sovkora.com/edge node tests/load/chat-ttft.mjs --n 6 --gap 10
 
 # A full local stack (docker compose): heavy. Take ~/.krizaka-worktrees/tools/heavy-lock.sh first.
 BASE_URL=http://localhost:8088 PROFILE=load k6 run tests/load/orazaka.js

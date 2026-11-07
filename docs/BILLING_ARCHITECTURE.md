@@ -1,13 +1,13 @@
 ---
-title: "Orazaka — Subscription, credits & metering architecture"
+title: "Sovkora — Subscription, credits & metering architecture"
 description: "Target architecture for the Billing & Entitlements bounded context: plans, prepaid credit wallets, the hold/settle metering protocol, the DB-driven pricebook, and the Lago + PSP integration seam."
 category: Architecture
 order: 6
 ---
 
-# Orazaka — Subscription, credits & metering architecture
+# Sovkora — Subscription, credits & metering architecture
 
-> **Scope**: the monetisation plane of Orazaka — how a user is entitled to a capability, how
+> **Scope**: the monetisation plane of Sovkora — how a user is entitled to a capability, how
 > consumption of that capability is measured, how it is debited from a credit balance, and how that
 > balance is replenished (subscription grant, à-la-carte top-up).
 > **Normative contract**: [`AGENTS.md`](../AGENTS.md). Nothing here overrides it.
@@ -25,9 +25,9 @@ order: 6
 | **RabbitMQ or not?** | **Both, on purpose.** Authorisation (may this request run?) is a **synchronous** internal HTTP call on the hot path. Settlement, Lago sync and subscription lifecycle go **through the broker**. Putting authorisation on the broker would violate AGENTS.md §6 ("synchronous = low-latency interactive"). | §9 |
 | **Do usable APIs exist?** | Yes. **Lago** (AGPLv3, self-hostable, v1.45.1 — Apr 2026) already implements plans, subscriptions, prepaid **wallets**, usage-event ingestion and PSP connectors. It becomes the **invoicing & money** engine. It does **not** become the authorisation engine. | §11 |
 | **How is consumption measured?** | Per-capability **billable units** (1k tokens, image×step-class, output-second, 1k characters, audio-minute), captured where the truth lives — the engine metadata for chat, the worker report for media — then converted to credits by a **versioned, DB-driven pricebook**. | §7 |
-| **How is billing performed?** | A **two-phase hold/settle protocol** over an **append-only credit ledger** owned by Orazaka. Estimate is *held* before execution, real consumption *settles* it after, failures *release* it. The ledger authorises; Lago invoices. | §6 |
+| **How is billing performed?** | A **two-phase hold/settle protocol** over an **append-only credit ledger** owned by Sovkora. Estimate is *held* before execution, real consumption *settles* it after, failures *release* it. The ledger authorises; Lago invoices. | §6 |
 
-**The one-sentence architecture**: *Orazaka owns the real-time credit ledger because authorisation
+**The one-sentence architecture**: *Sovkora owns the real-time credit ledger because authorisation
 is on the hot path of every request; Lago owns money because invoicing, prorata, dunning and tax are
 solved problems we must not rewrite.*
 
@@ -35,7 +35,7 @@ solved problems we must not rewrite.*
 
 ## 2. Why this is not "just add a Stripe subscription"
 
-Orazaka does not sell seats. It sells **variable-cost compute** — a 4-second video costs three
+Sovkora does not sell seats. It sells **variable-cost compute** — a 4-second video costs three
 orders of magnitude more to produce than a chat reply. Three consequences drive the whole design:
 
 1. **Authorisation must precede execution.** Once an MLX video job starts on the Mac, the cost is
@@ -122,7 +122,7 @@ without taking authentication down with it.
                                     └───────────────────────────────┘
 ```
 
-The hot path never touches Lago. If Lago is down, Orazaka keeps authorising and metering; events
+The hot path never touches Lago. If Lago is down, Sovkora keeps authorising and metering; events
 queue in the outbox and drain on recovery. **This is the availability property that justifies the
 local ledger.**
 
@@ -580,7 +580,7 @@ billing.credit.unit-price-cents  = 1          -- 1 credit ≈ 0,01 $ CA at list 
 billing.enforcement.mode         = DRY_RUN    -- OFF | DRY_RUN | ENFORCING  (§13.3)
 ```
 
-> **Currency.** Orazaka bills in **Canadian dollars** — Krizaka is a Montréal company. The billing block
+> **Currency.** Sovkora bills in **Canadian dollars** — Krizaka is a Montréal company. The billing block
 > stays multi-currency: a plan carries its own ISO 4217 code, and `billing.currency` (default `CAD`) is
 > the currency of everything stated without one (pack prices, the money anchor). Screens format money
 > with `@krizaka/intl` `formatMoney` in the reader's *language* (`en` → "CA$29.00", `fr` → "29,00 $CA"),
@@ -736,10 +736,10 @@ retries) that carry legal exposure when wrong.
 
 | Concern | Owner | Why |
 |:---|:---|:---|
-| Real-time authorisation, hold/settle, ledger | **Orazaka** | Hot path. Cannot depend on an external service's latency or uptime. |
+| Real-time authorisation, hold/settle, ledger | **Sovkora** | Hot path. Cannot depend on an external service's latency or uptime. |
 | Plan catalogue, prorata, invoices, dunning, tax | **Lago** | Solved, regulated, boring. Not a differentiator. |
 | Cards, SEPA, 3DS, PCI scope | **PSP** (via Lago connector) | Never touch card data. |
-| Usage history for invoicing | **Both** — Orazaka writes, Lago aggregates | Reconciled nightly (§17) |
+| Usage history for invoicing | **Both** — Sovkora writes, Lago aggregates | Reconciled nightly (§17) |
 
 Running Lago **in `docker-compose`** is fully compatible with AGENTS.md §0: it is stateful infra in
 Docker, which the contract explicitly allows. The **PSP** is the part that is not — it needs remote
@@ -752,12 +752,12 @@ secrets and a public webhook endpoint. Hence phase 4 is gated (§16).
 | **Lago** | AGPLv3, self-host | Wallets + prepaid credits + metering are first-class; REST + webhooks; PSP connectors built in | ✅ **Chosen** |
 | **Kill Bill** | Apache 2.0, self-host | Most complete subscription/invoicing engine; Java-native | Rejected — heavier operationally, usage-based metering is the weaker half, and its own domain model would fight ours |
 | **OpenMeter** | Apache 2.0 → **acquired by Kong (2026)**, folding into Konnect | Excellent AI/token metering and entitlements | Rejected — vendor absorption is a strategic risk for a sovereignty-positioned product; the open-source trajectory is now uncertain |
-| **Stripe Billing** (Meters GA, billing credits with immutable ledger; Metronome now a Stripe product) | Proprietary SaaS | Fastest to ship, genuinely excellent | Rejected as the *engine* — contradicts the Loi 25/GDPR sovereignty positioning that is Orazaka's differentiator. Retained as **PSP only**. |
+| **Stripe Billing** (Meters GA, billing credits with immutable ledger; Metronome now a Stripe product) | Proprietary SaaS | Fastest to ship, genuinely excellent | Rejected as the *engine* — contradicts the Loi 25/GDPR sovereignty positioning that is Sovkora's differentiator. Retained as **PSP only**. |
 
 **Licence note (must be read before phase 4).** AGPLv3 obligations attach to *modified* versions made
-available over a network. Running an **unmodified** Lago as a separate process that Orazaka calls over
-its REST API does not make Orazaka a derivative work. If you ever patch Lago's source, those patches
-must be published. Practical rule: **never fork Lago — extend on the Orazaka side.** Lago also sells a
+available over a network. Running an **unmodified** Lago as a separate process that Sovkora calls over
+its REST API does not make Sovkora a derivative work. If you ever patch Lago's source, those patches
+must be published. Practical rule: **never fork Lago — extend on the Sovkora side.** Lago also sells a
 commercial licence if that constraint becomes uncomfortable; budget for it rather than fork.
 
 ### Integration seam
@@ -774,7 +774,7 @@ the option of swapping Lago later without touching the ledger.
 
 **The governing rule: nothing commercial is in code or in yaml.** Offers, prices, entitlements,
 packs and the behavioural switches are all rows, all editable from the operator console (`orazaka-web-client`), all
-versioned. Deploying is never the way to change what Orazaka sells. This is the direct application
+versioned. Deploying is never the way to change what Sovkora sells. This is the direct application
 of AGENTS.md §4 (*domain data & behavior live in the DB*) and ADR-027/031 to the monetisation plane.
 
 | Configuration | Table | Admin-editable | In yaml? |
@@ -842,7 +842,7 @@ on a job the user did not know was expensive is the number-one support ticket in
 
 ## 13. Configuration, kill-switches & environments
 
-The requirement — *run Orazaka with billing blocking or not, so it can be disabled in dev and test* —
+The requirement — *run Sovkora with billing blocking or not, so it can be disabled in dev and test* —
 is not one switch. Conflating it into a single `billing.enabled=true` in `application.yaml` is the
 obvious answer and the wrong one, for a reason the codebase already documents: **ADR-031's three
 tiers** and the bootstrap boundary.
@@ -892,7 +892,7 @@ without a step change. Ship `DRY_RUN` first, read the would-have-refused rate fo
 ### 13.4 The wiring switch, and the Null Object that keeps it clean
 
 ```yaml
-# orazaka-apps/services/{conversation,job,automation}-service/…/application.yml
+# services/{conversation,job,automation}-service/…/application.yml
 # .env is the single source of truth — this file only reads ${ENV:default}.
 orazaka:
   billing:
@@ -1081,7 +1081,7 @@ Three decisions in that block worth stating explicitly:
 
 1. **Lago gets its own Postgres container and its own volume**, not a database inside
    `orazaka-db-vector`. Two reasons. Lago manages its schema with Rails migrations, which does not
-   belong in `infra/initdb/` (that directory is "one file per Orazaka bounded context", scanned by
+   belong in `infra/initdb/` (that directory is "one file per Sovkora bounded context", scanned by
    `SqlBoundaryRules`). And more importantly: **`orazaka stop --purge` must never be able to delete
    financial records along with disposable dev data.** Separate lifecycle, separate volume.
    *Verified mechanism*: `stop --purge` runs `docker compose … down --timeout 5 -v` **without** the
@@ -1215,7 +1215,7 @@ Add to `BillingGovernanceTest` (reusing `GovernanceRules` from `orazaka-test-sup
 | Rule | Enforcement | Rationale |
 |:---|:---|:---|
 | **No plan key literal in Java** | ArchUnit: `"free"`/`"premium"`/`"ultimate"` banned outside the persistence adapter & test fixtures | A hardcoded plan name is a deploy required to add a plan — the exact failure the brief asks to avoid |
-| **No commercial config in yaml** | Test: no `application.yml` under `orazaka-apps/` matches `plan\|credit\|pricebook\|entitlement\|enforcement` outside the `orazaka.billing.{enabled,client,engine}` wiring keys | AGENTS.md §4 — offers and behaviour are DB data; only wiring is yaml (§12) |
+| **No commercial config in yaml** | Test: no `application.yml` under `apps/ and services/` matches `plan\|credit\|pricebook\|entitlement\|enforcement` outside the `orazaka.billing.{enabled,client,engine}` wiring keys | AGENTS.md §4 — offers and behaviour are DB data; only wiring is yaml (§12) |
 | **Enforcement mode declared once** | Test: `billing.enforcement.mode` appears in `billing_runtime_config` and in **no** yaml/env | The duplicated-switch failure mode of §13.9 |
 | **Settings whitelist is total** | Test: every key in `billing_runtime_config` has a declared type + domain in the whitelist, and an unknown key/value is rejected with 400 | An admin must not be able to brick authorisation with a typo (§12.2) |
 | **No price literal in Java** | ArchUnit: numeric credit constants banned outside `PricingService`'s pricebook read | Pricing is data (ADR-027) |
@@ -1253,12 +1253,12 @@ product leaves the laptop.
 
 | # | Risk | Mitigation |
 |:---|:---|:---|
-| 1 | **Ledger ↔ Lago drift** (two systems, one truth) | Nightly reconciliation replaying `credit_ledger_entry.balance_after` and diffing against Lago's wallet; alert on any delta. Orazaka's ledger wins for authorisation; Lago wins for invoices. Never auto-heal — a drift is an incident to investigate. |
+| 1 | **Ledger ↔ Lago drift** (two systems, one truth) | Nightly reconciliation replaying `credit_ledger_entry.balance_after` and diffing against Lago's wallet; alert on any delta. Sovkora's ledger wins for authorisation; Lago wins for invoices. Never auto-heal — a drift is an incident to investigate. |
 | 2 | **A credit's meaning drifts** as models change | `1 credit = 1k tokens on the default local model` is frozen in ADR-033; model cost changes move the *pricebook*, never the credit definition. Re-pricing is versioned and announced. |
 | 3 | **Estimate ≫ reality** on chat (a hold too large blocks a user who has enough credit) | Small conservative estimate + settle upward; if settlement exceeds the hold, allow a bounded overshoot (`billing.overshoot.max-credits`) and record it, rather than killing a stream mid-token |
 | 4 | **Free-tier abuse** (multi-account credit farming) | No top-up on `free` (§8); grant tied to a verified email; correlate by device/IP at signup; keep `free` grants small enough that farming is more expensive than paying |
 | 5 | **Billing service is a new SPOF on the hot path** | `billing.fail-mode` per capability (§6.2) + entitlement cache means chat degrades gracefully; only high-cost media fails closed |
-| 6 | **AGPLv3 obligations** | Never fork Lago; extend on the Orazaka side (§11) |
+| 6 | **AGPLv3 obligations** | Never fork Lago; extend on the Sovkora side (§11) |
 | 7 | **Refund policy for "bad" outputs** | A technically successful but subjectively poor generation is **billed**. Goodwill goes through an auditable `ADJUSTMENT` in admin, never through silent hold release. Decide and publish this before launch. |
 
 **Open questions to settle before phase 3** — each is a product decision, not an architecture one:

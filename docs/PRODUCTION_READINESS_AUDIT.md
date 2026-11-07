@@ -1,13 +1,13 @@
 ---
-title: "Orazaka — Production readiness audit"
+title: "Sovkora — Production readiness audit"
 description: "Full-codebase review: security, availability, scalability, failure modes, complexity and refactoring candidates, with a sequenced remediation plan toward a first production launch."
 category: Architecture
 order: 20
 ---
 
-# Orazaka — Production readiness audit
+# Sovkora — Production readiness audit
 
-> **Scope.** Every Java module (`sovkora-libs`, `orazaka-apps/services`), the Python media worker,
+> **Scope.** Every Java module (`build`, `contracts`, `engine`, `services`), the Python media worker,
 > the six npm workspaces, `infra/`, and the governance suite. Static review at commit `21167dd4`.
 > The build was **not executed** — the audit host runs JDK 11, the project targets Java 21. Every
 > finding below is therefore evidence-based (file + line), not test-derived; §8 lists what must be
@@ -371,7 +371,7 @@ vulnerable — with no test that would notice.
 
 ### 5.2 The fix: a Tier-2 platform kit
 
-Create `sovkora-libs/orazaka-service-kit` (Tier-2 Platform SDK per AGENTS.md §2 — shared with SDK
+Create `krizaka-java krizaka-service-kit` (Tier-2 Platform SDK per AGENTS.md §2 — shared with SDK
 discipline, stable, backward-compatible) holding the plumbing every service repeats:
 
 ```

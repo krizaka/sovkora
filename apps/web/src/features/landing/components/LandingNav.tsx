@@ -14,7 +14,7 @@ import { NAV_DOCS, NAV_GROUPS, NAV_PAGES, entryHref, navActive } from "@/feature
 
 export { navActive } from "@/features/landing/utils/site-nav";
 
-const REPO_URL = "https://github.com/krizaka/orazaka-web-client";
+const REPO_URL = "https://github.com/krizaka/sovkora/tree/main/apps/web";
 
 /**
  * The bar of the public pages — the family's, the one of Yomizaka and the other products (`site-nav.ts`,

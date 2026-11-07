@@ -471,7 +471,7 @@ test("the price book rows of the external checks and of research (krizaka-billin
   assert.match(code, /ON CONFLICT DO NOTHING;/);
   assert.doesNotMatch(code, /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   // The same file as krizaka-billing's own migration (checked when the workspace holds a billing checkout that has it).
-  const billing = new URL("../../krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-25-pricebook-external-check-research.sql", import.meta.url);
+  const billing = new URL("../../.krizaka-java/krizaka-billing/infra/migrations/2026-10-25-pricebook-external-check-research.sql", import.meta.url);
   if (existsSync(billing)) {
     assert.equal(sql, readFileSync(billing, "utf8"), "the migration is billing's, unchanged");
   }

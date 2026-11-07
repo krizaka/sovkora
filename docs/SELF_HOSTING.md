@@ -1,15 +1,15 @@
 ---
 title: "Install, update and back up"
-description: "Install Orazaka on a Mac or a Linux server, then update, back up and remove it. Your data never leaves your machine."
+description: "Install Sovkora on a Mac or a Linux server, then update, back up and remove it. Your data never leaves your machine."
 category: Guides
 order: 1
 ---
 
 # Install, update and back up
 
-Orazaka runs on hardware you own. Your documents, prompts and results stay there, nothing is sent to Krizaka, and once the models are downloaded it works offline.
+Sovkora runs on hardware you own. Your documents, prompts and results stay there, nothing is sent to Krizaka, and once the models are downloaded it works offline.
 
-> **Where this stands.** The packaged installers (Orazaka Desktop for Mac, the one-command server install) arrive with **1.0** ([delivery epic](https://github.com/krizaka/orazaka/issues/75)). Commands marked **1.0** are not available yet. The [developer install](#today-the-developer-install) runs the same platform from source today.
+> **Where this stands.** The packaged installers (Sovkora Desktop for Mac, the one-command server install) arrive with **1.0** ([delivery epic](https://github.com/krizaka/orazaka/issues/75)). Commands marked **1.0** are not available yet. The [developer install](#today-the-developer-install) runs the same platform from source today.
 
 ## Requirements
 
@@ -26,12 +26,12 @@ Orazaka runs on hardware you own. Your documents, prompts and results stay there
 The Mac app is an unsigned test build, still in testing: it is not distributed, so there is no download yet. Until it is, run `npx orazaka install`.
 
 1. Run `npx orazaka install`. (When the Mac app is distributed, you will download it and drag it into Applications.)
-2. Open it. It checks your Mac, downloads the models once, and starts Orazaka.
+2. Open it. It checks your Mac, downloads the models once, and starts Sovkora.
 3. Open `http://localhost:3000` and create the administrator account. Sign-up stays closed: you invite your colleagues.
 
 ## On a Linux server (1.0)
 
-1. Run `curl -fsSL https://www.orazaka.com/install.sh | sh` (or `npx orazaka install --server`). It checks the server, verifies every image signature, writes every secret to `/etc/orazaka`, and starts a systemd service.
+1. Run `curl -fsSL https://www.sovkora.com/install.sh | sh` (or `npx orazaka install --server`). It checks the server, verifies every image signature, writes every secret to `/etc/orazaka`, and starts a systemd service.
 2. Open `https://<server>` from your network.
 3. Create the administrator account.
 
@@ -55,7 +55,7 @@ Available now, from source. It needs git, JDK 21, Node.js 22+, Docker and Python
 
 ```bash
 npx orazaka install
-cd orazaka && ./mvnw install && (cd orazaka-apps/ui && npm install)
+cd sovkora && ./mvnw install && pnpm install
 npx orazaka start    # PostgreSQL, Redis, RabbitMQ, local AI engines
 npx orazaka dev      # the services and the web app on port 3000
 ```

@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — One surface: should media generation become a pack?"
+title: "Sovkora — One surface: should media generation become a pack?"
 description: "Architecture analysis of unifying direct media generation and analysis into the pack system: what is actually separate today, why the real seam is synchronous vs deferred rather than media vs studio, the governance bypass the direct path creates, and a phased evolution."
 category: Architecture
 order: 10
 ---
 
-# Orazaka — One surface: should media generation become a pack?
+# Sovkora — One surface: should media generation become a pack?
 
 > **The proposal.** Media generation and analysis are invoked outside the pack system. Fold them
 > into a media pack under a `tool` category, so every capability reaches the user as a pack and the
@@ -284,7 +284,7 @@ Three findings, one cause. The run path is today a **secondary** path carrying d
 and everything tolerable at that status becomes load-bearing the day M3 makes it the only path.
 
 **The missing outbox** — §5.1 above. Step dispatch must publish through the transactional outbox like
-every other producer, or the run path is the one place in Orazaka where a rollback can leave a job
+every other producer, or the run path is the one place in Sovkora where a rollback can leave a job
 running against nothing.
 
 **Head-of-line blocking, which is already in the repository.** `orazaka-job-service/worker.yaml`

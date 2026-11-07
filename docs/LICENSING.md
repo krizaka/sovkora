@@ -10,7 +10,7 @@ order: 2
 **From the commit that introduces its `NOTICE`, this repository is licensed under FSL-1.1-ALv2**
 (Functional Source License, Apache-2.0 future licence — [`LICENSE`](../LICENSE)): you may read, run, modify and
 self-host it for any purpose except a Competing Use (offering it to others as a commercial service that substitutes for
-Orazaka), and each version becomes Apache-2.0 two years after its release. Every earlier commit remains Apache-2.0
+Sovkora), and each version becomes Apache-2.0 two years after its release. Every earlier commit remains Apache-2.0
 ([`LICENSE-APACHE`](../LICENSE-APACHE)). The organisation decision is
 ADR-012;
 it updates ADR-049 on the licence of the engine and keeps its boundary between public and private repositories.

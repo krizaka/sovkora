@@ -9,7 +9,7 @@
       "checked": "2026-10-19"
     },
     "site.signup-closed": {
-      "evidence": "https://github.com/krizaka/orazaka-web-client/blob/main/src/app/api/auth/register/route.ts",
+      "evidence": "https://github.com/krizaka/sovkora/tree/main/apps/web/src/app/api/auth/register/route.ts",
       "checked": "2026-10-19"
     },
     "site.qa-signin": {
@@ -62,7 +62,7 @@
       "note": "CI on main of krizaka/orazaka: 11 consecutive green runs on 2026-10-20 (the red-main job is skipped by design when the workspace job passes)."
     },
     "quality.tests": {
-      "evidence": "https://github.com/krizaka/orazaka-web-client/blob/main/src/app/api/auth/register/__tests__/route.test.ts",
+      "evidence": "https://github.com/krizaka/sovkora/tree/main/apps/web/src/app/api/auth/register/__tests__/route.test.ts",
       "checked": "2026-10-20",
       "note": "Sign-up closed: this test; the console gate: src/__tests__/host-routing.test.ts and src/console/test/gate.test.mts; indexing policy: src/__tests__/indexing.test.ts; all run by the CI of krizaka/orazaka-web-client."
     },
@@ -87,7 +87,7 @@
       "note": "Measured 2026-10-21 with doctl: recurring cloud about 97 USD/month (ceiling 100, GPU apart), about 87 after the two old admin apps are deleted; the RunPod volume line was a phantom (no network volume on the account). Orazaka's dev deployment ($47) is in DEPLOY_DEV.md, the organisation table in the private cost file (\u00a7 6.2); smallest instances throughout, the JVM core at basic-s."
     },
     "admin.gated": {
-      "evidence": "https://github.com/krizaka/orazaka-web-client/blob/main/src/__tests__/host-routing.test.ts",
+      "evidence": "https://github.com/krizaka/sovkora/tree/main/apps/web/src/__tests__/host-routing.test.ts",
       "checked": "2026-10-21",
       "note": "Gate tests (host-routing.test.ts, src/console/test/gate.test.mts, ip-allow.test.mts) + live proof from a GitHub runner, an address that is not allowed: admin.orazaka.com/login and / answer 403, dev.orazaka.com/console 404, healthz 200 (step \u00ab Console gate \u00bb of https://github.com/krizaka/orazaka-web-client/actions/runs/39539783026)."
     },

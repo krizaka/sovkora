@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — DevX, environments & lifecycle"
+title: "Sovkora — DevX, environments & lifecycle"
 description: "Repo organization for the target, dev environment (macOS/Docker/native, IntelliJ+VSCode, orazaka CLI), E2E tests dev/staging/prod, docs generation to the Krizaka site, and deployment."
 category: Guidelines
 order: 3
 ---
 
-# Orazaka — DevX, environments & lifecycle
+# Sovkora — DevX, environments & lifecycle
 
 > Operational closure of the vision: **repo organization**, **dev environment**, **E2E tests across 3 environments**, **docs generation** to the Krizaka site, and **deployment**.
 > Dev hardware target: **macOS 64 GB** · Docker for infra · AI runtimes native (Metal). IDEs: **IntelliJ** (Java backend) + **VSCode** (TS / Python frontends). Single orchestrator: **the `orazaka` CLI**.
@@ -92,7 +92,7 @@ flowchart TB
 
 | IDE | Scope | Why |
 | :--- | :--- | :--- |
-| **IntelliJ IDEA** | Java/Maven backend: `orazaka-router`, `sovkora-libs/*`, Java workers | multi-module Maven support, Spring, JVM debugging, ArchUnit |
+| **IntelliJ IDEA** | Java/Maven backend: `orazaka-router`, `engine/*`, Java workers | multi-module Maven support, Spring, JVM debugging, ArchUnit |
 | **VSCode** | TS frontends (`orazaka-ui/*`), `worker-media` (Python), infra scripts | Next/Expo, ESLint, Pyright, integrated terminal for the CLI |
 
 Both share the repo; **the `orazaka` CLI is the neutral orchestrator** both call. To commit so both IDEs are *turnkey*:

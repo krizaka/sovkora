@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — Studios: installable business workflows"
+title: "Sovkora — Studios: installable business workflows"
 description: "Target architecture for the Studio bounded context: the marketplace of installable, per-profession AI workflows, the declarative Blueprint DAG, the install/run/upgrade lifecycle, and the seam onto the existing billing, job and capability planes."
 category: Architecture
 order: 7
 ---
 
-# Orazaka — Studios: installable business workflows
+# Sovkora — Studios: installable business workflows
 
 > **What this adds.** A new first-class menu item where a user *browses* a catalogue of ready-made,
 > profession-specific AI workflows ("a real-estate agency drops 5 photos and a clip, gets an
@@ -63,7 +63,7 @@ generation": `realestate-reels` → *"Reels Immobilier"*; `trade-showcase` → *
 
 ## 2. The load-bearing insight
 
-Orazaka already owns every primitive this feature needs. The Studio context adds **composition**,
+Sovkora already owns every primitive this feature needs. The Studio context adds **composition**,
 not capability.
 
 | Need | Already exists | Studio adds |
@@ -893,7 +893,7 @@ src/services/studio.api.ts
 
 - **BFF only** — the browser hits Next.js API routes; the existing `src/app/api/v1/[...path]/route.ts`
   catch-all already proxies to the edge, so **no new BFF route is needed**.
-- Types in `orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/src/schemas/studio.ts` (Zod), exported from `index.ts`.
+- Types in `sovkora-ui-kit (now krizaka-ui) orazaka-shared/src/schemas/studio.ts` (Zod), exported from `index.ts`.
   Zero interface duplication, zero cross-import between client packs.
 - ≤ 250 lines per `.tsx`; no inline hex, no hardcoded Tailwind colours — tokens only.
 - Dates via `date-fns` (ERR-108). Input blocked while `isSending || isGenerating` (ERR-126).
@@ -960,7 +960,7 @@ Per AGENTS.md §9 — pyramid, hermetic, no staging.
 
 **Architecture** — `StudioServiceGovernanceTest` reusing the shared `GovernanceRules`
 (`build/sovkora-test-support/…/architecture/`): package/kind rules [ERR-130], service naming
-[ERR-129], controller naming [ERR-128], no `Orazaka` prefix [ERR-104], Tier-3 isolation [SEAM-002].
+[ERR-129], controller naming [ERR-128], no `Sovkora` prefix [ERR-104], Tier-3 isolation [SEAM-002].
 `SqlBoundaryRules` must see `80-studio.sql` — **no cross-context FK** [SEAM-001].
 
 **Integration** (Testcontainers, `AbstractContainerIntegrationTest`)
@@ -1016,13 +1016,13 @@ capability, so a failure there is unambiguously an engine bug.
 | §1 CLI only | `orazaka studio {list,install,run,logs}` in `apps/cli/src/commands/studio.command.ts`. **No `.sh`** [ERR-125] |
 | §2 hexagonal | `business` declares `BlueprintRepository`/`StepExecutionClient`; adapters are package-private in the service |
 | §2 tiers | Tier-1 `orazaka-studio-api` is the only cross-context surface; nobody imports `orazaka-studio-service` |
-| §3 naming | `StudioController` (resource), `StudioRunService` (capability), `AmqpStepExecutionAdapter`, `StudioProperties`. No `*Orchestrator`/`*Manager`/`*Handler` [ERR-129], no `Admin*` [ERR-128], no `Orazaka` prefix [ERR-104], never `gateway` |
+| §3 naming | `StudioController` (resource), `StudioRunService` (capability), `AmqpStepExecutionAdapter`, `StudioProperties`. No `*Orchestrator`/`*Manager`/`*Handler` [ERR-129], no `Admin*` [ERR-128], no `Sovkora` prefix [ERR-104], never `gateway` |
 | §4 backend | Java 21, MVC + virtual threads, `RestClient`/`@HttpExchange`, self-validating records, `final` package-private `*Mapper`, zero static helpers [ERR-127], zero dead code |
 | §4 config vs data | `application.yml` = wiring only. Studios, blueprints, limits, prices live in the DB [ADR-027/031] |
 | §5 persistence | Own DB + role, opaque ids, no cross-context FK [SEAM-001], no raw SQL, no read-before-write, outbox |
 | §6 messaging | Producer via outbox; consumer = the saga; DLQ + exponential retry + `messageId` dedup; heavy work through the broker, interactive streaming stays synchronous |
 | §7 pipeline | One new interceptor in `enrichment/`, ordered in DB, predicate-activated, `isAiDependent()=false` |
-| §8 frontend | Under `orazaka-apps/ui/`, BFF-only, `orazaka-shared` types, design-system components, ≤250 lines/`.tsx`, `date-fns` |
+| §8 frontend | Under `apps/`, BFF-only, `orazaka-shared` types, design-system components, ≤250 lines/`.tsx`, `date-fns` |
 | §9 testing | Unit + ArchUnit + Testcontainers IT + hermetic E2E + three fitness functions |
 | §10 docs | `orazaka docs build` emits the blueprint catalogue into `docs/_generated/`; this file and ADR-034 are the hand-written design, never the generated model |
 | §11 security | §18 below |
@@ -1128,8 +1128,8 @@ infra/initdb/60-governance.sql                                               (ed
 
 **Phase 1–5 — UI & tooling**
 ```
-orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/src/schemas/studio.ts  + index.ts             (edit)
-orazaka-apps/ui/orazaka-ui-kit/orazaka-design-system/src/icon.tsx                           (edit: "studio")
+sovkora-ui-kit (now krizaka-ui) orazaka-shared/src/schemas/studio.ts  + index.ts             (edit)
+sovkora-ui-kit (now krizaka-ui) orazaka-design-system/src/icon.tsx                           (edit: "studio")
 apps/web/src/components/layout/Sidebar.tsx         (edit: nav item)
 apps/web/src/core/context/translations{,.types}.ts (edit)
 apps/web/src/app/(protected)/studios/**            (see §12.2)
