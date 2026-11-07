@@ -84,7 +84,7 @@ if (mismatches.length > 0) {
       " wrong code produces a green that belongs to another build:\n  " +
       mismatches.join("\n  ") +
       "\n\n  A failed e2e run does not reach post-integration-test, so its JVMs keep the ports." +
-      "\n  Stop them and re-run: pkill -f 'orazaka-apps/services/.*\\.jar'",
+      "\n  Stop them and re-run: pkill -f 'services/.*\\.jar'",
   );
   process.exit(1);
 }

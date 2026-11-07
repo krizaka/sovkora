@@ -1,7 +1,0 @@
-**/target/**
-**/.next/**
-**/node_modules/**
-**/.orazaka-repository/**
-**/.mvn/**
-*.log
-.DS_Store

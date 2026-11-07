@@ -9,7 +9,8 @@
  *   node scripts/dev-migrations.mjs verify [--only <text>]                        # probe each file's effect on dev (read only); exit 1 if a recorded file is missing / partial, or a file has no probe
  *
  * The ledger is one table, `dev_migration_ledger`, in orazaka_db (created on first use, never anything else written).
- * A file is keyed `<path from the workspace root>`, e.g. `krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql`.
+ * A file is keyed `<path from the repository root>`, e.g. `services/studio/infra/migrations/<file>.sql`; krizaka-billing's are read from the
+ * krizaka-java checkout (`.krizaka-java/krizaka-billing/infra/migrations/...`). A row written under a former path counts (MOVED).
  * A file that spans several databases (`\c <db>` lines, e.g. ADR-091's knowledge-access) is recorded once, for all of them:
  * `--on` must name every database it touches (refused otherwise), and the ledger keeps them in its `databases` column.
  * Nothing here ever applies a migration: applying stays a person's act (dry run in a rolled-back transaction, then commit).
@@ -27,11 +28,23 @@ import { toolPathOrNull } from "./lib/tool-path.mjs";
 
 const HERE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const LEDGER_DB = "orazaka_db";
-/** Components that live inside krizaka-build (its monorepo) and keep their own infra/migrations. */
-const NESTED_COMPONENTS = ["krizaka/krizaka-build/krizaka-billing"];
-/** Ledger rows written while krizaka-billing was a repository of its own (archived): same file, new path. */
-const LEGACY_PREFIX = "krizaka/krizaka-billing/";
-const MOVED_PREFIX = "krizaka/krizaka-build/krizaka-billing/";
+/** The krizaka-java components Sovkora's dev databases also carry, read from the krizaka-java checkout. */
+const NESTED_COMPONENTS = [".krizaka-java/krizaka-billing"];
+/**
+ * Ledger rows written under a former path count for the same file at its path of today, longest prefix first: krizaka-billing
+ * was a repository, then a folder of krizaka-build, then of krizaka-java; the Sovkora components were clones of the workspace
+ * until they became folders of the one repository (ADR-029).
+ */
+export const MOVED = [
+  ["krizaka/krizaka-build/krizaka-billing/", ".krizaka-java/krizaka-billing/"],
+  ["krizaka/krizaka-billing/", ".krizaka-java/krizaka-billing/"],
+  ["orazaka-apps/services/orazaka-conversation-service/", "services/conversation/sovkora-conversation-service/"],
+  ["orazaka-apps/services/orazaka-studio/", "services/studio/"],
+];
+const today = (f) => {
+  const m = MOVED.find(([from]) => f.startsWith(from));
+  return m ? m[1] + f.slice(m[0].length) : f;
+};
 const DATE = /^\d{4}-\d{2}-\d{2}-/;
 
 /** Every migration file of the workspace and of its component repositories, keyed by path from the root, sorted. */
@@ -65,7 +78,7 @@ export function databasesToRecord(file, sql, on) {
 
 /** The files the ledger does not hold. */
 export function pending(files, ledger) {
-  const done = new Set(ledger.map((f) => (f.startsWith(LEGACY_PREFIX) ? MOVED_PREFIX + f.slice(LEGACY_PREFIX.length) : f)));
+  const done = new Set(ledger.map(today));
   return files.filter((f) => !done.has(f));
 }
 

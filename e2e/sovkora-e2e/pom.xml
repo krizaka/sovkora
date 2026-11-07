@@ -715,13 +715,13 @@
                                             <arg value="scripts/verify-stack-identity.mjs" />
                                             <arg value="services/conversation/sovkora-conversation-service=http://localhost:8080" />
                                             <arg value="services/automation/sovkora-automation-service=http://localhost:8082" />
-                                            <arg value="krizaka/krizaka-build/krizaka-users/krizaka-users-service=http://localhost:8083" />
+                                            <arg value=".krizaka-java/krizaka-users/krizaka-users-service=http://localhost:8083" />
                                             <arg value="services/knowledge/sovkora-knowledge-service=http://localhost:8084" />
-                                            <arg value="krizaka/krizaka-build/krizaka-billing/krizaka-billing-service=http://localhost:8095" />
+                                            <arg value=".krizaka-java/krizaka-billing/krizaka-billing-service=http://localhost:8095" />
                                             <arg value="services/job/sovkora-job-service=http://localhost:8090" />
                                             <arg value="services/studio/sovkora-studio-service=http://localhost:8096" />
                                             <arg value="services/edge/sovkora-edge-service=http://localhost:8089" />
-                                            <arg value="krizaka/krizaka-build/krizaka-platform-kit/krizaka-notifications-service=http://localhost:8097" />
+                                            <arg value=".krizaka-java/krizaka-service-kit/krizaka-notifications-service=http://localhost:8097" />
                                         </exec>
                                     </target>
                                 </configuration>

@@ -21,7 +21,7 @@
     "infra/migrations/2026-10-29-feature-tool-bounds.sql": "orazaka_db",
     "infra/migrations/2026-10-30-feature-structured-bounds.sql": "orazaka_db",
     "infra/migrations/2026-10-30-feature-cache-policy.sql": "orazaka_db",
-    "krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": "krizaka_billing_db"
+    ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": "krizaka_billing_db"
   },
   "probes": {
     "infra/migrations/2026-09-04-capability-uri-path-nullable.sql": [
@@ -50,7 +50,7 @@
         "sql": "(SELECT count(*) FROM billing_plan_entitlement WHERE plan_key IN ('free','premium','ultimate') AND entitlement_key IN ('studio.art-golden-hour','studio.art-miniature','studio.art-still-life','studio.art-montreal-night')) = 12"
       }
     ],
-    "krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": [
+    ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": [
       {
         "db": "krizaka_billing_db",
         "label": "studio entitlements invitation-writer,identity-document-check on free, premium, ultimate",

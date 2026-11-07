@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent
 
 def _workspace_root() -> Path | None:
     for parent in ROOT.parents:
-        if (parent / "orazaka.workspace.json").is_file():
+        if (parent / "modules.json").is_file():
             return parent
     return None
 
@@ -132,8 +132,8 @@ class TestModelRouting(unittest.TestCase):
         """models.yaml copies the CLI's FLUX.2 [klein] files; a drift would serve another checkpoint."""
         workspace = _workspace_root()
         if workspace is None:
-            self.skipTest("the CLI's recipe lives in the Orazaka workspace")
-        recipes = workspace / "orazaka-apps" / "ui" / "orazaka-cli" / "src" / "services" / "image-model-recipes.json"
+            self.skipTest("the CLI's recipe lives in apps/cli of the Sovkora repository")
+        recipes = workspace / "apps" / "cli" / "src" / "services" / "image-model-recipes.json"
         cli = {model["id"]: model for model in json.loads(recipes.read_text())["models"]}
         for name, spec in video_models.load_manifest()["image"].items():
             if spec.get("workerOnly"):  # a model only this worker serves (flux-1-schnell): its licence is checked below
@@ -176,19 +176,14 @@ class TestTheStudioOffersWhatTheCatalogueAndThisWorkerKnow(unittest.TestCase):
         if workspace is None:
             self.skipTest("the blueprint and the catalogue live in the Orazaka workspace")
         blueprint = json.loads(
-            (
-                workspace / "orazaka-packs" / "orazaka-media" / "studios" / "video-generation" / "blueprint.json"
-            ).read_text()
+            (workspace / "packs" / "orazaka-media" / "studios" / "video-generation" / "blueprint.json").read_text()
         )
         offered = blueprint["inputSchema"]["properties"].get("model", {}).get("enum")
         if not offered:
             self.skipTest("this blueprint offers no model list yet")
-        services = workspace / "orazaka-apps" / "services"
-        service = next(
-            (d for d in ("sovkora-job-service", "orazaka-job-service") if (services / d).is_dir()),
-            "sovkora-job-service",
-        )
-        seed = (services / service / "infra" / "initdb" / "30-jobs-config.sql").read_text()
+        seed = (
+            workspace / "services" / "job" / "sovkora-job-service" / "infra" / "initdb" / "30-jobs-config.sql"
+        ).read_text()
         registry = _main().MODEL_REGISTRY
         for name in offered:
             self.assertRegex(

@@ -30,42 +30,34 @@ import yaml
 
 
 def _workspace_root() -> Path | None:
-    """The Orazaka workspace (orazaka.workspace.json) this worker is cloned in, if any."""
+    """The Sovkora repository (its modules.json) this worker is a folder of, if any."""
     for parent in Path(__file__).resolve().parents:
-        if (parent / "orazaka.workspace.json").is_file():
+        if (parent / "modules.json").is_file():
             return parent
     return None
 
 
-#: The capability seed is owned by the job service's repository; the workspace holds both. A
-#: standalone clone of this worker cannot see it, so the contract is skipped there — never passed.
+#: The capability seed is owned by the job service; the repository holds both. A copy of this
+#: worker on its own cannot see it, so the contract is skipped there — never passed.
 WORKSPACE_ROOT = _workspace_root()
 if WORKSPACE_ROOT is None:
     pytest.skip(
-        "the capability seed lives in orazaka-job-service: run inside the Orazaka workspace",
+        "the capability seed lives in services/job: run inside the Sovkora repository",
         allow_module_level=True,
     )
 
 
-def _first_existing(*candidates: Path) -> Path:
-    """The Sovkora layout, else the former Orazaka one (the workspace moves folder by folder, krizaka-internal#2684)."""
-    return next((c for c in candidates if c.exists()), candidates[0])
-
-
-SEED = _first_existing(
-    *(
-        WORKSPACE_ROOT
-        / "orazaka-apps"
-        / "services"
-        / service
-        / "src"
-        / "main"
-        / "resources"
-        / "db"
-        / "migration"
-        / "V1__job_baseline.sql"
-        for service in ("sovkora-job-service", "orazaka-job-service")
-    )
+SEED = (
+    WORKSPACE_ROOT
+    / "services"
+    / "job"
+    / "sovkora-job-service"
+    / "src"
+    / "main"
+    / "resources"
+    / "db"
+    / "migration"
+    / "V1__job_baseline.sql"
 )
 WORKER_YAML = Path(__file__).resolve().parent / "worker.yaml"
 

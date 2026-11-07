@@ -868,7 +868,7 @@ class TestTypedFailureCause(unittest.TestCase):
         self.assertIn("INPUT_INVALID", declared)
 
 
-_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
+_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 
 
 class TestEnvelopeInterop(unittest.TestCase):
@@ -880,18 +880,8 @@ class TestEnvelopeInterop(unittest.TestCase):
     the same fixed key and compares plaintext, then writes its own for Java to read back.
     """
 
-    # The Sovkora layout, else the former Orazaka one (the workspace moves folder by folder, krizaka-internal#2684).
-    FIXTURE_DIR = next(
-        (
-            os.path.join(_ROOT, *parts, "target", "interop")
-            for parts in (
-                ("sovkora-libs", "sovkora-engine", "sovkora-engine-assets"),
-                ("orazaka-libs", "orazaka-ai-engine", "orazaka-assets"),
-            )
-            if os.path.isdir(os.path.join(_ROOT, *parts))
-        ),
-        os.path.join(_ROOT, "sovkora-libs", "sovkora-engine", "sovkora-engine-assets", "target", "interop"),
-    )
+    # The engine's assets module of the one repository (ADR-029) writes the Java side of the fixture.
+    FIXTURE_DIR = os.path.join(_ROOT, "engine", "sovkora-engine-assets", "target", "interop")
 
     def _keyring(self):
         from app import envelope

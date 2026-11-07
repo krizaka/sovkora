@@ -1,7 +1,39 @@
 {
-  "kind": "workspace",
+  "kind": "maven",
   "allow": [
-    { "path": ".agent", "why": "agent rules and workflows read by the coding agents (Antigravity), not documentation" },
-    { "path": "orazaka-apps", "why": "the npm workspace of the three Orazaka apps (ui/package.json), kept at the name the apps' tooling expects" }
+    {
+      "path": "apps",
+      "why": "the clients of the pnpm workspace: web, mobile, CLI, desktop (ADR-029)"
+    },
+    {
+      "path": "services",
+      "why": "the Spring Boot services, one folder per bounded context (ADR-029 N4)"
+    },
+    {
+      "path": "e2e",
+      "why": "the cross-service journeys, a Maven module grouped by role (ADR-029 N4)"
+    },
+    {
+      "path": "workers",
+      "why": "the Python workers (uv), outside the Maven reactor (ADR-029)"
+    },
+    {
+      "path": "packs",
+      "why": "the capability packs, Apache-2.0 in their own folder (ADR-029 licence)"
+    },
+    {
+      "path": "modules.json",
+      "why": "the module catalogue: what each folder is, read by the docs generator, the CI plan and the dev tools"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "why": "the pnpm workspace of apps/ (each app keeps its own lockfile)"
+    }
+  ],
+  "allowTracked": [
+    {
+      "path": "build/**",
+      "why": "build/ is source, not output: the parent POM and the governance test kit of the reactor (ADR-029 N4, role folder build/)"
+    }
   ]
 }

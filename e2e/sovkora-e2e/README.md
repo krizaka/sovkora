@@ -52,7 +52,7 @@ shell it tracked, and the JVM keeps running on its port. This is not theoretical
 `post-integration-test` that demonstrably ran — the containers were gone — eight service JVMs were
 still listening. **Teardown of the JVMs had never worked, on red runs or on green ones.**
 
-Verify the shape with `pgrep -f 'orazaka-apps/services/.*\.jar'`: with `exec`, the tracked pid *is*
+Verify the shape with `pgrep -f 'services/.*\.jar'`: with `exec`, the tracked pid *is*
 the java pid.
 
 ## 4. `infra/initdb` creates every context role with no password
