@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.crypto.domain.port;
 
+import java.util.Arrays;
 import javax.crypto.SecretKey;
 
 /**
@@ -70,6 +71,25 @@ public interface MasterKeyProvider {
     @Override
     public byte[] wrapped() {
       return wrapped.clone();
+    }
+
+    /** Equal when the same key wrapped the same bytes: a value, not an identity. */
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof WrappedKey that
+          && keyId.equals(that.keyId)
+          && Arrays.equals(wrapped, that.wrapped);
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * keyId.hashCode() + Arrays.hashCode(wrapped);
+    }
+
+    /** Never the key material, wrapped or otherwise. */
+    @Override
+    public String toString() {
+      return "WrappedKey[keyId=" + keyId + ", wrapped=<" + wrapped.length + " bytes>]";
     }
   }
 }
