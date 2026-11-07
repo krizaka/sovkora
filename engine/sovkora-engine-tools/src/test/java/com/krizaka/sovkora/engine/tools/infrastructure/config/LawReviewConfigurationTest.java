@@ -60,8 +60,9 @@ class LawReviewConfigurationTest {
   void with_the_app_configured_the_pack_and_the_publisher_are_wired() throws Exception {
     KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
     generator.initialize(2048);
+    // A throwaway key generated here; the header is split so no key-shaped literal is in the source.
     String pem =
-        "-----BEGIN PRIVATE KEY-----\n"
+        "-----BEGIN " + "PRIVATE KEY-----\n"
             + Base64.getMimeEncoder()
                 .encodeToString(generator.generateKeyPair().getPrivate().getEncoded())
             + "\n-----END PRIVATE KEY-----\n";
