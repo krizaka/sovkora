@@ -19,7 +19,7 @@ class PackPurityRulesTest {
   @DisplayName("the law watcher's settings namespace is an engine namespace (ADR-089)")
   void lawNamespaceIsEngineOwned() throws IOException {
     write(
-        "orazaka-libs/engine/src/main/java/Watch.java",
+        "engine/sovkora-engine-core/src/main/java/Watch.java",
         """
         @ConfigurationProperties(prefix = "orazaka.law.watcher")
         public record Watch(boolean enabled) {}
@@ -32,7 +32,7 @@ class PackPurityRulesTest {
   @DisplayName("the governance schema's migration switch is an engine namespace (Flyway V1)")
   void governanceNamespaceIsEngineOwned() throws IOException {
     write(
-        "orazaka-libs/engine/src/main/java/GovernanceMigrations.java",
+        "engine/sovkora-engine-core/src/main/java/GovernanceMigrations.java",
         """
         public final class GovernanceMigrations {
           public static final String ENABLED_PROPERTY = "orazaka.governance.migrations.enabled";
@@ -46,7 +46,7 @@ class PackPurityRulesTest {
   @DisplayName("a pack key in engine code is still flagged")
   void packKeyStillFlagged() throws IOException {
     write(
-        "orazaka-libs/engine/src/main/java/Pack.java",
+        "engine/sovkora-engine-core/src/main/java/Pack.java",
         """
         public final class Pack {
           private static final String KEY = "orazaka.acme.compliance";

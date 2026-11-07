@@ -8,6 +8,10 @@ packages:
 
 sharedWorkspaceLockfile: false
 
+# A flat node_modules per app, as npm lays it out: React Native's Metro and the jest-expo preset resolve and transform
+# packages by their node_modules path, which pnpm's isolated layout (.pnpm/...) defeats.
+nodeLinker: hoisted
+
 # The dependencies allowed to run their install scripts. Recent pnpm refuses unlisted build scripts
 # (ERR_PNPM_IGNORED_BUILDS), which broke the DigitalOcean build of the web app on 2026-10-24.
 allowBuilds:
