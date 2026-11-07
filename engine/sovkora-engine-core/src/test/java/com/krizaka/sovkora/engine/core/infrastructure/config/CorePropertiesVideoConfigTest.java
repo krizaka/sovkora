@@ -12,11 +12,6 @@ import org.junit.jupiter.api.Test;
  * unification.
  */
 class CorePropertiesVideoConfigTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("VideoConfig records")
   class VideoConfigTests {

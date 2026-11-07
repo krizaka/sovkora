@@ -8,11 +8,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link AnalyzePosterRequest} — compact constructor validation. */
 class AnalyzePosterRequestTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    assertNotNull(AnalyzePosterRequest.class);
-  }
-
   @Nested
   @DisplayName("Constructor invariants")
   class Invariants {

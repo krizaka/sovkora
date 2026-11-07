@@ -8,11 +8,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link AnalyzeAudioExtractRequest} — compact constructor validation. */
 class AnalyzeAudioExtractRequestTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    assertNotNull(AnalyzeAudioExtractRequest.class);
-  }
-
   @Nested
   @DisplayName("Constructor invariants")
   class Invariants {

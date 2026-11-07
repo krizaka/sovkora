@@ -9,11 +9,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link SecurityContextUtil} reflective security metadata extraction. */
 class SecurityContextUtilTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("No Spring Security on classpath")
   class NoSecurityContext {

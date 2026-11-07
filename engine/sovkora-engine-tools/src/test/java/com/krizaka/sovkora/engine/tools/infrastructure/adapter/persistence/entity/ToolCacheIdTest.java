@@ -9,11 +9,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link ToolCacheId} — composite key equals/hashCode contract. */
 class ToolCacheIdTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    assertNotNull(ToolCacheId.class);
-  }
-
   @Nested
   @DisplayName("Equality contract")
   class EqualityContract {

@@ -8,11 +8,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link ProcessedImagePayload} — null-safety and dimensional invariants. */
 class ProcessedImagePayloadTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("Compact constructor defaults")
   class ConstructorDefaults {

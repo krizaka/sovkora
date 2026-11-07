@@ -10,11 +10,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link ProcessedVideoPayload} compact constructor validation and immutability. */
 class ProcessedVideoPayloadTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("Compact constructor")
   class CompactConstructor {

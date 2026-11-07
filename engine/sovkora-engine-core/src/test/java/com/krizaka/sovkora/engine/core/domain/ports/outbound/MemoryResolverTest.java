@@ -14,11 +14,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link MemoryResolver} — session-scoped memory isolation and purge. */
 class MemoryResolverTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("Session resolution")
   class SessionResolution {

@@ -13,11 +13,6 @@ class AutomationJobPayloadTest {
       java.time.Clock.fixed(
           java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
 
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    assertThat(AutomationJobPayload.class).isNotNull();
-  }
-
   private static final String JOB_ID = "job-001";
   private static final String USER_ID = "user-42";
   private static final String CONNECTOR = "JIRA";

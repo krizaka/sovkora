@@ -10,11 +10,6 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link ChunkingStrategies} covering all chunking modes. */
 class ChunkingStrategiesTest {
-  @org.junit.jupiter.api.Test
-  void sonar_context_load() {
-    org.junit.jupiter.api.Assertions.assertTrue(true);
-  }
-
   @Nested
   @DisplayName("resolve()")
   class Resolve {
