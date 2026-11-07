@@ -4,6 +4,7 @@ import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +31,7 @@ class McpTokenSealer {
       UUID.nameUUIDFromBytes("sovkora:platform-mcp-servers".getBytes(StandardCharsets.UTF_8));
 
   private final ObjectProvider<MasterKeyProvider> keys;
-  private volatile SecretSealer sealer;
+  private final AtomicReference<SecretSealer> sealer = new AtomicReference<>();
 
   McpTokenSealer(ObjectProvider<MasterKeyProvider> keys) {
     this.keys = keys;
@@ -82,7 +83,7 @@ class McpTokenSealer {
   }
 
   private SecretSealer sealer() {
-    SecretSealer s = sealer;
+    SecretSealer s = sealer.get();
     if (s == null) {
       MasterKeyProvider provider = keys.getIfAvailable();
       if (provider == null) {
@@ -90,7 +91,7 @@ class McpTokenSealer {
             "no master keyring: an MCP server token cannot be stored or read (ADR-054)");
       }
       s = new SecretSealer(provider);
-      sealer = s;
+      sealer.set(s);
     }
     return s;
   }
