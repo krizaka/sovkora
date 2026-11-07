@@ -543,8 +543,7 @@ public final class GovernanceRules {
 
   /**
    * [PACK-002] Fails when a pack, studio, or pack-capability key appears as a literal in engine
-   * code under {@code engine/**}, {@code services/**} or {@code
-   * workers/**}.
+   * code under {@code engine/**}, {@code services/**} or {@code workers/**}.
    *
    * <p>The architecture promises "a new pack is a row, never a deploy". Each such literal is a
    * place where that promise is already false — the pack's identity is compiled into the engine, so
