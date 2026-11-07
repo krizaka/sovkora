@@ -42,38 +42,52 @@ public final class AssetEncryptionTool {
   private AssetEncryptionTool() {}
 
   /**
+   * Runs the tool and exits with its status; the exit code is what an operator's script reads.
+   *
    * @param args the subcommand and its two arguments
    * @throws IOException if the store cannot be walked
    */
   public static void main(String[] args) throws IOException {
+    int status = run(args);
+    if (status != 0) {
+      System.exit(status);
+    }
+  }
+
+  /**
+   * Runs one subcommand.
+   *
+   * @param args the subcommand and its two arguments
+   * @return the exit status: {@code 0} done, {@code 1} at least one file failed, {@code 2} a usage
+   *     error
+   * @throws IOException if the store cannot be walked
+   */
+  static int run(String[] args) throws IOException {
     if (args.length < 3) {
       System.err.println(
           "usage: AssetEncryptionTool <keygen|migrate|verify> <keyfile> <keyId|uploadRoot>");
-      System.exit(2);
-      return;
+      return 2;
     }
     Path keyFile = Path.of(args[1]);
     Command command = COMMANDS.get(args[0]);
     if (command == null) {
       System.err.println("unknown subcommand: " + args[0]);
-      System.exit(2);
-      return;
+      return 2;
     }
-    switch (command) {
-      case KEYGEN -> {
-        FileMasterKeyProvider.addKey(keyFile, args[2]);
-        System.out.println(
-            "Wrote master key '"
-                + args[2]
-                + "' to "
-                + keyFile
-                + " (mode 0600) and made it active.");
-        System.out.println(
-            "Every retired key must stay in this file for as long as one asset still names it.");
-      }
+    return switch (command) {
+      case KEYGEN -> keygen(keyFile, args[2]);
       case MIGRATE -> report(migrate(keyFile, Path.of(args[2])));
       case VERIFY -> report(verify(keyFile, Path.of(args[2])));
-    }
+    };
+  }
+
+  private static int keygen(Path keyFile, String keyId) throws IOException {
+    FileMasterKeyProvider.addKey(keyFile, keyId);
+    System.out.println(
+        "Wrote master key '" + keyId + "' to " + keyFile + " (mode 0600) and made it active.");
+    System.out.println(
+        "Every retired key must stay in this file for as long as one asset still names it.");
+    return 0;
   }
 
   private static final String OP_MIGRATE = "migrate";
@@ -166,12 +180,10 @@ public final class AssetEncryptionTool {
     }
   }
 
-  private static void report(Outcome outcome) {
+  private static int report(Outcome outcome) {
     System.out.println(outcome.describe());
     outcome.failed().forEach(line -> System.out.println("  FAILED " + line));
-    if (!outcome.failed().isEmpty()) {
-      System.exit(1);
-    }
+    return outcome.failed().isEmpty() ? 0 : 1;
   }
 
   /**

@@ -136,6 +136,47 @@ class AssetEncryptionToolTest {
   }
 
   @Test
+  @DisplayName("the exit status is 2 for a usage error: too few arguments or an unknown subcommand")
+  void usageErrorsExitWithTwo(@TempDir Path dir) throws Exception {
+    String keyFile = dir.resolve("master.key").toString();
+
+    assertThat(AssetEncryptionTool.run(new String[] {"migrate", keyFile})).isEqualTo(2);
+    assertThat(AssetEncryptionTool.run(new String[] {"rotate", keyFile, "k2"})).isEqualTo(2);
+    assertThat(Files.exists(dir.resolve("master.key"))).isFalse();
+  }
+
+  @Test
+  @DisplayName("the exit status is 0 when keygen writes the key and a run fails no file")
+  void cleanRunsExitWithZero(@TempDir Path dir) throws Exception {
+    Path root = dir.resolve("uploads");
+    seedStore(root, 3);
+    String keyFile = dir.resolve("master.key").toString();
+
+    assertThat(AssetEncryptionTool.run(new String[] {"keygen", keyFile, "k1"})).isZero();
+    assertThat(AssetEncryptionTool.run(new String[] {"migrate", keyFile, root.toString()}))
+        .isZero();
+    assertThat(AssetEncryptionTool.run(new String[] {"verify", keyFile, root.toString()})).isZero();
+    assertThat(AssetEncryptionTool.verify(Path.of(keyFile), root).changed()).isEqualTo(3);
+  }
+
+  @Test
+  @DisplayName("the exit status is 1 when a file fails, so a script sees the run did not work")
+  void aFailedFileExitsWithOne(@TempDir Path dir) throws Exception {
+    Path root = dir.resolve("uploads");
+    seedStore(root, 2);
+    Path keyFile = keyring(dir);
+    AssetEncryptionTool.migrate(keyFile, root);
+    Path victim = filesUnder(root).getFirst();
+    byte[] raw = Files.readAllBytes(victim);
+    raw[raw.length - 5] ^= 0x01;
+    Files.write(victim, raw);
+
+    assertThat(
+            AssetEncryptionTool.run(new String[] {"verify", keyFile.toString(), root.toString()}))
+        .isEqualTo(1);
+  }
+
+  @Test
   @DisplayName("a converted file still opens to exactly what it held")
   void conversionPreservesTheBytes(@TempDir Path dir) throws Exception {
     Path root = dir.resolve("uploads");
