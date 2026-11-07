@@ -222,11 +222,17 @@ jobs:
       relevant: '^(workers/media/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
       working-directory: workers/media
       extra-packages: pytest pyyaml pika Pillow psutil cryptography numpy coverage
-      # The suites a CI runner can run: no GPU, no model; the CUDA host's suites skip themselves where ffmpeg lacks a filter.
+      # The sound suites render through ffmpeg; the runner image may not carry it.
+      setup-command: command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+      # Every suite of the worker (test_main's runner guard fails on one left out): no GPU, no model; the CUDA host's suites
+      # skip themselves where ffmpeg lacks a filter.
       test-command: >
         python -m coverage run -m pytest -q test_capability_contract.py test_gpu_runtime.py test_image_to_video.py
         test_cut.py test_deliver.py test_foley.py test_mixer.py test_titles.py test_voice_direction.py
         test_remote_video.py test_sound_models.py
+        test_main.py test_measure.py test_model_cache.py test_upscale.py test_sound_handler.py test_stages.py
+        test_job_control.py test_ltx_video.py test_sound.py test_consumer_resilience.py test_cinematic_kit.py
+        test_gpu_out.py test_hosted_worker.py test_speech_server.py test_spend.py test_dockerfile_pins.py
         && python -m coverage xml -o coverage.xml
 
   packs-schema:

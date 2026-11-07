@@ -47,6 +47,17 @@ sys.modules["transformers"] = MagicMock()
 mock_pika = MagicMock()
 sys.modules["pika"] = mock_pika
 
+
+def _use_the_broker_mock(case):
+    """Points app.telemetry at ``mock_pika`` for one test. Injecting ``sys.modules["pika"]`` above is not enough when
+    an earlier suite of the same run already imported app.telemetry with the real pika (the CI runs every suite of the
+    worker in one process): the module keeps the pika it was born with."""
+    import app.telemetry
+
+    patcher = patch.object(app.telemetry, "pika", mock_pika)
+    patcher.start()
+    case.addCleanup(patcher.stop)
+
 # Now stub the global pipeline load to avoid model download
 mock_pipe = MagicMock()
 mock_diffusers.StableVideoDiffusionPipeline.from_pretrained.return_value = mock_pipe
@@ -87,12 +98,13 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
       from the module as it actually executed. A class after ``unittest.main()``, a second method
       with a name already taken, a pytest-style module function unittest never collects: each makes
       the two numbers differ;
-    * **per repository** — every ``test_*.py`` is named by a Python execution in the root
-      ``pom.xml``. A suite with no runner defines tests that nothing collects, and zero collected
-      out of twenty-seven is the same finding as fifty-eight out of sixty-three.
+    * **per repository** — every ``test_*.py`` is named by a test command of the repository's one CI
+      (``.github/workflows/ci.yml``: the media job, the pack workers' matrix). A suite with no runner
+      defines tests that nothing collects, and zero collected out of twenty-seven is the same finding
+      as fifty-eight out of sixty-three (krizaka/sovkora#621 found sixteen of them).
     """
 
-    REPOSITORY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    REPOSITORY = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     SKIPPED_DIRECTORIES = {
         ".git",
         ".venv",
@@ -106,12 +118,7 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
     # A suite that exists and CANNOT run here, each with the condition that keeps it so. The
     # condition is checked: the day it stops holding, the entry is stale and this class fails,
     # because a runnable suite left out of the build is the defect this guard exists for.
-    UNRUNNABLE = {
-        "orazaka-packs/document-validation/worker/test_authenticity.py": (
-            "pypdf",
-            "its PDF library is declared nowhere and absent from this environment (audit #27)",
-        ),
-    }
+    UNRUNNABLE = {}
 
     @staticmethod
     def _defined(path):
@@ -155,20 +162,25 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
 
     def test_every_python_suite_in_the_repository_has_a_runner(self):
         import importlib.util
-        import xml.etree.ElementTree as ElementTree
+        import re
 
-        namespace = {"m": "http://maven.apache.org/POM/4.0.0"}
-        pom = ElementTree.parse(os.path.join(self.REPOSITORY, "pom.xml"))
+        import yaml
+
+        with open(os.path.join(self.REPOSITORY, ".github", "workflows", "ci.yml"), encoding="utf-8") as handle:
+            jobs = yaml.safe_load(handle)["jobs"]
         run = set()
-        for execution in pom.iter("{http://maven.apache.org/POM/4.0.0}execution"):
-            executable = execution.find("m:configuration/m:executable", namespace)
-            directory = execution.find("m:configuration/m:workingDirectory", namespace)
-            if executable is None or directory is None or "python" not in executable.text:
+        for job in jobs.values():
+            given = job.get("with") or {}
+            if "working-directory" not in given or "test-command" not in given:
                 continue
-            base = directory.text.replace("${project.basedir}", self.REPOSITORY)
-            for argument in execution.findall("m:configuration/m:arguments/m:argument", namespace):
-                if argument.text and argument.text.endswith(".py"):
-                    run.add(os.path.relpath(os.path.join(base, argument.text), self.REPOSITORY))
+            entries = (job.get("strategy") or {}).get("matrix", {}).get("include") or [{}]
+            for entry in entries:
+                def resolve(text, entry=entry):
+                    return re.sub(r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}", lambda m: str(entry.get(m.group(1), "")), text)
+                directory = resolve(given["working-directory"])
+                for name in re.findall(r"\btest_\w+\.py\b", resolve(given["test-command"])):
+                    run.add(os.path.normpath(os.path.join(directory, name)))
+        self.assertTrue(run, "no Python test command found in ci.yml: this guard would be judging the empty set")
 
         suites = set()
         for root, directories, files in os.walk(self.REPOSITORY):
@@ -185,7 +197,7 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
             )
         unrun = sorted(suites - run - set(self.UNRUNNABLE))
         if unrun:
-            self.fail(f"Python suites no build execution runs, so no test in them ever has: {unrun}")
+            self.fail(f"Python suites no CI test command runs, so no test in them ever has: {unrun}")
 
 
 class TestPreflightMemoryGuard(unittest.TestCase):
@@ -222,6 +234,7 @@ class TestSendProgressUpdate(unittest.TestCase):
 
     def setUp(self):
         mock_pika.reset_mock()
+        _use_the_broker_mock(self)
 
     @patch.dict(os.environ, {"SPRING_RABBITMQ_HOST": "testhost", "SPRING_RABBITMQ_PORT": "5673"})
     def test_sends_progress_message(self):
@@ -291,6 +304,7 @@ class TestConsumptionMetering(unittest.TestCase):
     def setUp(self):
         mock_pika.reset_mock()
         mock_pika.BlockingConnection.side_effect = None
+        _use_the_broker_mock(self)
         self.channel = MagicMock()
         connection = MagicMock()
         connection.channel.return_value = self.channel
