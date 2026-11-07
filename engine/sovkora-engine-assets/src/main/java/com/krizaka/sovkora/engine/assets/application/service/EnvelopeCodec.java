@@ -92,7 +92,7 @@ public final class EnvelopeCodec {
                 + wrapped.length
                 + EnvelopeHeader.NONCE_PREFIX_LENGTH);
     buffer.put(EnvelopeHeader.MAGIC);
-    buffer.put((byte) EnvelopeHeader.VERSION);
+    buffer.put((byte) EnvelopeHeader.CURRENT_VERSION);
     buffer.put((byte) EnvelopeHeader.ALG_AES_256_GCM);
     buffer.putInt(blockSize);
     buffer.putLong(plainLength);

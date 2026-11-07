@@ -47,7 +47,7 @@ public record EnvelopeHeader(
   public static final byte[] MAGIC = "ORZAENC1".getBytes(StandardCharsets.US_ASCII);
 
   /** The only version this build writes. */
-  public static final int VERSION = 1;
+  public static final int CURRENT_VERSION = 1;
 
   /** AES-256-GCM, one sealed message per block. */
   public static final int ALG_AES_256_GCM = 1;
@@ -63,7 +63,7 @@ public record EnvelopeHeader(
 
   /** Compact canonical constructor enforcing the format's invariants (ERR-106). */
   public EnvelopeHeader {
-    if (version != VERSION) {
+    if (version != CURRENT_VERSION) {
       throw new IllegalArgumentException("unsupported envelope version: " + version);
     }
     if (blockSize <= 0) {

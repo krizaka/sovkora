@@ -77,7 +77,7 @@ public class EncryptedAssetService {
     byte[] headerBytes = EnvelopeCodec.writeHeader(blockSize, plainLength, wrapped, noncePrefix);
     EnvelopeHeader header =
         new EnvelopeHeader(
-            EnvelopeHeader.VERSION,
+            EnvelopeHeader.CURRENT_VERSION,
             blockSize,
             plainLength,
             wrapped.keyId(),
