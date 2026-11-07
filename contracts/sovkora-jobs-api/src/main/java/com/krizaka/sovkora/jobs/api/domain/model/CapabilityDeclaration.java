@@ -43,7 +43,7 @@ public record CapabilityDeclaration(
     boolean enabled) {
 
   private static final Pattern FEATURE_KEY =
-      Pattern.compile("^orazaka\\.[a-z0-9]+(\\.[a-z0-9]+)+$");
+      Pattern.compile("^orazaka\\.[a-z0-9]++(\\.[a-z0-9]++)++$");
   private static final Pattern ROUTING_KEY = Pattern.compile("^job\\.[a-z0-9]+\\.[a-z0-9]+$");
 
   /** Compact canonical constructor enforcing the declaration's invariants (ERR-106). */
