@@ -117,5 +117,4 @@ class EngineArchitectureTest {
             "Controllers must not bypass the DynamicPipelineExecutor/AiClient layer to interact with the engine directly")
         .check(allAppClasses);
   }
-
 }

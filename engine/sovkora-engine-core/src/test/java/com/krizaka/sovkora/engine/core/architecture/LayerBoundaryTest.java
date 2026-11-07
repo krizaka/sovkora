@@ -136,5 +136,4 @@ class LayerBoundaryTest {
             "Engine must be blind to concrete infrastructure tools and media libraries [ERR-101]")
         .check(coreClasses);
   }
-
 }
