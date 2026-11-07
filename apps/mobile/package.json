@@ -11,7 +11,7 @@
     "ios": "expo run:ios",
     "lint": "eslint src && npm run format:check",
     "typecheck": "tsc --noEmit",
-    "validate": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:sonar && npm run test:links && npm run check:icons && npm run test:icons && npm run test:flows && npm run test:code-names && npm run check:code-names",
+    "validate": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:sonar && npm run test:links && npm run check:icons && npm run test:icons && npm run test:flows && npm run test:code-names && npm run check:code-names && npm run test:tools",
     "test": "jest",
     "test:coverage": "jest --coverage --coverageReporters=lcov --coverageReporters=text-summary",
     "test:sonar": "node --test scripts/sonar-coverage.test.mjs",
@@ -22,7 +22,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}\"",
     "check:code-names": "node scripts/check-code-names.mjs",
-    "test:code-names": "node --test scripts/check-code-names.test.mjs"
+    "test:code-names": "node --test scripts/check-code-names.test.mjs",
+    "test:tools": "node --test scripts/tool-path.test.mjs scripts/frame-clips.test.mjs"
   },
   "dependencies": {
     "@krizaka/app-config": "^0.2.0",
