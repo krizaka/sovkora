@@ -1,144 +1,358 @@
-# Dependabot — the Krizaka model (monthly, quiet; DEPS 2026-10-13, krizaka/.github).
-# Once a month (the 1st, 06:00 Paris), ONE grouped pull request per ecosystem — every update, majors included — and at
-# most one open per ecosystem. Security fixes stay on and arrive grouped apart, as soon as an advisory is published.
-# The ignore rules below are decisions, not oversights: Node LTS only (22/24), PostgreSQL 16 (parity with the
-# DigitalOcean databases), TypeScript 7 / ESLint 10 only once @krizaka/config supports them (krizaka/krizaka-ui#141),
-# the Expo SDK pins its own toolchain, and each deferred major names its tracking issue.
-# A grouped pull request is merged when CI is green; a major that breaks it gets an ignore rule here and an issue.
+# Dependabot — the Krizaka model, for the one Sovkora repository (ADR-029): monthly (the 1st, 06:00 Paris), ONE grouped pull
+# request per ecosystem and folder, at most one open each. Security fixes stay on and arrive grouped apart.
+# The ignore rules are decisions, not oversights, carried from each app's former repository: Node LTS only (22/24),
+# TypeScript 7 once @krizaka/config supports it (krizaka-ui#141), the Expo SDK pins its own React Native toolchain,
+# @tanstack/* moves with @krizaka/query, and each deferred major names its reason in its app's history.
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: "/"
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-    commit-message:
-      prefix: "ci(deps)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: npm
-    directories: ["/orazaka-apps/ui", "/.agent/mcp-server"]
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-      security:
-        applies-to: security-updates
-        patterns: ["*"]
-    ignore:
-      # Node majors are a decision, not a bump: LTS only (22/24), moved by hand
-      - dependency-name: "@types/node"
-        update-types: ["version-update:semver-major"]
-      # TypeScript 7 (native compiler) waits for @krizaka/config and typescript-eslint (krizaka-ui#141)
-      - dependency-name: "typescript"
-        versions: [">=7"]
-      # types of the Node LTS we run (22/24), never a non-LTS line
-      - dependency-name: "@types/node"
-        versions: [">=25"]
-    commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: maven
-    directory: "/"
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-      security:
-        applies-to: security-updates
-        patterns: ["*"]
-    commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: docker
-    directory: "/infra/compute-nodes"
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-      security:
-        applies-to: security-updates
-        patterns: ["*"]
-    ignore:
-      # Node majors are a decision, not a bump: LTS only (22/24), moved by hand
-      - dependency-name: "node"
-        update-types: ["version-update:semver-major"]
-      # no worker tests, image not buildable; krizaka/orazaka#59
-      - dependency-name: "pytorch/pytorch"
-    commit-message:
-      prefix: "chore(deps)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: docker-compose
-    directory: "/infra"
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-      security:
-        applies-to: security-updates
-        patterns: ["*"]
-    ignore:
-      # Node majors are a decision, not a bump: LTS only (22/24), moved by hand
-      - dependency-name: "node"
-        update-types: ["version-update:semver-major"]
-      # PostgreSQL 16 = the DigitalOcean databases
-      - dependency-name: "postgres"
-        update-types: ["version-update:semver-major"]
-    commit-message:
-      prefix: "chore(deps)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
-
-  - package-ecosystem: cargo
-    directory: "/apps/desktop/src-tauri"
-    schedule:
-      interval: monthly
-      time: "06:00"
-      timezone: Europe/Paris
-    groups:
-      all:
-        patterns: ["*"]
-      security:
-        applies-to: security-updates
-        patterns: ["*"]
-    commit-message:
-      prefix: "chore(deps)"
-    labels: ["area:deps"]
-    open-pull-requests-limit: 1
-    cooldown:
-      default-days: 7
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+  commit-message:
+    prefix: ci(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: maven
+  directory: /
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: org.testcontainers:*
+    versions:
+    - '>=2'
+  - dependency-name: com.anthropic:*
+    update-types:
+    - version-update:semver-major
+  commit-message:
+    prefix: chore(deps)
+    prefix-development: chore(deps-dev)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: npm
+  directory: /apps/web
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: '@types/node'
+    update-types:
+    - version-update:semver-major
+  - dependency-name: '@tanstack/*'
+  - dependency-name: react
+  - dependency-name: react-dom
+  - dependency-name: typescript
+    versions:
+    - '>=7'
+  - dependency-name: '@types/node'
+    versions:
+    - '>=25'
+  commit-message:
+    prefix: chore(deps)
+    prefix-development: chore(deps-dev)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: npm
+  directory: /apps/mobile
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: '@types/node'
+    update-types:
+    - version-update:semver-major
+  - dependency-name: expo
+  - dependency-name: expo-*
+  - dependency-name: '@expo/*'
+  - dependency-name: react
+  - dependency-name: react-dom
+  - dependency-name: react-native
+  - dependency-name: react-native-*
+  - dependency-name: '@react-native/*'
+  - dependency-name: jest-expo
+  - dependency-name: typescript
+    versions:
+    - '>=6'
+  - dependency-name: '@testing-library/react-native'
+    versions:
+    - '>=14'
+  - dependency-name: '@types/node'
+    versions:
+    - '>=25'
+  commit-message:
+    prefix: chore(deps)
+    prefix-development: chore(deps-dev)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: npm
+  directories:
+  - /apps/cli
+  - /apps/cli/alias
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: '@types/node'
+    update-types:
+    - version-update:semver-major
+  - dependency-name: '@types/node'
+    versions:
+    - '>=26'
+  - dependency-name: commander
+    versions:
+    - '>=15'
+  - dependency-name: chalk
+    versions:
+    - '>=5'
+  - dependency-name: ora
+    versions:
+    - '>=6'
+  - dependency-name: '@clack/prompts'
+    versions:
+    - '>=1'
+  - dependency-name: typescript
+    versions:
+    - '>=7'
+  commit-message:
+    prefix: chore(deps)
+    prefix-development: chore(deps-dev)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: npm
+  directories:
+  - /apps/desktop
+  - /packs
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: '@types/node'
+    update-types:
+    - version-update:semver-major
+  - dependency-name: typescript
+    versions:
+    - '>=7'
+  - dependency-name: '@types/node'
+    versions:
+    - '>=25'
+  commit-message:
+    prefix: chore(deps)
+    prefix-development: chore(deps-dev)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: cargo
+  directory: /apps/desktop/src-tauri
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: uv
+  directory: /workers/media
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: pip
+  directories:
+  - /packs/media-safety
+  - /packs/message-authenticity
+  - /packs/profile-photo-check
+  - /packs/tenant-screening-qc
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: docker
+  directory: /infra/compute-nodes
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: node
+    update-types:
+    - version-update:semver-major
+  - dependency-name: pytorch/pytorch
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: docker-compose
+  directory: /infra
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: node
+    update-types:
+    - version-update:semver-major
+  - dependency-name: postgres
+    update-types:
+    - version-update:semver-major
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
+- package-ecosystem: docker
+  directory: /workers/media
+  schedule:
+    interval: monthly
+    time: "06:00"
+    timezone: Europe/Paris
+  groups:
+    all:
+      patterns:
+      - '*'
+    security:
+      applies-to: security-updates
+      patterns:
+      - '*'
+  ignore:
+  - dependency-name: node
+    update-types:
+    - version-update:semver-major
+  commit-message:
+    prefix: chore(deps)
+  labels:
+  - area:deps
+  open-pull-requests-limit: 1
+  cooldown:
+    default-days: 7
