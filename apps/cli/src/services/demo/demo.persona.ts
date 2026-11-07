@@ -18,8 +18,12 @@ export const DEMO_PERSONA = {
   username: "Eric",
   fullName: "Eric Morel",
   email: "eric.morel@example.com",
-  /** Overridable with DEMO_PASSWORD; only ever used against a local stack (demo.guard.ts). */
-  defaultPassword: "Demo-Lumen-2026",
+  /**
+   * Eric's sign-in on a local stack, public by design and no secret: `orazaka demo seed` prints it at the end of every
+   * run, the web client's tour script (apps/web/scripts/tour/eric.mjs) holds the same, and the seeder refuses any target
+   * but a local, non-deployed one (demo.guard.ts). DEMO_PASSWORD replaces it.
+   */
+  publicSignIn: "Demo-Lumen-2026",
   language: "en",
   company: "Lumen Atelier",
   /** Onboarding answers (krizaka-users stores them as profile attributes, never interprets them). */

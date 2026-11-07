@@ -16,7 +16,7 @@ import { DEMO_PERSONA } from "../services/demo/demo.persona";
 
 async function seed(opts: { fresh?: boolean; runs?: boolean; withVideo?: boolean }): Promise<void> {
   await intro(chalk.cyan("Orazaka demo persona"));
-  const password = strEnv("DEMO_PASSWORD", DEMO_PERSONA.defaultPassword);
+  const password = strEnv("DEMO_PASSWORD", DEMO_PERSONA.publicSignIn);
   try {
     const result = await new DemoSeeder({
       baseUrl: ROUTER_URL,
