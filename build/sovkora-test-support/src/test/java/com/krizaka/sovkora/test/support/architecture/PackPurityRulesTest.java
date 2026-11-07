@@ -58,6 +58,37 @@ class PackPurityRulesTest {
         .hasMessageContaining("orazaka.acme.compliance");
   }
 
+  @Test
+  @DisplayName("a literal the code names as a pack key is flagged")
+  void declaredPackKeyFlagged() throws IOException {
+    write(
+        "engine/sovkora-engine-core/src/main/java/Cloud.java",
+        """
+        public final class Cloud {
+          private static final String CLOUD_PACK = "acme-compliance";
+        }
+        """);
+
+    assertThatThrownBy(() -> PackPurityRules.assertNoPackKeyLiterals(root))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("acme-compliance");
+  }
+
+  @Test
+  @DisplayName("a declared pack key of fifty thousand segments is flagged, not a stack overflow")
+  void longDeclaredPackKeyFlaggedWithoutStackOverflow() throws IOException {
+    String key = "acme" + "-x".repeat(50_000);
+    write(
+        "engine/sovkora-engine-core/src/main/java/Long.java",
+        "public final class Long {\n  private static final String LONG_PACK = \""
+            + key
+            + "\";\n}\n");
+
+    assertThatThrownBy(() -> PackPurityRules.assertNoPackKeyLiterals(root))
+        .isInstanceOf(AssertionError.class)
+        .hasMessageContaining("acme-x-x-x");
+  }
+
   private void write(String relative, String content) throws IOException {
     Path file = root.resolve(relative);
     Files.createDirectories(file.getParent());

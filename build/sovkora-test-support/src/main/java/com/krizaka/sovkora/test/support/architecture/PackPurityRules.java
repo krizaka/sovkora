@@ -132,7 +132,7 @@ public final class PackPurityRules {
   private static final Pattern DECLARED_PACK_KEY =
       Pattern.compile(
           "\\b([A-Za-z_][A-Za-z0-9_]*(?:[Pp][Aa][Cc][Kk]|[Ss][Tt][Uu][Dd][Ii][Oo])[A-Za-z0-9_]*)"
-              + "\\s*=\\s*\"([a-z0-9]+(?:-[a-z0-9]+)+)\"");
+              + "\\s*=\\s*\"([a-z0-9]++(?:-[a-z0-9]++)++)\"");
 
   /** Where engine code lives. A pack's own directory is not engine code and is not scanned. */
   private static final List<String> SCANNED_ROOTS =
