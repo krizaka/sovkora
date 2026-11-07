@@ -27,7 +27,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *     registry:<url>} for a registry this local phase cannot serve
  */
 @ConfigurationProperties(prefix = "orazaka.studio-service.packs")
-public record PackSourceProperties(@DefaultValue("orazaka-packs") List<String> sources) {
+public record PackSourceProperties(@DefaultValue("packs") List<String> sources) {
 
   private static final String REGISTRY_PREFIX = "registry:";
 

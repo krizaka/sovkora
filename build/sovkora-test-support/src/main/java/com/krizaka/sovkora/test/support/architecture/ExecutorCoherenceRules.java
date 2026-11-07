@@ -76,8 +76,8 @@ public final class ExecutorCoherenceRules {
    * that best demonstrate the AMQP contract being the real SPI (ADR-037 §3.4).
    *
    * <p>The scope is read from the repository's own taxonomy rather than a hard-coded name: {@code
-   * orazaka-apps/services/**} is run as a JVM deployable and dispatches by handler key; {@code
-   * orazaka-apps/workers/**} is an external worker and does not (AGENTS.md §2).
+   * services/**} is run as a JVM deployable and dispatches by handler key; {@code
+   * workers/**} is an external worker and does not (AGENTS.md §2).
    *
    * @param repositoryRoot the repository root
    */
@@ -202,12 +202,12 @@ public final class ExecutorCoherenceRules {
   /**
    * The bindings of workers that run inside a JVM service and therefore dispatch by handler key.
    *
-   * <p>{@code orazaka-apps/services/**} is imported-and-run Java; {@code orazaka-apps/workers/**}
+   * <p>{@code services/**} is imported-and-run Java; {@code workers/**}
    * is an external process speaking only the wire contract (AGENTS.md §2).
    */
   private static Set<String> inProcessBindings(Path root) {
     Set<String> bindings = new LinkedHashSet<>();
-    try (Stream<Path> paths = Files.walk(root.resolve("orazaka-apps").resolve("services"))) {
+    try (Stream<Path> paths = Files.walk(root.resolve("services"))) {
       for (Path file :
           paths
               .filter(p -> "worker.yaml".equals(p.getFileName().toString()))
@@ -273,7 +273,7 @@ public final class ExecutorCoherenceRules {
 
   private static List<Path> javaSources(Path root) {
     List<Path> sources = new ArrayList<>();
-    for (String module : List.of("orazaka-apps", "sovkora-libs", "orazaka-libs")) {
+    for (String module : List.of("build", "contracts", "engine", "services")) {
       Path dir = root.resolve(module);
       if (!Files.isDirectory(dir)) {
         continue;

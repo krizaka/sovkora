@@ -117,7 +117,7 @@ orazaka:
       # bundle the catalogue does not carry is installed at startup (ADR-068): before this, a fresh
       # environment received the pack files and no Studios, and the only path between them was an
       # operator remembering a command.
-      sources: ${ORAZAKA_PACKS_SOURCES:orazaka-packs}
+      sources: ${ORAZAKA_PACKS_SOURCES:packs}
       # How long to wait before retrying a bundle whose install failed because a service it needs
       # is still starting. Not a poll: the bootstrap stops as soon as one pass finds nothing left.
       bootstrap-interval: ${STUDIO_PACK_BOOTSTRAP_INTERVAL:30000}

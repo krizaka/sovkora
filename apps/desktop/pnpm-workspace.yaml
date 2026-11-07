@@ -1,9 +1,0 @@
-minimumReleaseAgeExclude:
-  - '@krizaka/i18n@0.2.1'
-  - '@krizaka/intl@0.2.1'
-  - '@krizaka/orazaka-design-system@3.1.0'
-  - '@krizaka/pacer@0.1.0'
-  - '@krizaka/tailwind@3.11.0 || 3.28.0 || 3.44.0'
-  - '@krizaka/tokens@3.10.0 || 3.11.0 || 3.28.0 || 3.44.0'
-  - '@krizaka/ui@3.11.0 || 3.28.0 || 3.44.0'
-  - '@krizaka/org@0.7.0'

@@ -47,8 +47,8 @@ let cwd: jest.SpyInstance;
 beforeAll(() => {
   workspace = fs.mkdtempSync(path.join(os.tmpdir(), "orazaka-workspace-"));
   fs.writeFileSync(path.join(workspace, "orazaka.workspace.json"), "{}", "utf-8");
-  fs.mkdirSync(path.join(workspace, "orazaka-packs"));
-  fs.writeFileSync(path.join(workspace, "orazaka-packs", "pack.schema.json"), JSON.stringify(SCHEMA), "utf-8");
+  fs.mkdirSync(path.join(workspace, "packs"));
+  fs.writeFileSync(path.join(workspace, "packs", "pack.schema.json"), JSON.stringify(SCHEMA), "utf-8");
   cwd = jest.spyOn(process, "cwd").mockReturnValue(workspace);
 });
 

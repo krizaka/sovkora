@@ -310,7 +310,7 @@ class PackBootstrapIT {
      */
     @Bean
     PackSourceProperties packSourceProperties() {
-      return new PackSourceProperties(List.of("orazaka-packs"));
+      return new PackSourceProperties(List.of("packs"));
     }
 
     @Bean

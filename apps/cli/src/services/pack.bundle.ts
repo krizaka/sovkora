@@ -80,7 +80,7 @@ const MANIFEST = "pack.yaml";
 const I18N_DIR = "i18n";
 
 /** Where the platform keeps the manifest contract it enforces. */
-const PACKS_DIR = "orazaka-packs";
+const PACKS_DIR = "packs";
 const SCHEMA_FILE = "pack.schema.json";
 
 /**

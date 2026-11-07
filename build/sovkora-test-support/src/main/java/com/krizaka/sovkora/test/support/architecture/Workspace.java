@@ -17,18 +17,17 @@ import org.junit.jupiter.api.Assumptions;
 /**
  * Where the rest of the platform is, for a rule that needs more than the repository it runs in.
  *
- * <p>Sovkora is one repository per component, assembled by the workspace ({@code krizaka/sovkora},
- * marked by {@value #MANIFEST}): every repository is cloned at its workspace path, so a
- * cross-repository rule — no pack name in engine code, every capability has an executor, a
- * context's seed matches another's — can read all of them. A repository cloned on its own cannot
- * answer those questions, and a rule that cannot see its subject must not report that it passed: it
- * is <b>skipped</b>, with the reason, through a JUnit assumption. Inside the workspace (and
- * therefore in CI, which always builds there) nothing is skipped.
+ * <p>Sovkora is one repository ({@code krizaka/sovkora}, ADR-029), whose root is marked by {@value
+ * #MANIFEST}: a rule that reads more than its own module — no pack name in engine code, every
+ * capability has an executor, a context's seed matches another's — reads the whole tree from
+ * there. A rule that cannot see its subject must not report that it passed: outside the repository
+ * (a module copied on its own) it is <b>skipped</b>, with the reason, through a JUnit assumption. In
+ * the repository, and therefore in CI, nothing is skipped.
  */
 public final class Workspace {
 
-  /** The file that marks the workspace root. */
-  public static final String MANIFEST = "orazaka.workspace.json";
+  /** The file that marks the repository root: the parent of every Sovkora module. */
+  public static final String MANIFEST = "build/sovkora-parent/pom.xml";
 
   /** Directories never descended into when looking for bootstrap files. */
   private static final Set<String> PRUNED =
@@ -77,8 +76,8 @@ public final class Workspace {
         () ->
             "["
                 + rule
-                + "] is a cross-repository rule: it runs inside the Sovkora workspace"
-                + " (github.com/krizaka/sovkora) and is skipped in a standalone clone of "
+                + "] reads the whole Sovkora repository (github.com/krizaka/sovkora) and is"
+                + " skipped outside it, here in "
                 + root.getFileName());
   }
 
@@ -93,20 +92,19 @@ public final class Workspace {
     Optional<Path> root = find(startDir);
     Assumptions.assumeTrue(
         root.isPresent(),
-        () -> what + " lives in another repository: run inside the Sovkora workspace");
+        () -> what + " is elsewhere in the Sovkora repository: run inside it");
     return root.orElseThrow();
   }
 
   /**
-   * The {@code sovkora-packs} directory of the workspace, skipping the caller when it is absent.
+   * The {@code packs} directory of the repository, skipping the caller when it is absent.
    *
    * @param startDir any directory inside the checkout
-   * @return {@code <workspace>/sovkora-packs}
+   * @return {@code <repository>/packs}
    */
   public static Path packs(Path startDir) {
-    Path packs = root(startDir, "sovkora-packs").resolve("orazaka-packs");
-    Assumptions.assumeTrue(
-        Files.isDirectory(packs), () -> "sovkora-packs is not cloned in the workspace");
+    Path packs = root(startDir, "packs").resolve("packs");
+    Assumptions.assumeTrue(Files.isDirectory(packs), () -> "packs/ is not in this checkout");
     return packs;
   }
 
@@ -157,7 +155,7 @@ public final class Workspace {
         .orElseGet(
             () -> {
               Assumptions.abort(
-                  fileName + " is owned by another repository: run inside the Sovkora workspace");
+                  fileName + " is owned by another repository: run inside the Sovkora repository");
               throw new IllegalStateException("unreachable");
             });
   }

@@ -1,6 +1,10 @@
 #
-#Tue Oct 27 14:32:13 EDT 2026
+#Sat Nov 07 12:41:49 EST 2026
 no\ @Transactional\ on\ a\ method\ returning\ Flux,\ Stream,\ SseEmitter\ or\ ResponseBodyEmitter,\ because\ the\ transaction,\ and\ its\ pooled\ connection,\ stays\ open\ while\ the\ stream\ is\ consumed\:\ the\ pool\ leaked\ (orazaka-conversation-service\#10,\ krizaka-build\#102,\ ADR-013)=facbfaad-1f54-4e39-b9d8-e1acc710f408
+no\ @Transactional\ on\ a\ method\ returning\ Flux,\ Stream,\ SseEmitter\ or\ ResponseBodyEmitter,\ because\ the\ transaction,\ and\ its\ pooled\ connection,\ stays\ open\ while\ the\ stream\ is\ consumed\:\ the\ pool\ leaked\ (sovkora-conversation-service\#10,\ krizaka-java\#102,\ ADR-013)=2bbdbe0b-c036-4f20-9838-e8193e7d623f
 no\ System.getenv\ outside\ ..config..,\ because\ an\ environment\ fallback\ hidden\ in\ code\ bypasses\ the\ validated,\ documented\ settings\ (krizaka-users\#57,\ krizaka-build\#102,\ ADR-013)=1780b393-28bc-4883-a670-b3ad5306feb6
+no\ System.getenv\ outside\ ..config..,\ because\ an\ environment\ fallback\ hidden\ in\ code\ bypasses\ the\ validated,\ documented\ settings\ (krizaka-users\#57,\ krizaka-java\#102,\ ADR-013)=0105de47-d6ae-4e4a-9d20-815a4ce1d067
 no\ non-final\ static\ field\ in\ production\ code,\ because\ static\ mutable\ state\ is\ shared\ by\ every\ request\ and\ every\ tenant\ \u2014\ the\ crypto\ state\ held\ that\ way\ in\ krizaka-users\#57\ leaked\ across\ callers\ (krizaka-build\#102,\ ADR-013)=a19e30e7-4118-4536-b095-e336f26986c2
+no\ non-final\ static\ field\ in\ production\ code,\ because\ static\ mutable\ state\ is\ shared\ by\ every\ request\ and\ every\ tenant\ \u2014\ the\ crypto\ state\ held\ that\ way\ in\ krizaka-users\#57\ leaked\ across\ callers\ (krizaka-java\#102,\ ADR-013)=a69f4d25-8fd0-49c7-9e9e-18f39655433f
 no\ user\ content\ in\ the\ query\ of\ a\ GET\ endpoint,\ because\ a\ GET\ query\ lands\ in\ access\ logs\ and\ proxies\:\ a\ prompt\ must\ travel\ in\ a\ POST\ body\ (orazaka-conversation-service\#19\ and\ \#66,\ krizaka-build\#103,\ ADR-013)=297b2196-8d0c-4a1e-af18-f3ddf0a3cd26
+no\ user\ content\ in\ the\ query\ of\ a\ GET\ endpoint,\ because\ a\ GET\ query\ lands\ in\ access\ logs\ and\ proxies\:\ a\ prompt\ must\ travel\ in\ a\ POST\ body\ (sovkora-conversation-service\#19\ and\ \#66,\ krizaka-java\#103,\ ADR-013)=c134f234-9bbc-42e8-aa88-71deca17179e

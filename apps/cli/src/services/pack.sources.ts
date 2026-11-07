@@ -15,7 +15,7 @@ import * as path from "node:path";
 import { strEnv } from "../utils/config";
 
 /** The default an untouched clone runs with: this repository's own reference packs. */
-export const DEFAULT_SOURCE = "orazaka-packs";
+export const DEFAULT_SOURCE = "packs";
 
 const REGISTRY_PREFIX = "registry:";
 

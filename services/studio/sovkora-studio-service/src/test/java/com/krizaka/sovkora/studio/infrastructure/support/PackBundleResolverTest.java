@@ -36,7 +36,7 @@ class PackBundleResolverTest {
 
   private static PackBundleResolver resolverOn(Path workingDirectory) {
     return PackBundleResolver.resolvingFrom(
-        MAPPER, new PackSourceProperties(List.of("orazaka-packs")), workingDirectory);
+        MAPPER, new PackSourceProperties(List.of("packs")), workingDirectory);
   }
 
   @Test
@@ -82,7 +82,7 @@ class PackBundleResolverTest {
     Workspace.require(REPOSITORY_ROOT, "PACK-BUNDLE");
     PackBundleResolver resolver = resolverOn(REPOSITORY_ROOT);
 
-    PackBundle media = resolver.read(REPOSITORY_ROOT.resolve("orazaka-packs/orazaka-media"));
+    PackBundle media = resolver.read(REPOSITORY_ROOT.resolve("packs/orazaka-media"));
 
     assertThat(media.kind()).isEqualTo(PackKind.TOOLKIT);
     // The six capability Studios, whatever the toolkit adds beside them (art direction since

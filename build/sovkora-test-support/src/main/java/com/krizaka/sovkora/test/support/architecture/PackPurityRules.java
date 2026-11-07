@@ -105,7 +105,7 @@ public final class PackPurityRules {
           "tools", // orazaka.tools.sandbox
           "user", // orazaka.user.tier — a Context preference namespace
           // Added by the multi-repository split: the workspace manifest's file name.
-          "workspace"); // orazaka.workspace.json — the workspace marker (Workspace)
+          "workspace"); // the repository marker (Workspace)
 
   /**
    * Any dotted {@code orazaka.} key, captured with its namespace so the namespace can be judged.
@@ -137,11 +137,7 @@ public final class PackPurityRules {
   /** Where engine code lives. A pack's own directory is not engine code and is not scanned. */
   private static final List<String> SCANNED_ROOTS =
       List.of(
-          "krizaka",
-          "sovkora-libs",
-          "orazaka-libs",
-          "orazaka-apps/services",
-          "orazaka-apps/workers");
+          "build", "contracts", "engine", "services", "workers");
 
   /**
    * Branching forms. {@code ==} and {@code !=} are here for Python, where the known violation was
