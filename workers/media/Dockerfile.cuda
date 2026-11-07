@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # ==============================================================================
-# orazaka-worker-media — the CUDA image (ADR-077). ghcr.io/krizaka/orazaka-worker-media:cuda-<sha>
+# orazaka-worker-media — the CUDA image (ADR-077). ghcr.io/krizaka/sovkora-media-worker:cuda-<sha>
 #
 # One image, two processes, started by the GPU host (krizaka/orazaka infra/gpu/compose.yml):
 #   * the media worker (python -m app.consumer): Wan 2.x 9:16 video on job.video.*, ffmpeg composition

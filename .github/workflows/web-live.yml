@@ -1,0 +1,89 @@
+# The web app as deployed on dev (apps/web), after each merge to main: the deployed build must carry the merged commit, then the
+# live smoke (three browsers) and the dev-preview checks (SEO contract, the admin console's gate, the UI crawl) run on it.
+name: Web live
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/web-live.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-live
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      E2E_BASE_URL: https://dev.sovkora.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Wait for the deployed build to carry this commit
+        run: |
+          short="${GITHUB_SHA::7}"; ok=0
+          for i in $(seq 1 180); do
+            # five answers in a row carry the sha: a rolling deploy serves old and new instances side by side
+            if curl -fsS "$E2E_BASE_URL/api/healthz" | grep -q "$short"; then ok=$((ok+1)); else ok=0; fi
+            if [ "$ok" -ge 5 ]; then echo "deployed: $short"; exit 0; fi
+            echo "waiting for $short ($i/180, $ok in a row)"; sleep 10
+          done
+          echo "the site never showed $short" >&2; exit 1
+      - run: npx --yes pnpm@12.10.1 install --frozen-lockfile --ignore-scripts
+        working-directory: apps/web
+      - working-directory: apps/web
+        run: ./node_modules/.bin/playwright install --with-deps chromium webkit firefox
+      - working-directory: apps/web
+        run: ./node_modules/.bin/playwright test e2e/live-smoke.spec.ts --reporter=github
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      E2E_BASE_URL: https://dev.sovkora.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Wait for the deployed build to carry this commit
+        run: |
+          short="${GITHUB_SHA::7}"; ok=0
+          for i in $(seq 1 180); do
+            # five answers in a row carry the sha: a rolling deploy serves old and new instances side by side
+            if curl -fsS "$E2E_BASE_URL/api/healthz" | grep -q "$short"; then ok=$((ok+1)); else ok=0; fi
+            if [ "$ok" -ge 5 ]; then echo "deployed: $short"; exit 0; fi
+            echo "waiting for $short ($i/180, $ok in a row)"; sleep 10
+          done
+          echo "the site never showed $short" >&2; exit 1
+      - run: npx --yes pnpm@12.10.1 install --frozen-lockfile --ignore-scripts
+        working-directory: apps/web
+      - working-directory: apps/web
+        run: ./node_modules/.bin/playwright install --with-deps chromium
+      - name: SEO family contract (indexed)
+        working-directory: apps/web
+        run: node scripts/check-seo-family.mjs --base https://dev.sovkora.com --host https://dev.sovkora.com
+      - name: Console gate (admin.gated) — a GitHub runner is not an allowed address
+        run: |
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://admin.sovkora.com/login)" = 403
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://admin.sovkora.com/)" = 403
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://dev.sovkora.com/console)" = 404
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://admin.sovkora.com/api/healthz)" = 200
+      - name: UI crawl
+        working-directory: apps/web
+        run: npm run test:ui-crawl
+        env:
+          E2E_USER: ${{ secrets.APP_QA_ORAZAKA_PERSONA_EMAIL }}
+          E2E_PASSWORD: ${{ secrets.APP_QA_ORAZAKA_PERSONA_PASSWORD }}

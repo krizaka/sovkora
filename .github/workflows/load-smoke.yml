@@ -3,22 +3,15 @@
 #
 # It measures the edge and its contract (rate limit, Idempotency-Key, stream relay, key exchange path)
 # at a few hundred requests a minute: seconds, no database, no Docker. The heavier, real-stack run is
-# local (krizaka-internal docs/adr/sovkora/ADR-083, "Proof by load tests"). Called by orazaka-edge on a pull request that
+# local (krizaka-internal docs/adr/sovkora/ADR-083, "Proof by load tests"). Run on a pull request that
 # touches the edge; also weekly here, on the workspace's main, to catch drift in an upstream.
 name: load-smoke
 
 on:
-  workflow_call:
-    inputs:
-      component:
-        description: "Repository under test (the edge); checked out at the commit being tested"
-        required: false
-        default: orazaka-edge
-        type: string
-  # This repository's own changes to the suite or to this workflow are proven by running it.
   pull_request:
     paths:
       - "tests/load/**"
+      - "services/edge/**"
       - ".github/workflows/load-smoke.yml"
   schedule:
     - cron: "17 6 * * 1"
@@ -37,56 +30,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Check out the Orazaka workspace
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: krizaka/sovkora
           path: workspace
           persist-credentials: false
-
-      - name: Check out ${{ inputs.component }} at the commit under test
-        if: github.repository != 'krizaka/sovkora'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: incoming
-          persist-credentials: false
-
-      - name: Place the edge at its workspace path
-        if: github.repository != 'krizaka/sovkora'
-        working-directory: workspace
-        run: |
-          target=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name==='orazaka-edge').path)")
-          rm -rf "$target"
-          mkdir -p "$(dirname "$target")"
-          mv ../incoming "$target"
-
-      - name: Clone every other repository
-        working-directory: workspace
-        run: node scripts/workspace.mjs clone --depth 1
 
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
-          server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
 
-      - name: Build the edge, upstreams from source, without tests (the component pipeline runs them)
+      - name: Build the edge and what it depends on, without tests (CI runs them)
         working-directory: workspace
         run: |
-          for r in $(node scripts/workspace.mjs deps orazaka-edge); do
-            path=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name==='$r').path)")
-            ./mvnw -B -ntp -f "$path/pom.xml" install -DskipTests
-          done
-          path=$(node -e "const m=require('./orazaka.workspace.json');console.log(m.repositories.find(x=>x.name==='orazaka-edge').path)")
-          ./mvnw -B -ntp -f "$path/pom.xml" package -DskipTests
-          echo "EDGE_JAR=$(find "$PWD/$path/target" -maxdepth 1 -name 'orazaka-edge-*.jar' ! -name '*.original' | head -1)" >> "$GITHUB_ENV"
+          ./mvnw -B -ntp -q package -DskipTests -DskipITs -pl services/edge/sovkora-edge-service -am
+          echo "EDGE_JAR=$(find "$PWD/services/edge/sovkora-edge-service/target" -maxdepth 1 -name 'sovkora-edge-service-*.jar' ! -name '*.original' | head -1)" >> "$GITHUB_ENV"
 
       - name: Install k6 (pinned, checksum verified)
         run: |

@@ -43,7 +43,7 @@ On the Mac, inference never runs in Docker (AGENTS.md §1): this worker runs on 
 
 ### On an NVIDIA GPU (CUDA image)
 
-`Dockerfile.cuda` builds `ghcr.io/krizaka/orazaka-worker-media:cuda-<sha>` (CI, `image.yml`): this worker plus
+`Dockerfile.cuda` builds `ghcr.io/krizaka/sovkora-media-worker:cuda-<sha>` (CI, `image.yml`): this worker plus
 `sd-server` (stable-diffusion.cpp built for CUDA). It is what the hourly GPU droplet of the dev environment runs
 (`scripts/gpu-dev.sh start big|small` in [krizaka/orazaka](https://github.com/krizaka/orazaka)).
 

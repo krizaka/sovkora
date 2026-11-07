@@ -38,8 +38,16 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Clone every repository
-        run: node scripts/workspace.mjs clone --depth 1
+      # The generated docs read krizaka-java at the release sovkora-parent imports (scripts/generate-docs.mjs).
+      - name: The krizaka-java release sovkora-parent imports
+        id: krizaka
+        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: krizaka/krizaka-java
+          ref: ${{ steps.krizaka.outputs.ref }}
+          path: .krizaka-java
+          persist-credentials: false
 
       - name: Regenerate docs/_generated
         run: node scripts/generate-docs.mjs

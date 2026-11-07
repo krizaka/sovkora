@@ -1,24 +1,20 @@
 #!/usr/bin/env node
 /**
- * Keeps the dev `core` image in step with the workspace's repositories (docs/DEPLOY_DEV.md § Redeploy).
+ * Keeps the dev `core` image in step with krizaka/sovkora's main (docs/DEPLOY_DEV.md § Redeploy).
  *
- * `core` is built from krizaka/orazaka's Dockerfile, which clones every component's main at build time: a merge to a component
- * (or to the workspace) changes nothing App Platform watches, so `deploy_on_push` could never see it (and stays false). This
- * script (run by .github/workflows/dev-redeploy.yml every 15 minutes, or by hand) compares the newest commit on main of the
- * workspace and of every component with the last manual deployment, and starts `--force-rebuild` when one is newer.
+ * `core` is built from krizaka/sovkora's Dockerfile, and its build caches layers App Platform does not invalidate on its own
+ * (CORE_REBUILD). This script (run by .github/workflows/dev-redeploy.yml every 15 minutes, or by hand) compares the newest
+ * commit on sovkora's main with the last manual deployment, and starts `--force-rebuild` when it is newer.
  *
  *   node scripts/dev-redeploy.mjs [--dry-run]     # needs an authenticated doctl (the workflow logs it in with OPERATOR_DEPLOY_TOKEN) and gh (GH_TOKEN, public reads)
  *
  * It only starts a deployment, never changes the spec, and does nothing while a deployment is building.
  */
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { byText } from "./lib/source-scan.mjs";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const APP = "orazaka-dev";
+const APP = "sovkora-dev";
+const ORG = "krizaka";
 const BUSY = new Set(["PENDING_BUILD", "BUILDING", "PENDING_DEPLOY", "DEPLOYING"]);
 
 /**
@@ -59,9 +55,9 @@ export function rollbackVerdict(deployments) {
 /**
  * "app spec updated" (and a spec apply in general) redeploys the commit App Platform already had, not main's head: on 2026-11-01 three
  * builds in a row compiled the commit BEFORE the fix that would have made them pass. Fails when the newest finished deployment's `core`
- * source commit is not the head of krizaka/orazaka main.
+ * source commit is not the head of krizaka/sovkora main.
  * @param {{ id: string, phase: string, services?: {name: string, source_commit_hash?: string}[] }[]} deployments newest first
- * @param {string} mainSha head of krizaka/orazaka main
+ * @param {string} mainSha head of krizaka/sovkora main
  * @returns {{ ok: boolean, message: string }}
  */
 export function staleSourceVerdict(deployments, mainSha) {
@@ -129,7 +125,7 @@ function checkDeployments(org, id, deployments) {
     const cause = deployFailureCause(run("doctl", ["apps", "logs", id, "core", "--deployment", failedId, "--type", "deploy"]));
     if (cause.found) console.log(`${APP}: cause: ${cause.message}`);
   }
-  const mainSha = run("gh", ["api", `repos/${org}/orazaka/commits/main`, "--jq", ".sha"]).trim();
+  const mainSha = run("gh", ["api", `repos/${org}/sovkora/commits/main`, "--jq", ".sha"]).trim();
   const stale = staleSourceVerdict(deployments, mainSha);
   console.log(`${APP}: ${stale.message}`);
   const drift = schemaDriftVerdict(run("doctl", ["apps", "logs", id, "core", "--type", "run", "--tail", "2000"]));
@@ -138,18 +134,14 @@ function checkDeployments(org, id, deployments) {
 }
 
 function main(dryRun, check) {
-  const manifest = JSON.parse(readFileSync(join(ROOT, "orazaka.workspace.json"), "utf8"));
-  const repos = ["orazaka", ...manifest.repositories.map((r) => r.name)];
-  const heads = {};
-  for (const repo of repos) {
-    heads[repo] = JSON.parse(run("gh", ["api", `repos/${manifest.org}/${repo}/commits/main`, "--jq", "{d: .commit.committer.date}"])).d;
-  }
+  // One repository (ADR-029): the image is built from sovkora's tree, so its main is the only head that moves `core`.
+  const heads = { sovkora: JSON.parse(run("gh", ["api", `repos/${ORG}/sovkora/commits/main`, "--jq", "{d: .commit.committer.date}"])).d };
   const apps = JSON.parse(run("doctl", ["apps", "list", "-o", "json"]));
   const id = apps.find((a) => a.spec?.name === APP)?.id;
   if (!id) throw new Error(`no app ${APP}`);
   const deployments = JSON.parse(run("doctl", ["apps", "list-deployments", id, "-o", "json"]));
   if (check) {
-    checkDeployments(manifest.org, id, deployments);
+    checkDeployments(ORG, id, deployments);
     return;
   }
   const verdict = decide({ deployments, heads });

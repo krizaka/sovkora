@@ -2,7 +2,7 @@
 /**
  * Orazaka dev deployment (App Platform, project `orazaka`) — docs/DEPLOY_DEV.md.
  *
- *   node scripts/dev-deploy.mjs apply <orazaka-dev> [--dry-run] [--drop-attached-db] [--allow-pending-migrations] [--env-file <file>]
+ *   node scripts/dev-deploy.mjs apply <sovkora-dev> [--dry-run] [--drop-attached-db] [--allow-pending-migrations] [--env-file <file>]
  *                                           # refuses to roll out while a merged infra/migrations file is not recorded as applied on dev (scripts/dev-migrations.mjs)
  *   node scripts/dev-deploy.mjs data        # infra/deploy/dev-data.sql into orazaka_db (routing is data)
  *   node scripts/dev-deploy.mjs policy      # infra/deploy/dev-content-policy.sql into orazaka_studio_db (docs/CONTENT_POLICY.md)
@@ -142,7 +142,7 @@ function apply(name, flags) {
     console.log(`${name}: spec valid (${id ? `update ${id}` : "create"}) — dry run, nothing sent`);
     return;
   }
-  if (name === "orazaka-dev" && !flags.includes("--allow-pending-migrations")) {
+  if (name === "sovkora-dev" && !flags.includes("--allow-pending-migrations")) {
     const todo = pendingOnDev(ROOT, secrets());
     if (todo.length) {
       throw new Error(`${todo.length} merged migration(s) not recorded as applied on dev (node scripts/dev-migrations.mjs check): ${todo.join(", ")}`);
@@ -706,7 +706,7 @@ print("dns:",[x["content"] for x in rr.get("records",[])])`;
 }
 
 function status() {
-  for (const name of ["orazaka-dev"]) {
+  for (const name of ["sovkora-dev"]) {
     const id = appId(name);
     console.log(id ? doctl(["apps", "get", id, "--format", "ID,Spec.Name,DefaultIngress,Updated", "--no-header"]).trim() : `${name}: not created`);
   }

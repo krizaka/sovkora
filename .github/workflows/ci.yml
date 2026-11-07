@@ -1,16 +1,21 @@
-# The workspace pipeline: clones every repository and builds the whole platform in one reactor —
-# unit and Testcontainers integration tests, cross-repository governance rules, the UI workspace
-# and the docs freshness gate. A change in any repository is only finished when this is green.
+# The one pipeline of Sovkora (ADR-029: one repository). Each part runs when a path it reads changed (krizaka/.github
+# changes.yml, fail-open: a broken gate runs everything), and always on main, merge_group, the nightly and dispatch:
+#   java     the Maven reactor: a pull request tests the changed modules and their dependents, the queue tests everything
+#   web / mobile / cli   the clients of the pnpm workspace, each with its own lockfile
+#   media    the Python media worker (uv)          packs   the packs: schema, goldens and their Python workers
+#   scripts  the repository tooling, the layout and naming guards, the generated docs, the infra format
+#   sonar    ONE SonarCloud project (krizaka_sovkora), fed with every part's coverage
+# The required check is `workspace`: it is green only when every part that had to run passed.
 name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
-  merge_group: # the queue runs the full reactor; a pull request runs the plan of scripts/ci-plan.mjs
+  merge_group:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *" # nightly: the default branches of every repository, together
+    - cron: "0 3 * * *" # nightly: everything, on main
 
 permissions:
   contents: read
@@ -20,156 +25,312 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # What a change in THIS repository can break. The Java and Python sources live in the other repositories (cloned at their
-  # main and tested by their own CI); here, a docs / scripts / deploy-infra / ADR / .agent change cannot change the outcome
-  # of the 12-minute reactor build or of the UI workspace build. They run when the reactor, the end-to-end module, the SQL the
-  # tests replay, the workspace manifest or this workflow change — and always on the nightly, dispatch and on every
-  # other event (krizaka/.github changes.yml fails open). The docs freshness gate and the workspace script tests always run.
-  maven-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+  # ── what changed ────────────────────────────────────────────────────────────────────────────────────────────────
+  java-changes:
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
     with:
-      relevant: '^(pom\.xml|\.mvn/|mvnw(\.cmd)?$|e2e/sovkora-e2e/|infra/(initdb|migrations|users|brokers-infra|docker-compose)|orazaka\.workspace\.json|scripts/workspace\.mjs|\.github/workflows/ci\.yml$)'
-  ui-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+      # packs/ too: the studio's bundle tests read the shipped packs.
+      relevant: '^(pom\.xml|\.mvn/|mvnw(\.cmd)?$|build/|contracts/|engine/|services/|e2e/|packs/|infra/(initdb|migrations|users|brokers-infra|docker-compose)|modules\.json$|scripts/(ci-plan|check-skipped-tests|check-krizaka-versions)\.mjs$|scripts/lib/(skipped-tests|krizaka-versions)\.mjs$|scripts/skipped-tests-allowlist\.json$|\.github/workflows/ci\.yml$)'
+  web-changes:
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
     with:
-      relevant: '^(orazaka-apps/ui/|orazaka\.workspace\.json|scripts/workspace\.mjs|\.github/workflows/ci\.yml$)'
+      relevant: '^(apps/web/|packs/|docs/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
+  mobile-changes:
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    with:
+      relevant: '^(apps/mobile/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
+  cli-changes:
+    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    with:
+      relevant: '^(apps/cli/|packs/pack\.schema\.json$|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
 
-  workspace:
-    # The required check keeps its name; `!cancelled()` so that a failed gate job runs everything (fail open).
-    needs: [maven-changes, ui-changes]
-    if: ${{ !cancelled() }}
+  # ── Java ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  java:
+    name: Java reactor
+    needs: java-changes
+    if: ${{ !cancelled() && needs.java-changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     permissions:
       contents: read
-      packages: read   # the Krizaka releases not yet on Central resolve from GitHub Packages
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-          fetch-depth: 2 # HEAD^1 = the base of the pull request's merge commit (the changed-files plan)
-
-      - name: Clone every repository
-        run: node scripts/workspace.mjs clone --depth 1
-
+          fetch-depth: 2 # HEAD^1 = the base of the pull request's merge commit (the plan)
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
-        if: ${{ needs.maven-changes.outputs.code != 'false' }}
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
-
-      # A Krizaka release waits for a human to press Publish on Central; development builds resolve it from GitHub Packages.
-      - uses: krizaka/.github/actions/maven-github-packages@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
-        if: ${{ needs.maven-changes.outputs.code != 'false' }}
-        with:
-          token: ${{ github.token }}
-
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "22"
-
-      - name: Workspace scripts
-        timeout-minutes: 10 # these tests take seconds: a hang is a bug, not a slow run (orazaka#530: 90 min lost)
-        run: node --test --test-timeout=120000 --test-force-exit 'scripts/test/*.test.mjs'
-
-      - name: Krizaka versions are provided
-        # The BOM may only name a com.krizaka release that a cloned repository builds or Maven Central carries
-        # (Central's free quota can be out, a tag unpublished): fails here, by artifact, not deep in the reactor.
-        env:
-          PACKAGES_READ_CREDENTIAL: ${{ github.token }} # `packages: read`: blocks published on GitHub Packages only (ADR-019)
+      - name: The com.krizaka versions are on Maven Central
         run: node scripts/check-krizaka-versions.mjs
-
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
-        with:
-          python-version: "3.12"
-
-      - name: Worker test dependencies
-        run: python -m pip install --quiet pytest pyyaml pika Pillow psutil cryptography coverage
-
-      - name: Media worker contract
-        working-directory: workers/media
-        run: python -m pytest -q test_capability_contract.py
-
-      - name: Derive the UI workspace lock from the cloned members
-        if: ${{ needs.ui-changes.outputs.code != 'false' }}
-        # The members are cloned from their repositories' main: their dependency bumps must not break this build.
-        working-directory: orazaka-apps/ui
-        run: npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
-
-      # ADR-018 budgets (krizaka-internal#2024): PR feedback < 10 min, merge_group < 15 min. Every other repository is
-      # cloned at its main and verified by its own CI, so a pull request compiles the whole reactor (tests deferred) and
-      # tests the changed modules + their dependents; merge_group, main, the nightly, dispatch and anything shared
-      # (scripts/ci-plan.mjs) run every test. The deferred build also defers the static analysis (SpotBugs, PMD, Spotless,
-      # JaCoCo) of modules the pull request does not touch; the changed modules below run the whole lifecycle. Modules build in parallel (-T): Testcontainers pick random ports.
       - name: Plan (what this event must test)
         id: plan
-        if: ${{ needs.maven-changes.outputs.code != 'false' }}
         env:
           EVENT: ${{ github.event_name }}
         run: node scripts/ci-plan.mjs --event "$EVENT" --diff HEAD^1
-
-      - name: Build and test the platform
-        if: ${{ needs.maven-changes.outputs.code != 'false' && steps.plan.outputs.mode == 'full' }}
+      - name: Build and test every module
+        if: ${{ steps.plan.outputs.mode == 'full' }}
+        run: ./mvnw -B -ntp -T 4 install
+      - name: Build every module (the changed ones are tested next)
+        if: ${{ steps.plan.outputs.mode == 'changed' }}
         run: >
-          ./mvnw -B -ntp -T 4 install
-          -Dpython.executable=python
-          -Dexec.skip=true
-          -Dskip.npm=true
-          -Dskip.installnodenpm=true
-
-      - name: Build the platform (tests of the changed modules follow)
-        if: ${{ needs.maven-changes.outputs.code != 'false' && steps.plan.outputs.mode == 'changed' }}
-        run: >
-          ./mvnw -B -ntp -T 4 install -DskipTests
+          ./mvnw -B -ntp -T 4 install -DskipTests -DskipITs
           -Dspotbugs.skip=true -Dpmd.skip=true -Dcpd.skip=true -Dspotless.check.skip=true -Djacoco.skip=true
-          -Dpython.executable=python
-          -Dexec.skip=true
-          -Dskip.npm=true
-          -Dskip.installnodenpm=true
-
       - name: Test the changed modules and their dependents
-        if: ${{ needs.maven-changes.outputs.code != 'false' && steps.plan.outputs.mode == 'changed' && steps.plan.outputs.pl != '' }}
+        if: ${{ steps.plan.outputs.mode == 'changed' && steps.plan.outputs.pl != '' }}
         env:
           MODULES: ${{ steps.plan.outputs.pl }}
-        run: >
-          ./mvnw -B -ntp verify -pl "$MODULES" -amd
-          -Dpython.executable=python
-          -Dexec.skip=true
-          -Dskip.npm=true
-          -Dskip.installnodenpm=true
-
-      - name: UI workspace
-        if: ${{ needs.ui-changes.outputs.code != 'false' }}
-        working-directory: orazaka-apps/ui
+        run: ./mvnw -B -ntp verify -pl "$MODULES" -amd
+      - name: No integration test skipped itself
+        if: ${{ steps.plan.outputs.mode == 'full' }}
         run: |
-          npm ci --no-audit --no-fund
-          npm run build:shared
-          npm run validate
+          set -euo pipefail
+          node -e 'for (const m of require("./modules.json").modules) if (m.kind === "maven") console.log(`${m.path} ${m.name}`)' |
+            while read -r dir name; do node scripts/check-skipped-tests.mjs "$dir" "$name"; done
+      - name: The test counts, per module
+        if: ${{ always() }}
+        run: node scripts/test-counts.mjs >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the coverage and classes for SonarCloud
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-java
+          if-no-files-found: ignore
+          retention-days: 1
+          path: |
+            **/target/site/jacoco/jacoco.xml
+            **/target/classes/**
+            **/target/test-classes/**
 
-      - name: Docs are generated from this code
-        # The generated docs also read the default branches of the other repositories, so they drift when those merge,
-        # whoever opens the pull request. A pull request is held to the gate only when it touches what the docs are
-        # made from here (docs, scripts, infra, the workspace manifest); any other drift is a warning, and docs-sync
-        # (daily, CI dispatched on its branch) brings main back in step.
+  # ── the clients ─────────────────────────────────────────────────────────────────────────────────────────────────
+  web:
+    name: Web app
+    needs: web-changes
+    if: ${{ !cancelled() && needs.web-changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - run: npm install -g pnpm@12.10.1
+      - name: Install (its own lockfile)
+        run: pnpm install --frozen-lockfile --filter .
+      - name: Validate (lint, rules, scripts, tests with coverage)
+        run: pnpm run validate
+      - name: Build
+        run: pnpm run build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: coverage-web
+          if-no-files-found: ignore
+          retention-days: 1
+          path: apps/web/coverage/lcov.info
+
+  mobile:
+    name: Mobile app
+    needs: mobile-changes
+    if: ${{ !cancelled() && needs.mobile-changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - run: npm install -g pnpm@12.10.1
+      - name: Install (its own lockfile)
+        run: pnpm install --frozen-lockfile --filter .
+      - name: Validate (lint, types, tests with coverage, links, icons, flows, names)
+        run: pnpm run validate
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: coverage-mobile
+          if-no-files-found: ignore
+          retention-days: 1
+          path: apps/mobile/coverage/lcov.info
+
+  cli:
+    name: CLI
+    needs: cli-changes
+    if: ${{ !cancelled() && needs.cli-changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: apps/cli
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - run: npm install -g pnpm@12.10.1
+      - name: Install (its own lockfile)
+        run: pnpm install --frozen-lockfile --filter .
+      - name: Validate (lint, dependencies, build, tests with coverage)
+        run: pnpm run validate
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: coverage-cli
+          if-no-files-found: ignore
+          retention-days: 1
+          path: apps/cli/coverage/lcov.info
+
+  # ── Python ──────────────────────────────────────────────────────────────────────────────────────────────────────
+  media:
+    name: Media worker
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/python-ci.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    with:
+      relevant: '^(workers/media/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
+      working-directory: workers/media
+      extra-packages: pytest pyyaml pika Pillow psutil cryptography numpy coverage
+      # The suites a CI runner can run: no GPU, no model; the CUDA host's suites skip themselves where ffmpeg lacks a filter.
+      test-command: >
+        python -m coverage run -m pytest -q test_capability_contract.py test_gpu_runtime.py test_image_to_video.py
+        test_cut.py test_deliver.py test_foley.py test_mixer.py test_titles.py test_voice_direction.py
+        && python -m coverage xml -o coverage.xml
+
+  packs-schema:
+    name: Packs (schema, goldens)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # golden exceptions are compared with the immutable base of the pull request
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          package-manager-cache: false
+          node-version: "22"
+      - run: npm ci --ignore-scripts
+      - run: npm run format:check
+      - run: npm test
         env:
-          EVENT: ${{ github.event_name }}
-          BASE: ${{ github.base_ref }}
-        run: |
-          node scripts/generate-docs.mjs --check && exit 0
-          if [ "$EVENT" = "pull_request" ]; then
-            git fetch --quiet --depth=1 origin "$BASE"
-            if git diff --name-only "origin/$BASE" HEAD | grep -qE '^(docs/|scripts/|infra/|AGENTS\.md|README\.md|orazaka\.workspace\.json)'; then
-              echo "::error::docs are stale and this pull request touches what they are made from"
-              exit 1
-            fi
-          fi
-          echo "::warning::docs/_generated drifted from the workspace; the docs-sync workflow opens the pull request"
+          GOLDEN_BASE_SHA: ${{ github.event.pull_request.base.sha }}
 
-  # The required « SonarCloud Code Analysis » is posted by the SonarCloud app once this scan has run. The app's automatic analysis
-  # never sees a merge queue SHA, so the scan runs on every event the required checks run on, merge_group included
-  # (krizaka-internal#2000). The Java and Python sources are analysed by the CI of their own repositories.
-  # The formatter the pre-push hook runs (krizaka-agents tools/fmt.py, krizaka-internal#2813): CI refuses the same files.
+  # The pack workers, one shared python-ci each (a list command opens with set -euo pipefail: only the last status counted).
+  packs-workers:
+    name: Pack worker
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - worker: document-validation/worker
+            packages: pypdf pika pyyaml pikepdf reportlab Pillow pytest
+            tests: test_rules.py test_golden.py test_authenticity.py test_authenticity_formats.py test_forensics.py test_screening.py test_identify.py test_check.py test_regex_safety.py test_derivation.py test_lecture.py
+          - worker: message-authenticity/worker
+            packages: pika pyyaml pytest
+            tests: test_authenticity.py
+          - worker: media-safety/worker
+            packages: pika pyyaml pytest
+            tests: test_safety.py
+          - worker: tenant-screening-qc/worker
+            packages: pika pyyaml pytest
+            tests: test_screening.py
+          - worker: identity-document-check/worker
+            packages: pika pyyaml pytest
+            tests: test_mrz.py test_rules.py test_worker.py
+          - worker: worker-common
+            packages: pika pytest
+            tests: test_worker_broker.py test_worker_loop.py
+          - worker: profile-photo-check/worker
+            requirements: packs/profile-photo-check/requirements.txt
+            packages: pytest
+            setup: python fetch_models.py
+            tests: test_rules.py test_faces.py test_worker.py
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/python-ci.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    with:
+      relevant: '^(packs/|\.github/workflows/ci\.yml$)'
+      working-directory: packs/${{ matrix.worker }}
+      requirements: ${{ matrix.requirements || '' }}
+      extra-packages: ${{ matrix.packages }}
+      setup-command: ${{ matrix.setup || '' }}
+      test-command: python -m pytest -q ${{ matrix.tests }}
+
+  # ── the repository's own tooling ────────────────────────────────────────────────────────────────────────────────
+  scripts:
+    name: Repository tooling, layout and docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - name: Repository layout
+        uses: krizaka/.github/actions/repo-layout@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+      - name: Script tests (with the layout and naming guards of ADR-029)
+        timeout-minutes: 10 # these tests take seconds: a hang is a bug, not a slow run
+        run: |
+          mkdir -p coverage
+          node --test --test-timeout=120000 --test-force-exit --experimental-test-coverage \
+            --test-coverage-exclude='scripts/test/**' \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \
+            'scripts/test/*.test.mjs'
+      - name: The Java layout (ADR-029 N3, N4)
+        run: node scripts/check-java-layout.mjs
+      # The generated docs read krizaka-java's code at the release sovkora-parent imports (scripts/generate-docs.mjs).
+      - name: The krizaka-java release sovkora-parent imports
+        id: krizaka
+        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: krizaka/krizaka-java
+          ref: ${{ steps.krizaka.outputs.ref }}
+          path: .krizaka-java
+          persist-credentials: false
+      - name: Docs are generated from this code
+        run: node scripts/generate-docs.mjs --check
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: coverage-scripts
+          if-no-files-found: ignore
+          retention-days: 1
+          path: coverage/lcov.info
+
   infra-format:
     name: OpenTofu format
     runs-on: ubuntu-latest
@@ -187,10 +348,15 @@ jobs:
       - name: tofu fmt -check
         run: tofu fmt -check -recursive infra
 
+  # ── one SonarCloud project ──────────────────────────────────────────────────────────────────────────────────────
+  # The required « SonarCloud Code Analysis » is posted by the SonarCloud app once this scan has run, on every event the
+  # required checks run on, merge_group included (krizaka-internal#2000). It reads the coverage of every part that ran.
   sonar:
     name: SonarCloud
+    needs: [java, web, mobile, cli, scripts]
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     permissions:
       contents: read
     env:
@@ -203,30 +369,36 @@ jobs:
         with:
           fetch-depth: 0 # blame and new-code detection need the history
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          node-version: "22"
-      # The coverage Sonar shows is the workspace scripts' own tests (the sources this project analyses), never the test files
-      # themselves: lcov for sonar.javascript.lcov.reportPaths (sonar-project.properties). The Java and Python modules report
-      # their coverage in their own repositories' projects.
-      - name: Script tests with coverage
-        timeout-minutes: 10
-        env:
-          SONAR_TOKEN: "" # the tests never see the scan's token
-        run: |
-          mkdir -p coverage
-          node --test --test-timeout=120000 --test-force-exit --experimental-test-coverage \
-            --test-coverage-exclude='scripts/test/**' \
-            --test-reporter=dot --test-reporter-destination=stdout \
-            --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \
-            'scripts/test/*.test.mjs'
-      - uses: krizaka/.github/actions/sonar-scan@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+          pattern: coverage-*
+          merge-multiple: true
+      - uses: krizaka/.github/actions/sonar-scan@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
         with:
           token: ${{ secrets.SONAR_TOKEN }}
           args: -Dsonar.qualitygate.wait=true
 
-  # Main must not go red unnoticed: a failed run on main files one issue in the private krizaka-internal (never in this public
-  # repository, krizaka-internal#2267); a second red run comments on it.
+  # ── the gate ────────────────────────────────────────────────────────────────────────────────────────────────────
+  workspace:
+    name: workspace
+    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format, sonar]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every part that had to run passed
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | python3 -c '
+          import json, sys
+          bad = {name: job["result"] for name, job in json.load(sys.stdin).items() if job["result"] not in ("success", "skipped")}
+          for name, result in bad.items(): print(f"::error::{name}: {result}")
+          sys.exit(1 if bad else 0)'
+
+  # Main must not go red unnoticed: a failed run on main files one issue in the private krizaka-internal (never in this
+  # public repository, krizaka-internal#2267); a second red run comments on it.
   red-main:
     needs: workspace
     if: ${{ always() && needs.workspace.result == 'failure' && github.ref == 'refs/heads/main' }}
@@ -241,10 +413,10 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           echo "CI failed on main at ${SHA:0:7}: ${RUN_URL}" > "$RUNNER_TEMP/body.md"
-      - uses: krizaka/.github/actions/alert-issue@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+      - uses: krizaka/.github/actions/alert-issue@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
-          title: "orazaka · fix(ci): main is red"
+          title: "sovkora · fix(ci): main is red"
           body-file: ${{ runner.temp }}/body.md
-          labels: repo:orazaka,type:fix
+          labels: repo:sovkora,type:fix

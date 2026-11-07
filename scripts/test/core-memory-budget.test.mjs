@@ -16,7 +16,7 @@ const heaps = Object.fromEntries(
     return [name, Number(heap)];
   }),
 );
-const coreSize = () => MIB[/- name: core\n[\s\S]*?instance_size_slug: (\S+)/.exec(read("infra/deploy/orazaka-dev.app.yaml"))[1]];
+const coreSize = () => MIB[/- name: core\n[\s\S]*?instance_size_slug: (\S+)/.exec(read("infra/deploy/sovkora-dev.app.yaml"))[1]];
 
 test("the measured steady set, with the workers, uses at most 85 % of the container", () => {
   const workers = Object.values(measured.workersMiB).filter(Number.isFinite).reduce((a, b) => a + b, 0);

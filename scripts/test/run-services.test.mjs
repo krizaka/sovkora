@@ -100,7 +100,7 @@ test("the image carries the worker and only its lean dependencies: no torch, no 
 });
 
 test("the app spec gives the core container the all-models inference key as a SECRET placeholder", () => {
-  const spec = root("infra/deploy/orazaka-dev.app.yaml");
+  const spec = root("infra/deploy/sovkora-dev.app.yaml");
   assert.match(spec, /key: AI_INFERENCE_KEY_ALL, scope: RUN_TIME, type: SECRET, value: "__AI_INFERENCE_KEY_ALL__"/);
 });
 

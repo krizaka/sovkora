@@ -1,0 +1,38 @@
+# The packs' goldens against a real stack, on the provisioned and trusted golden runner (never on pull-request code: an
+# authenticated local stack is never exposed to it). Enabled once the runner, its environment protection and its test
+# account exist (vars.GOLDEN_STACK_ENABLED), or on demand from main.
+name: Packs golden stack
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  golden-stack:
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.GOLDEN_STACK_ENABLED == 'true') }}
+    runs-on: [self-hosted, orazaka-golden]
+    environment: golden-stack
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - run: npm run golden:run -- --config "$GOLDEN_STACK_CONFIG"
+        env:
+          GOLDEN_STACK_CONFIG: ${{ vars.GOLDEN_STACK_CONFIG }}

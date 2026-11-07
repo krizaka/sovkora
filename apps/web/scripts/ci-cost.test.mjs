@@ -6,7 +6,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-const WORKFLOWS = join(import.meta.dirname, "..", ".github", "workflows");
+const WORKFLOWS = join(import.meta.dirname, "..", "..", "..", ".github", "workflows");
 
 /** The jobs of a workflow: { name, text } for each two-space-indented key under `jobs:`. */
 export function jobsOf(text) {
@@ -74,7 +74,7 @@ for (const file of readdirSync(WORKFLOWS).filter((n) => /\.ya?ml$/.test(n))) {
 
 describe("live smoke", () => {
   it("cancels the run of a superseded commit (it would wait for a build that is never served)", () => {
-    const text = readFileSync(join(WORKFLOWS, "live-smoke.yml"), "utf8");
-    assert.match(text, /concurrency:\n {2}group: live-smoke\n {2}cancel-in-progress: true/);
+    const text = readFileSync(join(WORKFLOWS, "web-live.yml"), "utf8");
+    assert.match(text, /concurrency:\n {2}group: web-live\n {2}cancel-in-progress: true/);
   });
 });

@@ -8,13 +8,13 @@ closed everywhere — the fronts hide it and the users service answers **403** (
 
 | App (DO) | Component | What | Size | $/month |
 |---|---|---|---|---|
-| `orazaka-dev` | `web` | `krizaka/orazaka-web-client` (Next.js + BFF), `www.orazaka.com/` | `apps-s-1vcpu-0.5gb` | 5 |
-| `orazaka-dev` | `core` | one image, seven JVMs and the document-validation worker (below), public only as `www.orazaka.com/edge` | `basic-s` (2 GB) | 20 |
+| `sovkora-dev` | `web` | `krizaka/orazaka-web-client` (Next.js + BFF), `www.orazaka.com/` | `apps-s-1vcpu-0.5gb` | 5 |
+| `sovkora-dev` | `core` | one image, seven JVMs and the document-validation worker (below), public only as `www.orazaka.com/edge` | `basic-s` (2 GB) | 20 |
 | Droplet | `orazaka-broker-dev` | RabbitMQ 4.2, **TLS only** (5671), bound to its private IP, cloud firewall: VPC `10.118.0.0/20` only | `s-1vcpu-512mb-10gb` | 4 |
-| `orazaka-dev` | `web` (same component) | the operator console, `admin.orazaka.com` = an alias of `www.orazaka.com`, served by host routing (§ Admin console), BFF → `http://core:8088` | — | 0 |
+| `sovkora-dev` | `web` (same component) | the operator console, `admin.orazaka.com` = an alias of `www.orazaka.com`, served by host routing (§ Admin console), BFF → `http://core:8088` | — | 0 |
 | — | databases | the shared cluster `krizaka-dev-pg` (PostgreSQL 18, project `krizaka`, docs/DEV_DATABASE.md) | — | (15, shared) |
 | — | chat | DigitalOcean serverless inference, `mistral-3-14B`, per token | — | ≈ 0 at test volume |
-| `orazaka-dev` | `gpu-relay` | chisel server, `www.orazaka.com/gpu-relay` — the GPU host dials out to it (§ GPU) | `apps-s-1vcpu-0.5gb` | 5 |
+| `sovkora-dev` | `gpu-relay` | chisel server, `www.orazaka.com/gpu-relay` — the GPU host dials out to it (§ GPU) | `apps-s-1vcpu-0.5gb` | 5 |
 | — | images, 9:16 video | an hourly GPU droplet, only while started (`scripts/gpu-dev.sh`) | `small` / `big` | 0.76 / 1.57 **per hour** |
 | — | model weights | Volume `orazaka-gpu-models-<region>`, 80 GB, kept between droplets | — | 8 |
 
@@ -174,7 +174,7 @@ node scripts/dev-deploy.mjs service-account product-explorer --scopes ai:embed,r
 
 ## Admin console (host routing)
 
-`admin.orazaka.com` is not an app of its own any more: it is a domain **alias** of `orazaka-dev` and the `web` component
+`admin.orazaka.com` is not an app of its own any more: it is a domain **alias** of `sovkora-dev` and the `web` component
 answers it (krizaka/orazaka-web-admin#31, -5 $/month). The console's code lives in `orazaka-web-client`
 (`src/console/`, routes `src/app/console/`); `src/proxy.ts` reads the `Host`: on `admin.*` it applies the network gate
 (`AUTH_ALLOWED_IPS`, 403 for any other address, sign-in page included), then the console's sign-in gate, and rewrites the
@@ -186,12 +186,12 @@ the console's callback URLs from the Host it was asked on (`NEXTAUTH_URL` stays 
 
 Cut-over (the old app serves the live console until step 3):
 
-1. `node scripts/dev-deploy.mjs apply orazaka-dev --dry-run`, then check the new variables in the rendered spec
+1. `node scripts/dev-deploy.mjs apply sovkora-dev --dry-run`, then check the new variables in the rendered spec
    (`AUTH_TRUST_HOST`, `AUTH_CONSOLE_LOGIN_ENABLED`, `AUTH_CONSOLE_SECRET`, `AUTH_ALLOWED_IPS`). The `web` component must be
    on the `main` of `orazaka-web-client` that holds the console.
 2. A domain belongs to one app: take `admin.orazaka.com` off `orazaka-admin-dev` (control panel → Settings → Domains), then
-   `node scripts/dev-deploy.mjs apply orazaka-dev`. Brief downtime of the console only.
-3. DNS: `admin.orazaka.com` CNAME → the `orazaka-dev` default ingress (`doctl apps get <id> --format DefaultIngress`),
+   `node scripts/dev-deploy.mjs apply sovkora-dev`. Brief downtime of the console only.
+3. DNS: `admin.orazaka.com` CNAME → the `sovkora-dev` default ingress (`doctl apps get <id> --format DefaultIngress`),
    unchanged if it already points there.
 4. Check from an allowed address: `/login` signs a `ROLE_ADMIN` in; from any other address `https://admin.orazaka.com/`
    answers 403; `https://www.orazaka.com/console` answers 404; `https://www.orazaka.com/api/healthz` 200.
@@ -205,8 +205,8 @@ passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDE
 panel: Agent Platform → Serverless Inference → Model Access Keys — the API no longer creates them).
 
 ```bash
-node scripts/dev-deploy.mjs apply orazaka-dev --dry-run   # render + validate, nothing sent
-node scripts/dev-deploy.mjs apply orazaka-dev             # SECRET values are stored encrypted by App Platform
+node scripts/dev-deploy.mjs apply sovkora-dev --dry-run   # render + validate, nothing sent
+node scripts/dev-deploy.mjs apply sovkora-dev             # SECRET values are stored encrypted by App Platform
 node scripts/dev-deploy.mjs data                          # infra/deploy/dev-data.sql: providers + chat default
 node scripts/dev-deploy.mjs seed                          # test accounts → the QA store (@dev: ORAZAKA_USER_*, ORAZAKA_ADMIN_*), never printed
 node scripts/dev-deploy.mjs persona                       # Eric, the demo persona for recordings → @dev APP_QA_ORAZAKA_PERSONA_*, never printed
@@ -216,7 +216,7 @@ node scripts/dev-deploy.mjs status
 `web` and the admin redeploy on every push to their `main`. `core` does not (it is built from many repositories):
 
 ```bash
-doctl apps create-deployment <orazaka-dev id> --force-rebuild   # --force-rebuild, or the clone layer is cached
+doctl apps create-deployment <sovkora-dev id> --force-rebuild   # --force-rebuild, or the clone layer is cached
 ```
 
 Why: `core` clones every component's `main` while building, so a merge in a component (or in this workspace) changes
@@ -244,7 +244,7 @@ Droplet in the `default-tor1` VPC (`node scripts/dev-deploy.mjs broker`, idempot
   `~/Documents/krizaka/orazaka-broker/` (the CA key never leaves it). Clients verify the host name; the services trust
   the CA through Spring's SSL bundle `broker` (`RABBITMQ_CA_CERT_BASE64` → `/app/var/broker-ca.pem`).
 - **Private**: bound to the Droplet's private IP; `broker-dev.orazaka.com` resolves to it; the cloud firewall admits 5671
-  from the VPC range only (SSH from the maintainer's IP). `orazaka-dev` joins the VPC (`vpc.id` in its spec).
+  from the VPC range only (SSH from the maintainer's IP). `sovkora-dev` joins the VPC (`vpc.id` in its spec).
 - **Two users**, strong random passwords in the secrets file: `orazaka` (the platform, everything on `/`) and
   `gpu-worker` (`RABBITMQ_PASS_GPU`: configure/write/read on `orazaka.*` names only). A GPU droplet must be created in
   the same VPC (`--vpc-uuid` of `default-tor1`; another region needs VPC peering).
@@ -283,7 +283,7 @@ console or in that file — never in a service's configuration.
 
 - The other hosted models (DeepSeek V4 Pro, Llama 4 Maverick, Gemma 4) and every model's registry metadata come
   from `infra/deploy/dev-model-registry.sql` (ORA-MODELS), run after `dev-data.sql`; selectable, never the default.
-- The key reaches the call through `ai_providers.api_key` (krizaka/orazaka-ai-engine#10); `orazaka-dev` also holds it
+- The key reaches the call through `ai_providers.api_key` (krizaka/orazaka-ai-engine#10); `sovkora-dev` also holds it
   as the SECRET `AI_INFERENCE_KEY`, the deployment's copy of record. `node scripts/dev-deploy.mjs data` reads it from
   the secrets file and sends it on psql's stdin, never on a command line.
 - `ORAZAKA_CORE_DEFAULT_PROVIDER=do-inference`: with the historical `ollama` default the pipeline pins Ollama's active
@@ -294,7 +294,7 @@ console or in that file — never in a service's configuration.
 ## GPU — images and 9:16 video, by the hour
 
 Generation runs on a GPU droplet that exists only while it works (ADR-077). It runs the CUDA image of
-`krizaka/orazaka-worker-media` (`ghcr.io/krizaka/orazaka-worker-media:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
+`krizaka/orazaka-worker-media` (`ghcr.io/krizaka/sovkora-media-worker:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
 for images, and the **media worker** draining `job.video.*` / `job.compose.*` with Wan for 9:16 video.
 
 | Size | Droplet | $/hour | Video model (default) | 9:16 clip |

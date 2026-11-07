@@ -6,7 +6,7 @@ Orazaka: `orazaka_db`, `krizaka_users_db`, `krizaka_billing_db`, `orazaka_studio
 `orazaka_automation_db`. It replaces the App Platform dev databases (which a
 laptop could not reach and which forbid `CREATE SCHEMA`). Never a second cluster, never production on it.
 
-Access: **trusted sources** are the dev apps (`orazaka-dev`) and the maintainer's
+Access: **trusted sources** are the dev apps (`sovkora-dev`) and the maintainer's
 IP, so `psql` and DBeaver work from there with `sslmode=require` (`verify-full` with the cluster CA). pgvector is
 available (`CREATE EXTENSION vector` in `orazaka_knowledge_db`, done).
 
@@ -60,7 +60,7 @@ what the statements cannot say (an `UPDATE`, a column type, a `DO` block, a file
 every file before that day as applied; `verify` found 8 that were not — external checks, research and law tables, the semantic
 cache, three price/grant seeds — krizaka/orazaka#442.) Run `verify` after each manual application and before trusting the ledger.
 
-`node scripts/dev-deploy.mjs apply orazaka-dev` runs the check and refuses while a file is pending
+`node scripts/dev-deploy.mjs apply sovkora-dev` runs the check and refuses while a file is pending
 (`--allow-pending-migrations` to pass). A file that switches database (`\c`) is recorded once, only with `--on` naming every database it touches; the ledger keeps them in its `databases` column. Nothing applies a migration automatically, CI included. Run `node scripts/workspace.mjs clone`
 (and pull) first so the component repositories are current.
 
@@ -76,7 +76,7 @@ a ceiling per service (what it may hold at once), kept under 22 with room for a 
 
 | Service | Path | Cap (server side) | Notes |
 |---|---|---:|---|
-| orazaka-dev core: conversation + job (`orazaka_db`) | `pool-orazaka` (transaction) | 3 | Hikari 3, min idle 0 |
+| sovkora-dev core: conversation + job (`orazaka_db`) | `pool-orazaka` (transaction) | 3 | Hikari 3, min idle 0 |
 | core: users (`krizaka_users_db`) | `pool-users` | 2 | |
 | core: studio | `pool-studio` | 2 | |
 | core: knowledge | `pool-knowledge` | 2 | |

@@ -20,7 +20,7 @@ anywhere — and we can prove each of those three things.
 
 Everything below reuses what exists: the `orazaka` CLI (`install`, `start`, `stop`, `doctor`, `models`,
 `pack`), `infra/docker-compose.yml`, the single JVM image of `infra/deploy/Dockerfile`, the CUDA image of
-the media worker (`ghcr.io/krizaka/orazaka-worker-media:cuda-*`, ADR-077), the native Metal path
+the media worker (`ghcr.io/krizaka/sovkora-media-worker:cuda-*`, ADR-077), the native Metal path
 (Ollama, stable-diffusion.cpp `sd-server`, the media worker on MLX/Metal, LocalAI for speech, ADR-075/076),
 `models.yaml` (pinned revisions, commercial licences only) and the pack catalogue with its entitlements.
 

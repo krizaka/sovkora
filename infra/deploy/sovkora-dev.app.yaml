@@ -1,8 +1,8 @@
-# Orazaka dev — www.orazaka.com (DigitalOcean App Platform, project `orazaka`). docs/DEPLOY_DEV.md.
-# Apply with `node scripts/dev-deploy.mjs apply orazaka-dev`: every double-underscored placeholder is filled from the local
+# Sovkora dev — dev.sovkora.com (DigitalOcean App Platform). docs/DEPLOY_DEV.md. Its infrastructure as code is krizaka-infra
+# stacks/dev/sovkora; the two stay in step. Apply with `node scripts/dev-deploy.mjs apply sovkora-dev`: every double-underscored placeholder is filled from the local
 # secrets file (never committed) and sent as a SECRET. Databases: the shared cluster `krizaka-dev-pg`
 # (trusted source: this app), one database and one role per context.
-name: orazaka-dev
+name: sovkora-dev
 region: tor
 # Alerts as krizaka-com's (observability minimum, krizaka-internal#2631): DigitalOcean mails the team owners.
 alerts:
@@ -55,9 +55,11 @@ services:
   # The web client and its BFF (Next.js). It reaches the edge inside the app: http://core:8088.
   - name: web
     github:
-      repo: krizaka/orazaka-web-client
+      repo: krizaka/sovkora
       branch: main
       deploy_on_push: true
+    # The web app is one folder of the one repository (ADR-029): built on its own, with its own lockfile.
+    source_dir: apps/web
     environment_slug: node-js
     # The web client is a pnpm project: the buildpack installs it with pnpm, then this builds it. `npm install` on a
     # pnpm tree crashes (« Cannot read properties of null (reading 'matches') »), orazaka-web-client#282.
@@ -103,7 +105,7 @@ services:
   # knowledge :8084 (the recommender, ADR-078), automation :8091 (webhooks and schedules, ADR-084).
   - name: core
     github:
-      repo: krizaka/orazaka
+      repo: krizaka/sovkora
       branch: main
       deploy_on_push: false
     dockerfile_path: infra/deploy/Dockerfile
@@ -131,8 +133,6 @@ services:
     envs:
       # Databases (krizaka-dev-pg). orazaka_db holds conversation, jobs and governance.
       - { key: CORE_REBUILD, scope: BUILD_TIME, value: "__CORE_REBUILD__" }
-      # The Krizaka building blocks are on GitHub Packages (ADR-019): the image build reads them with this read:packages credential, a build secret (infra/deploy/Dockerfile).
-      - { key: MAVEN_GITHUB_PACKAGES_TOKEN, scope: BUILD_TIME, type: SECRET, value: "__MAVEN_GITHUB_PACKAGES_TOKEN__" }
       - { key: SPRING_DATASOURCE_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-orazaka?sslmode=require&prepareThreshold=0" }
       # Connection budget (docs/DEV_DATABASE.md, "Connection budget"): the cluster allows 22 usable connections for
       # every dev service. Every JVM of this container goes through its PgBouncer pool (port 25061, transaction mode:
@@ -217,7 +217,7 @@ services:
       # The pipeline's provider when a turn names none: serverless inference. With `ollama` here the
       # pipeline pins Ollama's active model and never reaches the catalogue default (mistral-3-14B).
       - { key: ORAZAKA_CORE_DEFAULT_PROVIDER, scope: RUN_TIME, value: do-inference }
-      # The serverless-inference model access key (`orazaka-dev`). Routing reads it from ai_providers
+      # The serverless-inference model access key (`sovkora-dev`). Routing reads it from ai_providers
       # (dev-data.sql); kept here as the deployment's copy of record.
       - { key: AI_INFERENCE_KEY, scope: RUN_TIME, type: SECRET, value: "__AI_INFERENCE_KEY__" }
       # The all-models key (it lists the hosted Wan): read by the hosted-video worker of this container (run-services.sh).
@@ -242,7 +242,7 @@ services:
   # inside the app as gpu-relay:8086/:8188/:11434.
   - name: gpu-relay
     github:
-      repo: krizaka/orazaka
+      repo: krizaka/sovkora
       branch: main
       deploy_on_push: false
     dockerfile_path: infra/deploy/gpu-relay/Dockerfile
