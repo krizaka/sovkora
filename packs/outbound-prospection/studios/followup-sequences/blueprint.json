@@ -1,0 +1,188 @@
+{
+  "version": "1.3.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 510,
+  "changelog": "1.3.0 — les sorties de texte se lisent par leur champ ({{steps.ladders.content}}) : le résultat entier rendait aussi ses métadonnées (« content: …, metadata: provider: … ») — orazaka-packs#5, rendu possible sur un fan-out par orazaka-studio#60. 1.2.0 — libellés des sorties en anglais et français (x-i18n). 1.1.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). Version initiale : une relance multi-temps par prospect, uniformisée puis postée au canal après validation.",
+  "createdBy": "system",
+  "definition": {
+    "studioKey": "followup-sequences",
+    "version": "1.3.0",
+    "steps": [
+      {
+        "id": "touchpoints",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": [],
+        "forEach": "{{inputs.prospects}}",
+        "maxParallel": 4,
+        "inputs": {
+          "prompt": "Écris une relance en {{config.touches}} temps pour ce prospect : {{item}}. Contexte de la première prise de contact : {{inputs.context}}. Offre : {{inputs.offer}}. Pour chaque temps : le délai, l'objet, et trois lignes de corps. Ton : {{config.tone}}."
+        },
+        "out": "ladders",
+        "onError": "SKIP",
+        "skipRationale": "Une relance qui échoue pour un prospect ne rend pas les autres inutilisables : la séquence part pour ceux qui ont abouti, et celui qui manque est visible dans les artefacts plutôt que masqué.",
+        "maxAttempts": 1,
+        "timeout": "PT2M"
+      },
+      {
+        "id": "polish",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": ["touchpoints"],
+        "inputs": {
+          "prompt": "Voici des séquences de relance : {{steps.ladders.content}}. Uniformise le ton ({{config.tone}}) et supprime les répétitions d'une séquence à l'autre, sans changer les délais ni les objets. Rends le texte prêt à envoyer."
+        },
+        "out": "polished",
+        "onError": "FAIL",
+        "maxAttempts": 2,
+        "timeout": "PT2M"
+      },
+      {
+        "id": "assemble",
+        "kind": "TRANSFORM",
+        "dependsOn": ["polish"],
+        "inputs": {
+          "body": "{{steps.polished.content}}",
+          "subject": "Relances — {{inputs.offer}}",
+          "signature": "{{config.signature:}}"
+        },
+        "out": "sequence",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT1M"
+      },
+      {
+        "id": "approve",
+        "kind": "APPROVAL",
+        "dependsOn": ["assemble"],
+        "inputs": {
+          "preview": "{{steps.sequence.body}}"
+        },
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT30M"
+      },
+      {
+        "id": "notify",
+        "kind": "CONNECTOR",
+        "connectorType": "SLACK",
+        "dependsOn": ["approve"],
+        "inputs": {
+          "action": "send",
+          "subject": "{{steps.sequence.subject}}",
+          "body": "{{steps.sequence.body}}"
+        },
+        "out": "notified",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT5M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "sequence",
+        "label": "Votre séquence de relance",
+        "from": "{{steps.sequence.body}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Your follow-up sequence"
+          },
+          "fr": {
+            "label": "Votre séquence de relance"
+          }
+        }
+      },
+      {
+        "key": "ladders",
+        "label": "Relances par prospect",
+        "from": "{{steps.ladders.content}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Follow-ups per prospect"
+          },
+          "fr": {
+            "label": "Relances par prospect"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["prospects", "offer", "context"],
+    "properties": {
+      "prospects": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "maxItems": 50,
+        "title": "Prospects à relancer",
+        "x-i18n": {
+          "en": {
+            "title": "Prospects to follow up",
+            "description": "The prospects who have not answered yet, separated by commas.",
+            "placeholder": "Anna, Tom, Mia"
+          },
+          "fr": {
+            "title": "Prospects à relancer",
+            "description": "Les prospects qui n'ont pas encore répondu, séparés par des virgules.",
+            "placeholder": "Anna, Tom, Léa"
+          }
+        }
+      },
+      "offer": {
+        "type": "string",
+        "maxLength": 500,
+        "title": "Votre offre en une phrase",
+        "x-i18n": {
+          "en": {
+            "title": "Your offer in one sentence",
+            "description": "What you offer, as you would say it to a prospect.",
+            "placeholder": "I help small restaurants fill their quiet weeknights."
+          },
+          "fr": {
+            "title": "Votre offre en une phrase",
+            "description": "Ce que vous proposez, comme vous le diriez à un prospect.",
+            "placeholder": "J'aide les petits restaurants à remplir leurs soirs de semaine."
+          }
+        }
+      },
+      "context": {
+        "type": "string",
+        "maxLength": 500,
+        "title": "Ce qui s'est passé au premier contact",
+        "x-i18n": {
+          "en": {
+            "title": "What happened at first contact",
+            "description": "One sentence on the first exchange, so the follow-up fits.",
+            "placeholder": "We met at a trade fair; they asked for a quote."
+          },
+          "fr": {
+            "title": "Ce qui s'est passé au premier contact",
+            "description": "Une phrase sur le premier échange, pour que la relance colle.",
+            "placeholder": "Rencontrés à un salon ; ils ont demandé un devis."
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "tone": {
+      "enum": ["premium", "chaleureux", "direct"],
+      "default": "direct"
+    },
+    "touches": {
+      "type": "string",
+      "default": "3",
+      "title": "Nombre de relances"
+    },
+    "signature": {
+      "type": "string",
+      "title": "Signature"
+    }
+  }
+}

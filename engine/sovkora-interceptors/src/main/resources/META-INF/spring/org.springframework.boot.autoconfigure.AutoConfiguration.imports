@@ -1,0 +1,8 @@
+com.krizaka.sovkora.interceptor.context.ContextAutoConfiguration
+com.krizaka.sovkora.interceptor.enrichment.EnrichmentAutoConfiguration
+com.krizaka.sovkora.interceptor.tooling.ToolingAutoConfiguration
+com.krizaka.sovkora.interceptor.translation.TranslationAutoConfiguration
+com.krizaka.sovkora.interceptor.validation.ValidationAutoConfiguration
+com.krizaka.sovkora.interceptor.reformulation.ReformulationAutoConfiguration
+com.krizaka.sovkora.interceptor.governance.GovernanceAutoConfiguration
+com.krizaka.sovkora.interceptor.cache.CacheAutoConfiguration

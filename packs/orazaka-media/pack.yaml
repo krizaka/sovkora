@@ -1,0 +1,205 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# orazaka-media — the platform's own media capabilities, as a pack (ADR-066, M2).
+#
+# Six capabilities that have always existed and were only ever reachable through
+# buttons in the chat composer: generation (image, video, speech) and analysis
+# (image, audio, video). Each becomes ONE Studio with ONE step, so the same work
+# runs on the run path — measured once, settled once, retained by the run's class —
+# instead of through door 1, where nothing meters it and nothing keeps it.
+#
+# kind: TOOLKIT, and that is what makes it the platform's rather than a product:
+# an entitled actor simply HAS it, the installation is derived from entitlement and
+# never stored, and there is no row to install or revoke (ADR-061). It therefore
+# declares NEITHER consent NOR safety — both are answered from an installation row
+# a TOOLKIT does not have, and the schema and the database both refuse them here.
+#
+# regulatoryClass: STANDARD. These Studios carry whatever the actor brings, and the
+# platform makes no claim about it; a pack that handles health or identity declares
+# that itself, as `wellbeing` and `document-validation` do.
+#
+# The four `art-*` Studios are ART DIRECTION over the same image capability: one step whose
+# structured prompt (light, optics, materials, palette) wraps the actor's subject, a fixed
+# negative prompt, social (4:5) and hero (16:9) formats, and a seed reported with the image so
+# it can be made again. Same capability, same meter — a style is a blueprint, not an engine.
+#
+# It contributes NO capability and NO worker: `requires` is absent because every
+# feature key below is already seeded in 30-jobs-config.sql and already drained by
+# the job service. A pack is a bundle of Studios over capabilities, and only a pack
+# that brings its own executor needs to declare one.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: orazaka.dev/v1
+key: orazaka-media
+version: 1.13.0
+tier: DATA
+distribution: OSS
+regulatoryClass: STANDARD
+kind: TOOLKIT
+
+catalog:
+  categoryKey: creativity-media
+  iconKey: image
+  status: PUBLISHED
+  sortWeight: 90
+  # Open the shelf if this bundle is the first on it: nothing seeds pack_category, so a
+  # catalogued pack that named one without declaring it could only install into a database
+  # where another bundle had already opened it (ADR-068, #45). Idempotent — an existing
+  # shelf is left exactly as it is, never restyled by a later pack.
+  category:
+    iconKey: image
+    sortWeight: 80
+
+# Zero, and included: a TOOLKIT is not bought on this page. The price exists because
+# a catalogued pack must carry one — billing_pack_entitlement is what makes the grant
+# usable, and a catalogue row without it locks out exactly the actor who is entitled.
+pricing:
+  priceCents: 0
+  includedCredits: 0
+
+studios:
+  - key: image-generation
+    profession: general
+    iconKey: image
+    pricing: INCLUDED
+    entitlementKey: studio.image-generation
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 96
+    blueprint: studios/image-generation/blueprint.json
+  - key: art-golden-hour
+    profession: creative
+    iconKey: image
+    pricing: INCLUDED
+    entitlementKey: studio.art-golden-hour
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 89
+    blueprint: studios/art-golden-hour/blueprint.json
+  - key: art-miniature
+    profession: creative
+    iconKey: image
+    pricing: INCLUDED
+    entitlementKey: studio.art-miniature
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 88
+    blueprint: studios/art-miniature/blueprint.json
+  - key: art-still-life
+    profession: creative
+    iconKey: image
+    pricing: INCLUDED
+    entitlementKey: studio.art-still-life
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 87
+    blueprint: studios/art-still-life/blueprint.json
+  - key: art-montreal-night
+    profession: creative
+    iconKey: image
+    pricing: INCLUDED
+    entitlementKey: studio.art-montreal-night
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 86
+    blueprint: studios/art-montreal-night/blueprint.json
+  - key: video-generation
+    profession: general
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.video-generation
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 95
+    blueprint: studios/video-generation/blueprint.json
+  # A cinematic short (ADR-080): the script (LLM) and the cut (ffmpeg) of a production driven by `orazaka cinema`;
+  # the keyframes and the shots are runs of image-generation and video-generation, the sound one of video-sound.
+  # The treatment stage (orazaka#289): a brief becomes a story with an arc, judged before it becomes a shot list.
+  - key: cinematic-treatment
+    profession: creative
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.cinematic-treatment
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 96
+    blueprint: studios/cinematic-treatment/blueprint.json
+  - key: cinematic-critique
+    profession: creative
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.cinematic-critique
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 95
+    blueprint: studios/cinematic-critique/blueprint.json
+  - key: cinematic-script
+    profession: creative
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.cinematic-script
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 94
+    blueprint: studios/cinematic-script/blueprint.json
+  - key: cinematic-cut
+    profession: creative
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.cinematic-cut
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 93
+    blueprint: studios/cinematic-cut/blueprint.json
+  - key: video-with-sound
+    profession: general
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.video-with-sound
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 93
+    blueprint: studios/video-with-sound/blueprint.json
+  - key: video-sound
+    profession: general
+    iconKey: speech
+    pricing: INCLUDED
+    entitlementKey: studio.video-sound
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 92
+    blueprint: studios/video-sound/blueprint.json
+  - key: speech-synthesis
+    profession: general
+    iconKey: speech
+    pricing: INCLUDED
+    entitlementKey: studio.speech-synthesis
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 94
+    blueprint: studios/speech-synthesis/blueprint.json
+  - key: image-analysis
+    profession: general
+    iconKey: vision
+    pricing: INCLUDED
+    entitlementKey: studio.image-analysis
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 93
+    blueprint: studios/image-analysis/blueprint.json
+  - key: audio-analysis
+    profession: general
+    iconKey: audio
+    pricing: INCLUDED
+    entitlementKey: studio.audio-analysis
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 92
+    blueprint: studios/audio-analysis/blueprint.json
+  - key: video-analysis
+    profession: general
+    iconKey: video
+    pricing: INCLUDED
+    entitlementKey: studio.video-analysis
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 91
+    blueprint: studios/video-analysis/blueprint.json

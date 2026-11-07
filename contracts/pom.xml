@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The relativePath resolves inside the Sovkora workspace (krizaka/sovkora); a standalone
+         clone falls back to the sovkora-parent published on GitHub Packages. -->
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../sovkora-build/sovkora-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-contracts</artifactId>
+    <packaging>pom</packaging>
+    <name>sovkora-contracts</name>
+    <description>Tier-1 platform contracts shared by every Sovkora service: the job plane (jobs-api) and the application-persistence ports (persistence-app-api). Pure interfaces and records, zero implementation.</description>
+
+    <url>https://github.com/krizaka/sovkora-contracts</url>
+
+    <scm>
+        <url>https://github.com/krizaka/sovkora-contracts</url>
+        <connection>scm:git:https://github.com/krizaka/sovkora-contracts.git</connection>
+        <developerConnection>scm:git:git@github.com:krizaka/sovkora-contracts.git</developerConnection>
+    </scm>
+
+    <properties>
+        <!-- GitHub Packages repository the modules below are published to (sovkora-parent). -->
+        <sovkora.repository>sovkora-contracts</sovkora.repository>
+    </properties>
+
+    <modules>
+        <module>sovkora-jobs-api</module>
+        <module>sovkora-persistence-app-api</module>
+        <module>sovkora-crypto</module>
+    </modules>
+</project>

@@ -1,0 +1,11 @@
+id: no-ambient-clock
+valid:
+  - |
+    const d = new Date(value);
+  - |
+    const d = now;
+invalid:
+  - |
+    const d = new Date();
+  - |
+    const t = Date.now();

@@ -1,0 +1,61 @@
+{
+  "content": [
+    {
+      "id": "029739d4-ee60-47be-9e96-189d6ba213b7",
+      "userId": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+      "featureKey": "orazaka.core.media.image",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-11T21:12:51.880336Z",
+      "updatedAt": "2026-10-11T21:14:41.303958Z",
+      "payload": {},
+      "result": null,
+      "progress": null
+    },
+    {
+      "id": "8c269eed-521b-4922-aaf4-cadc5eedee5d",
+      "userId": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+      "featureKey": "orazaka.core.media.image",
+      "status": "FAILED",
+      "createdAt": "2026-10-11T20:36:03.872218Z",
+      "updatedAt": "2026-10-11T20:48:35.626366Z",
+      "payload": {},
+      "result": null,
+      "progress": null
+    },
+    {
+      "id": "f2ce410a-2852-42d2-b30a-c848887e1a2e",
+      "userId": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+      "featureKey": "orazaka.core.media.image",
+      "status": "PROCESSING",
+      "createdAt": "2026-10-11T19:40:48.066188Z",
+      "updatedAt": "2026-10-11T19:40:48.078062Z",
+      "payload": {},
+      "result": null,
+      "progress": null
+    },
+    {
+      "id": "6e364ef1-0e7a-41d3-a261-3f3d2ba7c9bb",
+      "userId": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+      "featureKey": "orazaka.core.chat.completion",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-11T15:51:38.047530Z",
+      "updatedAt": "2026-10-11T15:51:44.952676Z",
+      "payload": {},
+      "result": null,
+      "progress": null
+    },
+    {
+      "id": "6b9d274b-4e8c-48be-9ef6-1cb87ec9e62c",
+      "userId": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+      "featureKey": "orazaka.core.media.speech",
+      "status": "COMPLETED",
+      "createdAt": "2026-10-11T06:24:33.560257Z",
+      "updatedAt": "2026-10-11T06:24:35.905897Z",
+      "payload": {},
+      "result": null,
+      "progress": null
+    }
+  ],
+  "totalPages": 2,
+  "totalElements": 57
+}

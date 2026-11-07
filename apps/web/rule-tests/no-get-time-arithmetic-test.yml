@@ -1,0 +1,7 @@
+id: no-get-time-arithmetic
+valid:
+  - |
+    const d = a.getTime() - b.getTime();
+invalid:
+  - |
+    const d = a.getTime() - 5000;

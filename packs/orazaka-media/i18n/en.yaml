@@ -1,0 +1,68 @@
+pack:
+  label: "Media Studios"
+  tagline: "Generate, listen, describe — without leaving a run."
+category:
+  label: Creativity & media
+  description: "Packs that produce images, video, sound and showcases."
+studios:
+  image-generation:
+    label: "Image generation"
+    tagline: "One sentence, one image."
+  art-golden-hour:
+    label: "Golden-hour editorial"
+    tagline: "Your subject, in warm low light, shot like a magazine spread."
+    description: >-
+      Lifestyle photography at golden hour: raking sunlight, an 85 mm lens wide open, weathered wood,
+      wool and brass, an amber and terracotta palette. Describe who and where — the light, the optics,
+      the materials and the palette are taken care of.
+  art-miniature:
+    label: "Tilt-shift miniature"
+    tagline: "Your scene as a handcrafted diorama, shot in macro."
+    description: >-
+      A 1:24 diorama of figurines and props in felt, embroidered thread and painted resin, a razor-thin
+      plane of focus and soft window light. Describe the scene; it becomes a miniature.
+  art-still-life:
+    label: "Artisanal still life"
+    tagline: "Objects and produce in single-window light."
+    description: >-
+      Chiaroscuro on a weathered table: hand-thrown ceramics, hammered copper, linen and fresh produce,
+      a muted earthy palette. Name the objects; they are arranged and lit.
+  art-montreal-night:
+    label: "Montreal neon night"
+    tagline: "Wet streets, brick and spiral staircases under magenta and teal."
+    description: >-
+      Montreal after rain: cobblestones mirroring window light and neon, light mist, a 35 mm lens wide
+      open, cinematic grading. Describe the place and the moment.
+  cinematic-treatment:
+    label: "Cinematic short — treatment"
+    tagline: "A short brief becomes a story: an arc, intentions, living shots, directed lines, music, sound."
+  cinematic-critique:
+    label: "Cinematic short — critique"
+    tagline: "A director's read of a treatment: scores, flat or off-topic shots rejected, what to change."
+  cinematic-script:
+    label: "Cinematic short — script"
+    tagline: "A brief becomes a shot list: 8–12 shots, original characters, music, voice-over."
+  cinematic-cut:
+    label: "Cinematic short — cut"
+    tagline: "Your shots edited into one film: cuts, ramps, grade, titles, the AI label."
+  video-generation:
+    label: "Video generation"
+    tagline: "A vertical short (9:16) or a wide shot, described then rendered."
+  video-with-sound:
+    label: "Video with sound"
+    tagline: "A video, then its sound: a music bed and optional foley, mixed at -14 LUFS."
+  video-sound:
+    label: "Sound for a video"
+    tagline: "Give any clip sound: music, foley, a voice-over. The silent original is kept."
+  speech-synthesis:
+    label: "Speech synthesis"
+    tagline: "Your text, read aloud."
+  image-analysis:
+    label: "Image analysis"
+    tagline: "What an image shows, in words."
+  audio-analysis:
+    label: "Audio transcription"
+    tagline: "What was said, written down."
+  video-analysis:
+    label: "Video analysis"
+    tagline: "A video's speech, and its keyframes."

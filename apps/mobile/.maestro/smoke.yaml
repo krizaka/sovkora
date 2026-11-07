@@ -1,0 +1,48 @@
+# Smoke flow: sign in on a fresh install, open a Studio, the chat, the jobs and the profile, sign out.
+# On a simulator whose language is English, against the stack the app points at (EXPO_PUBLIC_EDGE_URL):
+#   maestro test .maestro/smoke.yaml -e ORAZAKA_EMAIL=<email> -e ORAZAKA_PASSWORD=<password>
+appId: com.krizaka.orazaka
+# manual: needs the dev platform and a QA account, so mobile-e2e.yml (CI) does not run it.
+tags:
+  - manual
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible: "Sign in to your account"
+    timeout: 60000
+- tapOn:
+    id: "login-email"
+- inputText: ${ORAZAKA_EMAIL}
+- tapOn:
+    id: "login-password"
+- inputText: ${ORAZAKA_PASSWORD}
+- pressKey: Enter
+# iOS offers to save the password: decline.
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "studio-image-generation"
+    timeout: 30000
+- tapOn:
+    id: "studio-image-generation"
+- assertVisible:
+    id: "studio-open"
+- tapOn: "Back"
+# One chat, with its empty state and no decorative exchange.
+- tapOn: "Chat"
+- assertVisible: "What can I do for you?"
+# The commercial name (krizaka-internal#2103): the composer addresses Sovkora, the code name is never shown.
+- assertVisible: "Message Sovkora"
+- assertNotVisible: "Orazaka"
+- assertNotVisible: "Your sovereign AI, on this device."
+- tapOn: "Jobs"
+- assertVisible: "Jobs per day"
+- tapOn: "Settings"
+- assertVisible: "Sign out"
+- assertNotVisible: "ROLE_USER"
+- tapOn: "Sign out"
+- assertVisible: "Sign in to your account"

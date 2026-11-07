@@ -1,0 +1,55 @@
+# Builds and tests orazaka-cli inside the Orazaka workspace (every upstream repository is
+# built from source at its default branch), then publishes to GitHub Packages on a v* tag.
+# The pipeline itself lives in krizaka/sovkora so every repository is checked the same way.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  component:
+    permissions:
+      contents: read
+      packages: write
+      # The shared component pipeline publishes npm packages with provenance (OIDC): a reusable
+      # workflow cannot be granted more than its caller holds, so its absence fails at startup.
+      id-token: write
+    uses: krizaka/sovkora/.github/workflows/component.yml@7811f56c86053a9dfd68cd871d8e7102c9b527bb # main
+    with:
+      component: orazaka-cli
+      duplication: true
+    secrets: inherit # zizmor: ignore[secrets-inherit] the org's own pinned pipeline; it reads SONAR_TOKEN and nothing else of the repository's secrets
+
+  # What npm users get: the CLI and its `orazaka` alias packed, installed in an empty project outside any
+  # workspace, and their bin run from there (scripts/pack-smoke.mjs). Standalone on purpose — the published
+  # package depends on nothing from the workspace.
+  pack:
+    permissions:
+      contents: read
+      packages: write
+      # The shared component pipeline publishes npm packages with provenance (OIDC): a reusable
+      # workflow cannot be granted more than its caller holds, so its absence fails at startup.
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: "22"
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run test:pack

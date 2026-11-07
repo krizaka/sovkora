@@ -1,0 +1,7 @@
+# Known vulnerabilities we accept for now (krizaka/.github#372). Each entry has a reason and a date: the ignore EXPIRES, then CI
+# fails again (the shared osv-scan workflow fails on high/critical). Never extend a date without checking for a fix first.
+
+[[IgnoredVulns]]
+id = "GHSA-gcqx-w48m-w2h4"
+ignoreUntil = 2026-12-15
+reason = "deepmerge 4.3.1 via @expo/config: Build-time only (Expo CLI, never shipped); no fixed release exists upstream"

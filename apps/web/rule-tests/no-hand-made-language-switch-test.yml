@@ -1,0 +1,13 @@
+id: no-hand-made-language-switch
+valid:
+  - |
+    const x = <NavBar.Language label="Langue" current="fr" languages={languagesFor(path)} />;
+  - |
+    export const alternates = { languages: { en: "/en", fr: "/fr" } };
+invalid:
+  - |
+    const x = <Link href="/en" hrefLang="en">English</Link>;
+  - |
+    const x = <a href={other.href} hrefLang={other.code} lang={other.code}>{other.name}</a>;
+  - |
+    const x = <button type="button" aria-pressed={locale === code} onClick={() => setLocale(code)}>{label}</button>;

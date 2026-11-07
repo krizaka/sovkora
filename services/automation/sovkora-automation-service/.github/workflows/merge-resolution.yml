@@ -1,0 +1,16 @@
+# Merge resolution (krizaka/krizaka-internal#2000): fails a PR that drops what main added meanwhile, or deletes generated content, with no
+# `deletion-explained:` line in its description. Logic in krizaka/.github (rule `merge-resolution` of docs/standards/rules.json).
+name: Merge resolution
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions: {}
+
+jobs:
+  guard:
+    name: Merge resolution
+    uses: krizaka/.github/.github/workflows/merge-resolution.yml@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+    permissions:
+      contents: read

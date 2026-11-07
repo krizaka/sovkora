@@ -1,0 +1,84 @@
+# sovkora-build — Governance scope (agent-neutral)
+
+> This repository is one component of the **Sovkora platform**. The normative contract is
+> [`AGENTS.md`](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) at the root of the Sovkora workspace
+> ([`krizaka/sovkora`](https://github.com/krizaka/sovkora)), together with its `.agent/rules/*`. When this repository
+> is cloned inside the workspace (`orazaka-libs/orazaka-build`), that contract is loaded first and applies
+> without exception. **No rule lives here** — this file only scopes it.
+
+## Scope of this repository
+
+- **Role:** Parent POM (Spring Boot / Spring AI BOMs, plugin management, Sovkora BOM) and the shared governance test kit (ArchUnit rules, Testcontainers base) for every Sovkora JVM repository.
+- **Layer:** Foundation — reusable by any Krizaka application
+- **Depends on:** nothing — never on another repository's Tier-3 implementation (AGENTS.md §2, [SEAM-002]).
+- **Workspace path:** `orazaka-libs/orazaka-build`
+
+## Static rules & codemods (OpenRewrite, ArchUnit)
+
+The org code rules (addendum 2026-10-15) are checked by tools, not by review.
+
+- **OpenRewrite** (`rewrite-maven-plugin`, configured once in `krizaka-parent`, inherited by every JVM repository):
+  common static analysis, test best practices, Java 21 idioms, Spring idioms (no `@Autowired` on a constructor; `@Bean` methods stay public), no duplicate POM dependency. `./mvnw rewrite:dryRun` lists what would change and **fails** if
+  anything would; `./mvnw rewrite:run` applies it — behaviour
+  identical, run the tests, land it in a small pull request. A recipe that is wrong for this repository is excluded here
+  (`<exclusions>` / a `rewrite.yml`), with the reason; test fixtures (`**/fixture/**`) are excluded everywhere.
+  The import layout is explicit, never autodetected (no star import, static imports first): `sovkora-parent` activates `SovkoraJavaStyle` from `sovkora-rewrite-style`, a copy of krizaka-build's `krizaka-rewrite-style` kept until that one is on Central.
+- **ArchUnit** (shared rules in `krizaka-test-support`: `CodeRules`, `ConfigBindingRules`, `SourceRules`,
+  `ArchitectureRules`): the governance tests of a module call them. `ArchitectureRules` holds the structure — layers
+  (web → service → repository, none skipped, none calling up), no package cycle, `*Controller` / `*Service` /
+  `*Repository` names, `@Value` and the environment read only in configuration, `@Transactional` only on services. The
+  older `CodeRules` hold the rest (no field injection, no `System.out`, domain free of framework, one class per file…).
+- **Debt only shrinks — `FrozenRules`** (ArchUnit `FreezingArchRule`): a rule a module cannot satisfy yet is checked with
+  `FrozenRules.check(ArchitectureRules.xxxRule(...), CLASSES)`. The violations that exist are recorded in the module's
+  `archunit_store/` (committed); a **new** violation fails, a fixed one leaves the store (commit it). A rule with no store
+  fails: record a new rule's debt once with `-Darchunit.freeze.store.default.allowStoreCreation=true`, review the store,
+  commit it. Never add a violation to a store by hand to get a build green.
+- A rule never passes over nothing (no `allowEmptyShould`, Sovkora GOV-006): a module applies the rules whose subject it has (a library without controllers does not apply the controller naming rule).
+- A rule is never weakened, skipped or deleted to get a PR green (AGENTS §5.3 of the org); fix the code or freeze the existing debt.
+
+## Definition of done
+
+1. `./mvnw verify` is green (unit + Testcontainers ITs + this repository's `*GovernanceTest`).
+2. Inside the workspace, the cross-repository rules are green as well
+   (`./mvnw -f orazaka-libs/orazaka-build/pom.xml verify` from the workspace root).
+3. Spotless (google-java-format) passes — it is bound to `validate`.
+4. The change ships with its tests — a unit test for logic, a Testcontainers integration test for an adapter, an
+   endpoint or a flow; a fix starts with a failing test that reproduces the bug. CI runs them and must be green; no
+   test = not done (workspace [`AGENTS.md` §9](https://github.com/krizaka/sovkora/blob/main/AGENTS.md#9-testing)).
+
+**Repository layout:** the root follows [krizaka/.github `docs/standards/repo-layout.md`](https://github.com/krizaka/.github/blob/main/docs/standards/repo-layout.md); the CI guard `check-repo-layout` fails on a stray root file, and a justified extra is declared in `.repo-layout.json` with its why.
+
+## 9. Anti-slop (ADR-015)
+
+What a model tends to write and the code does not need. Each line points at the rule that refuses it
+([ADR-015](https://github.com/krizaka/.github/blob/main/docs/adr/ADR-015-ai-code-audit-measured-and-enforced.md), [docs/standards/guards.md](https://github.com/krizaka/.github/blob/main/docs/standards/guards.md)).
+
+1. **No defensive null on `@NullMarked` code.** No `Objects.requireNonNull` or `if (x == null)` on a value the type already
+   guarantees. Enforced by NullAway at compile time; a new package is `@NullMarked` (ArchUnit).
+2. **A closed set is a type.** An enum, a sealed interface or an `as const` object, never a string compared by hand;
+   strategies are a `Map<Kind, Strategy>` built once at startup. Enforced by PMD / ArchUnit (Java) and `no-enum-string-compare` (ast-grep).
+3. **HTTP in Java is a DTO record, `@Valid` and `ProblemDetail`.** No `Map.of("error", …)`, no entity in a response, one
+   `@RestControllerAdvice` per service. Enforced by ArchUnit.
+4. **No `*Utils`, `*Helper` or `*Manager`.** Name the thing by what it does (§4). Enforced by ArchUnit (ADR-015 §5).
+5. **`?.` and `??` in TypeScript**, not a chain of `&&` or a ternary on null. The target rules are `@typescript-eslint/prefer-optional-chain` and `prefer-nullish-coalescing`; they are not in `@krizaka/config` yet.
+6. **The build is the judge.** Compile, lint and test before every push; `krizaka-edit-check` runs on each edit (below) and
+   NullAway and ArchUnit run at pre-push and in CI. A rule is never silenced to get green.
+
+**The edit hook.** Every repository adds this to `.claude/settings.json`. After each `Edit` or `Write`, the one file is
+checked in under 10 s: ESLint with the repository's config for TypeScript, PMD with the Krizaka rules for Java (never Maven).
+A finding comes back to the agent (exit 2); a timeout is silent.
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{ "type": "command", "command": "npx --yes -p @krizaka/config krizaka-edit-check", "timeout": 10 }]
+      }
+    ]
+  }
+}
+```
+
+In a TypeScript repository that already depends on `@krizaka/config`, use `npx --no-install krizaka-edit-check` (no download).

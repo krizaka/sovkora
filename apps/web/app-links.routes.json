@@ -1,0 +1,7 @@
+{
+  "host": "www.orazaka.com",
+  "iosBundleId": "com.krizaka.orazaka",
+  "androidPackage": "com.krizaka.orazaka",
+  "paths": ["/studios", "/studios/*", "/chat", "/jobs", "/settings", "/settings/*"],
+  "shareable": ["/chat", "/jobs", "/settings", "/settings/*", "/studios", "/studios/*", "/studios/runs/*"]
+}

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../../sovkora-libs/sovkora-build/sovkora-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-knowledge-service</artifactId>
+    <name>sovkora-knowledge-service</name>
+    <description>Knowledge service — RAG retrieval + tool source lookup (sync) and async indexing (own database)</description>
+
+    <url>https://github.com/krizaka/sovkora-knowledge-service</url>
+
+    <scm>
+        <url>https://github.com/krizaka/sovkora-knowledge-service</url>
+        <connection>scm:git:https://github.com/krizaka/sovkora-knowledge-service.git</connection>
+        <developerConnection>scm:git:git@github.com:krizaka/sovkora-knowledge-service.git</developerConnection>
+    </scm>
+    <licenses>
+        <license>
+            <name>FSL-1.1-ALv2</name>
+            <url>https://fsl.software/FSL-1.1-ALv2.template.md</url>
+            <distribution>repo</distribution>
+            <comments>Functional Source License 1.1, Apache-2.0 future licence (ADR-011). Earlier commits: Apache-2.0.</comments>
+        </license>
+    </licenses>
+
+
+    <properties>
+        <!-- GitHub Packages repository this artifact is published to (sovkora-parent). -->
+        <sovkora.repository>sovkora-knowledge-service</sovkora.repository>
+    </properties>
+
+
+    <dependencies>
+        <!-- Krizaka platform kit: idempotent message consumption (claim / release). -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-messaging</artifactId>
+        </dependency>
+        <!-- Krizaka platform kit: session-JWT security baseline and service-to-service tokens. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-security</artifactId>
+        </dependency>
+        <!-- Spring Boot Starter Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+        <!-- Spring Boot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Distributed tracing: Micrometer Tracing over the OpenTelemetry bridge, OTLP/HTTP. -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+
+        <!-- Spring Boot AMQP (RabbitMQ) — async indexing consumer -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- JDBC (own database — JdbcTemplate over sovkora_tools_rag_source + processed_messages) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- Spring AI VectorStore contracts (retrieve path; dormant until an embedding model exists) -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-vector-store</artifactId>
+        </dependency>
+
+        <!-- Flyway: the schema (db/migration) is applied at startup, before any store is used (krizaka-internal#2255) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL Driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- JSON Processing -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-test-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

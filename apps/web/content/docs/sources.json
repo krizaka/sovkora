@@ -1,0 +1,16 @@
+{
+  "docs/101.md": "101",
+  "docs/CONCEPTS.md": "concepts",
+  "docs/SELF_HOSTING.md": "self-hosting",
+  "docs/STUDIO_GUIDE.md": "studio-guide",
+  "docs/CONTENT_POLICY.md": "content-policy",
+  "docs/_generated/API_REFERENCE.md": "api",
+  "docs/_generated/CLI.md": "cli",
+  "docs/WORKER_PROTOCOL.md": "worker-protocol",
+  "docs/_generated/PACKS.md": "packs",
+  "docs/_generated/MODELS.md": "models",
+  "docs/_generated/MEASURED_RUNS.md": "measured-runs",
+  "docs/_generated/ARCHITECTURE.md": "architecture",
+  "docs/AUTH.md": "auth",
+  "SECURITY.md": "security"
+}

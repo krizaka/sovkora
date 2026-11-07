@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-engine</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-persistence-app</artifactId>
+    <name>sovkora-persistence-app</name>
+    <description>Sovkora Decoupled Application Persistence &amp; Infrastructure State Management</description>
+
+    <dependencies>
+        <!-- Krizaka platform kit: the outbox relay this context's store feeds. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-messaging</artifactId>
+        </dependency>
+
+        <!-- Tier-1 contract this module implements: inbound ports + DTOs.
+             Consumers that only need the contract depend on the -api directly. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-persistence-app-api</artifactId>
+        </dependency>
+
+        <!-- Tier-1 job-plane contract: this module owns sovkora_capabilities, so it hosts the
+             authoritative CapabilityRoutingClient (ADR-037 S1). Contract only, zero impl deps. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-jobs-api</artifactId>
+        </dependency>
+
+        <!-- The platform's master keyring and SecretSealer (ADR-054): MCP server tokens are sealed
+             before they reach the table (sovkora-engine#58). -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-crypto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Was transitive via krizaka-users-core → persistence-identity until phase-0g
+             decoupled the modules; this module's Testcontainers ITs need it directly. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Flyway for the governance tables (krizaka-internal#2255). Optional: only the host that
+             brings Flyway and sets sovkora.governance.migrations.enabled applies them; a library
+             consumer without Flyway is untouched (and does not get Boot's Flyway auto-configuration
+             switched on by this dependency). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-test-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Boot 4 split the test slices: @DataJpaTest / @AutoConfigureTestDatabase moved out of
+             spring-boot-test-autoconfigure into per-technology test modules pulled by this starter. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Run Testcontainers integration tests (*IT) in the integration-test /
+                 verify phases, keeping the surefire unit tier Docker-free. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

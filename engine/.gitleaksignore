@@ -1,0 +1,3 @@
+# Fixtures found by the org secret scan in history: documentation examples and test values (reviewed 2026-10-29), not credentials.
+804daceb694306c3798031db196f50b97e06c93c:orazaka-adapter-spring-ai/src/test/java/com/krizaka/orazaka/adapter/springai/CoreServicesAutoConfigurationTest.java:generic-api-key:58
+ebf85dde880cd794eb8e7d9e14302377805479ba:orazaka-tools/src/test/java/com/krizaka/orazaka/tools/infrastructure/config/LawReviewConfigurationTest.java:private-key:69

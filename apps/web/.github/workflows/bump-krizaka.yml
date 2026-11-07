@@ -1,0 +1,27 @@
+# A @krizaka release reaches this repository in minutes (krizaka/.github#388): the publisher sends `krizaka-release`, the
+# shared workflow bumps the ranges and opens one auto-merged pull request. Run it by hand with « dry-run » to see the plan.
+name: Bump @krizaka packages
+
+on:
+  repository_dispatch:
+    types: [krizaka-release]
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: 'The packages, {"@krizaka/ui":"3.74.0"}'
+        required: true
+      dry-run:
+        type: boolean
+        default: true
+
+permissions: {}
+
+jobs:
+  bump:
+    uses: krizaka/.github/.github/workflows/bump-krizaka.yml@3768f46e08aa598952d9eb76c96c7af9d79a627a # main
+    with:
+      packages: ${{ github.event.client_payload.packages && toJSON(github.event.client_payload.packages) || inputs.packages }}
+      dry-run: ${{ inputs.dry-run == true }}
+      app-id: ${{ vars.RELEASE_APP_ID }}
+    secrets:
+      app-private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}

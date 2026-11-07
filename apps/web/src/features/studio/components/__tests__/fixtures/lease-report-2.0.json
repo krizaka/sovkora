@@ -1,0 +1,435 @@
+{
+  "contract": "2.0",
+  "outcome": "CHECKED",
+  "identification": {
+    "declaredKind": null,
+    "detectedKind": "qc-residential-lease",
+    "kindUsed": "qc-residential-lease",
+    "kindLabel": {
+      "fr": "Bail de logement",
+      "en": "Residential lease"
+    },
+    "kindStatus": "PROMOTED",
+    "kindSource": "DETECTED",
+    "kindEvidence": [
+      {
+        "signal": "title",
+        "quote": "BAIL DE LOGEMENT",
+        "verified": true
+      },
+      {
+        "signal": "parties",
+        "quote": "locatrice) et Jean Roy (locataire",
+        "verified": true
+      },
+      {
+        "signal": "monthly-rent",
+        "quote": "Loyer mensuel",
+        "verified": true
+      },
+      {
+        "signal": "place",
+        "quote": "Montréal",
+        "verified": true
+      }
+    ],
+    "kindMismatch": false,
+    "ruleset": "qc-residential-lease",
+    "jurisdiction": "QC",
+    "jurisdictionSource": "DETECTED",
+    "documentDate": null,
+    "dateEvidence": null,
+    "asOf": "2026-11-04",
+    "asOfSource": "TODAY",
+    "languages": ["fr"],
+    "outcome": "CHECK",
+    "classifyAmong": [],
+    "classification": null
+  },
+  "ruleset": {
+    "id": "qc-residential-lease",
+    "version": "2024-02-21",
+    "revision": 5,
+    "reviewStatus": "TO_REVIEW_BY_LAWYER"
+  },
+  "jurisdiction": "QC",
+  "asOf": "2026-11-04",
+  "source": "Code civil du Québec, art. 1851 et suiv. (bail de logement : art. 1892 à 1978), Règlement sur les formulaires de bail obligatoires et sur les mentions de l'avis au nouveau locataire (RLRQ c. T-15.01, r. 3), Tribunal administratif du logement",
+  "summary": {
+    "byVerdict": {
+      "PASS": 2,
+      "FAIL": 6,
+      "NOT_APPLICABLE": 8
+    },
+    "blockingFailures": 3,
+    "rulesEvaluated": 16
+  },
+  "findings": [
+    {
+      "ruleId": "QC-LANG-001",
+      "title": "Langue française — le document est en français, ou dit qu'une version française a été remise",
+      "severity": "ADVISORY",
+      "verdict": "PASS",
+      "evidenceSpan": {
+        "start": 39,
+        "end": 48,
+        "quote": "locatrice"
+      },
+      "explanation": "Le document est rédigé en français, ou dit qu'une version française a été remise.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "Charte de la langue française, art. 55 ; C.c.Q., art. 1897 (pour le bail)",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "VERIFIED",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-001",
+      "title": "Identification du locateur",
+      "severity": "BLOCKING",
+      "verdict": "FAIL",
+      "evidenceSpan": null,
+      "explanation": "Le locateur n'est pas identifié. Le formulaire obligatoire du bail de logement (section A) exige son nom et son adresse.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1895 ; Règlement sur les formulaires de bail obligatoires, section A",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-002",
+      "title": "Identification du locataire",
+      "severity": "BLOCKING",
+      "verdict": "FAIL",
+      "evidenceSpan": null,
+      "explanation": "Le locataire n'est pas identifié. Le formulaire obligatoire (section A) exige son nom.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1895 ; Règlement sur les formulaires de bail obligatoires, section A",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-003",
+      "title": "Montant du loyer",
+      "severity": "BLOCKING",
+      "verdict": "PASS",
+      "evidenceSpan": {
+        "start": 148,
+        "end": 170,
+        "quote": "Loyer mensuel: 1 250 $"
+      },
+      "explanation": "Le loyer est chiffré au bail.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1855 et 1903 ; Règlement sur les formulaires de bail obligatoires, section D",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "VERIFIED",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-004",
+      "title": "Dépôt de garantie interdit — seul le premier mois peut être exigé d'avance",
+      "severity": "BLOCKING",
+      "verdict": "FAIL",
+      "evidenceSpan": {
+        "start": 175,
+        "end": 203,
+        "quote": "dépôt de garantie de 1 250 $"
+      },
+      "explanation": "Le bail exige une somme autre que le loyer, sous forme de dépôt ou autrement. L'article 1904 ne permet au locateur d'exiger d'avance que le premier terme de loyer.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1904, al. 1",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "VERIFIED",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-005",
+      "title": "Chèques postdatés interdits",
+      "severity": "BLOCKING",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1904, al. 2",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-006",
+      "title": "Refus des enfants — sans effet",
+      "severity": "BLOCKING",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1899",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-007",
+      "title": "Renonciation au droit au maintien dans les lieux — sans effet",
+      "severity": "BLOCKING",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1936 et 1893",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-008",
+      "title": "Avis du loyer le plus bas des douze derniers mois",
+      "severity": "MAJOR",
+      "verdict": "FAIL",
+      "evidenceSpan": null,
+      "explanation": "Le bail ne mentionne pas le loyer le plus bas payé au cours des douze mois précédant le début du bail (section G). L'article 1896 oblige le locateur à le remettre au nouveau locataire.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1896 ; Règlement sur les formulaires de bail obligatoires, section G",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-009",
+      "title": "Renonciation anticipée aux règles de l'augmentation de loyer — sans effet",
+      "severity": "MAJOR",
+      "verdict": "FAIL",
+      "evidenceSpan": {
+        "start": 326,
+        "end": 379,
+        "quote": "loyer pourra être augmenté en tout temps sans préavis"
+      },
+      "explanation": "Une clause écarte d'avance l'avis de modification du loyer ou le droit du locataire de le refuser. Le locateur qui veut augmenter le loyer lors de la reconduction doit en aviser le locataire (art. 1942 et 1943), qui peut refuser dans le mois de la réception (art. 1945) ; l'article 1893 rend sans effet la clause qui déroge à ces droits.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1942, 1943 et 1945 ; art. 1893",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "VERIFIED",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-010",
+      "title": "Peines et frais de retard — appréciation contextuelle",
+      "severity": "ADVISORY",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "JUDGMENT",
+      "citation": {
+        "reference": "C.c.Q., art. 1901",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-011",
+      "title": "Règlement de l'immeuble — remise avant la conclusion du bail",
+      "severity": "ADVISORY",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "JUDGMENT",
+      "citation": {
+        "reference": "C.c.Q., art. 1894",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-012",
+      "title": "Visites et hébergement d'un tiers — clause abusive",
+      "severity": "MAJOR",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1901 (clause abusive) ; art. 1931 et suiv. (accès au logement)",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-013",
+      "title": "Résiliation de plein droit pour un seul retard — sans effet",
+      "severity": "BLOCKING",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1971 ; art. 1893",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-014",
+      "title": "Formulaire obligatoire du bail de logement",
+      "severity": "MAJOR",
+      "verdict": "FAIL",
+      "evidenceSpan": null,
+      "explanation": "Le bail ne mentionne pas le formulaire obligatoire du Tribunal administratif du logement. Le locateur doit utiliser ce formulaire (art. 1895).",
+      "method": "DETERMINISTIC",
+      "citation": {
+        "reference": "C.c.Q., art. 1895 ; Règlement sur les formulaires de bail obligatoires",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    },
+    {
+      "ruleId": "QC-LEASE-020",
+      "title": "Clause abusive",
+      "severity": "ADVISORY",
+      "verdict": "NOT_APPLICABLE",
+      "evidenceSpan": null,
+      "explanation": "Le document n'aborde pas ce sujet ; la règle ne s'applique pas.",
+      "method": "JUDGMENT",
+      "citation": {
+        "reference": "C.c.Q., art. 1901",
+        "pinned": false,
+        "notice": {
+          "fr": "Citation non épinglée : l'article est cité en toutes lettres, sans texte daté ni empreinte à vérifier.",
+          "en": "Unpinned citation: the article is cited in words, with no dated, hashed text to check."
+        }
+      },
+      "checks": {
+        "passage": "ABSENT",
+        "citation": "NOT_PINNED"
+      }
+    }
+  ],
+  "facts": {
+    "rentCents": {
+      "status": "found",
+      "cents": 125000,
+      "evidenceSpan": {
+        "start": 148,
+        "end": 170,
+        "quote": "Loyer mensuel: 1 250 $"
+      }
+    },
+    "lowestRentCents": {
+      "status": "absent"
+    }
+  }
+}

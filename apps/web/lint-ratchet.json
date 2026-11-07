@@ -1,0 +1,43 @@
+{
+  "globs": ["app/**/*.tsx", "components/**/*.tsx", "src/**/*.tsx"],
+  "counters": {
+    "palette": 0,
+    "light": 0,
+    "arbitraryVar": 0,
+    "classNameTemplate": 0,
+    "fetchInClientEffect": 0,
+    "asyncInEffect": 0,
+    "derivedStateInEffect": 1,
+    "directTanstackImport": 22,
+    "localTableOrForm": 5,
+    "retiredImport": 0,
+    "routeStateSelection": 0,
+    "cognitiveComplexity": 12,
+    "sonar": 80,
+    "codeRules": 853,
+    "code/curly": 766,
+    "code/max-depth": 68,
+    "sonarjs/no-nested-template-literals": 15,
+    "sonarjs/super-linear-regex": 16,
+    "sonarjs/regex-complexity": 2,
+    "sonarjs/no-nested-conditional": 22,
+    "sonarjs/no-os-command-from-path": 15,
+    "sonarjs/void-use": 2,
+    "sonarjs/no-hardcoded-passwords": 1,
+    "code/no-console": 19,
+    "sonarjs/redundant-type-aliases": 1,
+    "sonarjs/no-nested-assignment": 5,
+    "sonarjs/duplicates-in-character-class": 1,
+    "pageTemplate": 33
+  },
+  "stackGlobs": [
+    "app/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "components/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "src/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "lib/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "hooks/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "features/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "scripts/**/*.{js,jsx,mjs,ts,tsx,mts}",
+    "e2e/**/*.{js,jsx,mjs,ts,tsx,mts}"
+  ]
+}

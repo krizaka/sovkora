@@ -1,0 +1,33 @@
+# Builds and tests orazaka-web-client inside the Orazaka workspace (every upstream repository is
+# built from source at its default branch), then publishes to GitHub Packages on a v* tag.
+# The pipeline itself lives in krizaka/sovkora so every repository is checked the same way.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  component:
+    permissions:
+      contents: read
+      packages: write
+      # The shared component pipeline publishes npm packages with provenance (OIDC): a reusable
+      # workflow cannot be granted more than its caller holds, so its absence fails at startup.
+      id-token: write
+    uses: krizaka/sovkora/.github/workflows/component.yml@4ef2ce425420447f693e3ca8afdfa7a774133cdf # main (the required SonarCloud check when verify skips)
+    with:
+      component: orazaka-web-client
+      duplication: true
+      sonar: true # CI analysis with the jest coverage of `validate` (krizaka/.github#377); automatic analysis is switched off
+    secrets: inherit # zizmor: ignore[secrets-inherit] the org's own component pipeline, pinned by SHA, needs the publish secrets

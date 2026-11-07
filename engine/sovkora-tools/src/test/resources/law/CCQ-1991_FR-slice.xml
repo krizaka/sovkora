@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LegislativeDocument xml:lang="fr" date-eev="20260611" DocumentType="cs"><Statute><Identification Code="id"><Id>CCQ-1991</Id></Identification><Body>
+<Section Code="se:106" full-id="160103" date-eev="20131206">
+								<Label style="P">106</Label>
+								<Subsection Code="se:106-ss:1">
+									<Text><Repealed type="repealed">(Abrogé).</Repealed></Text>
+								</Subsection>
+								<HistoricalNote>
+									<Ref>
+										<RefFreeForm>1991, c. 64, a. 106</RefFreeForm>
+									</Ref>
+									<Ref>
+										<RefFreeForm>2013, c. 27, a. 7</RefFreeForm>
+									</Ref>
+								</HistoricalNote>
+							</Section>
+<Section Code="se:1851" full-id="161851" date-eev="19990401">
+								<Label style="P">1851</Label>
+								<Subsection Code="se:1851-ss:1">
+									<Text>Le louage, aussi appelé bail, est le contrat par lequel une personne, le locateur, s’engage envers une autre personne, le locataire, à lui procurer, moyennant un loyer, la jouissance d’un bien, meuble ou immeuble, pendant un certain temps.</Text>
+								</Subsection>
+								<Subsection Code="se:1851-ss:2">
+									<Text>Le bail est à durée fixe ou indéterminée.</Text>
+								</Subsection>
+								<HistoricalNote>
+									<Ref>
+										<RefFreeForm>1991, c. 64, a. 1851</RefFreeForm>
+									</Ref>
+								</HistoricalNote>
+							</Section>
+<Section Code="se:1855" full-id="161855" date-eev="19990401">
+									<Label style="P">1855</Label>
+									<Subsection Code="se:1855-ss:1">
+										<Text>Le locataire est tenu, pendant la durée du bail, de payer le loyer convenu et d’user du bien avec prudence et diligence.</Text>
+									</Subsection>
+									<HistoricalNote>
+										<Ref>
+											<RefFreeForm>1991, c. 64, a. 1855</RefFreeForm>
+										</Ref>
+									</HistoricalNote>
+								</Section>
+<Section Code="se:1904" full-id="161904" date-eev="19990401">
+									<Label style="P">1904</Label>
+									<Subsection Code="se:1904-ss:1">
+										<Text>Le locateur ne peut exiger que chaque versement excède un mois de loyer; il ne peut exiger d’avance que le paiement du premier terme de loyer ou, si ce terme excède un mois, le paiement de plus d’un mois de loyer.</Text>
+									</Subsection>
+									<Subsection Code="se:1904-ss:2">
+										<Text>Il ne peut, non plus, exiger une somme d’argent autre que le loyer, sous forme de dépôt ou autrement, ou exiger, pour le paiement, la remise d’un chèque ou d’un autre effet postdaté.</Text>
+									</Subsection>
+									<HistoricalNote>
+										<Ref>
+											<RefFreeForm>1991, c. 64, a. 1904</RefFreeForm>
+										</Ref>
+									</HistoricalNote>
+								</Section>
+<Section Code="se:1942" full-id="161942" date-eev="19990401">
+										<Label style="P">1942</Label>
+										<Subsection Code="se:1942-ss:1">
+											<Text>Le locateur peut, lors de la reconduction du bail, modifier les conditions de celui-ci, notamment la durée ou le loyer; il ne peut cependant le faire que s’il donne un avis de modification au locataire, au moins trois mois, mais pas plus de six mois, avant l’arrivée du terme. Si la durée du bail est de moins de 12 mois, l’avis doit être donné, au moins un mois, mais pas plus de deux mois, avant le terme.</Text>
+										</Subsection>
+										<Subsection Code="se:1942-ss:2">
+											<Text>Lorsque le bail est à durée indéterminée, le locateur ne peut le modifier, à moins de donner au locataire un avis d’au moins un mois, mais d’au plus deux mois.</Text>
+										</Subsection>
+										<Subsection Code="se:1942-ss:3">
+											<Text>Ces délais sont respectivement réduits à 10 jours et 20 jours s’il s’agit du bail d’une chambre.</Text>
+										</Subsection>
+										<HistoricalNote>
+											<Ref>
+												<RefFreeForm>1991, c. 64, a. 1942</RefFreeForm>
+											</Ref>
+										</HistoricalNote>
+									</Section>
+<Section Code="se:1943" full-id="161943" date-eev="20241226"><Label style="P">1943</Label><Subsection Code="se:1943-ss:1"><Text>Tout avis de modification doit informer le locataire de ses droits et recours prévus aux articles 1945 et 1947 et doit contenir toute mention prescrite par règlement.</Text></Subsection><Subsection Code="se:1943-ss:2"><Text>L’avis qui vise à modifier la durée du bail doit indiquer celle qui est proposée.</Text></Subsection><Subsection Code="se:1943-ss:3"><Text>L’avis qui vise à augmenter le loyer doit indiquer en dollars le nouveau loyer proposé, ou l’augmentation en dollars ou en pourcentage du loyer en cours. Cette augmentation peut être exprimée en pourcentage du loyer qui sera déterminé par le tribunal, si ce loyer fait déjà l’objet d’une demande de fixation ou de révision.</Text></Subsection><HistoricalNote><Ref><RefFreeForm>1991, c. 64, a. 1943</RefFreeForm></Ref><Ref activateHyperlink="true"><RefID type="act">2024, c. 23</RefID><RefSection>4</RefSection><RefSubsection>1</RefSubsection><RefParagraph>1</RefParagraph></Ref></HistoricalNote></Section>
+<Section Code="se:2000" full-id="162000" date-eev="19990401">
+										<Label style="P">2000</Label>
+										<Subsection Code="se:2000-ss:1">
+											<Text>L’acquéreur d’une maison mobile située sur un terrain loué devient locataire du terrain, à moins qu’il n’avise le locateur de son intention de quitter les lieux dans le mois de l’acquisition.</Text>
+										</Subsection>
+										<HistoricalNote>
+											<Ref>
+												<RefFreeForm>1991, c. 64, a. 2000</RefFreeForm>
+											</Ref>
+										</HistoricalNote>
+									</Section>
+</Body></Statute></LegislativeDocument>

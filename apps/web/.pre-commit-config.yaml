@@ -1,0 +1,7 @@
+# Org hooks (krizaka/.github#324): gitleaks and zizmor on the staged changes. Once: pre-commit install.
+repos:
+  - repo: https://github.com/krizaka/.github
+    rev: a19c2cc694ad9e6b74cfe8d6364ba9c7674ff377
+    hooks:
+      - id: krizaka-gitleaks
+      - id: krizaka-zizmor

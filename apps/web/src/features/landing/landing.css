@@ -1,0 +1,8 @@
+/* The home's hero: a subtle brand light, not a wash — the template's two glows (drift and dome) are kept at a third of their strength,
+   so the accent stays an accent and the headline and the real product carry the page. */
+.landing-home .kz-hero > .kz-backdrop-drift {
+  opacity: 0.3;
+}
+.landing-home .kz-hero > .kz-backdrop-dome {
+  opacity: 0.35;
+}

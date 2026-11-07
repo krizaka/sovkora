@@ -1,0 +1,96 @@
+{
+  "version": "1.3.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 5,
+  "changelog": "1.3.0 — libellés des sorties en anglais et français (x-i18n). 1.2.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.1.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. 1.0.0 — une seule étape, un petit classifieur local. Aucune étape générative : un modèle qui écrit n'a rien à faire dans un contrôle d'authenticité.",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "message-authenticity",
+    "version": "1.3.0",
+    "steps": [
+      {
+        "id": "read",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.message.authenticity.read",
+        "dependsOn": [],
+        "inputs": {
+          "text": "{{inputs.text}}"
+        },
+        "out": "read",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT30S"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "report",
+        "label": "Niveau, grossier",
+        "from": "{{steps.read.reportJson}}",
+        "type": "JSON",
+        "x-i18n": {
+          "en": {
+            "label": "Level, rough"
+          },
+          "fr": {
+            "label": "Niveau, grossier"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["text"],
+    "properties": {
+      "text": {
+        "type": "string",
+        "format": "prose",
+        "minLength": 1,
+        "maxLength": 5000,
+        "title": "Le message",
+        "description": "Le texte à lire. Il n'est pas conservé par le worker.",
+        "x-i18n": {
+          "en": {
+            "title": "The message",
+            "description": "The text to read. The worker does not keep it.",
+            "placeholder": "Paste the message you received"
+          },
+          "fr": {
+            "title": "Le message",
+            "description": "Le texte à lire. Il n'est pas conservé par le worker.",
+            "placeholder": "Collez le message reçu"
+          }
+        }
+      },
+      "locale": {
+        "type": "string",
+        "enum": ["en", "fr"],
+        "title": "Langue du compte (facultatif)",
+        "description": "La langue dans laquelle le compte écrit d'habitude.",
+        "x-i18n": {
+          "en": {
+            "title": "Account language (optional)",
+            "description": "The language the account normally writes in.",
+            "options": {
+              "en": "English",
+              "fr": "French"
+            }
+          },
+          "fr": {
+            "title": "Langue du compte (facultatif)",
+            "description": "La langue dans laquelle le compte écrit d'habitude.",
+            "options": {
+              "en": "Anglais",
+              "fr": "Français"
+            }
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

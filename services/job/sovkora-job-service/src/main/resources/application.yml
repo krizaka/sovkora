@@ -1,0 +1,194 @@
+# ==============================================================================
+# Sovkora Job Orchestration Service — application configuration
+# ------------------------------------------------------------------------------
+# Async COMMAND executor: consumes the two lanes orazaka.jobs.interactive/batch, runs the cognitive
+# pipeline in-process, writes orazaka_jobs, emits job.{id}.done|error. No HTTP
+# business surface (actuator only). Uses the shared app database orazaka_db (the
+# job lifecycle tables) — SPRING_DATASOURCE_* is the correct source here.
+# ==============================================================================
+
+server:
+  port: ${JOB_SERVICE_PORT:8090}
+
+spring:
+  application:
+    name: sovkora-job-service
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orazaka_db}
+    username: ${SPRING_DATASOURCE_USERNAME:orazaka_app}
+    password: ${SPRING_DATASOURCE_PASSWORD:orazaka_pass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  sql:
+    init:
+      mode: never
+  flyway:
+    # The schema is db/migration (V1 = the baseline), applied at startup as the owner role, never by hand (krizaka-internal#2255).
+    # The migrator connection is distinct from the runtime datasource; locally it falls back to the datasource values.
+    enabled: true
+    locations: classpath:db/migration
+    url: ${DATABASE_JOB_MIGRATOR_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orazaka_db}}
+    user: ${DATABASE_JOB_MIGRATOR_USER:${SPRING_DATASOURCE_USERNAME:orazaka_app}}
+    password: ${DATABASE_JOB_MIGRATOR_PASSWORD:${SPRING_DATASOURCE_PASSWORD:orazaka_pass}}
+    # orazaka_db is shared by three contexts (conversation, job, governance), one history table each.
+    table: flyway_history_job
+    # baseline-on-migrate adopts a non-empty database without history; it stays only until the first reset (then false).
+    baseline-on-migrate: true
+    # Trap: on a fresh orazaka_db where another context already created its tables, baselining at the default 1 would
+    # mark V1 applied and SKIP it. Baselining at 0 makes V1 always run (covered by the migrations IT of the conversation service).
+    baseline-version: "0"
+    validate-on-migrate: true
+    clean-disabled: true
+    out-of-order: false
+    # V1 holds JSON Schemas with literal ${...} text; Flyway must not read them as placeholders.
+    placeholder-replacement: false
+
+  servlet:
+    multipart:
+      # Executor writes generated media under the shared upload root the router serves.
+      location: ${UPLOAD_DIR:var/sovkora-uploads}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:${SPRING_RABBITMQ_HOST:localhost}}
+    port: ${RABBITMQ_PORT:${SPRING_RABBITMQ_PORT:5672}}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+        # Heavy inference is memory-bound on one machine — bounded concurrency, prefetch=1
+        # backpressure, exponential retry then <queue>.dlq (AGENTS.md §6).
+        concurrency: ${RABBITMQ_LISTENER_CONCURRENCY:2}
+        max-concurrency: ${RABBITMQ_LISTENER_MAX_CONCURRENCY:4}
+        prefetch: ${RABBITMQ_LISTENER_PREFETCH:1}
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: ${RABBITMQ_RETRY_MAX_ATTEMPTS:2}
+          initial-interval: ${RABBITMQ_RETRY_INITIAL_INTERVAL:1s}
+          multiplier: 2.0
+          max-interval: 10s
+
+  mvc:
+    async:
+      request-timeout: ${ASYNC_TIMEOUT_MS:600000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+
+logging:
+  file:
+    name: ${JOB_SERVICE_LOG:var/logs/job-service.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB
+      total-size-cap: 10MB
+      max-history: 7
+  level:
+    com.krizaka.sovkora: ${LOGGING_LEVEL_ORAZAKA:DEBUG}
+    org.springframework.amqp: INFO
+
+# ── Sovkora — organised by module ─────────────────────────────────────────────
+orazaka:
+  # Asset encryption (ADR-054). The master key is NOT in .env: it is the one secret whose
+  # compromise is total, and .env is the file that gets pasted, copied and mounted wholesale.
+  # accept-plaintext is a MIGRATION setting — a permanent tolerance is a permanent door.
+  assets:
+    encryption:
+      enabled: ${ASSETS_ENCRYPTION_ENABLED:true}
+      master-key-file: ${ASSETS_MASTER_KEY_FILE:${user.home}/.sovkora/master.key}
+      block-size: ${ASSETS_BLOCK_SIZE:65536}
+      accept-plaintext: ${ASSETS_ACCEPT_PLAINTEXT:false}
+  # Async job execution lifecycle (job-level timeout).
+  jobs:
+    execution-timeout: ${JOBS_TIMEOUT_SECONDS:1800}
+
+  # sovkora-messaging (RabbitMQ broker wiring) — the executor declares the same
+  # orazaka.jobs topology (JobsTopologyConfig) the conversation service publishes to,
+  # so the bounded work-queue arguments must match on both hosts.
+  messaging:
+    broker:
+      queue:
+        max-length: ${BROKER_QUEUE_MAX_LENGTH:1000}
+        overflow-strategy: ${BROKER_QUEUE_OVERFLOW:rejectPublish}
+
+  core:
+    image:
+      generation:
+        # The step count for a model the catalogue gives none (orazaka_models.max_steps) when the
+        # request names none. The engine sends the count it chose with every request, so the
+        # server runs — and IMAGE_STEP prices — exactly that count (ADR-047).
+        steps: ${IMAGE_GEN_STEPS:20}
+        # A 1024x1280 FLUX.2 [klein] image takes ~105 s on an M1 Max and Z-Image Turbo ~4 min: the
+        # former 180 s ceiling turned the slower ones into a 1x1 placeholder (SafeImageModel).
+        read-timeout-ms: ${IMAGE_GEN_READ_TIMEOUT_MS:600000}
+    rag:
+      enabled: true
+      store-type: pgvector
+      top-k: 3
+    # Knowledge service (RAG retrieve + tool source lookup) consumed by the core's HTTP port.
+    knowledge:
+      base-url: ${KNOWLEDGE_URL:http://localhost:8084}
+      # Mints the SERVICE token /internal/v1/knowledge now requires (ADR-035).
+      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+    orchestration:
+      enabled: ${ORCHESTRATION_ENABLED:true}
+
+# ── Krizaka platform kit ──────────────────────────────────────────────────────
+krizaka:
+  billing:
+    # Bootstrap switch only — the enforcement mode is a row owned by the billing
+    # service. Default OFF wires the no-op adapter, so this service behaves
+    # exactly as before until billing is deliberately turned on.
+    enabled: ${BILLING_ENABLED:false}
+    base-url: ${BILLING_INTERNAL_URL:http://localhost:8095}
+    # Mints the SERVICE token /internal/v1/billing requires (ADR-035). It was absent from
+    # every consumer, so BILLING_ENABLED=true crashed each of them at startup with "the
+    # shared identity secret is required" — billing had never been switched on anywhere.
+    service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+    connect-timeout: ${BILLING_CONNECT_TIMEOUT:500ms}
+    read-timeout: ${BILLING_READ_TIMEOUT:2s}
+  users:
+    client:
+      # The users service's internal API (krizaka-users-client): who the acting user is, their
+      # profile, provider keys and rate-limit tier. Every call carries a SERVICE token.
+      base-url: ${IDENTITY_URL:http://localhost:8083}
+      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+      service-name: sovkora-job-service
+  messaging:
+    exchanges:
+      # Sovkora's bus: the Krizaka building blocks this service embeds (billing-client) publish and
+      # listen on it.
+      events: orazaka.events
+      dead-letter: orazaka.dlx
+    dedup:
+      # Claims are rows in this context's processed_messages table: durable, shared by every
+      # instance, arbitrated by its primary key.
+      store: jdbc
+  security:
+    jwt:
+      # The shared HS256 secret the identity service signs session and service tokens with.
+      # krizaka-security validates every request locally with it and refuses to start when it is
+      # shorter than 32 characters (256 bits).
+      secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}

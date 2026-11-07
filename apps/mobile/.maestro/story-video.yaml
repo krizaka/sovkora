@@ -1,0 +1,30 @@
+# A short clip, watched playing (a subflow: it needs a video engine and its daily budget). Runs on the result screen of
+# the picture; goes back to the Studio, opens the video Studio and renders a clip.
+appId: com.krizaka.orazaka
+# manual: needs the dev platform and a paid engine run, so mobile-e2e.yml (CI) does not run it.
+tags:
+  - manual
+---
+- tapOn: "Back"
+- tapOn: "Back"
+- scrollUntilVisible:
+    element:
+      id: "studio-video-generation"
+- tapOn:
+    id: "studio-video-generation"
+- tapOn:
+    id: "studio-open"
+- tapOn:
+    id: "field-prompt"
+- inputText: ${VIDEO_PROMPT}
+- pressKey: Enter
+- tapOn: "9:16"
+- tapOn:
+    id: "run-launch"
+- runScript: { file: lib/mark.js, env: { NAME: "wait:start", LABEL: "The clip is rendering on the GPU" } }
+- extendedWaitUntil:
+    visible: "Generated video"
+    timeout: 600000
+- runScript: { file: lib/mark.js, env: { NAME: "wait:end" } }
+- waitForAnimationToEnd:
+    timeout: 8000

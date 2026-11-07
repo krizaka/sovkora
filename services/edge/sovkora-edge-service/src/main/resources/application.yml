@@ -1,0 +1,119 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# SOVKORA EDGE — infrastructure wiring only (env-driven; AGENTS.md §4 config rule)
+# The route table maps path prefixes to backend base URLs. Longest prefix wins.
+# ══════════════════════════════════════════════════════════════════════════════
+spring:
+  application:
+    name: sovkora-edge-service
+  threads:
+    virtual:
+      enabled: true
+  servlet:
+    multipart:
+      # The proxy streams raw request bodies — Spring must not consume multipart
+      # uploads before the proxy copies them downstream.
+      enabled: false
+
+server:
+  port: ${EDGE_PORT:8088}
+
+orazaka:
+  edge:
+    # oz_ API keys are exchanged for session JWTs against this identity endpoint
+    # before proxying - downstream services only ever see JWTs.
+    identity:
+      base-url: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      # Shared HS256 secret, used to mint the SERVICE token /internal/v1 now requires
+      # (ADR-035). Same value every host validates with; never a second secret.
+      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+    # Requests per minute per oz_ service key (ADR-083). The limit is the key owner's tier in the
+    # identity database (rate_limits.requests_per_minute), sent with the key exchange. Roll out like
+    # the billing enforcement: observe (count, flag in the logs, never refuse) -> enforce (429 with
+    # Retry-After). The default applies when the identity service sends no tier.
+    rate-limit:
+      mode: ${ABUSE_RATE_LIMIT_MODE:observe}
+      default-requests-per-minute: ${ABUSE_RATE_LIMIT_DEFAULT_RPM:600}
+      # Where the buckets and the daily counts live: memory (one edge, the default) or redis (shared by every
+      # instance — a key spends its tier once, not once per edge). A Redis that fails is bypassed, never fatal.
+      store: ${ABUSE_RATE_LIMIT_STORE:memory}
+      redis-url: ${ABUSE_RATE_LIMIT_REDIS_URL:redis://localhost:6379}
+    routes:
+      - path-prefix: /
+        target: ${ROUTER_INTERNAL_URL:http://localhost:8080}
+      # Phase 2 cutover: the identity context's routes flip to the identity service.
+      # Rollback = delete these entries (requests fall back to the '/' catch-all).
+      - path-prefix: /api/v1/auth
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      - path-prefix: /api/v1/profile
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      - path-prefix: /api/v1/api-keys
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      - path-prefix: /api/v1/credentials
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      - path-prefix: /api/v1/interceptions
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      # The operator console's account administration (administrators only, audited by the identity service).
+      - path-prefix: /api/v1/admin/users
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      # Organizations that own accounts (sovkora#372): members, the product service accounts and their keys.
+      - path-prefix: /api/v1/organizations
+        target: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
+      # Billing's human-facing surface (plans, pricebook, wallets, subscriptions,
+      # usage). Its machine-facing one lives under /internal/v1 and is deliberately
+      # NOT routed here — only /api/** reaches the edge, which is what keeps the
+      # hold/settle endpoints unreachable from a browser.
+      - path-prefix: /api/v1/billing
+        target: ${BILLING_INTERNAL_URL:http://localhost:8095}
+      # The Studio marketplace (ADR-034). Its /internal/v1 surface — reserved for
+      # connector callbacks — is deliberately NOT routed here, which is what keeps it
+      # unreachable from a browser. Rollback is deleting this entry: requests fall
+      # back to the '/' catch-all, exactly as ADR-032 intends.
+      - path-prefix: /api/v1/studios
+        target: ${STUDIO_INTERNAL_URL:http://localhost:8096}
+      # The recommender (ADR-078): a product's service key feeds it and reads its feeds. Served
+      # by the knowledge service (pgvector); its /internal/v1 surface stays unrouted.
+      - path-prefix: /api/v1/recommendations
+        target: ${KNOWLEDGE_INTERNAL_URL:http://localhost:8084}
+      # Product analytics (ADR-081): events in, insights out — the same knowledge service.
+      - path-prefix: /api/v1/analytics
+        target: ${KNOWLEDGE_INTERNAL_URL:http://localhost:8084}
+      # Cloud automations (ADR-084): the owner's automations, triggers and run history, behind the
+      # session JWT or an oz_ key like every /api/v1 route. Its /internal/v1 surface stays unrouted.
+      - path-prefix: /api/v1/automations
+        target: ${AUTOMATION_INTERNAL_URL:http://localhost:8091}
+      # The signed inbound webhook (ADR-084, the amendment of ADR-035): the one route a caller reaches
+      # with no session and no key. The edge authenticates nothing here and forwards headers and body
+      # untouched; the automation service verifies the signature before any work. Only this prefix:
+      # nothing else of the service is reachable without a token.
+      - path-prefix: /hooks/
+        target: ${AUTOMATION_INTERNAL_URL:http://localhost:8091}
+
+management:
+  # The edge's own actuator lives on a dedicated management port so the main
+  # port proxies EVERYTHING — including /actuator/** — to the routed backend
+  # (the facade stays fully transparent; backend health checks pass through).
+  server:
+    port: ${EDGE_MGMT_PORT:8089}
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  # Distributed tracing (Phase 0): OTLP/HTTP export to the local Jaeger container.
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+
+logging:
+  file:
+    name: ${EDGE_LOG:var/logs/edge.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB
+      total-size-cap: 10MB
+      max-history: 7

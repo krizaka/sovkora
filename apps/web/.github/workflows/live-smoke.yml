@@ -1,0 +1,44 @@
+# After a push to main: wait for the deployed site to carry this commit (the bar shows `v<version>+<sha>`), then run the live smoke
+# of e2e/live-smoke.spec.ts against it, in Chromium, WebKit and Firefox — what a visitor gets, not `next dev`.
+name: Live smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Only the latest main matters: a run for a superseded commit waits up to 30 minutes for a build that will never be
+# served (the bar shows the sha of what is live), then fails. A newer push cancels it (CI-COST).
+concurrency:
+  group: live-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      E2E_BASE_URL: https://www.orazaka.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Wait for the deployed build to carry this commit
+        run: |
+          short="${GITHUB_SHA::7}"; ok=0
+          for i in $(seq 1 180); do
+            # five answers in a row carry the sha: a rolling deploy serves old and new instances side by side
+            if curl -fsS "$E2E_BASE_URL/api/healthz" | grep -q "$short"; then ok=$((ok+1)); else ok=0; fi
+            if [ "$ok" -ge 5 ]; then echo "deployed: $short"; exit 0; fi
+            echo "waiting for $short ($i/180, $ok in a row)"; sleep 10
+          done
+          echo "the site never showed $short" >&2; exit 1
+      - run: npx --yes pnpm@10 install --frozen-lockfile --ignore-scripts
+      - run: ./node_modules/.bin/playwright install --with-deps chromium webkit firefox
+      - run: ./node_modules/.bin/playwright test e2e/live-smoke.spec.ts --reporter=github

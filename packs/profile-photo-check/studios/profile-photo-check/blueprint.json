@@ -1,0 +1,179 @@
+{
+  "version": "1.2.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 40,
+  "changelog": "1.2.0 — libellés des sorties en anglais et français (x-i18n). 1.1.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.0.0 — inspection des visages (déterministe, worker), lecture de chaque photo par un modèle de vision (une consigne stricte, réponse JSON), puis verdict en codes. Le modèle ne décide de rien seul : une réponse illisible vaut « non vérifié » et ne bloque pas.",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "profile-photo-check",
+    "version": "1.2.0",
+    "steps": [
+      {
+        "id": "faces",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.photo.profile.inspect",
+        "dependsOn": [],
+        "inputs": { "photosBase64": "{{inputs.photosBase64}}", "compareFaces": "{{inputs.compareFaces:true}}" },
+        "out": "faces",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT2M"
+      },
+      {
+        "id": "look",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.vision",
+        "dependsOn": [],
+        "forEach": "{{inputs.photos}}",
+        "maxParallel": 2,
+        "inputs": {
+          "assetId": "{{item}}",
+          "prompt": "You check one profile photo for a dating app. Answer with ONE JSON object and nothing else, with exactly these three boolean keys: \"appears_under_18\" (true only if the person in the photo clearly looks like a child or a young teenager), \"text_or_contact_overlay\" (true only if the image carries written text, a phone number, a username, a QR code or a watermark added on top of the picture), \"screenshot_or_photo_of_screen\" (true only if this is a screenshot or a photo of a screen). Do not describe the photo. Do not name anyone. If unsure, answer false."
+        },
+        "out": "looks",
+        "onError": "SKIP",
+        "skipRationale": "The face counts, the identity check and the product's own counts do not depend on the vision answers. A photo the model could not read is reported UNVERIFIED — never guessed, never blocked on — so the report says plainly what was not examined; failing the whole check for one unreadable answer would stop a person who did nothing wrong.",
+        "timeout": "PT5M"
+      },
+      {
+        "id": "assess",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.photo.profile.assess",
+        "dependsOn": ["faces", "look"],
+        "inputs": {
+          "facts": "{{steps.faces.factsJson}}",
+          "looks": "{{steps.looks}}",
+          "minPhotos": "{{inputs.minPhotos:4}}",
+          "maxPhotos": "{{inputs.maxPhotos:6}}",
+          "minFacePhotos": "{{inputs.minFacePhotos:2}}"
+        },
+        "out": "assessment",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT1M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "report",
+        "label": "Verdict, en codes",
+        "from": "{{steps.assessment.reportJson}}",
+        "type": "JSON",
+        "x-i18n": { "en": { "label": "Verdict, as codes" }, "fr": { "label": "Verdict, en codes" } }
+      },
+      {
+        "key": "passes",
+        "label": "L'ensemble passe",
+        "from": "{{steps.assessment.passes}}",
+        "type": "TEXT",
+        "x-i18n": { "en": { "label": "The set passes" }, "fr": { "label": "L'ensemble passe" } }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["photos", "photosBase64"],
+    "properties": {
+      "photos": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 12,
+        "items": {
+          "type": "string",
+          "format": "asset-id",
+          "contentMediaType": "image/*",
+          "minLength": 8,
+          "maxLength": 120
+        },
+        "title": "Les photos (fichiers envoyés)",
+        "description": "Les identifiants des photos envoyées, pour la lecture par le modèle de vision.",
+        "x-i18n": {
+          "en": {
+            "title": "The photos (uploaded files)",
+            "description": "The ids of the uploaded photos, read by the vision model."
+          },
+          "fr": {
+            "title": "Les photos (fichiers envoyés)",
+            "description": "Les identifiants des photos envoyées, pour la lecture par le modèle de vision."
+          }
+        }
+      },
+      "photosBase64": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 12,
+        "items": { "type": "string", "maxLength": 1300000 },
+        "title": "Les mêmes photos, en base64",
+        "description": "Les mêmes photos dans le même ordre, en JPEG d'environ 512 px, pour la détection des visages.",
+        "x-i18n": {
+          "en": {
+            "title": "The same photos, in base64",
+            "description": "The same photos in the same order, as JPEGs of about 512 px, for face detection.",
+            "placeholder": "/9j/4AAQ…, /9j/4AAQ…"
+          },
+          "fr": {
+            "title": "Les mêmes photos, en base64",
+            "description": "Les mêmes photos dans le même ordre, en JPEG d'environ 512 px, pour la détection des visages.",
+            "placeholder": "/9j/4AAQ…, /9j/4AAQ…"
+          }
+        }
+      },
+      "compareFaces": {
+        "type": "boolean",
+        "default": true,
+        "title": "Comparer les visages entre eux",
+        "description": "Traitement biométrique : à n'activer qu'avec le consentement explicite de la personne. Faux : les visages sont seulement comptés.",
+        "x-i18n": {
+          "en": {
+            "title": "Compare the faces with each other",
+            "description": "Biometric processing: only enable with the person's explicit consent. Off: faces are only counted."
+          },
+          "fr": {
+            "title": "Comparer les visages entre eux",
+            "description": "Traitement biométrique : à n'activer qu'avec le consentement explicite de la personne. Désactivé : on compte les visages."
+          }
+        }
+      },
+      "minPhotos": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12,
+        "default": 4,
+        "title": "Photos au moins",
+        "x-i18n": {
+          "en": { "title": "At least this many photos", "description": "The fewest photos accepted." },
+          "fr": { "title": "Photos au moins", "description": "Le moins de photos accepté." }
+        }
+      },
+      "maxPhotos": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12,
+        "default": 6,
+        "title": "Photos au plus",
+        "x-i18n": {
+          "en": { "title": "At most this many photos", "description": "The most photos accepted." },
+          "fr": { "title": "Photos au plus", "description": "Le plus de photos accepté." }
+        }
+      },
+      "minFacePhotos": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 12,
+        "default": 2,
+        "title": "Photos de visage au moins",
+        "x-i18n": {
+          "en": {
+            "title": "At least this many face photos",
+            "description": "The fewest photos in which a face must be found."
+          },
+          "fr": {
+            "title": "Photos de visage au moins",
+            "description": "Le moins de photos où un visage doit être trouvé."
+          }
+        }
+      }
+    }
+  },
+  "configSchema": { "type": "object", "properties": {} }
+}

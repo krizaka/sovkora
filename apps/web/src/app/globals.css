@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════════════════
+   ORAZAKA WEB-CLIENT — Global stylesheet
+   ─────────────────────────────────────────────────
+   The platform wiring, in this order:
+     tailwindcss
+     → @krizaka/tailwind          the --kz-* tokens as role utilities (bg-surface-1, text-fg-secondary,
+                                  border-border-subtle, text-accent, text-danger…), motion
+     → @krizaka/ui/tailwind.css   Tailwind scans the @krizaka/ui primitives (Card, Dialog, Toaster, Popover…)
+     → @krizaka/orazaka-design-system/theme.css
+                                  the Sovkora identity: Electric Blue and the named themes as --kz-* overrides
+   theme.css imports the two platform layers itself (kit 2.x). The app also declares @krizaka/ui/tailwind.css (a
+   @source, nothing else): Tailwind then scans the primitives the app itself resolves — not only the copy the kit
+   resolves, which can be another version while the workspace lockfile catches up.
+
+   No variable is defined here: components write roles, a theme is a set of token values (dark on :root,
+   html.light, html.theme-<name>). Fonts (--font-inter, --font-krizaka-display, --font-krizaka-mono…) come from
+   next/font in layout.tsx.
+   ═══════════════════════════════════════════════════ */
+
+@import "tailwindcss";
+@import "@krizaka/ui/tailwind.css";
+@import "@krizaka/orazaka-design-system/theme.css";
+
+/* The product register's titles (ADR-006): Plus Jakarta Sans, the face layout.tsx loads with next/font/local. @krizaka/tokens names
+   the family; this points the role at the loaded face (preloaded, fingerprinted), so no second download and no Google Fonts. */
+html[data-surface="product"] {
+  --kz-font-product-display: var(--font-product-display), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Phone recordings — the app was recorded in dark and in light (PhoneClip): the one that matches the page is shown. */
+html.light video[data-appearance="dark"],
+html:not(.light) video[data-appearance="light"] {
+  display: none;
+}
+
+/* The chat composer is the kit's pill: it draws its focus ring once, on the pill (focus-within). The design system's
+   input glow (`input:focus, textarea:focus`, !important) would add a second border on the field inside. */
+[data-composer-field]:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}

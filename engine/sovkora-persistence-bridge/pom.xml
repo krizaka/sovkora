@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-engine</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-persistence-bridge</artifactId>
+    <name>sovkora-persistence-bridge</name>
+    <description>
+        Platform bridge library: package-private @Service adapters that implement the core's
+        DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider,
+        PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository, CheckSubjectPepper) by delegating to
+        the sovkora-persistence-app-api inbound ports. Bundled by every service that runs the cognitive
+        pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without
+        each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.sovkora
+        component scan — no HTTP surface, no entrypoint.
+    </description>
+
+    <dependencies>
+        <!-- Core outbound ports (CapabilityProvider, PipelineConfigProvider, …) + core domain records. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-core</artifactId>
+        </dependency>
+
+        <!-- Persistence inbound-port contracts (Tier-1) these adapters delegate to; the impls come
+             from sovkora-persistence-app, bundled by the host service. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-persistence-app-api</artifactId>
+        </dependency>
+
+        <!-- The platform's master keyring (ADR-054): opens the sealed settings, e.g. the subject
+             pepper of the external checks. The keyring itself is the host's bean. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-crypto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- @Service stereotype + constructor DI (no web/boot starters). -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <!-- The operator's sealing tool: the adapter must open what it seals. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-assets</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-test-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

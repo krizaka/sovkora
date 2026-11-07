@@ -1,0 +1,984 @@
+{
+  "roles": [
+    { "id": "client", "title": "Clients", "rule": "a UI repository of the workspace manifest (layer app, kind npm)" },
+    {
+      "id": "service",
+      "title": "Services & workers",
+      "rule": "a module with a main (SpringApplication.run), or a native worker"
+    },
+    {
+      "id": "adapter",
+      "title": "Adapters",
+      "rule": "an imported module that is none of the below: persistence, typed HTTP clients, asset store, bridge"
+    },
+    {
+      "id": "application",
+      "title": "Application",
+      "rule": "the orchestration, pipeline and capability libraries around the core (AGENTS.md §2: business, interceptors, tools)"
+    },
+    {
+      "id": "domain",
+      "title": "Domain core",
+      "rule": "a `*-core` module — the centre of its hexagon, depending on no outer layer"
+    },
+    { "id": "contract", "title": "Contracts", "rule": "a Tier-1 `*-api` module — pure interfaces and records" },
+    {
+      "id": "platform",
+      "title": "Krizaka platform kit",
+      "rule": "a module of krizaka-platform-kit — the cross-cutting code with one author (ADR-073), starters included"
+    }
+  ],
+  "modules": [
+    {
+      "id": "orazaka-cli",
+      "repository": "orazaka-cli",
+      "owner": "orazaka",
+      "role": "client",
+      "layer": "app",
+      "runtime": "node",
+      "description": "The `orazaka` developer CLI: install, start, dev, test, docs and pack tooling for the Orazaka workspace, with an offline SQLite queue."
+    },
+    {
+      "id": "orazaka-mobile-client",
+      "repository": "orazaka-mobile-client",
+      "owner": "orazaka",
+      "role": "client",
+      "layer": "app",
+      "runtime": "node",
+      "description": "Expo / React Native client of the Orazaka platform (talks to the edge with Bearer tokens)."
+    },
+    {
+      "id": "orazaka-web-client",
+      "repository": "orazaka-web-client",
+      "owner": "orazaka",
+      "role": "client",
+      "layer": "app",
+      "runtime": "node",
+      "description": "Next.js (App Router) client of the Orazaka platform with its mandatory BFF."
+    },
+    {
+      "id": "orazaka-automation-service",
+      "repository": "orazaka-automation-service",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Automation service — connector execution, CLI-agent dispatch and scheduling (own database)"
+    },
+    {
+      "id": "orazaka-conversation-service",
+      "repository": "orazaka-conversation-service",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Orazaka Conversation Service — interactive host (ex-router): HTTP/SSE ingress, job submission and SSE relay"
+    },
+    {
+      "id": "orazaka-edge",
+      "repository": "orazaka-edge",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Orazaka Edge Gateway — strangler facade: route table + streaming reverse proxy (transport only, no business logic)"
+    },
+    {
+      "id": "orazaka-job-service",
+      "repository": "orazaka-job-service",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Job Orchestration service — async COMMAND executor (JobListener + strategies) over its own AMQP queues, emitting job lifecycle events"
+    },
+    {
+      "id": "orazaka-knowledge-service",
+      "repository": "orazaka-knowledge-service",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Knowledge service — RAG retrieval + tool source lookup (sync) and async indexing (own database)"
+    },
+    {
+      "id": "orazaka-studio-service",
+      "repository": "orazaka-studio",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Studio service — the marketplace of installable business workflows: catalogue, blueprint versions, installations and run sagas over its own database (ADR-034)"
+    },
+    {
+      "id": "orazaka-worker-media",
+      "repository": "orazaka-worker-media",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "python",
+      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol."
+    },
+    {
+      "id": "krizaka-billing-service",
+      "repository": "krizaka-billing",
+      "owner": "krizaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)"
+    },
+    {
+      "id": "krizaka-notifications-service",
+      "repository": "krizaka-notifications",
+      "owner": "krizaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Notification service — renders templates and delivers them through the channel each request names (e-mail, SMS, webhook); stateless, AMQP-driven"
+    },
+    {
+      "id": "krizaka-users-service",
+      "repository": "krizaka-users",
+      "owner": "krizaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "jvm",
+      "description": "Identity service — the trust root: authN, RBAC, profile, credentials, API keys (hosts the krizaka-users-core + persistence-identity libraries)"
+    },
+    {
+      "id": "orazaka-assets",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Tier-2 SDK — envelope encryption for the asset store: a per-file data key wrapped by a master key nobody but a key provider ever sees, block-addressable so a Range request decrypts one block instead of a file"
+    },
+    {
+      "id": "orazaka-crypto",
+      "repository": "orazaka-contracts",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "The platform's master keyring (load the key, wrap and unwrap) and the secret sealer built on it (ADR-054, ADR-084): no Spring, no JDBC, no storage. A leaf that every service may depend on."
+    },
+    {
+      "id": "orazaka-persistence-app",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Orazaka Decoupled Application Persistence & Infrastructure State Management"
+    },
+    {
+      "id": "orazaka-persistence-bridge",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Platform bridge library: package-private @Service adapters that implement the core's DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider, PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository) by delegating to the orazaka-persistence-app-api inbound ports. Bundled by every service that runs the cognitive pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.orazaka component scan — no HTTP surface, no entrypoint."
+    },
+    {
+      "id": "orazaka-studio-client",
+      "repository": "orazaka-studio",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Tier-2 SDK — the consumer side of the Studio contract: a NoOp and an HTTP adapter for StudioRunClient and StudioCatalogClient, selected at bootstrap so no call site branches on whether the marketplace is deployed"
+    },
+    {
+      "id": "krizaka-billing-client",
+      "repository": "krizaka-billing",
+      "owner": "krizaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists"
+    },
+    {
+      "id": "krizaka-users-client",
+      "repository": "krizaka-users",
+      "owner": "krizaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Typed HTTP client of the users service's internal API (UserDirectoryClient): user, profile, provider keys and rate-limit tiers, authenticated with a SERVICE token and cached per entry. A Spring Boot auto-configuration."
+    },
+    {
+      "id": "krizaka-users-persistence",
+      "repository": "krizaka-users",
+      "owner": "krizaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Orazaka User and Identity Persistence Block"
+    },
+    {
+      "id": "orazaka-business",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "application",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Business persona prompts and PromptOps content resolver — pure library module"
+    },
+    {
+      "id": "orazaka-interceptors",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "application",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Single interceptor pipeline module — packages by concern: security, token, context, translation, enrichment, reformulation, tooling, validation, governance (AGENTS.md §7, VISION_ARCHITECTURE §6). Registered via @AutoConfiguration SPI."
+    },
+    {
+      "id": "orazaka-tools",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "application",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Orazaka Tools and MCP Implementations"
+    },
+    {
+      "id": "orazaka-core",
+      "repository": "orazaka-ai-engine",
+      "owner": "orazaka",
+      "role": "domain",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Orazaka AI Orchestration Engine"
+    },
+    {
+      "id": "krizaka-users-core",
+      "repository": "krizaka-users",
+      "owner": "krizaka",
+      "role": "domain",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Orazaka Identity and Access Management Domain"
+    },
+    {
+      "id": "orazaka-jobs-api",
+      "repository": "orazaka-contracts",
+      "owner": "orazaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Job-plane contract (ADR-037) — the JobCommand wire record every producer and executor shares, and the capability routing port that turns \"where does this capability run\" into a row; pure JDK, no dependencies"
+    },
+    {
+      "id": "orazaka-persistence-app-api",
+      "repository": "orazaka-contracts",
+      "owner": "orazaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Tier-1 contract of the persistence-app context: the inbound port interfaces + DTOs the cognitive core and hosts depend on. Pure — no JPA, no entities, no DB driver; the only outside type is Spring Data's Page/Pageable pagination abstraction."
+    },
+    {
+      "id": "orazaka-studio-api",
+      "repository": "orazaka-studio",
+      "owner": "orazaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Studio marketplace contract (ADR-034) — the catalogue, blueprint DAG, installation and run types every context composes against; pure JDK, no dependencies"
+    },
+    {
+      "id": "krizaka-billing-api",
+      "repository": "krizaka-billing",
+      "owner": "krizaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Billing and entitlements contract (ADR-033) — the credit hold/settle ports and DTOs every producer on the hot path depends on; pure JDK, no dependencies"
+    },
+    {
+      "id": "krizaka-notifications-api",
+      "repository": "krizaka-notifications",
+      "owner": "krizaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Notification contract — the request a producer publishes, the delivery channels and the AMQP routing it travels on; pure JDK, no dependencies"
+    },
+    {
+      "id": "krizaka-users-api",
+      "repository": "krizaka-users",
+      "owner": "krizaka",
+      "role": "contract",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Identity principal contract (the User record) — the only identity type downstream services keep after the Phase 2 extraction; pure JDK, no dependencies"
+    },
+    {
+      "id": "krizaka-app-config",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Version compatibility between a backend and the apps that call it, written once: a public cached app-config endpoint (minimum and latest version, update mode, maintenance, contract range, store URL, flags, localized message) read from database parameters, a filter that answers 426 Upgrade Required to a client below the minimum, N-1 contract compatibility with Deprecation and Sunset headers, and an audited admin API with rollback."
+    },
+    {
+      "id": "krizaka-idempotency",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "HTTP Idempotency-Key, written once: an action runs at most once per key, a retry with the same key and request replays the stored response, the same key with another request is a 422 Problem Details; PostgreSQL or in-memory store, observed. Promoted from Orazaka (ADR-083)."
+    },
+    {
+      "id": "krizaka-messaging",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "At-least-once messaging done right for Spring Boot and RabbitMQ: events published through a transactional outbox with their envelope in AMQP headers, a relay that claims what it publishes, consumer queues with retry and a dead-letter queue by convention, and idempotent consumption (an atomic claim, released when the handler fails)."
+    },
+    {
+      "id": "krizaka-observability",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "One observability standard for Spring Boot services: every service names itself (product, service, version) or does not start, its metrics carry those names as common tags, and the defaults every service repeats — ECS JSON console logs, health/info/prometheus exposed, 10% trace sampling — are set once, at the lowest priority."
+    },
+    {
+      "id": "krizaka-persistence",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "The tables of the kit's JDBC stores (outbox, message claims, idempotency keys, app-config) created and kept up to date by Flyway at startup, in their own history table, only for the stores a service declares; production defaults for the connection pool."
+    },
+    {
+      "id": "krizaka-ratelimit",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "A requests-per-minute limit per key, written once: a token bucket per key (client address by default, or any key you resolve), observe or enforce, 429 with Retry-After as Problem Details, observed. Promoted from the Orazaka edge (ADR-083) and krizaka-users."
+    },
+    {
+      "id": "krizaka-security",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Stateless JWT security for Spring Boot services: the shared HS256 session-token decoder, the roles-claim authority mapping, one security baseline (CORS preflight, health, error page, SERVICE-only internal surface) and the service-to-service token."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-app-config",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "App version compatibility in one dependency: krizaka-app-config (the public app-config endpoint, the 426 Upgrade Required filter, N-1 contract compatibility, the audited admin API) with Spring MVC and JDBC."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-idempotency",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "HTTP Idempotency-Key in one dependency: krizaka-idempotency (at most once per key, replay, 422 on reuse, PostgreSQL store) with Spring MVC and JDBC. Add your JDBC driver."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-observability",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "The Krizaka observability standard in one dependency: krizaka-observability (required service names, common metric tags, ECS logs, exposure and sampling defaults) with Actuator, OpenTelemetry tracing over OTLP and a Prometheus registry."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-persistence",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "The tables of the kit's JDBC stores migrated at startup in one dependency: krizaka-persistence (Flyway, its own history table, only the declared stores, pool defaults) with Spring JDBC and the PostgreSQL driver."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-rabbitmq",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Events and consumers over RabbitMQ in one dependency: krizaka-messaging (outbox publishing, consumer queues with retry then DLQ, idempotent consumption) with Spring AMQP, JDBC and Jackson. Add your JDBC driver."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-ratelimit",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "A requests-per-minute limit per key in one dependency: krizaka-ratelimit (token bucket per key, observe or enforce, 429 with Retry-After as Problem Details) with Spring MVC."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-security",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Stateless JWT security in one dependency: krizaka-security (HS256 session tokens, roles authorities, the security baseline, service tokens) with Spring Security and its OAuth2 resource server."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-web",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "HTTP service baseline in one dependency: krizaka-web (Problem Details, request correlation, Jackson defaults, cursor pagination, declared CORS) with Spring MVC, bean validation and Actuator."
+    },
+    {
+      "id": "krizaka-spring-boot-starter-webhooks",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Signed webhooks in one dependency: krizaka-webhooks (Standard Webhooks signing and sending, verification with a 401 Problem Details, secret rotation) with Spring MVC."
+    },
+    {
+      "id": "krizaka-web",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "The HTTP baseline of a Spring Boot service, written once: RFC 9457 Problem Details with stable error codes, X-Request-Id correlation into the MDC, Jackson 3 defaults, opaque cursor pagination and declared CORS origins."
+    },
+    {
+      "id": "krizaka-webhooks",
+      "repository": "krizaka-platform-kit",
+      "owner": "krizaka",
+      "role": "platform",
+      "layer": "framework",
+      "runtime": "jvm",
+      "description": "Signed webhooks, written once, the Standard Webhooks way: sign and send with a stable id and secret rotation, verify what you receive (signature, constant-time, timestamp tolerance) with a 401 Problem Details otherwise; observed. Promoted from Orazaka (orazaka#189) and krizaka-notifications."
+    }
+  ],
+  "dependencies": [
+    { "from": "krizaka-billing-client", "to": "krizaka-billing-api" },
+    { "from": "krizaka-billing-client", "to": "krizaka-security" },
+    { "from": "krizaka-billing-service", "to": "krizaka-billing-api" },
+    { "from": "krizaka-billing-service", "to": "krizaka-messaging" },
+    { "from": "krizaka-billing-service", "to": "krizaka-security" },
+    { "from": "krizaka-idempotency", "to": "krizaka-web" },
+    { "from": "krizaka-notifications-service", "to": "krizaka-messaging" },
+    { "from": "krizaka-notifications-service", "to": "krizaka-notifications-api" },
+    { "from": "krizaka-ratelimit", "to": "krizaka-web" },
+    { "from": "krizaka-spring-boot-starter-app-config", "to": "krizaka-app-config" },
+    { "from": "krizaka-spring-boot-starter-idempotency", "to": "krizaka-idempotency" },
+    { "from": "krizaka-spring-boot-starter-idempotency", "to": "krizaka-spring-boot-starter-web" },
+    { "from": "krizaka-spring-boot-starter-observability", "to": "krizaka-observability" },
+    { "from": "krizaka-spring-boot-starter-persistence", "to": "krizaka-persistence" },
+    { "from": "krizaka-spring-boot-starter-rabbitmq", "to": "krizaka-messaging" },
+    { "from": "krizaka-spring-boot-starter-ratelimit", "to": "krizaka-ratelimit" },
+    { "from": "krizaka-spring-boot-starter-ratelimit", "to": "krizaka-spring-boot-starter-web" },
+    { "from": "krizaka-spring-boot-starter-security", "to": "krizaka-security" },
+    { "from": "krizaka-spring-boot-starter-web", "to": "krizaka-web" },
+    { "from": "krizaka-spring-boot-starter-webhooks", "to": "krizaka-spring-boot-starter-web" },
+    { "from": "krizaka-spring-boot-starter-webhooks", "to": "krizaka-webhooks" },
+    { "from": "krizaka-users-client", "to": "krizaka-security" },
+    { "from": "krizaka-users-client", "to": "krizaka-users-api" },
+    { "from": "krizaka-users-core", "to": "krizaka-users-api" },
+    { "from": "krizaka-users-core", "to": "krizaka-users-persistence" },
+    { "from": "krizaka-users-persistence", "to": "krizaka-messaging" },
+    { "from": "krizaka-users-service", "to": "krizaka-security" },
+    { "from": "krizaka-users-service", "to": "krizaka-users-core" },
+    { "from": "krizaka-webhooks", "to": "krizaka-web" },
+    { "from": "orazaka-assets", "to": "orazaka-crypto" },
+    { "from": "orazaka-automation-service", "to": "krizaka-billing-client" },
+    { "from": "orazaka-automation-service", "to": "krizaka-messaging" },
+    { "from": "orazaka-automation-service", "to": "krizaka-security" },
+    { "from": "orazaka-automation-service", "to": "orazaka-assets" },
+    { "from": "orazaka-business", "to": "orazaka-core" },
+    { "from": "orazaka-business", "to": "orazaka-studio-api" },
+    { "from": "orazaka-business", "to": "orazaka-studio-client" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-billing-client" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-spring-boot-starter-app-config" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-spring-boot-starter-observability" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-spring-boot-starter-rabbitmq" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-spring-boot-starter-security" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-spring-boot-starter-web" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-users-api" },
+    { "from": "orazaka-conversation-service", "to": "krizaka-users-client" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-assets" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-business" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-core" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-interceptors" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-persistence-app" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-persistence-bridge" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-studio-client" },
+    { "from": "orazaka-conversation-service", "to": "orazaka-tools" },
+    { "from": "orazaka-core", "to": "krizaka-security" },
+    { "from": "orazaka-core", "to": "orazaka-persistence-app-api" },
+    { "from": "orazaka-edge", "to": "krizaka-security" },
+    { "from": "orazaka-interceptors", "to": "krizaka-billing-api" },
+    { "from": "orazaka-interceptors", "to": "orazaka-core" },
+    { "from": "orazaka-interceptors", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-job-service", "to": "krizaka-billing-client" },
+    { "from": "orazaka-job-service", "to": "krizaka-messaging" },
+    { "from": "orazaka-job-service", "to": "krizaka-security" },
+    { "from": "orazaka-job-service", "to": "krizaka-users-api" },
+    { "from": "orazaka-job-service", "to": "krizaka-users-client" },
+    { "from": "orazaka-job-service", "to": "orazaka-assets" },
+    { "from": "orazaka-job-service", "to": "orazaka-business" },
+    { "from": "orazaka-job-service", "to": "orazaka-core" },
+    { "from": "orazaka-job-service", "to": "orazaka-interceptors" },
+    { "from": "orazaka-job-service", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-job-service", "to": "orazaka-persistence-app" },
+    { "from": "orazaka-job-service", "to": "orazaka-persistence-bridge" },
+    { "from": "orazaka-job-service", "to": "orazaka-tools" },
+    { "from": "orazaka-knowledge-service", "to": "krizaka-messaging" },
+    { "from": "orazaka-knowledge-service", "to": "krizaka-security" },
+    { "from": "orazaka-persistence-app", "to": "krizaka-messaging" },
+    { "from": "orazaka-persistence-app", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-persistence-app", "to": "orazaka-persistence-app-api" },
+    { "from": "orazaka-persistence-app-api", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-persistence-bridge", "to": "orazaka-core" },
+    { "from": "orazaka-persistence-bridge", "to": "orazaka-persistence-app-api" },
+    { "from": "orazaka-studio-api", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-studio-client", "to": "krizaka-security" },
+    { "from": "orazaka-studio-client", "to": "orazaka-studio-api" },
+    { "from": "orazaka-studio-service", "to": "krizaka-billing-api" },
+    { "from": "orazaka-studio-service", "to": "krizaka-billing-client" },
+    { "from": "orazaka-studio-service", "to": "krizaka-messaging" },
+    { "from": "orazaka-studio-service", "to": "krizaka-security" },
+    { "from": "orazaka-studio-service", "to": "orazaka-crypto" },
+    { "from": "orazaka-studio-service", "to": "orazaka-jobs-api" },
+    { "from": "orazaka-studio-service", "to": "orazaka-studio-api" },
+    { "from": "orazaka-tools", "to": "orazaka-core" }
+  ],
+  "flows": [
+    {
+      "from": "krizaka-users-service",
+      "to": "krizaka-notifications-service",
+      "kind": "amqp",
+      "via": "krizaka.notifications.password-events",
+      "exchange": "orazaka.events",
+      "routingKey": "evt.password.reset"
+    },
+    {
+      "from": "krizaka-users-service",
+      "to": "krizaka-notifications-service",
+      "kind": "amqp",
+      "via": "krizaka.notifications.user-events",
+      "exchange": "orazaka.events",
+      "routingKey": "evt.user.registered"
+    },
+    {
+      "from": "orazaka-automation-service",
+      "to": "orazaka-studio-service",
+      "kind": "amqp",
+      "via": "orazaka.events.studio.connector",
+      "exchange": "orazaka.events",
+      "routingKey": "evt.automation.telemetry"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "orazaka-automation-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.automation",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.automation.approved"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "orazaka-job-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.batch",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.media.generate"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "orazaka-job-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.interactive",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.text.*, job.media.analyze"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "orazaka-studio-service",
+      "kind": "amqp",
+      "via": "orazaka.events.studio.capability",
+      "exchange": "orazaka.events",
+      "routingKey": "evt.capability.changed"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "krizaka-billing-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "krizaka-notifications-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "krizaka-users-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-automation-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-conversation-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-conversation-service",
+      "kind": "amqp",
+      "via": "orazaka.events.job-relay",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.cancelled"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-knowledge-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-studio-service",
+      "kind": "amqp",
+      "via": "krizaka.billing.settlements",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-studio-service",
+      "kind": "amqp",
+      "via": "orazaka.events.studio",
+      "exchange": "orazaka.events",
+      "routingKey": "job.{…}.done"
+    },
+    {
+      "from": "orazaka-job-service",
+      "to": "orazaka-studio-service",
+      "kind": "amqp",
+      "via": "orazaka.events.studio.capability",
+      "exchange": "orazaka.events",
+      "routingKey": "evt.capability.changed"
+    },
+    {
+      "from": "orazaka-studio-service",
+      "to": "orazaka-automation-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.automation",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.automation.approved"
+    },
+    {
+      "from": "orazaka-studio-service",
+      "to": "orazaka-job-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.batch",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.media.generate"
+    },
+    {
+      "from": "orazaka-studio-service",
+      "to": "orazaka-job-service",
+      "kind": "amqp",
+      "via": "orazaka.jobs.interactive",
+      "exchange": "orazaka.jobs",
+      "routingKey": "job.text.*, job.media.analyze"
+    },
+    {
+      "from": "orazaka-automation-service",
+      "to": "krizaka-billing-service",
+      "kind": "http",
+      "via": "krizaka-billing-client"
+    },
+    { "from": "orazaka-cli", "to": "orazaka-conversation-service", "kind": "http", "via": "localhost:8080" },
+    { "from": "orazaka-cli", "to": "orazaka-edge", "kind": "http", "via": "localhost:8088" },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "krizaka-billing-service",
+      "kind": "http",
+      "via": "krizaka-billing-client"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "krizaka-users-service",
+      "kind": "http",
+      "via": "krizaka-users-client"
+    },
+    {
+      "from": "orazaka-conversation-service",
+      "to": "orazaka-studio-service",
+      "kind": "http",
+      "via": "orazaka-studio-client"
+    },
+    { "from": "orazaka-edge", "to": "krizaka-billing-service", "kind": "http", "via": "route /api/v1/billing" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/admin/users" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/api-keys" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/auth" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/credentials" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/interceptions" },
+    { "from": "orazaka-edge", "to": "krizaka-users-service", "kind": "http", "via": "route /api/v1/profile" },
+    { "from": "orazaka-edge", "to": "orazaka-automation-service", "kind": "http", "via": "route /api/v1/automations" },
+    { "from": "orazaka-edge", "to": "orazaka-automation-service", "kind": "http", "via": "route /hooks/" },
+    { "from": "orazaka-edge", "to": "orazaka-conversation-service", "kind": "http", "via": "route /" },
+    { "from": "orazaka-edge", "to": "orazaka-knowledge-service", "kind": "http", "via": "route /api/v1/analytics" },
+    {
+      "from": "orazaka-edge",
+      "to": "orazaka-knowledge-service",
+      "kind": "http",
+      "via": "route /api/v1/recommendations"
+    },
+    { "from": "orazaka-edge", "to": "orazaka-studio-service", "kind": "http", "via": "route /api/v1/studios" },
+    { "from": "orazaka-job-service", "to": "krizaka-billing-service", "kind": "http", "via": "krizaka-billing-client" },
+    { "from": "orazaka-job-service", "to": "krizaka-users-service", "kind": "http", "via": "krizaka-users-client" },
+    { "from": "orazaka-job-service", "to": "orazaka-studio-service", "kind": "http", "via": "orazaka-studio-client" },
+    {
+      "from": "orazaka-studio-service",
+      "to": "krizaka-billing-service",
+      "kind": "http",
+      "via": "krizaka-billing-client"
+    },
+    { "from": "orazaka-web-client", "to": "orazaka-conversation-service", "kind": "http", "via": "localhost:8080" },
+    { "from": "orazaka-web-client", "to": "orazaka-edge", "kind": "http", "via": "localhost:8088" }
+  ],
+  "pipeline": [
+    {
+      "interceptor": "UserContextResolver",
+      "order": 1,
+      "enabled": true,
+      "phase": "core",
+      "implemented": true,
+      "concern": "context",
+      "summary": "Extracts user profile attributes and RBAC security configurations from the Spring Security context and enriches the `PromptContext`'s user metadata."
+    },
+    {
+      "interceptor": "SystemContextInjector",
+      "order": 2,
+      "enabled": true,
+      "phase": "core",
+      "implemented": true,
+      "concern": "context",
+      "summary": "Single atomic service responsible for both resolving system/environment state and injecting it into the timeline."
+    },
+    {
+      "interceptor": "RagInterceptor",
+      "order": 3,
+      "enabled": true,
+      "phase": "core",
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "RAG (Retrieval-Augmented Generation) interceptor — enriches the prompt with relevant knowledge base context retrieved via `KnowledgeService`."
+    },
+    {
+      "interceptor": "EntitlementInterceptor",
+      "order": 4,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "governance",
+      "summary": "Gates the synchronous chat path on what the actor may do and can afford (ADR-033 §6.2)."
+    },
+    {
+      "interceptor": "McpInterceptor",
+      "order": 5,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "MCP (Model Context Protocol) interceptor — enriches the prompt with external context resolved via the `McpOrchestrator`."
+    },
+    {
+      "interceptor": "BrandContextInterceptor",
+      "order": 6,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "Injects an installed Studio's brand kit into the prompt (ADR-034 §9.1)."
+    },
+    {
+      "interceptor": "MemoryInterceptor",
+      "order": 7,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "enrichment",
+      "summary": "Conversation memory interceptor — injects historical messages before inference and persists new messages after completion."
+    },
+    {
+      "interceptor": "RefinerInterceptor",
+      "order": 8,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "reformulation",
+      "summary": "Resolves fuzzy user questions against compiled context matrices and reformulates them into clear, explicit instructions using an LLM call."
+    },
+    {
+      "interceptor": "SemanticCacheInterceptor",
+      "order": 8,
+      "enabled": false,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "cache",
+      "summary": "Answers a turn from a cache, before any model — placed in Phase 2 just before the router by a `pipeline_interceptor_config` row, never by an `@Order`."
+    },
+    {
+      "interceptor": "RouterInterceptor",
+      "order": 9,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "reformulation",
+      "summary": "Analyzes user intent and selects the optimal AI provider using an LLM classification call with temperature 0.0 for determinism."
+    },
+    {
+      "interceptor": "ToolInterceptor",
+      "order": 9,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "tooling",
+      "summary": "Tool execution interceptor — analyzes prompt content to selectively attach relevant `ToolCallback` definitions to the chat options."
+    },
+    { "interceptor": "MediaInterceptor", "order": 10, "enabled": true, "phase": "dynamic", "implemented": false },
+    {
+      "interceptor": "UserContextInterceptor",
+      "order": 11,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "context",
+      "summary": "ContextInterceptor that dynamically injects onboarding profile details (ai_behavior, primary_industry) as structural system prompt constraints right before executing model inference or streaming."
+    }
+  ],
+  "coreChain": [
+    {
+      "interceptor": "SafetyInterceptor",
+      "rank": 1,
+      "concern": "validation",
+      "summary": "Stops a turn that carries crisis content and answers it with the pack's fixed, reviewed text."
+    },
+    {
+      "interceptor": "ScopeGuardInterceptor",
+      "rank": 2,
+      "concern": "governance",
+      "summary": "Refuses a turn that strays into the domain its pack declared out of bounds (ADR-051)."
+    },
+    {
+      "interceptor": "UserContextResolver",
+      "rank": 3,
+      "concern": "context",
+      "summary": "Extracts user profile attributes and RBAC security configurations from the Spring Security context and enriches the `PromptContext`'s user metadata."
+    },
+    {
+      "interceptor": "SystemContextInjector",
+      "rank": 4,
+      "concern": "context",
+      "summary": "Single atomic service responsible for both resolving system/environment state and injecting it into the timeline."
+    },
+    {
+      "interceptor": "RagInterceptor",
+      "rank": 5,
+      "concern": "enrichment",
+      "summary": "RAG (Retrieval-Augmented Generation) interceptor — enriches the prompt with relevant knowledge base context retrieved via `KnowledgeService`."
+    }
+  ],
+  "cli": {
+    "alias": "orazaka",
+    "journey": [
+      {
+        "command": "install",
+        "description": "Setup wizard — verify tools, install dependencies, and configure deployment topology",
+        "phases": [
+          { "id": "1", "title": "Tool Verification", "detail": "" },
+          { "id": "2", "title": "Install Missing Tools via Homebrew", "detail": "" },
+          { "id": "workspace", "title": "Workspace", "detail": "no Orazaka workspace here" },
+          { "id": "3", "title": "Media Worker Python Environment", "detail": "" },
+          { "id": "4", "title": "Deployment Topology Configuration", "detail": "" }
+        ]
+      },
+      {
+        "command": "start",
+        "description": "Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
+        "phases": [
+          { "id": "1", "title": "Docker Services (Postgres, Redis, RabbitMQ)", "detail": "" },
+          { "id": "2", "title": "AI Engine (Ollama)", "detail": "" },
+          { "id": "3", "title": "Image Generation (LocalAI)", "detail": "" },
+          { "id": "3b", "title": "Image Generation (stable-diffusion.cpp)", "detail": "" },
+          { "id": "4", "title": "Media Generation Worker", "detail": "" },
+          { "id": "5a", "title": "Starting Router (Spring Boot)", "detail": "--mode full" },
+          { "id": "5b", "title": "Starting Next.js UI", "detail": "--mode full" }
+        ]
+      },
+      {
+        "command": "dev",
+        "description": "Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)",
+        "processes": [
+          { "key": "edge", "label": "EDGE", "port": 8088 },
+          { "key": "router", "label": "ROUTER", "port": 8080 },
+          { "key": "identity", "label": "IDENTITY", "port": 8083 },
+          { "key": "automation", "label": "AUTOMATION", "port": 8082 },
+          { "key": "knowledge", "label": "KNOWLEDGE", "port": 8084 },
+          { "key": "job", "label": "JOB", "port": 8090 },
+          { "key": "billing", "label": "BILLING", "port": 8095 },
+          { "key": "studio", "label": "STUDIO", "port": 8096 },
+          { "key": "notifications", "label": "NOTIFICATIONS", "port": 8097 },
+          { "key": "web", "label": "WEB-CLIENT", "port": 3000 },
+          { "key": "mobile", "label": "MOBILE", "port": 8081 },
+          { "key": "workers", "label": "worker.yaml", "port": null }
+        ]
+      }
+    ]
+  }
+}

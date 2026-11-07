@@ -1,0 +1,21 @@
+# Sign-up is closed everywhere (krizaka-internal#2402): the sign-in screen shows no « Créer un compte » unless the server's
+# capability `flags.signupOpen` is true. With no backend reachable (CI) the capability is absent, so the entry is hidden.
+# Runs in CI (mobile-e2e.yml); locally: maestro test .maestro/sign-up-closed.yaml
+appId: com.krizaka.orazaka
+tags:
+  - ci
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible:
+      id: "login-email"
+    timeout: 60000
+- assertVisible:
+    id: "login-submit"
+- assertNotVisible:
+    id: "login-create-account"
+- assertNotVisible: "Créer un compte"
+- assertNotVisible: "Create an account"
+- takeScreenshot: sign-in-no-sign-up

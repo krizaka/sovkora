@@ -1,0 +1,13 @@
+{
+  "project": "krizaka_orazaka-automation-service",
+  "counts": {
+    "bugs": 0,
+    "vulnerabilities": 0,
+    "hotspots": 0,
+    "smells_blocker": 1,
+    "smells_critical": 0,
+    "smells_major": 4,
+    "smells_minor": 1,
+    "smells_info": 0
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "version": "1.3.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 40,
+  "changelog": "1.3.0 — libellés des sorties en anglais et français (x-i18n). 1.2.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.1.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. 1.0.1 — la langue des valeurs suit la langue de la personne (anglais pour « en »), et rien n'est cité qui n'ait pas été dit : une phrase entre guillemets doit figurer mot pour mot dans le moment, sinon elle est omise. Décrit, jamais expliqué.",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "session-summary",
+    "version": "1.3.0",
+    "steps": [
+      {
+        "id": "summarise",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": [],
+        "inputs": {
+          "prompt": "Tu écris ce qu'une personne garde d'un moment d'échange qu'elle vient d'avoir, pour elle-même et pour ce qu'elle voudra apporter à sa ou son thérapeute. Tu DÉCRIS ce qui a été dit, avec ses mots autant que possible, et tu t'arrêtes là : tu n'expliques rien, tu ne poses aucun diagnostic, tu ne nommes aucun trouble, tu ne parles d'aucun médicament ni d'aucun traitement, et tu n'interprètes pas son humeur — les deux notes d'humeur ci-dessous sont celles qu'elle a déclarées elle-même, tu ne les commentes pas. Quand quelque chose est ambigu, tu restes au plus près de ce qu'elle a dit.\n\nRéponds UNIQUEMENT par un objet JSON, sans aucun texte avant ni après, exactement de cette forme :\n{\"themes\": [au plus 3 thèmes courts], \"whatHelped\": \"ce qui a aidé, en une phrase\", \"smallStep\": \"un petit pas qu'elle a envisagé, en une phrase\", \"bringToTherapist\": [ce qu'elle voudrait apporter à sa thérapeute, 0 à 3 points], \"locale\": \"{{inputs.locale}}\"}\nLANGUE : écris TOUTES les valeurs dans la langue de code {{inputs.locale}} (« en » = anglais, « fr »/« fr-CA » = français), quelle que soit la langue de ces consignes. LANGUAGE: write EVERY value in the language of code {{inputs.locale}} (\"en\" = English, \"fr\"/\"fr-CA\" = French), whatever the language of these instructions.\nCITATIONS : ne cite jamais une phrase qui ne figure pas mot pour mot dans le moment ci-dessous ; au moindre doute, reformule sans guillemets ou omets. QUOTES: never quote a sentence that does not appear word for word in the moment below; when in doubt, paraphrase without quotation marks or leave it out. N'invente rien, ne parle pas de toi (la présence) à la première personne.\n\nLe fil des fois précédentes (peut être vide) :\n{{inputs.thread}}\n\nHumeur déclarée avant : {{inputs.moodBefore}} — après : {{inputs.moodAfter}} (sur 5, auto-déclarée).\n\nLe moment :\n{{inputs.turns}}"
+        },
+        "out": "summary",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT3M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "summary",
+        "label": "Ce que je garde",
+        "from": "{{steps.summary.content}}",
+        "type": "JSON",
+        "schema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["themes", "whatHelped", "smallStep", "bringToTherapist", "locale"],
+          "properties": {
+            "themes": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            },
+            "whatHelped": {
+              "type": "string",
+              "maxLength": 600
+            },
+            "smallStep": {
+              "type": "string",
+              "maxLength": 600
+            },
+            "bringToTherapist": {
+              "type": "array",
+              "maxItems": 3,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 400
+              }
+            },
+            "locale": {
+              "type": "string",
+              "enum": ["fr-CA", "fr-FR", "fr", "en", "nl"]
+            }
+          }
+        },
+        "x-i18n": {
+          "en": {
+            "label": "What I keep"
+          },
+          "fr": {
+            "label": "Ce que je garde"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["turns", "locale"],
+    "properties": {
+      "turns": {
+        "type": "string",
+        "maxLength": 30000,
+        "title": "Le moment",
+        "description": "Les tours du moment, dans l'ordre. Ce Studio les résume ; il ne les garde pas.",
+        "x-i18n": {
+          "en": {
+            "title": "The moment",
+            "description": "The turns of the moment, in order. This Studio summarises them; it does not keep them.",
+            "placeholder": "You: … · Assistant: …"
+          },
+          "fr": {
+            "title": "Le moment",
+            "description": "Les tours du moment, dans l'ordre. Ce Studio les résume ; il ne les garde pas.",
+            "placeholder": "Vous : … · Assistant : …"
+          }
+        }
+      },
+      "thread": {
+        "type": "string",
+        "maxLength": 6000,
+        "title": "Le fil",
+        "description": "Ce qui reste des fois précédentes, s'il y en a.",
+        "x-i18n": {
+          "en": {
+            "title": "The thread",
+            "description": "What remains from earlier times, if any.",
+            "placeholder": "Last time we talked about sleep."
+          },
+          "fr": {
+            "title": "Le fil",
+            "description": "Ce qui reste des fois précédentes, s'il y en a.",
+            "placeholder": "La dernière fois, on a parlé du sommeil."
+          }
+        }
+      },
+      "moodBefore": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+        "title": "Humeur avant (auto-déclarée)",
+        "x-i18n": {
+          "en": {
+            "title": "Mood before (self-reported)",
+            "description": "From 1 (low) to 5 (good), as you feel it."
+          },
+          "fr": {
+            "title": "Humeur avant (auto-déclarée)",
+            "description": "De 1 (bas) à 5 (bon), comme vous le ressentez."
+          }
+        }
+      },
+      "moodAfter": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+        "title": "Humeur après (auto-déclarée)",
+        "x-i18n": {
+          "en": {
+            "title": "Mood after (self-reported)",
+            "description": "From 1 (low) to 5 (good), as you feel it."
+          },
+          "fr": {
+            "title": "Humeur après (auto-déclarée)",
+            "description": "De 1 (bas) à 5 (bon), comme vous le ressentez."
+          }
+        }
+      },
+      "locale": {
+        "type": "string",
+        "enum": ["fr-CA", "fr-FR", "fr", "en", "nl"],
+        "title": "Langue du résumé",
+        "description": "La langue dans laquelle le résumé est écrit.",
+        "x-i18n": {
+          "en": {
+            "title": "Summary language",
+            "description": "The language the summary is written in.",
+            "options": {
+              "fr-CA": "French (Canada)",
+              "fr-FR": "French (France)",
+              "fr": "French",
+              "en": "English",
+              "nl": "Dutch"
+            }
+          },
+          "fr": {
+            "title": "Langue du résumé",
+            "description": "La langue dans laquelle le résumé est écrit.",
+            "options": {
+              "fr-CA": "Français (Canada)",
+              "fr-FR": "Français (France)",
+              "fr": "Français",
+              "en": "Anglais",
+              "nl": "Néerlandais"
+            }
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

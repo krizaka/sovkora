@@ -1,0 +1,75 @@
+{
+  "film": "montrer-son-travail",
+  "models": [
+    {
+      "role": "keyframes",
+      "name": "FLUX.2 [klein] 4B"
+    },
+    {
+      "role": "shots",
+      "name": "Wan 2.2 I2V A14B"
+    },
+    {
+      "role": "music",
+      "name": "ACE-Step 1.5 XL turbo"
+    }
+  ],
+  "shots": [
+    {
+      "id": "s1-03-lock",
+      "runId": "19f7b769-5cf7-4b24-ad29-94c1e6644d20",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 109.24,
+      "gpuCostUsd": 0.253
+    },
+    {
+      "id": "s2-01-a14b",
+      "runId": "394f88ee-e84a-4e33-aeaf-ba85dc54147f",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 110.22,
+      "gpuCostUsd": 0.2552
+    },
+    {
+      "id": "s3-01-a14b",
+      "runId": "97bc8a42-fff0-417c-b581-a03794fee21b",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 109.49,
+      "gpuCostUsd": 0.253
+    },
+    {
+      "id": "s4-01-a14b",
+      "runId": "8ca7a2fa-d012-41c5-a129-caf1bbf00af9",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 108.37,
+      "gpuCostUsd": 0.2508
+    },
+    {
+      "id": "s5-01-a14br",
+      "runId": "195a3ce8-1221-4882-b649-1de8598197d8",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 108.59,
+      "gpuCostUsd": 0.253
+    },
+    {
+      "id": "s6-02-a14b",
+      "runId": "0f6506fc-f86f-4dda-a14b-ced06e8d18a9",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 105.29,
+      "gpuCostUsd": 0.2464
+    },
+    {
+      "id": "s7-01-a14b",
+      "runId": "43f6ac70-a9f8-4ce6-a054-cdd0b5092f0b",
+      "model": "wan2.2-i2v-a14b",
+      "gpu": "NVIDIA H200",
+      "gpuSeconds": 105.29,
+      "gpuCostUsd": 0.2464
+    }
+  ]
+}

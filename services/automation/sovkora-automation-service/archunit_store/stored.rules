@@ -1,0 +1,5 @@
+#
+#Fri Oct 16 02:57:48 EDT 2026
+classes\ that\ are\ annotated\ with\ @Service\ should\ have\ simple\ name\ ending\ with\ 'Service'\ or\ should\ have\ simple\ name\ ending\ with\ 'ServiceImpl',\ because\ services\ are\ named\ after\ the\ capability\ they\ serve,\ not\ the\ pattern\ they\ use=4c1f102a-0ff8-465c-8ece-941e21de6b3c
+no\ classes\ that\ reside\ outside\ of\ package\ '..config..'\ and\ are\ not\ annotated\ with\ @Configuration\ and\ are\ not\ annotated\ with\ @AutoConfiguration\ should\ call\ method\ System.getenv()\ or\ should\ call\ method\ System.getenv(String)\ or\ should\ depend\ on\ classes\ that\ have\ fully\ qualified\ name\ 'org.springframework.core.env.Environment',\ because\ domain\ and\ service\ code\ receive\ their\ parameters,\ they\ do\ not\ read\ the\ environment=4b967bf8-43ce-494d-b610-aad113422f6f
+slices\ matching\ 'com.krizaka.orazaka.automationservice.(*)..'\ should\ be\ free\ of\ cycles,\ because\ a\ cycle\ between\ packages\ cannot\ be\ built,\ tested\ or\ understood\ one\ at\ a\ time=09c7ef7d-1f45-497a-983b-485b70de93ac

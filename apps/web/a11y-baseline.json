@@ -1,0 +1,21 @@
+{
+  "app": "orazaka-web-client",
+  "rules": {
+    "empty-table-header": {
+      "impact": "minor",
+      "count": 2
+    },
+    "heading-order": {
+      "impact": "moderate",
+      "count": 2
+    },
+    "landmark-unique": {
+      "impact": "moderate",
+      "count": 6
+    },
+    "region": {
+      "impact": "moderate",
+      "count": 10
+    }
+  }
+}

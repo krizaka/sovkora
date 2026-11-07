@@ -1,0 +1,13 @@
+{
+  "project": "krizaka_orazaka-knowledge-service",
+  "counts": {
+    "bugs": 0,
+    "vulnerabilities": 0,
+    "hotspots": 0,
+    "smells_blocker": 2,
+    "smells_critical": 2,
+    "smells_major": 1,
+    "smells_minor": 0,
+    "smells_info": 0
+  }
+}

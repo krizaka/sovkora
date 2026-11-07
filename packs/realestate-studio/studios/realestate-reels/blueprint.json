@@ -1,0 +1,211 @@
+{
+  "version": "1.4.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 2800,
+  "changelog": "1.4.0 — les descriptions se lisent par leur champ ({{steps.roomDescriptions.analysis}}, comme image-analysis) : le résultat entier rendait aussi ses métadonnées — orazaka-packs#5, possible sur un fan-out depuis orazaka-studio#60. 1.3.0 — libellés des sorties en anglais et français (x-i18n). 1.2.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.1.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. Le plan d'ambiance est retiré (constat #35, ADR-066) : il était généré, facturé au tarif de diffusion — 3 600 crédits de la réserve — et jamais monté, parce que le monteur ne lit que `photos` et `audio`. Un pack ne facture pas ce qu'il ne fait pas. Le coût déclaré passe de 6 400 à 2 800, la différence étant l'estimation de la génération vidéo au pricebook. Remettre un plan d'ambiance est une décision produit : il faudra que le monteur l'assemble.",
+  "createdBy": "system",
+  "definition": {
+    "studioKey": "realestate-reels",
+    "version": "1.4.0",
+    "steps": [
+      {
+        "id": "describe",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.vision",
+        "dependsOn": [],
+        "forEach": "{{inputs.photos}}",
+        "maxParallel": 4,
+        "inputs": {
+          "assetId": "{{item}}",
+          "prompt": "Décris cette pièce pour une annonce immobilière. Style: {{config.tone}}."
+        },
+        "out": "roomDescriptions",
+        "onError": "SKIP",
+        "maxAttempts": 1,
+        "timeout": "PT2M",
+        "skipRationale": "Un pack produit, pas un fixture : l'agent qui a fourni cinq photos doit repartir avec son Reel même si l'une d'elles ne s'analyse pas. La description manquante se voit dans les artefacts, et le montage utilise les photos décrites. C'est trade-showcase qui doit rougir à sa place."
+      },
+      {
+        "id": "script",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": ["describe"],
+        "inputs": {
+          "prompt": "Écris le script d'un Reel immobilier pour {{inputs.platform}}: accroche, voix off, légende et hashtags. Le bien: {{inputs.propertyBrief}}. Les pièces: {{steps.roomDescriptions.analysis}}. Ton: {{config.tone}}."
+        },
+        "out": "script",
+        "onError": "RETRY",
+        "maxAttempts": 2,
+        "timeout": "PT3M"
+      },
+      {
+        "id": "approve",
+        "kind": "APPROVAL",
+        "dependsOn": ["script"],
+        "inputs": {
+          "preview": "{{steps.script.content}}"
+        },
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT30M"
+      },
+      {
+        "id": "assemble",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.studio.media.compose",
+        "dependsOn": ["approve"],
+        "inputs": {
+          "photos": "{{inputs.photos}}"
+        },
+        "out": "reel",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT30M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "reel",
+        "label": "Votre Reel",
+        "from": "{{steps.reel.url}}",
+        "type": "VIDEO",
+        "x-i18n": {
+          "en": {
+            "label": "Your Reel"
+          },
+          "fr": {
+            "label": "Votre Reel"
+          }
+        }
+      },
+      {
+        "key": "caption",
+        "label": "Légende et hashtags",
+        "from": "{{steps.script.content}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Caption and hashtags"
+          },
+          "fr": {
+            "label": "Légende et hashtags"
+          }
+        }
+      },
+      {
+        "key": "rooms",
+        "label": "Descriptions des pièces",
+        "from": "{{steps.roomDescriptions.analysis}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Descriptions of the rooms"
+          },
+          "fr": {
+            "label": "Descriptions des pièces"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["photos", "propertyBrief"],
+    "properties": {
+      "photos": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 3,
+        "maxItems": 8,
+        "title": "Photos du bien",
+        "x-i18n": {
+          "en": {
+            "title": "Photos of the property",
+            "description": "Three to eight photos of the property, in the order to show them.",
+            "placeholder": "photo1, photo2, photo3"
+          },
+          "fr": {
+            "title": "Photos du bien",
+            "description": "De trois à huit photos du bien, dans l'ordre où les montrer.",
+            "placeholder": "photo1, photo2, photo3"
+          }
+        }
+      },
+      "clip": {
+        "type": "string",
+        "title": "Clip vidéo (optionnel)",
+        "x-i18n": {
+          "en": {
+            "title": "Video clip (optional)",
+            "description": "A short clip of the property to open the reel.",
+            "placeholder": "clip1"
+          },
+          "fr": {
+            "title": "Clip vidéo (optionnel)",
+            "description": "Un court clip du bien pour ouvrir le reel.",
+            "placeholder": "clip1"
+          }
+        }
+      },
+      "propertyBrief": {
+        "type": "string",
+        "maxLength": 800,
+        "title": "Le bien en 3 lignes",
+        "x-i18n": {
+          "en": {
+            "title": "The property in 3 lines",
+            "description": "Size, location, what makes it special.",
+            "placeholder": "2-bedroom condo, Plateau, south-facing balcony, renovated kitchen"
+          },
+          "fr": {
+            "title": "Le bien en 3 lignes",
+            "description": "La taille, l'emplacement, ce qui le rend unique.",
+            "placeholder": "Condo 2 chambres, Plateau, balcon plein sud, cuisine rénovée"
+          }
+        }
+      },
+      "platform": {
+        "enum": ["instagram-reel", "tiktok", "youtube-short"],
+        "default": "instagram-reel",
+        "title": "Plateforme",
+        "description": "Où le reel sera publié : cela règle le format et le rythme.",
+        "x-i18n": {
+          "en": {
+            "title": "Platform",
+            "description": "Where the reel will be posted: it sets the format and the pace.",
+            "options": {
+              "instagram-reel": "Instagram Reel",
+              "tiktok": "TikTok",
+              "youtube-short": "YouTube Short"
+            }
+          },
+          "fr": {
+            "title": "Plateforme",
+            "description": "Où le reel sera publié : cela règle le format et le rythme.",
+            "options": {
+              "instagram-reel": "Reel Instagram",
+              "tiktok": "TikTok",
+              "youtube-short": "Short YouTube"
+            }
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "brandName": {
+      "type": "string",
+      "title": "Nom de l'agence"
+    },
+    "tone": {
+      "enum": ["premium", "chaleureux", "direct"],
+      "default": "premium"
+    },
+    "signature": {
+      "type": "string",
+      "title": "Signature"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+id: no-db-in-service-or-rules
+valid:
+  - |
+    import { x } from "./auction.repository";
+invalid:
+  - |
+    import { db } from "@/lib/db";
+  - |
+    import { eq } from "drizzle-orm";

@@ -1,0 +1,22 @@
+[
+ {
+  "name": "fr-compliant.txt",
+  "type": "file"
+ },
+ {
+  "name": "fr-compliant.expected.json",
+  "type": "file"
+ },
+ {
+  "name": "fr-defective.txt",
+  "type": "file"
+ },
+ {
+  "name": "fr-blank.txt",
+  "type": "file"
+ },
+ {
+  "name": "notes",
+  "type": "dir"
+ }
+]

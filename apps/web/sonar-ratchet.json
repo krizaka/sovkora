@@ -1,0 +1,13 @@
+{
+  "project": "krizaka_orazaka-web-client",
+  "counts": {
+    "bugs": 0,
+    "vulnerabilities": 0,
+    "hotspots": 0,
+    "smells_blocker": 0,
+    "smells_critical": 7,
+    "smells_major": 84,
+    "smells_minor": 87,
+    "smells_info": 0
+  }
+}

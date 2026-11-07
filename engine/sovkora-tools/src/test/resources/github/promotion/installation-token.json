@@ -1,0 +1,9 @@
+{
+ "token": "recorded-installation-token",
+ "expires_at": "2026-10-24T13:00:00Z",
+ "permissions": {
+  "contents": "write",
+  "pull_requests": "write"
+ },
+ "repository_selection": "selected"
+}

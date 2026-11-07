@@ -1,0 +1,7 @@
+{
+  "token": "recorded-token",
+  "username": "Eric",
+  "email": "eric.morel@example.com",
+  "authorities": ["ROLE_USER"],
+  "activeInterceptions": ["onboarding"]
+}

@@ -1,0 +1,12 @@
+id: no-unjustified-numeric-export
+valid:
+  - |
+    // @fixed: Postgres NOTIFY payload limit
+    export const NOTIFY_LIMIT = 8000;
+  - |
+    export const NAME = "x";
+invalid:
+  - |
+    export const MIN_PRICE = 100;
+  - |
+    export const WINDOW = 60 * 60 * 1000;

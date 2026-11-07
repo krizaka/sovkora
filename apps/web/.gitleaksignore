@@ -1,0 +1,2 @@
+# False positive (krizaka/.github#324): a model key name, not a credential.
+26e7e5d2b2ed9ee9887aeea554a2fd22eab3b4d9:src/features/landing/utils/gallery-clips.ts:generic-api-key:116

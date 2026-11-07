@@ -1,0 +1,7 @@
+{
+  "kind": "maven",
+  "allow": [
+    { "path": "pmd-baseline.properties", "why": "PMD baseline read by the parent's quality profile from the module root; the counts only go down" },
+    { "path": "spotbugs-exclude.xml", "why": "SpotBugs exclusion filter read by the parent's quality profile from the module root" }
+  ]
+}

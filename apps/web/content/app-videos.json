@@ -1,0 +1,28 @@
+{
+  "product": "orazaka",
+  "cdn": "https://krizaka-assets.b-cdn.net",
+  "videos": [
+    {
+      "platform": "web",
+      "flow": "chat",
+      "seconds": 18.6,
+      "capturedAt": "2026-10-29T18:09:43.064Z",
+      "files": {
+        "webm": "sites/orazaka/download/web-chat.d4930b343d.webm",
+        "mp4": "sites/orazaka/download/web-chat.ba3bf02cd5.mp4",
+        "poster": "sites/orazaka/download/web-chat.afe5ce135f.jpg"
+      }
+    },
+    {
+      "platform": "web",
+      "flow": "studio",
+      "seconds": 19.5,
+      "capturedAt": "2026-10-29T18:09:59.094Z",
+      "files": {
+        "webm": "sites/orazaka/download/web-studio.db32b6be7b.webm",
+        "mp4": "sites/orazaka/download/web-studio.a7ad2d2b29.mp4",
+        "poster": "sites/orazaka/download/web-studio.1431b65d4f.jpg"
+      }
+    }
+  ]
+}

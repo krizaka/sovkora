@@ -1,0 +1,345 @@
+{
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "unavailable": "Unavailable right now",
+    "requestFailed": "Request failed ({status})",
+    "unreachable": "The platform cannot be reached.",
+    "sessionExpired": "Your session has expired. Sign in again.",
+    "streamInterrupted": "The answer was interrupted ({status}).",
+    "emptyJobs": "No jobs yet."
+  },
+  "tabs": {
+    "studios": "Studios",
+    "chat": "Chat",
+    "jobs": "Jobs",
+    "settings": "Settings",
+    "label": "Main sections"
+  },
+  "screens": {
+    "studio": "Studio",
+    "run": "Run",
+    "connectors": "Connectors",
+    "system": "System"
+  },
+  "auth": {
+    "tagline": "Sign in to your account",
+    "email": "Email",
+    "emailAddress": "Email address",
+    "password": "Password",
+    "username": "Username",
+    "development": "In development: still being tested, not ready for the public.",
+    "signIn": "Sign in",
+    "signInFailed": "Sign-in failed",
+    "forgot": "Forgot password?",
+    "create": "Create an account",
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join Sovkora",
+      "submit": "Create account",
+      "haveAccount": "Already have an account? Sign in",
+      "failed": "Registration failed",
+      "verify": "Check your inbox: a verification link was sent to {email}."
+    },
+    "forgotScreen": {
+      "title": "Reset password",
+      "subtitle": "Enter your email and we will send you a recovery link.",
+      "submit": "Send recovery link",
+      "sent": "If that address has an account, a reset link is on its way.",
+      "failed": "The request failed",
+      "back": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Enter your new password below.",
+      "newPassword": "New password",
+      "confirm": "Confirm password",
+      "mismatch": "The two passwords do not match.",
+      "submit": "Reset password",
+      "failed": "The password could not be reset",
+      "done": "Your password has been reset. You can sign in."
+    },
+    "invalidCredentials": "Invalid email or password.",
+    "name": "Sovkora"
+  },
+  "studios": {
+    "empty": "No Studio in the catalogue yet.",
+    "locked": "Locked",
+    "pricing": {
+      "FREE": "Free",
+      "INCLUDED": "Included",
+      "PAID": "Paid"
+    },
+    "credits": "{count} credits per run",
+    "notIncluded": "This Studio is not included in your plan.",
+    "open": "Open",
+    "install": "Install",
+    "notFound": "Studio not found",
+    "installFailed": "The Studio could not be installed",
+    "launch": "Launch",
+    "listPlaceholder": "One value per line",
+    "photoAdd": "Add a photo",
+    "photoSource": "Add from",
+    "photoLibrary": "Photo library",
+    "photoCamera": "Take a photo",
+    "photoCancel": "Cancel",
+    "photoRemove": "Remove the photo",
+    "photoUploading": "Sending the photo…",
+    "photoFailed": "The photo could not be sent. Remove it and try again.",
+    "startFailed": "The run could not be started",
+    "followFailed": "Following the run was interrupted",
+    "results": "Results",
+    "progress": "Run progress",
+    "stepsDone": "{done} of {total} steps",
+    "run": {
+      "PENDING_APPROVAL": "Waiting for approval",
+      "RUNNING": "Running",
+      "AWAITING_INPUT": "Waiting for your input",
+      "SUCCEEDED": "Done",
+      "FAILED": "Failed",
+      "CANCELLED": "Cancelled",
+      "COMPENSATING": "Rolling back"
+    },
+    "step": {
+      "PENDING": "Waiting",
+      "RUNNING": "Running",
+      "SUCCEEDED": "Done",
+      "FAILED": "Failed",
+      "SKIPPED": "Skipped",
+      "CANCELLED": "Cancelled"
+    },
+    "fields": {
+      "image-generation": {
+        "prompt": "What you want to see"
+      },
+      "video-generation": {
+        "prompt": "What should happen on screen"
+      },
+      "speech-synthesis": {
+        "text": "The text to read"
+      },
+      "seed": "Seed",
+      "size": "Format",
+      "model": "Model",
+      "negativePrompt": "Avoid (optional)",
+      "image": "Starting image (optional)",
+      "aspect": "Format",
+      "durationSeconds": "Duration (seconds)",
+      "voice": "Voice",
+      "prompt": "Prompt",
+      "text": "Text"
+    },
+    "generating": "Working on it…",
+    "runAgain": "New run",
+    "moreOptions": "More options",
+    "fewerOptions": "Fewer options",
+    "failedHint": "The platform could not finish this run. Try again, or pick another model under More options.",
+    "form": {
+      "automatic": "Automatic · {name}",
+      "automaticPlain": "Automatic (recommended)",
+      "automaticHint": "The platform picks the best available option for you.",
+      "seedRandom": "Random",
+      "seedRandomHint": "A new result every time. Turn off to repeat one with its seed.",
+      "seedPlaceholder": "Seed number",
+      "searchOptions": "Search or choose",
+      "local": "Local",
+      "cloud": "Cloud",
+      "fast": "Fast",
+      "balanced": "Balanced",
+      "slow": "Slow",
+      "about": "about {n} s",
+      "perRun": "{price} per run",
+      "free": "Free",
+      "choicesUnreachable": "The list could not be loaded; the platform will choose for you."
+    },
+    "choices": {
+      "size": {
+        "1024x1024": "Square · 1024×1024",
+        "1024x1280": "Portrait 4:5 · 1024×1280",
+        "1360x768": "Landscape 16:9 · 1360×768",
+        "768x1360": "Vertical 9:16 · 768×1360",
+        "512x512": "Quick preview · 512×512"
+      },
+      "aspect": {
+        "9:16": "Vertical 9:16",
+        "16:9": "Wide 16:9",
+        "1:1": "Square 1:1"
+      }
+    },
+    "document": {
+      "choose": "Choose a PDF",
+      "replace": "Choose another PDF",
+      "remove": "Remove the file",
+      "reading": "Checking the file…",
+      "ready": "{name} is ready",
+      "size": "{size} MB",
+      "readFailed": "The file could not be read. Try another one.",
+      "refused": {
+        "EMPTY": "This file is empty.",
+        "TOO_LARGE": "This file is too large for this check ({max} MB at most).",
+        "UNSUPPORTED_TYPE": "Only a PDF can be checked here.",
+        "TYPE_MISMATCH": "This file is not what its name says. Choose a real PDF.",
+        "EXECUTABLE": "This file is a program, not a document.",
+        "CORRUPT": "This PDF is damaged and cannot be read.",
+        "TRUNCATED": "This PDF is incomplete: it was cut short when it was saved or sent.",
+        "ENCRYPTED": "This PDF is protected by a password. Remove the protection and try again.",
+        "ACTIVE_CONTENT": "This PDF contains active content (a script or a launched action) and cannot be checked."
+      }
+    }
+  },
+  "artefact": {
+    "image": "Generated image",
+    "video": "Generated video",
+    "audio": "Generated audio",
+    "facts": {
+      "provider": "Provider",
+      "model": "Model",
+      "durationMs": "Duration",
+      "seed": "Seed",
+      "runId": "Run",
+      "generationMs": "Generation time"
+    }
+  },
+  "jobs": {
+    "perDay": "Jobs per day",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "byKind": "By kind",
+    "running": "{kind} in progress",
+    "kind": {
+      "image": "Images",
+      "video": "Videos",
+      "voice": "Voice",
+      "text": "Text"
+    },
+    "status": {
+      "PENDING": "Waiting",
+      "PROCESSING": "In progress",
+      "COMPLETED": "Done",
+      "CANCELLED": "Cancelled",
+      "DELETED": "Deleted",
+      "FAILED": "Failed"
+    },
+    "failedHint": "This job did not finish.",
+    "open": "Open {kind}",
+    "nothing": "Nothing to show for this job."
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Message Sovkora",
+    "send": "Send",
+    "newChat": "New chat",
+    "emptyTitle": "What can I do for you?",
+    "emptyDescription": "Ask a question, draft a text or hand over a task.",
+    "suggestionsLabel": "Try asking",
+    "suggestions": {
+      "contract": "Summarise a contract and flag the risks",
+      "reply": "Draft a polite reply to a customer",
+      "law25": "Explain Quebec's Law 25 in five points"
+    },
+    "model": "Model",
+    "chooseModel": "Choose a model",
+    "defaultModel": "Default model",
+    "noEgress": "0 bytes left your network",
+    "thinking": "Sovkora is answering",
+    "steps": "{count} pipeline steps",
+    "you": "You",
+    "assistant": "Sovkora",
+    "noAnswer": "No answer came back. Try again or pick another model."
+  },
+  "pipeline": {
+    "UserContextResolver": "User context",
+    "SystemContextInjector": "System context",
+    "RagInterceptor": "Knowledge",
+    "SafetyInterceptor": "Safety",
+    "ScopeGuardInterceptor": "Scope guard",
+    "EntitlementInterceptor": "Entitlements",
+    "McpInterceptor": "Tools (MCP)",
+    "BrandContextInterceptor": "Brand context",
+    "MemoryInterceptor": "Memory",
+    "RefinerInterceptor": "Refiner",
+    "RouterInterceptor": "Router",
+    "ToolInterceptor": "Tools",
+    "MediaInterceptor": "Media",
+    "UserContextInterceptor": "User context"
+  },
+  "provider": {
+    "ollama": "On your server",
+    "localai": "On your server",
+    "do-inference": "Cloud inference",
+    "other": "Other provider"
+  },
+  "profile": {
+    "title": "Settings",
+    "loadFailed": "Profile unavailable",
+    "avatarOf": "Avatar of {name}",
+    "account": "Account",
+    "credits": "Credits",
+    "creditsValue": "{count} available",
+    "workspace": "Workspace",
+    "connectors": "Connectors",
+    "connectorsHint": "The services Sovkora can use for you",
+    "system": "System",
+    "systemHint": "Connection and version",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Appearance",
+    "languageAuto": "Device language",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "signOut": "Sign out",
+    "roles": {
+      "USER": "Member",
+      "ADMIN": "Administrator",
+      "MODERATOR": "Moderator",
+      "OPERATOR": "Operator"
+    }
+  },
+  "connectors": {
+    "empty": "No connector configured.",
+    "configured": "Configured",
+    "notConfigured": "Not configured"
+  },
+  "system": {
+    "server": "Server",
+    "status": "Status",
+    "reachable": "Reachable · {ms} ms",
+    "unreachable": "Unreachable",
+    "version": "App version",
+    "account": "Signed in as",
+    "interceptions": "Active interceptors",
+    "none": "None",
+    "refresh": "Check again",
+    "website": "Website",
+    "source": "Addresses from",
+    "sources": {
+      "live": "Live manifest",
+      "cache": "Cached manifest",
+      "default": "Built-in default",
+      "legacy": "Built-in address",
+      "override": "Local override"
+    }
+  },
+  "report": {
+    "verdict": {
+      "PASS": "Pass",
+      "FAIL": "Fail",
+      "CONSISTENT": "Consistent",
+      "INCONSISTENT": "Inconsistent",
+      "INFO": "For information",
+      "NOT-EXAMINED": "Not examined",
+      "NOT_EXAMINED": "Not examined",
+      "INSUFFICIENT_EVIDENCE": "Insufficient evidence"
+    }
+  },
+  "update": {
+    "forceTitle": "Update Sovkora to continue",
+    "version": "Version {version}",
+    "update": "Update",
+    "maintenanceTitle": "Sovkora is under maintenance"
+  }
+}
