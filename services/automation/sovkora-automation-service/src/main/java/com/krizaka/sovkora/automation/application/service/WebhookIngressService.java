@@ -232,7 +232,7 @@ public class WebhookIngressService {
                 idForMac,
                 timeForMac,
                 raw);
-    return current | previous;
+    return current || previous;
   }
 
   /**
