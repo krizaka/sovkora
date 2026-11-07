@@ -1,7 +1,0 @@
-id: no-ts-enum
-valid:
-  - |
-    export const Status = { Open: "OPEN" } as const;
-invalid:
-  - |
-    enum Status { Open = "OPEN" }

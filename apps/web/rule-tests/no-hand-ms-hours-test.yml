@@ -1,9 +1,0 @@
-id: no-hand-ms-hours
-valid:
-  - |
-    const a = hoursToMilliseconds(2);
-  - |
-    const a = 2 * 24 * 60 * 60 * 1000;
-invalid:
-  - |
-    const a = 2 * 60 * 60 * 1000;

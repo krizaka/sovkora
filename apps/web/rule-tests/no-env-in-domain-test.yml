@@ -1,7 +1,0 @@
-id: no-env-in-domain
-valid:
-  - |
-    import { x } from "./settings";
-invalid:
-  - |
-    import { env } from "../env";

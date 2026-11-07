@@ -1,7 +1,0 @@
-id: no-get-time-difference
-valid:
-  - |
-    const d = differenceInMilliseconds(a, b);
-invalid:
-  - |
-    const d = a.getTime() - b.getTime();

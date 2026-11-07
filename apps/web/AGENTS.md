@@ -16,8 +16,8 @@
 ## Static rules & codemods (ast-grep)
 
 The org code rules (addendum 2026-10-15) are lint rules, not review comments. [`@ast-grep/cli`](https://ast-grep.github.io)
-is a **pinned devDependency** (no global install, CI reproduces local): `sgconfig.yml` + `rules/*.yml` (one rule per file,
-with a message and, where safe, a `fix:`; written for Tsx and `.ts` is parsed as Tsx too, so each rule covers `.ts` and `.tsx`), `rule-tests/` (valid/invalid cases of each rule).
+is a **pinned devDependency** (no global install, CI reproduces local): `sgconfig.yml` reads the rules of `@krizaka/config` (one rule per file,
+with a message and, where safe, a `fix:`; written for Tsx and `.ts` is parsed as Tsx too, so each rule covers `.ts` and `.tsx`). The rules' valid/invalid cases are tested in krizaka-ts, where the rules are written.
 
 | Rule                                                               | What it refuses                                                                                                                                                                                                                                                                                        |
 | :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -31,12 +31,12 @@ with a message and, where safe, a `fix:`; written for Tsx and `.ts` is parsed as
 | `no-unjustified-numeric-export`                                    | a numeric (or `…ToMilliseconds(n)`) `export const` in feature code without `// @fixed: <reason>` just above                                                                                                                                                                                            |
 | `no-hand-made-nav`, `no-hand-made-language-switch`                 | a navigation bar that is not `NavBar` of @krizaka/ui (own Radix NavigationMenu, a local `NavBar`/`TopNav`), a hand-made language switch (`hrefLang` in a component, a row of `aria-pressed={locale === …}` buttons): use `NavBar` and `NavBar.Language` (« Navigation in the family », ui.krizaka.com) |
 
-- **Run**: `npm run lint` runs everything (it includes `ast-grep test` and the ratchet). `npx ast-grep scan` lists the
-  violations with their message; `npm run lint:sg:test` runs the rule tests.
+- **Run**: `npm run lint` runs everything (it includes the ratchet). `npx ast-grep scan` lists the
+  violations with their message.
 - **Ratchet**: `scripts/sg-ratchet.mjs` counts the violations per rule and refuses any increase against
   `sg-ratchet.json` (same idea as `krizaka-ratchet` / `lint-ratchet.json`: the debt only goes down). Fixed some? Lock the gain with
   `npm run sg:ratchet:update` (it never raises a count and records a new rule at its current count). A new rule is
-  added with its test in `rule-tests/` and its baseline in the same pull request. The script is identical in every
+  added in `@krizaka/config` with its test, and its baseline here in the same pull request. The script is identical in every
   Krizaka TypeScript repository (keep the copies identical; its unit test is `scripts/sg-ratchet.test.mjs`).
 - **Codemods**: `npm run sg:fix` applies the `fix:` of the rules (`ast-grep scan --update-all`) and adds the date-fns import;
   behaviour is identical — run `npm run lint && npm test` after, and land the result in a small pull request.
