@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 public class AnalyticsSettingsService {
 
   /** How long a read is reused: a technical cache, not a business parameter. */
-  private static final Duration CACHE = Duration.ofMinutes(1);
+  private static final Duration CACHE_TTL = Duration.ofMinutes(1);
 
   private final AnalyticsRepository repository;
   private final Clock clock;
@@ -56,7 +56,7 @@ public class AnalyticsSettingsService {
             .settings(tenant)
             .orElseThrow(
                 () -> new IllegalStateException("no analytics_settings row: apply the migration"));
-    Cached fresh = new Cached(settings, Map.copyOf(repository.kinds(tenant)), now.plus(CACHE));
+    Cached fresh = new Cached(settings, Map.copyOf(repository.kinds(tenant)), now.plus(CACHE_TTL));
     cache.put(tenant, fresh);
     return fresh;
   }

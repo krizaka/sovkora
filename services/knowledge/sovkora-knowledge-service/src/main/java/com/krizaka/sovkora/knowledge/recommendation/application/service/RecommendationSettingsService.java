@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 public class RecommendationSettingsService {
 
   /** How long a read version is reused: a technical cache, not a business parameter. */
-  private static final Duration CACHE = Duration.ofMinutes(1);
+  private static final Duration CACHE_TTL = Duration.ofMinutes(1);
 
   private final RecommendationRepository repository;
   private final Clock clock;
@@ -45,7 +45,7 @@ public class RecommendationSettingsService {
             .settings(tenant)
             .orElseThrow(
                 () -> new IllegalStateException("no reco_settings row: apply the migration"));
-    cache.put(tenant, new Cached(settings, now.plus(CACHE)));
+    cache.put(tenant, new Cached(settings, now.plus(CACHE_TTL)));
     return settings;
   }
 
