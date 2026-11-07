@@ -517,9 +517,9 @@ test("the automation migration is idempotent, extends the rule set without repla
   assert.match(script, /command === "automations"\) automations\(\)/);
 });
 
-test("the automations migration is the model part of the service's Flyway V1 baseline (no drift) — judged when the service is cloned", (t) => {
+test("the automations migration is the model part of the service's Flyway V1 baseline (no drift)", () => {
   const initdb = new URL("../../services/automation/sovkora-automation-service/src/main/resources/db/migration/V1__automation_baseline.sql", import.meta.url);
-  if (!existsSync(initdb)) return t.skip("orazaka-automation-service is not cloned here");
+  assert.ok(existsSync(initdb), "the automation service's V1 baseline moved: one repository, it is always here");
   const marker = "-- ─────────────────────────────────────────────────────────────────────────────\n-- THE AUTOMATION MODEL";
   const bootstrap = readFileSync(initdb, "utf8");
   const migration = readFileSync(new URL("../../infra/migrations/2026-10-20-automations.sql", import.meta.url), "utf8");

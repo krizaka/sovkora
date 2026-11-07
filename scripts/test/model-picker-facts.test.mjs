@@ -22,7 +22,8 @@ test("the migration states a typical time for the models the media Studios offer
   }
 });
 
-test("a fresh database and an existing one carry the same facts", { skip: initdb === null && "job-service not checked out" }, () => {
+test("a fresh database and an existing one carry the same facts", () => {
+  assert.ok(initdb !== null, "the job service's initdb moved: one repository, it is always here");
   assert.deepEqual(facts(initdb).sort(), facts(migration).sort());
 });
 
