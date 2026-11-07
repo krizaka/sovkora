@@ -3,7 +3,7 @@ package com.krizaka.sovkora.edge.infrastructure.config.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.krizaka.sovkora.test.AbstractContainerIntegrationTest;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.time.Duration;

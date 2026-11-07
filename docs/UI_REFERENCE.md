@@ -82,10 +82,10 @@ All client packs are orchestrated by the workspace root at `orazaka-apps/ui/pack
 
 | Package | Location | Purpose | Port |
 |:---|:---|:---|:---:|
-| `orazaka-web-client` | `orazaka-apps/ui/orazaka-web-client/` | Client-facing Next.js 16 App Router application | 3000 |
-| `orazaka-web-client` (console, `src/app/console`, host `admin.*`) | `orazaka-apps/ui/orazaka-web-client/` | Isolated SecOps Administration Console (the former `orazaka-web-admin`) | same app |
-| `orazaka-mobile-client` | `orazaka-apps/ui/orazaka-mobile-client/` | Expo SDK 53 cross-platform mobile app — 15 screens, wired to the **edge** (`:8088`) with a bearer JWT; auth, chat SSE, Studio, jobs, connectors, profile | 8081 |
-| `orazaka-cli` | `orazaka-apps/ui/orazaka-cli/` | Developer automation CLI with offline SQLite job queue | — |
+| `orazaka-web-client` | `apps/web/` | Client-facing Next.js 16 App Router application | 3000 |
+| `orazaka-web-client` (console, `src/app/console`, host `admin.*`) | `apps/web/` | Isolated SecOps Administration Console (the former `orazaka-web-admin`) | same app |
+| `orazaka-mobile-client` | `apps/mobile/` | Expo SDK 53 cross-platform mobile app — 15 screens, wired to the **edge** (`:8088`) with a bearer JWT; auth, chat SSE, Studio, jobs, connectors, profile | 8081 |
+| `orazaka-cli` | `apps/cli/` | Developer automation CLI with offline SQLite job queue | — |
 | `orazaka-shared` | `orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/` | Shared TypeScript types + Zod validation schemas | — |
 
 > All client packs import types from `orazaka-shared` exclusively. Type duplication across packs is banned.

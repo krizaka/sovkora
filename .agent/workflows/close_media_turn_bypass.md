@@ -18,7 +18,7 @@ Findings being closed: `PRODUCTION_READINESS_AUDIT.md` **#21** (the media-turn b
 1. Load `AGENTS.md` — §0, §2, §6, §7 (as corrected in the last run), §9, §11, §12.
 2. Read ADR-062 §2 and audit findings #20, #21.
 3. Read, **before writing anything**:
-   - `sovkora-libs/sovkora-engine/sovkora-core/.../pipeline/EnginePipelineBridge.java` — `compileContext`,
+   - `engine/sovkora-engine-core/.../pipeline/EnginePipelineBridge.java` — `compileContext`,
      lines ~86–121. **Read the whole method before touching the branch.**
    - `Base64MediaExtractor` — specifically what `cleanedQuery()` returns
    - `MessageCompiler.compile(request, promptText, mediaResult, hasMedia)`

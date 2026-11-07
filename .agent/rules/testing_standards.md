@@ -6,11 +6,11 @@
 ## §1 Pyramid
 - **unit**: pure logic, mappers, self-validating records. No external dependency. 1 test file per type (`[ERR-103]`).
 - **integration**: adapters/repos via **Testcontainers**. Extend `AbstractContainerIntegrationTest` (PostgreSQL + Redis + RabbitMQ bootstrapped **once per JVM**, reused singleton). Dynamic ports via `@DynamicPropertySource` (ADR-033/034).
-- **hermetic E2E**: `orazaka-end2end`, end-to-end journeys on throwaway infra (seed). Command: `orazaka test e2e`.
+- **hermetic E2E**: `e2e/sovkora-e2e`, end-to-end journeys on throwaway infra (seed). Command: `orazaka test e2e`.
 
 ## §2 ArchUnit (mandatory gate)
 - `GovernanceTest` validates the ring rules on every build.
-- Pre-commit: `./mvnw test -pl sovkora-libs/sovkora-engine/sovkora-core -Dtest=GovernanceTest`.
+- Pre-commit: `./mvnw test -pl engine/sovkora-engine-core -Dtest=GovernanceTest`.
 - Any hexagonal boundary violation (forbidden imports, `.md` in `core/resources/prompts`, etc.) must fail this test.
 
 ## §3 Discipline

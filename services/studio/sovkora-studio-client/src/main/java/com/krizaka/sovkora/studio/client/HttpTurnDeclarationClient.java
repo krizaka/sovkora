@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.studio.client;
 
-import com.krizaka.sovkora.studio.domain.exception.TurnConsentRequiredException;
-import com.krizaka.sovkora.studio.domain.model.TurnDeclarations;
-import com.krizaka.sovkora.studio.domain.port.TurnDeclarationClient;
+import com.krizaka.sovkora.studio.api.domain.exception.TurnConsentRequiredException;
+import com.krizaka.sovkora.studio.api.domain.model.TurnDeclarations;
+import com.krizaka.sovkora.studio.api.domain.port.TurnDeclarationClient;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;

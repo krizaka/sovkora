@@ -30,7 +30,7 @@ order: 16
 
 ## 2. Environment Variables
 
-All variables are defined in the root `.env` file (loaded by `properties-maven-plugin` at the `initialize` phase). Frontend-specific variables are in `orazaka-apps/ui/orazaka-web-client/.env.local`.
+All variables are defined in the root `.env` file (loaded by `properties-maven-plugin` at the `initialize` phase). Frontend-specific variables are in `apps/web/.env.local`.
 
 ### Infrastructure & Database
 
@@ -97,7 +97,7 @@ All variables are defined in the root `.env` file (loaded by `properties-maven-p
 | `LOG_DIR` | `var/logs` | Application log output directory |
 | `GATEWAY_LOG` | `var/logs/gateway.log` | Gateway-specific log file path |
 
-### Frontend BFF (Next.js) — `orazaka-apps/ui/orazaka-web-client/.env.local`
+### Frontend BFF (Next.js) — `apps/web/.env.local`
 
 | Key | Default | Purpose |
 | :--- | :--- | :--- |

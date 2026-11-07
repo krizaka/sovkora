@@ -7,7 +7,7 @@ order: 12
 
 > Comprehensive testing infrastructure: Unit, Governance (ArchUnit), Integration (Testcontainers), and E2E (Playwright & Vitest).
 >
-> **Scope**: The `orazaka-end2end` module validates **Java/Web Gateway API only**. Mobile (`orazaka-mobile-client`) is excluded from E2E — it runs lightweight TypeScript validation via the split-track CI pipeline.
+> **Scope**: The `e2e/sovkora-e2e` module validates **Java/Web Gateway API only**. Mobile (`orazaka-mobile-client`) is excluded from E2E — it runs lightweight TypeScript validation via the split-track CI pipeline.
 
 ---
 
@@ -40,8 +40,8 @@ order: 12
 | **Unit** | JUnit 5 / Mockito | Business algorithms, constructor boundaries | `src/test/java/**/` (per module) |
 | **Governance** | ArchUnit | Compile-time architecture decoupling rules | `GovernanceTest.java`, `*BoundaryTest.java` |
 | **Integration** | Testcontainers | Ephemeral PostgreSQL, Redis, RabbitMQ | `AbstractContainerIntegrationTest` |
-| **E2E (Java)** | Playwright Java | Headless Chromium with full gateway stack | `orazaka-end2end/src/test/java/` |
-| **E2E (CLI)** | Vitest / Execa | Sandboxed CLI subprocess testing | `orazaka-apps/ui/orazaka-cli/e2e/` |
+| **E2E (Java)** | Playwright Java | Headless Chromium with full gateway stack | `e2e/sovkora-e2e/src/test/java/` |
+| **E2E (CLI)** | Vitest / Execa | Sandboxed CLI subprocess testing | `apps/cli/e2e/` |
 
 ---
 
@@ -91,7 +91,7 @@ Additional boundary tests per module (`*BoundaryTest.java`) ensure cross-module 
   });
   ```
 - Run (via Maven): `./mvnw clean verify -P e2e-tests`.
-- Run (standalone): `npm run test:e2e --prefix orazaka-apps/ui/orazaka-web-client`.
+- Run (standalone): `npm run test:e2e --prefix apps/web`.
 
 ---
 
@@ -105,7 +105,7 @@ const result = await execa('npx', ['orazaka', 'init'], { cwd: sandbox });
 expect(result.exitCode).toBe(0);
 ```
 - Run (via Maven): `./mvnw clean verify -P e2e-tests`.
-- Run (standalone): `npm run test:e2e --prefix orazaka-apps/ui/orazaka-cli`.
+- Run (standalone): `npm run test:e2e --prefix apps/cli`.
 
 ---
 
@@ -126,9 +126,9 @@ Track B (path-triggered: orazaka-mobile-client/, orazaka-shared/, workspace pack
 
 ---
 
-## 7. orazaka-end2end Module Architecture (ADR-040)
+## 7. e2e/sovkora-e2e Module Architecture (ADR-040)
 
-Dedicated Maven submodule at `orazaka-end2end/` housing the complete hermetic E2E testing matrix.
+Dedicated Maven submodule at `e2e/sovkora-e2e/` housing the complete hermetic E2E testing matrix.
 
 ### Sequential Execution Timeline
 

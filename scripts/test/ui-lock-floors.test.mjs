@@ -76,5 +76,5 @@ test("every @krizaka/* floor of a pnpm member is met by its own pnpm-lock.yaml (
       else if (block[1] !== range || !satisfies(block[2], range)) problems.push(`${m.name} wants ${dep} ${range}, its pnpm lock has ${block[2]} for ${block[1]}`);
     }
   }
-  assert.deepEqual(problems, [], "regenerate: cd orazaka-apps/ui/orazaka-web-client && pnpm install");
+  assert.deepEqual(problems, [], "regenerate: cd apps/web && pnpm install");
 });

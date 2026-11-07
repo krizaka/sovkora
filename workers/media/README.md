@@ -82,7 +82,7 @@ python -m app.fetch_models big     # weights of a profile onto MEDIA_MODELS_DIR 
 |:---|:---|
 | Depends on | _none — this repository is a root of the dependency graph._ |
 | Used by | _no other Orazaka repository._ |
-| Workspace path | `orazaka-apps/workers/orazaka-worker-media` |
+| Workspace path | `workers/media` |
 
 
 

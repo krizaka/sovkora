@@ -1,0 +1,8 @@
+com.krizaka.sovkora.engine.interceptors.context.ContextAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.enrichment.EnrichmentAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.tooling.ToolingAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.translation.TranslationAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.validation.ValidationAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.reformulation.ReformulationAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.governance.GovernanceAutoConfiguration
+com.krizaka.sovkora.engine.interceptors.cache.CacheAutoConfiguration

@@ -33,7 +33,7 @@
 
     <modules>
         <module>sovkora-jobs-api</module>
-        <module>sovkora-persistence-app-api</module>
+        <module>sovkora-persistence-api</module>
         <module>sovkora-crypto</module>
     </modules>
 </project>

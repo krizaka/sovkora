@@ -394,7 +394,7 @@ PY
   # The same remotes as a droplet: the broker and the job service in, and the Mac's own engines back into the app
   # (LocalAI :8085 — Whisper and Piper —, sd-server :8086, the worker's pipeline :8188, Ollama :11434) — whichever of them runs on the Mac answers.
   echo "  set -a; . $out; set +a; chisel client --keepalive 25s $RELAY_URL 127.0.0.1:15671:broker-dev.orazaka.com:5671 127.0.0.1:18090:core:8090 R:0.0.0.0:8085:127.0.0.1:8085 R:0.0.0.0:8086:127.0.0.1:8086 R:0.0.0.0:8188:127.0.0.1:8188 R:0.0.0.0:11434:127.0.0.1:11434"
-  echo "  set -a; . $out; set +a; cd orazaka-apps/workers/orazaka-worker-media && .venv/bin/python -u -m app.consumer"
+  echo "  set -a; . $out; set +a; cd workers/media && .venv/bin/python -u -m app.consumer"
 }
 
 # RunPod: the same worker on a pod by the hour (scripts/lib/gpu-runpod.sh).

@@ -3,9 +3,9 @@ package com.krizaka.sovkora.studio.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.krizaka.sovkora.studio.domain.port.StudioCatalogClient;
-import com.krizaka.sovkora.studio.domain.port.StudioRunClient;
-import com.krizaka.sovkora.studio.domain.port.TurnDeclarationClient;
+import com.krizaka.sovkora.studio.api.domain.port.StudioCatalogClient;
+import com.krizaka.sovkora.studio.api.domain.port.StudioRunClient;
+import com.krizaka.sovkora.studio.api.domain.port.TurnDeclarationClient;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;

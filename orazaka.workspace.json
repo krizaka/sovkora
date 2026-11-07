@@ -14,7 +14,7 @@
     },
     {
       "name": "orazaka-build",
-      "path": "sovkora-libs/sovkora-build",
+      "path": "build",
       "kind": "maven",
       "layer": "foundation",
       "description": "Parent POM (Spring Boot / Spring AI BOMs, plugin management, Orazaka BOM) and the shared governance test kit (ArchUnit rules, Testcontainers base) for every Orazaka JVM repository.",
@@ -24,7 +24,7 @@
     },
     {
       "name": "orazaka-contracts",
-      "path": "sovkora-libs/sovkora-contracts",
+      "path": "contracts",
       "kind": "maven",
       "layer": "foundation",
       "description": "Tier-1 platform contracts shared by every Orazaka service: the job plane (jobs-api) and the application-persistence ports (persistence-app-api). Pure interfaces and records, zero implementation.",
@@ -34,7 +34,7 @@
     },
     {
       "name": "orazaka-studio",
-      "path": "orazaka-apps/services/orazaka-studio",
+      "path": "services/studio",
       "kind": "maven",
       "layer": "ai",
       "description": "Studio & pack marketplace: pack catalogue, studio blueprints, installations and saga-driven runs, with its contract (studio-api) and HTTP client (studio-client).",
@@ -48,7 +48,7 @@
     },
     {
       "name": "orazaka-ai-engine",
-      "path": "sovkora-libs/sovkora-engine",
+      "path": "engine",
       "kind": "maven",
       "layer": "ai",
       "description": "The Orazaka cognitive SDK: AiClient & provider mesh (core), the interceptor pipeline, tools (MCP · RAG · sandbox), use-case orchestration (business), application persistence and asset encryption.",
@@ -63,7 +63,7 @@
     },
     {
       "name": "orazaka-conversation-service",
-      "path": "orazaka-apps/services/orazaka-conversation-service",
+      "path": "services/conversation/sovkora-conversation-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Interactive ingress of the Orazaka engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic.",
@@ -78,7 +78,7 @@
     },
     {
       "name": "orazaka-job-service",
-      "path": "orazaka-apps/services/orazaka-job-service",
+      "path": "services/job/sovkora-job-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Asynchronous job executor of the Orazaka engine: drains the interactive and batch lanes, owns the capability registry and the worker registry.",
@@ -93,7 +93,7 @@
     },
     {
       "name": "orazaka-knowledge-service",
-      "path": "orazaka-apps/services/orazaka-knowledge-service",
+      "path": "services/knowledge/sovkora-knowledge-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Knowledge & RAG retrieval service (pgvector) with asynchronous indexing.",
@@ -107,7 +107,7 @@
     },
     {
       "name": "orazaka-automation-service",
-      "path": "orazaka-apps/services/orazaka-automation-service",
+      "path": "services/automation/sovkora-automation-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry.",
@@ -121,7 +121,7 @@
     },
     {
       "name": "orazaka-edge",
-      "path": "orazaka-apps/services/orazaka-edge",
+      "path": "services/edge/sovkora-edge-service",
       "kind": "maven",
       "layer": "foundation",
       "description": "Transparent HTTP edge in front of every Orazaka service: routing, API-key → JWT exchange, CORS and tracing. Spring MVC + virtual threads.",
@@ -132,7 +132,7 @@
     },
     {
       "name": "orazaka-worker-media",
-      "path": "orazaka-apps/workers/orazaka-worker-media",
+      "path": "workers/media",
       "kind": "python",
       "layer": "worker",
       "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol.",
@@ -148,7 +148,7 @@
     },
     {
       "name": "orazaka-web-client",
-      "path": "orazaka-apps/ui/orazaka-web-client",
+      "path": "apps/web",
       "kind": "npm",
       "packageManager": "pnpm",
       "layer": "app",
@@ -159,7 +159,7 @@
     },
     {
       "name": "orazaka-mobile-client",
-      "path": "orazaka-apps/ui/orazaka-mobile-client",
+      "path": "apps/mobile",
       "kind": "npm",
       "layer": "app",
       "description": "Expo / React Native client of the Orazaka platform (talks to the edge with Bearer tokens).",
@@ -169,7 +169,7 @@
     },
     {
       "name": "orazaka-cli",
-      "path": "orazaka-apps/ui/orazaka-cli",
+      "path": "apps/cli",
       "kind": "npm",
       "layer": "app",
       "description": "The `orazaka` developer CLI: install, start, dev, test, docs and pack tooling for the Orazaka workspace, with an offline SQLite queue.",

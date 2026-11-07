@@ -39,7 +39,7 @@ not Spring Cloud Gateway. Reusable in front of any Krizaka service set.
 |:---|:---|
 | Depends on | [`sovkora-build`](https://github.com/krizaka/sovkora-build) |
 | Used by | _no other Sovkora repository._ |
-| Workspace path | `orazaka-apps/services/orazaka-edge` |
+| Workspace path | `services/edge/sovkora-edge-service` |
 
 ## Build
 
@@ -48,7 +48,7 @@ not Spring Cloud Gateway. Reusable in front of any Krizaka service set.
 ```bash
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 node scripts/workspace.mjs clone          # clones every repository at its workspace path
-./mvnw -f orazaka-apps/services/orazaka-edge/pom.xml verify
+./mvnw -f services/edge/sovkora-edge-service/pom.xml verify
 ```
 
 **Standalone** — upstream artifacts must be in `~/.m2` (built by the workspace) or resolvable from

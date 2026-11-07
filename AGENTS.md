@@ -122,7 +122,7 @@ The workspace places repositories on **one axis: you *run* apps, you *import* li
 ## 3. Naming conventions
 
 - Module: `orazaka-<bounded-context>`. Package: `com.krizaka.orazaka.<module>.{domain,application,infrastructure}`.
-- **Folder taxonomy — the `orazaka-` prefix is for artifacts, not organizational folders.** Two roots: `sovkora-libs/` (imported) and `orazaka-apps/` (run) — see §2. The **group folders** inside them are **bare** (`sovkora-libs/sovkora-contracts/`, `orazaka-apps/{services,workers,ui}/`) because they namespace nothing publishable; only Maven modules / npm packs carry the `orazaka-` prefix (`orazaka-apps/services/orazaka-edge`, `krizaka/krizaka-build/krizaka-users/krizaka-users-api`). Never nest the prefix on a container (no `orazaka-apps/orazaka-services/`).
+- **Folder taxonomy — the `orazaka-` prefix is for artifacts, not organizational folders.** Two roots: `sovkora-libs/` (imported) and `orazaka-apps/` (run) — see §2. The **group folders** inside them are **bare** (`contracts/`, `orazaka-apps/{services,workers,ui}/`) because they namespace nothing publishable; only Maven modules / npm packs carry the `orazaka-` prefix (`services/edge/sovkora-edge-service`, `krizaka/krizaka-build/krizaka-users/krizaka-users-api`). Never nest the prefix on a container (no `orazaka-apps/orazaka-services/`).
 - **Zero `Orazaka` prefix** on classes **[ERR-104]** (`Engine`, not `OrazakaEngine`).
 - Suffixes: `*Service` (interface) / `*ServiceImpl` (package-private), `*Interceptor`, `*Resolver`, `*Controller`, `*Mapper` (final, static, package-private), `*Repository`, `*Config`, `*Properties`, `*Adapter`.
 - **Controllers are resource-oriented [ERR-128]**: name a controller `<Resource>Controller` after the noun it manages (`FeatureController`, `JobController`), **never** after an actor or flow — no `Admin*`, no `Bootstrap*`. Access control is a security concern (method-level `@PreAuthorize` + SecurityConfig URL rules), not the class name. One controller per resource with a single `@RequestMapping("/api/v1/<resource>")` base; split only by genuine sub-resource (`<Resource><SubResource>Controller`, e.g. `MediaGenerationController` vs `MediaAnalysisController`). Do not scatter one resource across several controllers.
@@ -271,8 +271,8 @@ All clients live under `orazaka-apps/ui/` — one repository each, linked by the
 - **A fix starts with a failing test** that reproduces the bug; the fix turns it green and the test stays as the guard.
 - **CI runs them on every pull request** (each repository's `component.yml` job, the workspace's full reactor) and must
   be green before merge. A test is never skipped, `@Disabled`, weakened or deleted to get there.
-- **Pyramid**: unit (per module) → integration (**Testcontainers**, `AbstractContainerIntegrationTest`, singleton per JVM, ports via `@DynamicPropertySource`) → **hermetic E2E** (`orazaka-end2end`).
-- **ArchUnit**: `GovernanceTest` validates the ring rules on **every build**. Pre-commit: `./mvnw test -pl sovkora-libs/sovkora-engine/sovkora-core -Dtest=GovernanceTest`.
+- **Pyramid**: unit (per module) → integration (**Testcontainers**, `AbstractContainerIntegrationTest`, singleton per JVM, ports via `@DynamicPropertySource`) → **hermetic E2E** (`e2e/sovkora-e2e`).
+- **ArchUnit**: `GovernanceTest` validates the ring rules on **every build**. Pre-commit: `./mvnw test -pl engine/sovkora-engine-core -Dtest=GovernanceTest`.
 - In the local phase, **hermetic E2E is the quality gate** (no staging/prod). `orazaka test e2e`.
 - Detail: [`.agent/rules/testing_standards.md`](.agent/rules/testing_standards.md).
 

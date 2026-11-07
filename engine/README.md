@@ -31,20 +31,20 @@ part of the [Sovkora platform](https://github.com/krizaka/sovkora) by [Krizaka](
 
 | Module | Tier | Role |
 |:---|:---|:---|
-| `sovkora-core` | SDK | Cognitive engine: `AiClient`, provider mesh (DB-driven routing), agent loop, interceptor contract. Web/DB-agnostic. |
-| `sovkora-adapter-spring-ai` | SDK | The only module meant to depend on Spring AI (ADR-092 §4): the tool registry and structured-output client on top of it; the other ports follow slice by slice. |
-| `sovkora-architecture` | — | No main code: the boundary rules (no Spring AI outside the adapter, no Spring in `core`/`business`) behind a ratchet, `architecture-ratchet.json`. |
-| `sovkora-interceptors` | SDK | Ordered, short-circuitable pipeline: security, token, context, translation, enrichment, validation, governance. |
-| `sovkora-tools` | SDK | MCP client, RAG, sandbox, law retrieval, the `CALL` meters (research, external checks). |
-| `sovkora-business` | Owned | App factory: `Intention` → `UseCase`, deterministic DAG or saga. |
-| `sovkora-persistence-app` | Owned | CQRS persistence of the AI state (chat, jobs, models, configs, outbox). |
-| `sovkora-persistence-bridge` | Owned | Adapters from core outbound ports to persistence-app. |
-| `sovkora-assets` | SDK | Envelope encryption of generated assets. |
-| `sovkora-persistence-app/src/main/resources/db/governance` | — | Interceptor policies (config plane), Flyway: `V1__governance_baseline.sql`, history table `flyway_history_governance` in the shared `orazaka_db`. |
+| `sovkora-engine-core` | SDK | Cognitive engine: `AiClient`, provider mesh (DB-driven routing), agent loop, interceptor contract. Web/DB-agnostic. |
+| `sovkora-engine-springai` | SDK | The only module meant to depend on Spring AI (ADR-092 §4): the tool registry and structured-output client on top of it; the other ports follow slice by slice. |
+| `sovkora-engine-architecture` | — | No main code: the boundary rules (no Spring AI outside the adapter, no Spring in `core`/`business`) behind a ratchet, `architecture-ratchet.json`. |
+| `sovkora-engine-interceptors` | SDK | Ordered, short-circuitable pipeline: security, token, context, translation, enrichment, validation, governance. |
+| `sovkora-engine-tools` | SDK | MCP client, RAG, sandbox, law retrieval, the `CALL` meters (research, external checks). |
+| `sovkora-engine-business` | Owned | App factory: `Intention` → `UseCase`, deterministic DAG or saga. |
+| `sovkora-engine-persistence` | Owned | CQRS persistence of the AI state (chat, jobs, models, configs, outbox). |
+| `sovkora-engine-persistence-bridge` | Owned | Adapters from core outbound ports to persistence-app. |
+| `sovkora-engine-assets` | SDK | Envelope encryption of generated assets. |
+| `sovkora-engine-persistence/src/main/resources/db/governance` | — | Interceptor policies (config plane), Flyway: `V1__governance_baseline.sql`, history table `flyway_history_governance` in the shared `orazaka_db`. |
 | `infra/initdb/60-governance.sql` | — | Local bootstrap pointer only (nothing to create: role and database come from the workspace). |
 
 A host applies the governance schema at startup by setting `orazaka.governance.migrations.enabled: true`: `GovernanceMigrations`
-(`sovkora-persistence-app`) then runs after the host's own Flyway migration, with its migrator connection and settings, and its own
+(`sovkora-engine-persistence`) then runs after the host's own Flyway migration, with its migrator connection and settings, and its own
 history table. The files sit in `db/governance`, outside `db/migration`, so the host's scan never sees them (two `V1` would collide).
 Governance baselines at version `0`: on a shared database where another context already created its tables, the default
 `baseline-on-migrate` at 1 would skip V1.
@@ -57,19 +57,19 @@ Hosts: [sovkora-conversation-service](https://github.com/krizaka/sovkora-convers
 ```xml
 <dependency>
     <groupId>com.krizaka.sovkora</groupId>
-    <artifactId>sovkora-core</artifactId>
+    <artifactId>sovkora-engine-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
 ### Module boundaries (ADR-092 §4, #112)
 
-The engine's domain is pure Java 21. Spring AI is confined to `sovkora-adapter-spring-ai`, which
+The engine's domain is pure Java 21. Spring AI is confined to `sovkora-engine-springai`, which
 implements the ports: inference (`ChatGeneratorClient`), embedding (`EmbeddingClient`), structured
 output (`StructuredOutputClient`) and tools (`ToolRegistry`, results cached through `ToolResultCache`).
-`sovkora-architecture` counts the classes that still break the rules and records them in
+`sovkora-engine-architecture` counts the classes that still break the rules and records them in
 `architecture-ratchet.json`: a new violation fails `mvn verify`, a fixed one never does. Fixed some?
-`./mvnw -pl sovkora-architecture -am test -Darchitecture.ratchet.update=true` lowers the baseline
+`./mvnw -pl sovkora-engine-architecture -am test -Darchitecture.ratchet.update=true` lowers the baseline
 (it never raises it). Every PR of the migration lowers at least one count.
 
 ### Structured output: validated against its schema, self-corrected, bounded (ADR-094 §4.6, #172)
@@ -150,17 +150,17 @@ the generator and generated documentation are not present in this standalone rep
   keyring a token is refused, never stored in clear (#58).
 - **The subject pepper of the external checks is sealed** the same way, in the setting `checks.subject-pepper` of
   `orazaka_runtime_config` (for its own platform scope), never an environment variable. `SealedCheckSubjectPepperAdapter`
-  (`sovkora-persistence-bridge`) opens it at each check; absent, in clear, unopenable or shorter than 32 bytes, it answers
+  (`sovkora-engine-persistence-bridge`) opens it at each check; absent, in clear, unopenable or shorter than 32 bytes, it answers
   empty and no check runs. It is never logged, thrown or printed (`SealedCheckSubjectPepperAdapterTest`), and only that
   adapter and the sealing tool name the setting (`[CHK-001]`). The operator writes it with
-  `java -cp … com.krizaka.sovkora.assets.infrastructure.tool.CheckSubjectPepperTool seal <keyfile>`, which draws 32 random
+  `java -cp … com.krizaka.sovkora.engine.assets.infrastructure.tool.CheckSubjectPepperTool seal <keyfile>`, which draws 32 random
   bytes, seals them and prints the one `INSERT … ON CONFLICT` to run: nobody sees the pepper (krizaka/sovkora-packs#138).
 - **`searchKnowledge`** searches the organisation's knowledge base, not the web (it was called `searchWeb`, #59).
   Searching and reading the web is ADR-087's grounded research.
 
 ## Grounded research: reading a page safely (ADR-087 slice 1)
 
-`PageFetcher` (`sovkora-tools`, `PageFetchService`) reads one page for grounded research through an
+`PageFetcher` (`sovkora-engine-tools`, `PageFetchService`) reads one page for grounded research through an
 administrator-declared `research_source`, with every guard of ADR-087 §4, in order:
 
 1. research on (`research.enabled`) and the source enabled;
@@ -241,7 +241,7 @@ connection pool (ADR-083). Nothing here runs while the setting `law.corpus.enabl
 
 ## Retrieving the law through grounded research, and its cache (ADR-089 §2 and §7, #81)
 
-`LawRetrievalService` (`sovkora-tools`) gives a kind of document the articles it is judged by, as verified claims. The kind's data
+`LawRetrievalService` (`sovkora-engine-tools`) gives a kind of document the articles it is judged by, as verified claims. The kind's data
 names the articles (`targets`, from the pack's `kinds/*.json`) and the question; the engine names none.
 
 1. **Off unless three switches are on**: `law.corpus.enabled`, `research.enabled` and the `law-corpus` research source (all seeded
@@ -268,12 +268,12 @@ names the articles (`targets`, from the pack's `kinds/*.json`) and the question;
 
 The model and the meter come from the grounded-research capability (ADR-087 slice 5, `orazaka.core.research.grounded`) and the run
 budget (ADR-088). Until they are wired the service **fails closed**: no meter means the call is refused (`BUDGET_EXHAUSTED`), no
-model means an error, never an unmetered call. **The meter is `CreditHoldResearchMeter`** (`sovkora-tools`, registered by
+model means an error, never an unmetered call. **The meter is `CreditHoldResearchMeter`** (`sovkora-engine-tools`, registered by
 `CallMeteringAutoConfiguration` wherever a billing `CreditAuthorizationClient` exists): a `RESEARCH` hold priced by the
 pricebook row `(RESEARCH, <provider key>, CALL)`, settled with `calls: 1` under the key `research:<holdId>`, released on a
 failure; insufficient credits are `BUDGET_EXHAUSTED`. The same configuration registers `CreditHoldCheckMeter` for the
 external checks (`EXTERNAL_CHECK`, `model_name` = the connector's provider, key `external-check:<holdId>`). A host without a
-billing client gets neither, and the fallbacks above apply. Only these adapters speak the billing contract in `sovkora-tools`
+billing client gets neither, and the fallbacks above apply. Only these adapters speak the billing contract in `sovkora-engine-tools`
 (`[BILL-001]`), and they never log (`[BILL-002]`). Tests: `LawRetrievalServiceTest` (the golden case: a visit notice brings art. 1931 to
 1933 and no rent article; a cached retrieval makes no model call, asserted on the model port; a changed article recomputes; off by
 default; metering and the budget), `JpaLawRetrievalCacheIT` (JSONB, the stale mark in the same transaction, concurrent saves),
@@ -281,7 +281,7 @@ default; metering and the budget), `JpaLawRetrievalCacheIT` (JSONB, the stale ma
 
 ## Deriving proposed rules from the law: `vet` and `rule_proposal` (ADR-089 §3, #82)
 
-`RuleDerivationService.derive(LawRetrievalRequest)` (`sovkora-tools`) proposes the checks of a kind of document from its law.
+`RuleDerivationService.derive(LawRetrievalRequest)` (`sovkora-engine-tools`) proposes the checks of a kind of document from its law.
 Nothing it proposes judges a document. A proposal becomes a ruleset only through promotion (stage 5, a pull request to sovkora-packs).
 
 1. **`law.derive.max-credits` is 0** (or its row is missing): nothing runs. The result is `DERIVATION_OFF`.

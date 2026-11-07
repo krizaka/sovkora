@@ -8,7 +8,7 @@
         <groupId>com.krizaka.sovkora</groupId>
         <artifactId>sovkora-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../../sovkora-libs/sovkora-build/sovkora-parent/pom.xml</relativePath>
+        <relativePath>../../../build/sovkora-parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>sovkora-job-service</artifactId>
@@ -56,7 +56,7 @@
         </dependency>
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-assets</artifactId>
+            <artifactId>sovkora-engine-assets</artifactId>
         </dependency>
         <dependency>
             <groupId>com.krizaka</groupId>
@@ -103,7 +103,7 @@
         <!-- Cognitive stack (same libraries the monolith bundled — the pipeline runs in-process). -->
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-core</artifactId>
+            <artifactId>sovkora-engine-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.krizaka</groupId>
@@ -118,25 +118,25 @@
         </dependency>
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-tools</artifactId>
+            <artifactId>sovkora-engine-tools</artifactId>
         </dependency>
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-business</artifactId>
+            <artifactId>sovkora-engine-business</artifactId>
         </dependency>
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-persistence-app</artifactId>
+            <artifactId>sovkora-engine-persistence</artifactId>
         </dependency>
         <!-- Bridge: core DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, …)
              implemented against the persistence inbound ports, so the in-process pipeline wires. -->
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-persistence-bridge</artifactId>
+            <artifactId>sovkora-engine-persistence-bridge</artifactId>
         </dependency>
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
-            <artifactId>sovkora-interceptors</artifactId>
+            <artifactId>sovkora-engine-interceptors</artifactId>
         </dependency>
 
         <!-- RabbitMQ AMQP — consumes jobs.media/jobs.text, emits job.{id}.done|error -->

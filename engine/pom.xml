@@ -41,14 +41,14 @@
     </properties>
 
     <modules>
-        <module>sovkora-assets</module>
-        <module>sovkora-persistence-app</module>
-        <module>sovkora-core</module>
-        <module>sovkora-adapter-spring-ai</module>
-        <module>sovkora-interceptors</module>
-        <module>sovkora-tools</module>
-        <module>sovkora-persistence-bridge</module>
-        <module>sovkora-business</module>
-        <module>sovkora-architecture</module>
+        <module>sovkora-engine-assets</module>
+        <module>sovkora-engine-persistence</module>
+        <module>sovkora-engine-core</module>
+        <module>sovkora-engine-springai</module>
+        <module>sovkora-engine-interceptors</module>
+        <module>sovkora-engine-tools</module>
+        <module>sovkora-engine-persistence-bridge</module>
+        <module>sovkora-engine-business</module>
+        <module>sovkora-engine-architecture</module>
     </modules>
 </project>

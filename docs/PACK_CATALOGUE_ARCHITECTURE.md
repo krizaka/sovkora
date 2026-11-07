@@ -421,26 +421,26 @@ two populated categories, on existing execution machinery.
 # Phase 1–2
 MODIFY  infra/initdb/80-studio.sql            (+ pack_category, pack_category_i18n, pack, pack_i18n, pack_studio, seeds)
 MODIFY  infra/initdb/70-billing.sql           (− label/category/profession; billing_pack becomes a price tag)
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-api/.../domain/model/{Pack,PackCategory,PackSummary,RegulatoryClass}.java
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../application/service/PackCatalogService.java
+CREATE  services/studio/sovkora-studio-api/.../domain/model/{Pack,PackCategory,PackSummary,RegulatoryClass}.java
+CREATE  services/studio/sovkora-studio-service/.../application/service/PackCatalogService.java
 CREATE  .../infrastructure/adapter/rest/PackCatalogController.java          (/api/v1/studios/packs)
 CREATE  .../infrastructure/adapter/persistence/JdbcPackRepositoryAdapter.java
 MODIFY  krizaka/krizaka-billing/krizaka-billing-service/.../PackController.java  (narrow to price + entitlements)
-MODIFY  sovkora-libs/sovkora-build/sovkora-test-support/.../GovernanceRules.java          (+ pack/entitlement coherence rule)
+MODIFY  build/sovkora-test-support/.../GovernanceRules.java          (+ pack/entitlement coherence rule)
 MODIFY  <8 services> .../<Service>GovernanceTest.java
 
 # Phase 3 + 5 + 7 — content
 MODIFY  infra/initdb/80-studio.sql            (studio + studio_blueprint + pack_studio rows per pack)
 MODIFY  infra/initdb/70-billing.sql           (billing_pack + billing_pack_entitlement rows)
 MODIFY  infra/initdb/30-jobs-config.sql       (+ orazaka.core.document.validate, phase 5)
-CREATE  sovkora-libs/sovkora-engine/sovkora-business/src/main/resources/prompts/pack/**    (prompt markdown)
+CREATE  engine/sovkora-engine-business/src/main/resources/prompts/pack/**    (prompt markdown)
 
 # Phase 4 — admin
-MODIFY  orazaka-apps/ui/orazaka-web-client/src/console/features/billing/components/{PacksScreen,PackEditor}.tsx
-CREATE  orazaka-apps/ui/orazaka-web-client/src/console/features/catalogue/components/{CategoryEditor,PackStudioPicker,PackI18nEditor}.tsx
+MODIFY  apps/web/src/console/features/billing/components/{PacksScreen,PackEditor}.tsx
+CREATE  apps/web/src/console/features/catalogue/components/{CategoryEditor,PackStudioPicker,PackI18nEditor}.tsx
 
 # Phase 6 — regulatory
-CREATE  sovkora-libs/sovkora-engine/sovkora-interceptors/.../interceptor/validation/SafetyInterceptor.java
+CREATE  engine/sovkora-engine-interceptors/.../interceptor/validation/SafetyInterceptor.java
 CREATE  .../interceptor/validation/ScopeGuardInterceptor.java
 MODIFY  infra/initdb/60-governance.sql        (+ activation predicates for REGULATED packs)
 MODIFY  infra/initdb/80-studio.sql            (+ consent_version, data_class, pack_run_audit + its trigger)
@@ -448,8 +448,8 @@ MODIFY  .../application/service/{StudioInstallationService,BlueprintPublishServi
 CREATE  ADR-036 (internal)
 
 # UI
-MODIFY  orazaka-apps/ui/orazaka-web-client/src/features/billing/components/PackMarketplace.tsx  (group by category)
-CREATE  orazaka-apps/ui/orazaka-web-client/src/features/pack/components/{CategoryShelf,PackCard,ConsentDialog}.tsx
+MODIFY  apps/web/src/features/billing/components/PackMarketplace.tsx  (group by category)
+CREATE  apps/web/src/features/pack/components/{CategoryShelf,PackCard,ConsentDialog}.tsx
 MODIFY  orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/src/schemas/pack.ts
 ```
 

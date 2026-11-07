@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.studio.client;
 
 import com.krizaka.security.token.ServiceTokenProvider;
-import com.krizaka.sovkora.studio.domain.port.StudioCatalogClient;
-import com.krizaka.sovkora.studio.domain.port.StudioRunClient;
-import com.krizaka.sovkora.studio.domain.port.TurnDeclarationClient;
+import com.krizaka.sovkora.studio.api.domain.port.StudioCatalogClient;
+import com.krizaka.sovkora.studio.api.domain.port.StudioRunClient;
+import com.krizaka.sovkora.studio.api.domain.port.TurnDeclarationClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,7 +16,7 @@ import org.springframework.web.client.RestClient;
  * Selects the Studio adapters at bootstrap.
  *
  * <p>The point of the two-bean arrangement: a consumer depends on {@link StudioRunClient} and never
- * learns whether the marketplace is deployed. This is also what lets {@code sovkora-business} host
+ * learns whether the marketplace is deployed. This is also what lets {@code sovkora-engine-business} host
  * a Studio use-case without depending on {@code sovkora-studio-service} — which SEAM-002 forbids,
  * and which is why the Intention path goes through this SDK rather than through the service
  * directly.

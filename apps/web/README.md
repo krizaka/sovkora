@@ -53,7 +53,7 @@ pre-commit install   # once: the gitleaks and zizmor hooks on each commit
 | :------------- | :------------------------------------------------------------ |
 | Depends on     | [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
 | Used by        | _no other Orazaka repository._                                |
-| Workspace path | `orazaka-apps/ui/orazaka-web-client`                          |
+| Workspace path | `apps/web`                          |
 
 ## Build
 

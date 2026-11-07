@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.client;
 
-import com.krizaka.sovkora.studio.domain.model.Studio;
-import com.krizaka.sovkora.studio.domain.port.StudioCatalogClient;
+import com.krizaka.sovkora.studio.api.domain.model.Studio;
+import com.krizaka.sovkora.studio.api.domain.port.StudioCatalogClient;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

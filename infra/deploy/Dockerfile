@@ -67,19 +67,19 @@ RUN echo "core build ${CORE_REBUILD}" \
       -DskipTests -DskipITs=true -Dspotless.check.skip=true -Dexec.skip=true \
       -Dskip.npm=true -Dskip.installnodenpm=true \
       -Dmaven.javadoc.skip=true -Dmaven.source.skip=true -Dgpg.skip=true -Dkrizaka.quality.phase=none \
-      -pl orazaka-apps/services/orazaka-edge,krizaka/krizaka-build/krizaka-users/krizaka-users-service,krizaka/krizaka-build/krizaka-billing/krizaka-billing-service,orazaka-apps/services/orazaka-conversation-service,orazaka-apps/services/orazaka-studio/sovkora-studio-service,orazaka-apps/services/orazaka-job-service,orazaka-apps/services/orazaka-knowledge-service,orazaka-apps/services/orazaka-automation-service \
+      -pl services/edge/sovkora-edge-service,krizaka/krizaka-build/krizaka-users/krizaka-users-service,krizaka/krizaka-build/krizaka-billing/krizaka-billing-service,services/conversation/sovkora-conversation-service,services/studio/sovkora-studio-service,services/job/sovkora-job-service,services/knowledge/sovkora-knowledge-service,services/automation/sovkora-automation-service \
       -am \
  && mkdir -p /out \
- && cp orazaka-apps/services/orazaka-edge/target/sovkora-edge-*[0-9T].jar /out/edge.jar \
+ && cp services/edge/sovkora-edge-service/target/sovkora-edge-*[0-9T].jar /out/edge.jar \
  && cp krizaka/krizaka-build/krizaka-users/krizaka-users-service/target/krizaka-users-service-*[0-9T].jar /out/users.jar \
  && cp krizaka/krizaka-build/krizaka-billing/krizaka-billing-service/target/krizaka-billing-service-*[0-9T].jar /out/billing.jar \
- && cp orazaka-apps/services/orazaka-conversation-service/target/sovkora-conversation-service-*[0-9T].jar /out/conversation.jar \
- && cp orazaka-apps/services/orazaka-studio/sovkora-studio-service/target/sovkora-studio-service-*[0-9T].jar /out/studio.jar \
- && cp orazaka-apps/services/orazaka-job-service/target/sovkora-job-service-*[0-9T].jar /out/job.jar \
- && cp orazaka-apps/services/orazaka-knowledge-service/target/sovkora-knowledge-service-*[0-9T].jar /out/knowledge.jar \
- && cp orazaka-apps/services/orazaka-automation-service/target/sovkora-automation-service-*[0-9T].jar /out/automation.jar \
+ && cp services/conversation/sovkora-conversation-service/target/sovkora-conversation-service-*[0-9T].jar /out/conversation.jar \
+ && cp services/studio/sovkora-studio-service/target/sovkora-studio-service-*[0-9T].jar /out/studio.jar \
+ && cp services/job/sovkora-job-service/target/sovkora-job-service-*[0-9T].jar /out/job.jar \
+ && cp services/knowledge/sovkora-knowledge-service/target/sovkora-knowledge-service-*[0-9T].jar /out/knowledge.jar \
+ && cp services/automation/sovkora-automation-service/target/sovkora-automation-service-*[0-9T].jar /out/automation.jar \
  && cp -r orazaka-packs /out/orazaka-packs \
- && cp -r orazaka-apps/workers/orazaka-worker-media /out/orazaka-worker-media \
+ && cp -r workers/media /out/orazaka-worker-media \
  && find /workspace -type d -name target -prune -exec rm -rf {} + \
  && rm -rf /root/.m2/repository
 # ^ the jars are in /out: the builder snapshots this layer, and with the eighth service its size (every target/ and the

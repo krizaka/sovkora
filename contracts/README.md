@@ -32,7 +32,7 @@ part of the [Sovkora platform](https://github.com/krizaka/sovkora) by [Krizaka](
 | Module | Artifact | Role |
 |:---|:---|:---|
 | `sovkora-jobs-api` | `com.krizaka.sovkora:sovkora-jobs-api` | Job plane contract: job commands/events, lanes, typed failure causes, capability descriptors. |
-| `sovkora-persistence-app-api` | `com.krizaka.sovkora:sovkora-persistence-app-api` | Application-persistence ports & DTOs (chat, jobs, models, configs, outbox) implemented by `sovkora-persistence-app`. |
+| `sovkora-persistence-api` | `com.krizaka.sovkora:sovkora-persistence-api` | Application-persistence ports & DTOs (chat, jobs, models, configs, outbox) implemented by `sovkora-engine-persistence`. |
 
 Domain contracts live with their domain: `krizaka-users-api` in
 [krizaka-users](https://github.com/krizaka/krizaka-build/tree/main/krizaka-users), `krizaka-billing-api` in [krizaka-billing](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing),

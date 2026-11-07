@@ -3,7 +3,7 @@ package com.krizaka.sovkora.crypto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.krizaka.sovkora.assets.infrastructure.adapter.FileMasterKeyProvider;
+import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
 import java.nio.file.Path;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

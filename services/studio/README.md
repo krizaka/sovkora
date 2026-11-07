@@ -40,7 +40,7 @@ part of the [Sovkora platform](https://github.com/krizaka/sovkora) by [Krizaka](
 | Module | Role |
 |:---|:---|
 | `sovkora-studio-api` | Tier-1 contract. |
-| `sovkora-studio-client` | HTTP client used by the engine (`sovkora-business`). |
+| `sovkora-studio-client` | HTTP client used by the engine (`sovkora-engine-business`). |
 | `sovkora-studio-service` | Spring Boot host (port `8096`), transactional outbox to the job plane. |
 | `sovkora-studio-service/src/main/resources/db/migration` | Schema of `orazaka_studio_db`, Flyway: `V1__studio_baseline.sql`, applied at startup (the catalogue content comes from [sovkora-packs](https://github.com/krizaka/sovkora-packs)). |
 | `infra/initdb/80-studio.sql` | Local bootstrap only: the role and the database. |
@@ -51,7 +51,7 @@ part of the [Sovkora platform](https://github.com/krizaka/sovkora) by [Krizaka](
 |:---|:---|
 | Depends on | [`sovkora-build`](https://github.com/krizaka/sovkora-build) · [`sovkora-contracts`](https://github.com/krizaka/sovkora-contracts) · [`krizaka-billing`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing) |
 | Used by | [`sovkora-engine`](https://github.com/krizaka/sovkora-engine) |
-| Workspace path | `orazaka-apps/services/orazaka-studio` |
+| Workspace path | `services/studio` |
 
 ## Build
 
@@ -60,7 +60,7 @@ part of the [Sovkora platform](https://github.com/krizaka/sovkora) by [Krizaka](
 ```bash
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 node scripts/workspace.mjs clone          # clones every repository at its workspace path
-./mvnw -f orazaka-apps/services/orazaka-studio/pom.xml verify
+./mvnw -f services/studio/pom.xml verify
 ```
 
 **Standalone** — upstream artifacts must be in `~/.m2` (built by the workspace) or resolvable from

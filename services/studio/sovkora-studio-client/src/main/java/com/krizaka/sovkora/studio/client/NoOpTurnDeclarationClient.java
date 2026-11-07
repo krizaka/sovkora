@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.client;
 
-import com.krizaka.sovkora.studio.domain.model.TurnDeclarations;
-import com.krizaka.sovkora.studio.domain.port.TurnDeclarationClient;
+import com.krizaka.sovkora.studio.api.domain.model.TurnDeclarations;
+import com.krizaka.sovkora.studio.api.domain.port.TurnDeclarationClient;
 import java.util.Optional;
 import java.util.UUID;
 

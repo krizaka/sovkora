@@ -8,7 +8,7 @@
         <groupId>com.krizaka.sovkora</groupId>
         <artifactId>sovkora-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../../sovkora-libs/sovkora-build/sovkora-parent/pom.xml</relativePath>
+        <relativePath>../../../build/sovkora-parent/pom.xml</relativePath>
     </parent>
 
     <artifactId>sovkora-edge-service</artifactId>

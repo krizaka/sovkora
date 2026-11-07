@@ -6,8 +6,8 @@ The operational boundary between the **Business** and **Core** layers is non-neg
 
 | Layer | Responsibility | Artifacts | Location |
 |:---|:---|:---|:---|
-| **Business** | **"What"** — intentions, rules, policies, business prompts | `WorkflowContext`, `.md` persona templates, interceptor policy sets | `sovkora-libs/sovkora-engine/sovkora-business/` |
-| **Core** | **"How"** — execution mechanics, caching, fallback topology | `DynamicPipelineExecutor`, `.st` engine templates, `PromptContext` state machine | `sovkora-libs/sovkora-engine/sovkora-core/` |
+| **Business** | **"What"** — intentions, rules, policies, business prompts | `WorkflowContext`, `.md` persona templates, interceptor policy sets | `engine/sovkora-engine-business/` |
+| **Core** | **"How"** — execution mechanics, caching, fallback topology | `DynamicPipelineExecutor`, `.st` engine templates, `PromptContext` state machine | `engine/sovkora-engine-core/` |
 | **Router** | Sole translation boundary between hexagons | `WorkflowAdapter` — maps business context to Core infrastructure types | `orazaka-apps/orazaka-router/` |
 
 ## §2 WorkflowContext Contract
@@ -39,7 +39,7 @@ Agents must maintain **100% compliance** with `GovernanceTest` (a.k.a. `GlobalAr
 3. Records are pure data carriers — no loggers, I/O, Spring beans (ERR-135).
 4. Core prompts directory is locked to the foundational engine allow-list (ERR-125).
 
-**Pre-commit verification**: `./mvnw test -pl sovkora-libs/sovkora-engine/sovkora-core -Dtest=GovernanceTest`
+**Pre-commit verification**: `./mvnw test -pl engine/sovkora-engine-core -Dtest=GovernanceTest`
 
 ## §5 Router Translation Namespace
 

@@ -13,12 +13,12 @@
         <groupId>com.krizaka.sovkora</groupId>
         <artifactId>sovkora-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>sovkora-libs/sovkora-build/sovkora-parent/pom.xml</relativePath>
+        <relativePath>build/sovkora-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>sovkora-workspace</artifactId>
+    <artifactId>sovkora-reactor</artifactId>
     <packaging>pom</packaging>
-    <name>sovkora-workspace</name>
+    <name>sovkora-reactor</name>
     <description>Sovkora platform workspace — reactor over every Sovkora repository</description>
     <url>https://github.com/krizaka/sovkora</url>
     <licenses>
@@ -39,7 +39,7 @@
         <!-- Python interpreter used to validate the media worker. Defaults to the
              worker's virtualenv (which carries Pillow/torch/coverage). Override with
              -Dpython.executable=... on hosts that provision Python differently. -->
-        <python.executable>${project.basedir}/orazaka-apps/workers/orazaka-worker-media/.venv/bin/python</python.executable>
+        <python.executable>${project.basedir}/workers/media/.venv/bin/python</python.executable>
 
         <!-- Polyglot (npm / python) test executions follow -DskipTests; CI, which runs the UI and
              worker suites in their own steps, turns them off alone with -Dexec.skip=true. -->
@@ -47,25 +47,25 @@
         <exec.skip>${skipTests}</exec.skip>
 
         <!-- Python and TS/JS Coverage -->
-        <sonar.python.coverage.reportPaths>orazaka-apps/workers/orazaka-worker-media/coverage.xml</sonar.python.coverage.reportPaths>
+        <sonar.python.coverage.reportPaths>workers/media/coverage.xml</sonar.python.coverage.reportPaths>
         <sonar.javascript.lcov.reportPaths>
-            orazaka-apps/ui/orazaka-web-client/coverage/lcov.info,orazaka-apps/ui/orazaka-cli/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
+            apps/web/coverage/lcov.info,apps/cli/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
         <sonar.typescript.lcov.reportPaths>
-            orazaka-apps/ui/orazaka-web-client/coverage/lcov.info,orazaka-apps/ui/orazaka-cli/coverage/lcov.info</sonar.typescript.lcov.reportPaths>
+            apps/web/coverage/lcov.info,apps/cli/coverage/lcov.info</sonar.typescript.lcov.reportPaths>
     </properties>
 
     <modules>
         <module>krizaka/krizaka-build</module>
-        <module>sovkora-libs/sovkora-build</module>
-        <module>sovkora-libs/sovkora-contracts</module>
-        <module>orazaka-apps/services/orazaka-studio</module>
-        <module>sovkora-libs/sovkora-engine</module>
-        <module>orazaka-apps/services/orazaka-conversation-service</module>
-        <module>orazaka-apps/services/orazaka-job-service</module>
-        <module>orazaka-apps/services/orazaka-knowledge-service</module>
-        <module>orazaka-apps/services/orazaka-automation-service</module>
-        <module>orazaka-apps/services/orazaka-edge</module>
-        <module>orazaka-end2end</module>
+        <module>build</module>
+        <module>contracts</module>
+        <module>services/studio</module>
+        <module>engine</module>
+        <module>services/conversation/sovkora-conversation-service</module>
+        <module>services/job/sovkora-job-service</module>
+        <module>services/knowledge/sovkora-knowledge-service</module>
+        <module>services/automation/sovkora-automation-service</module>
+        <module>services/edge/sovkora-edge-service</module>
+        <module>e2e/sovkora-e2e</module>
     </modules>
 
     <build>
@@ -87,7 +87,7 @@
                         </goals>
                         <configuration>
                             <executable>npm</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/ui/orazaka-web-client</workingDirectory>
+                            <workingDirectory>${project.basedir}/apps/web</workingDirectory>
                             <arguments>
                                 <argument>run</argument>
                                 <argument>validate</argument>
@@ -102,7 +102,7 @@
                         </goals>
                         <configuration>
                             <executable>npm</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/ui/orazaka-cli</workingDirectory>
+                            <workingDirectory>${project.basedir}/apps/cli</workingDirectory>
                             <arguments>
                                 <argument>run</argument>
                                 <argument>validate</argument>
@@ -146,7 +146,7 @@
                                 <CI>true</CI>
                             </environmentVariables>
                             <arguments>
-                                <argument>orazaka-apps/ui/orazaka-cli/dist/index.js</argument>
+                                <argument>apps/cli/dist/index.js</argument>
                                 <argument>doctor</argument>
                                 <argument>--quiet</argument>
                             </arguments>
@@ -160,7 +160,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>coverage</argument>
@@ -177,7 +177,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>pytest</argument>
@@ -196,7 +196,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>pytest</argument>
@@ -216,7 +216,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>pytest</argument>
@@ -234,7 +234,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>pytest</argument>
@@ -268,7 +268,7 @@
                         </goals>
                         <configuration>
                             <executable>${python.executable}</executable>
-                            <workingDirectory>${project.basedir}/orazaka-apps/workers/orazaka-worker-media</workingDirectory>
+                            <workingDirectory>${project.basedir}/workers/media</workingDirectory>
                             <arguments>
                                 <argument>-m</argument>
                                 <argument>coverage</argument>
@@ -285,7 +285,7 @@
                 <inherited>false</inherited>
                 <configuration>
                     <properties>
-                        <sonar.sources>pom.xml,orazaka-apps/ui/orazaka-web-client,orazaka-apps/ui/orazaka-cli,orazaka-apps/workers/orazaka-worker-media</sonar.sources>
+                        <sonar.sources>pom.xml,apps/web,apps/cli,workers/media</sonar.sources>
                         <sonar.test.inclusions>
                             **/__tests__/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx,**/test_main.py</sonar.test.inclusions>
                         <sonar.exclusions>${sonar.exclusions}</sonar.exclusions>

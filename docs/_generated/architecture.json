@@ -413,8 +413,8 @@
       }
     },
     {
-      "id": "sovkora-adapter-spring-ai",
-      "path": "sovkora-libs/sovkora-engine/sovkora-adapter-spring-ai",
+      "id": "sovkora-engine-springai",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-springai",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "adapter",
@@ -428,8 +428,8 @@
       }
     },
     {
-      "id": "sovkora-architecture",
-      "path": "sovkora-libs/sovkora-engine/sovkora-architecture",
+      "id": "sovkora-engine-architecture",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-architecture",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "adapter",
@@ -443,8 +443,8 @@
       }
     },
     {
-      "id": "sovkora-assets",
-      "path": "sovkora-libs/sovkora-engine/sovkora-assets",
+      "id": "sovkora-engine-assets",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-assets",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "adapter",
@@ -473,8 +473,8 @@
       }
     },
     {
-      "id": "sovkora-persistence-app",
-      "path": "sovkora-libs/sovkora-engine/sovkora-persistence-app",
+      "id": "sovkora-engine-persistence",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-persistence",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "adapter",
@@ -488,15 +488,15 @@
       }
     },
     {
-      "id": "sovkora-persistence-bridge",
-      "path": "sovkora-libs/sovkora-engine/sovkora-persistence-bridge",
+      "id": "sovkora-engine-persistence-bridge",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-persistence-bridge",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
       "version": "1.0.0-SNAPSHOT",
-      "description": "Platform bridge library: package-private @Service adapters that implement the core's DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider, PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository, CheckSubjectPepper) by delegating to the sovkora-persistence-app-api inbound ports. Bundled by every service that runs the cognitive pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.sovkora component scan — no HTTP surface, no entrypoint.",
+      "description": "Platform bridge library: package-private @Service adapters that implement the core's DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider, PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository, CheckSubjectPepper) by delegating to the sovkora-persistence-api inbound ports. Bundled by every service that runs the cognitive pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.sovkora component scan — no HTTP surface, no entrypoint.",
       "ports": {
         "inbound": [],
         "outbound": []
@@ -623,8 +623,8 @@
       }
     },
     {
-      "id": "sovkora-business",
-      "path": "sovkora-libs/sovkora-engine/sovkora-business",
+      "id": "sovkora-engine-business",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-business",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "application",
@@ -638,8 +638,8 @@
       }
     },
     {
-      "id": "sovkora-interceptors",
-      "path": "sovkora-libs/sovkora-engine/sovkora-interceptors",
+      "id": "sovkora-engine-interceptors",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-interceptors",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "application",
@@ -653,8 +653,8 @@
       }
     },
     {
-      "id": "sovkora-tools",
-      "path": "sovkora-libs/sovkora-engine/sovkora-tools",
+      "id": "sovkora-engine-tools",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-tools",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "application",
@@ -668,8 +668,8 @@
       }
     },
     {
-      "id": "sovkora-core",
-      "path": "sovkora-libs/sovkora-engine/sovkora-core",
+      "id": "sovkora-engine-core",
+      "path": "sovkora-libs/sovkora-engine/sovkora-engine-core",
       "repository": "orazaka-ai-engine",
       "owner": "orazaka",
       "role": "domain",
@@ -809,8 +809,8 @@
       }
     },
     {
-      "id": "sovkora-persistence-app-api",
-      "path": "sovkora-libs/sovkora-contracts/sovkora-persistence-app-api",
+      "id": "sovkora-persistence-api",
+      "path": "sovkora-libs/sovkora-contracts/sovkora-persistence-api",
       "repository": "orazaka-contracts",
       "owner": "orazaka",
       "role": "contract",
@@ -1294,35 +1294,35 @@
       "to": "krizaka-web"
     },
     {
-      "from": "sovkora-adapter-spring-ai",
-      "to": "sovkora-business"
+      "from": "sovkora-engine-springai",
+      "to": "sovkora-engine-business"
     },
     {
-      "from": "sovkora-adapter-spring-ai",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-springai",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-architecture",
-      "to": "sovkora-adapter-spring-ai"
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-springai"
     },
     {
-      "from": "sovkora-architecture",
-      "to": "sovkora-business"
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-business"
     },
     {
-      "from": "sovkora-architecture",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-architecture",
-      "to": "sovkora-interceptors"
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-interceptors"
     },
     {
-      "from": "sovkora-architecture",
-      "to": "sovkora-tools"
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-tools"
     },
     {
-      "from": "sovkora-assets",
+      "from": "sovkora-engine-assets",
       "to": "sovkora-crypto"
     },
     {
@@ -1339,18 +1339,18 @@
     },
     {
       "from": "sovkora-automation-service",
-      "to": "sovkora-assets"
+      "to": "sovkora-engine-assets"
     },
     {
-      "from": "sovkora-business",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-business",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-business",
+      "from": "sovkora-engine-business",
       "to": "sovkora-studio-api"
     },
     {
-      "from": "sovkora-business",
+      "from": "sovkora-engine-business",
       "to": "sovkora-studio-client"
     },
     {
@@ -1387,19 +1387,19 @@
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-assets"
+      "to": "sovkora-engine-assets"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-business"
+      "to": "sovkora-engine-business"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-core"
+      "to": "sovkora-engine-core"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-interceptors"
+      "to": "sovkora-engine-interceptors"
     },
     {
       "from": "sovkora-conversation-service",
@@ -1407,11 +1407,11 @@
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-persistence-app"
+      "to": "sovkora-engine-persistence"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-persistence-bridge"
+      "to": "sovkora-engine-persistence-bridge"
     },
     {
       "from": "sovkora-conversation-service",
@@ -1419,34 +1419,34 @@
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-tools"
+      "to": "sovkora-engine-tools"
     },
     {
-      "from": "sovkora-core",
+      "from": "sovkora-engine-core",
       "to": "krizaka-security"
     },
     {
-      "from": "sovkora-core",
-      "to": "sovkora-persistence-app-api"
+      "from": "sovkora-engine-core",
+      "to": "sovkora-persistence-api"
     },
     {
       "from": "sovkora-edge-service",
       "to": "krizaka-security"
     },
     {
-      "from": "sovkora-interceptors",
+      "from": "sovkora-engine-interceptors",
       "to": "krizaka-billing-api"
     },
     {
-      "from": "sovkora-interceptors",
-      "to": "sovkora-adapter-spring-ai"
+      "from": "sovkora-engine-interceptors",
+      "to": "sovkora-engine-springai"
     },
     {
-      "from": "sovkora-interceptors",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-interceptors",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-interceptors",
+      "from": "sovkora-engine-interceptors",
       "to": "sovkora-jobs-api"
     },
     {
@@ -1471,19 +1471,19 @@
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-assets"
+      "to": "sovkora-engine-assets"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-business"
+      "to": "sovkora-engine-business"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-core"
+      "to": "sovkora-engine-core"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-interceptors"
+      "to": "sovkora-engine-interceptors"
     },
     {
       "from": "sovkora-job-service",
@@ -1491,15 +1491,15 @@
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-persistence-app"
+      "to": "sovkora-engine-persistence"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-persistence-bridge"
+      "to": "sovkora-engine-persistence-bridge"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-tools"
+      "to": "sovkora-engine-tools"
     },
     {
       "from": "sovkora-knowledge-service",
@@ -1510,36 +1510,36 @@
       "to": "krizaka-security"
     },
     {
-      "from": "sovkora-persistence-app",
+      "from": "sovkora-engine-persistence",
       "to": "krizaka-messaging"
     },
     {
-      "from": "sovkora-persistence-app",
+      "from": "sovkora-engine-persistence",
       "to": "sovkora-crypto"
     },
     {
-      "from": "sovkora-persistence-app",
+      "from": "sovkora-engine-persistence",
       "to": "sovkora-jobs-api"
     },
     {
-      "from": "sovkora-persistence-app",
-      "to": "sovkora-persistence-app-api"
+      "from": "sovkora-engine-persistence",
+      "to": "sovkora-persistence-api"
     },
     {
-      "from": "sovkora-persistence-app-api",
+      "from": "sovkora-persistence-api",
       "to": "sovkora-jobs-api"
     },
     {
-      "from": "sovkora-persistence-bridge",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-persistence-bridge",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-persistence-bridge",
+      "from": "sovkora-engine-persistence-bridge",
       "to": "sovkora-crypto"
     },
     {
-      "from": "sovkora-persistence-bridge",
-      "to": "sovkora-persistence-app-api"
+      "from": "sovkora-engine-persistence-bridge",
+      "to": "sovkora-persistence-api"
     },
     {
       "from": "sovkora-studio-api",
@@ -1582,16 +1582,16 @@
       "to": "sovkora-studio-api"
     },
     {
-      "from": "sovkora-tools",
+      "from": "sovkora-engine-tools",
       "to": "krizaka-billing-api"
     },
     {
-      "from": "sovkora-tools",
-      "to": "sovkora-adapter-spring-ai"
+      "from": "sovkora-engine-tools",
+      "to": "sovkora-engine-springai"
     },
     {
-      "from": "sovkora-tools",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-tools",
+      "to": "sovkora-engine-core"
     }
   ],
   "flows": [
@@ -2125,7 +2125,7 @@
         "exchange": "orazaka.events",
         "binding": "job.#",
         "dlq": "orazaka.events.job-relay.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.events.studio",
@@ -2167,14 +2167,14 @@
         "exchange": "orazaka.jobs",
         "binding": "job.media.generate",
         "dlq": "orazaka.jobs.batch.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.jobs.interactive",
         "exchange": "orazaka.jobs",
         "binding": "job.text.*, job.media.analyze",
         "dlq": "orazaka.jobs.interactive.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.jobs.rag",
@@ -2188,7 +2188,7 @@
         "exchange": "orazaka.jobs",
         "binding": "job.video.*",
         "dlq": "orazaka.jobs.video.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       }
     ],
     "producers": [
@@ -2273,7 +2273,7 @@
         "routingKey": "job.{…}.progress"
       },
       {
-        "module": "sovkora-persistence-bridge",
+        "module": "sovkora-engine-persistence-bridge",
         "exchange": "orazaka.events",
         "routingKey": "evt.control.verdict"
       },

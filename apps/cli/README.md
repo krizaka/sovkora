@@ -89,7 +89,7 @@ Prose inputs with commas go through a file: `orazaka studio run <installation> -
 | :------------- | :---------------------------------------------------------- |
 | Depends on     | _none — this repository is a root of the dependency graph._ |
 | Used by        | _no other Orazaka repository._                              |
-| Workspace path | `orazaka-apps/ui/orazaka-cli`                               |
+| Workspace path | `apps/cli`                               |
 
 ## Build
 

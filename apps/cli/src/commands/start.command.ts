@@ -396,7 +396,7 @@ export const startCommand = new Command("start")
           await logSuccess(`✔ Media Worker already active on port ${String(mediaWorkerPort)}`);
           startedServices.push("Media Worker");
         } else {
-          // Native Python media worker: orazaka-apps/workers/orazaka-worker-media
+          // Native Python media worker: workers/media
           const mediaWorkerDir = path.join(workspaceRoot, "orazaka-apps", "workers", "orazaka-worker-media");
           const mainPy = path.join(mediaWorkerDir, "app", "main.py");
           const pythonCmd = resolveMediaWorkerPython(workspaceRoot);
@@ -477,7 +477,7 @@ export const startCommand = new Command("start")
           } else {
             await logWarning(
               "⚠ Router JAR not found. Build first:\n" +
-                `  ${chalk.gray("./mvnw clean package -pl orazaka-apps/services/orazaka-conversation-service -am -DskipTests")}`,
+                `  ${chalk.gray("./mvnw clean package -pl services/conversation/sovkora-conversation-service -am -DskipTests")}`,
             );
           }
         }

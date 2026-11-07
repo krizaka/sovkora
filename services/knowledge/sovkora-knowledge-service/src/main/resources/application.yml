@@ -79,7 +79,7 @@ logging:
       total-size-cap: 10MB
       max-history: 7
   level:
-    com.krizaka.sovkora.knowledgeservice: DEBUG
+    com.krizaka.sovkora.knowledge: DEBUG
     org.springframework.amqp: INFO
 
 # ── Sovkora — service-owned wiring ────────────────────────────────────────────

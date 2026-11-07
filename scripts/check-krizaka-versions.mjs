@@ -27,7 +27,7 @@ export async function check() {
     if (existsSync(join(ROOT, r.path))) builtArtifacts(join(ROOT, r.path), built);
   }
   const bom = read("krizaka/krizaka-build/krizaka-bom/pom.xml");
-  const parent = read("sovkora-libs/sovkora-build/sovkora-parent/pom.xml");
+  const parent = read("build/sovkora-parent/pom.xml");
   if (!bom || !parent) return [];
   const credentials = { credential: process.env.PACKAGES_READ_CREDENTIAL, actor: process.env.GITHUB_ACTOR };
   return unprovided(claims({ bom, parent, built }), (c) => onRegistry(c, credentials));

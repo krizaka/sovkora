@@ -21,14 +21,14 @@ workflow deliberately corrects the design document and says so.**
 2. Load `.agent/rules/testing_standards.md`, `messaging_standards.md`.
 3. Read `docs/UNIFIED_PACK_SURFACE.md` §1, §4, §5 in full.
 4. Read, **before writing anything**:
-   - `orazaka-apps/services/orazaka-studio/sovkora-studio-service/…/application/service/RunSagaService.java` —
+   - `services/studio/sovkora-studio-service/…/application/service/RunSagaService.java` —
      specifically `advance` (line ~292), `advanceLater` (~658), and every `jdbcTemplate` call on the
      path from run creation to first dispatch
-   - `orazaka-apps/services/orazaka-studio/sovkora-studio-service/…/adapter/rest/StudioRunController.java` —
+   - `services/studio/sovkora-studio-service/…/adapter/rest/StudioRunController.java` —
      `POST /installations/{installationId}/runs` is door 2's entry
-   - `orazaka-apps/services/orazaka-conversation-service/…/adapter/rest/MediaGenerationController.java`
+   - `services/conversation/sovkora-conversation-service/…/adapter/rest/MediaGenerationController.java`
      — `POST /api/v1/media/generation/{image,speech,video}` is door 1's entry
-   - `orazaka-apps/services/orazaka-studio/sovkora-studio-service/src/test/java/…/StudioRunLifecycleIT.java` —
+   - `services/studio/sovkora-studio-service/src/test/java/…/StudioRunLifecycleIT.java` —
      **this is the harness you extend. Do not build a second one.**
 
 ## §1 Scope of THIS run — M0 only
@@ -131,12 +131,12 @@ everything else, and it must be the headline of the report.
 
 ```
 # ── the measurement harness (test scope only) ──────────────────────────────
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/src/test/java/.../RunOverheadMeasurementIT.java
+CREATE  services/studio/sovkora-studio-service/src/test/java/.../RunOverheadMeasurementIT.java
           segments A and B, both doors, ≥30 samples against a neutralised executor (§4.1)
           + ≥10 samples against the real path (§4.2)
 CREATE  <test scope> a statement-counting DataSource/JdbcTemplate decorator      (§4.3)
           — reuse an existing test utility if one exists; search before creating
-MODIFY  orazaka-apps/services/orazaka-studio/sovkora-studio-service/src/test/java/.../StudioRunLifecycleIT.java
+MODIFY  services/studio/sovkora-studio-service/src/test/java/.../StudioRunLifecycleIT.java
           only if its fixtures must be extracted to be shared. Prefer extracting to a
           test fixture class over duplicating, and do not change what it asserts.
 

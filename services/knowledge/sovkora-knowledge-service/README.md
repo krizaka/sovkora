@@ -41,7 +41,7 @@ creates the role, the database and the `vector` extension for the local compose.
 |:---|:---|
 | Depends on | [`sovkora-build`](https://github.com/krizaka/sovkora-build) |
 | Used by | _no other Sovkora repository._ |
-| Workspace path | `orazaka-apps/services/orazaka-knowledge-service` |
+| Workspace path | `services/knowledge/sovkora-knowledge-service` |
 
 ## Build
 
@@ -50,7 +50,7 @@ creates the role, the database and the `vector` extension for the local compose.
 ```bash
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 node scripts/workspace.mjs clone          # clones every repository at its workspace path
-./mvnw -f orazaka-apps/services/orazaka-knowledge-service/pom.xml verify
+./mvnw -f services/knowledge/sovkora-knowledge-service/pom.xml verify
 ```
 
 **Standalone** — upstream artifacts must be in `~/.m2` (built by the workspace) or resolvable from

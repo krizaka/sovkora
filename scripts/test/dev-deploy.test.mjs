@@ -368,7 +368,7 @@ test("the research tables (ADR-087 slice 1) are additive, idempotent, off by def
   assert.ok(sql.includes("final_url      TEXT        NOT NULL"));
   assert.ok(sql.includes("('research.max-calls', '16', 'int'"));
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   // (Checked when the workspace holds a job-service checkout that already carries the block — orazaka-job-service#65.)
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- GROUNDED RESEARCH \(ADR-087[\s\S]*?ON CONFLICT \(source_key\) DO NOTHING;/)
@@ -406,7 +406,7 @@ test("the law corpus (ADR-089 cut 2) is additive, idempotent, every switch off, 
   assert.match(sql, /IF NOT EXISTS \(SELECT 1 FROM information_schema\.columns\s+WHERE table_name = 'law_retrieval' AND column_name = 'language'\) THEN\s+ALTER TABLE law_retrieval ADD COLUMN language VARCHAR\(2\) NOT NULL CHECK \(language IN \('fr','en'\)\);/);
   assert.match(sql, /ALTER TABLE law_retrieval ADD PRIMARY KEY \(jurisdiction, kind_id, language, as_of_bucket\);/);
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- LAW CORPUS \(ADR-089[\s\S]*?ON CONFLICT \(source_key\) DO NOTHING;/)
     : null;
@@ -448,7 +448,7 @@ test("the external checks (orazaka-packs#138) are additive, idempotent, fail clo
   // Nothing is deleted or rewritten; the only DROPs are the IF EXISTS of a constraint or trigger replaced by name.
   assert.doesNotMatch(code.replace(/DROP (CONSTRAINT|TRIGGER) IF EXISTS/g, "").replace("BEFORE UPDATE ON", ""), /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   // (Checked when the workspace holds a job-service checkout that already carries the block — orazaka-job-service#74.)
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- EXTERNAL CHECKS \(orazaka-packs#138[\s\S]*?ON CONFLICT \(feature_key\) DO NOTHING;/)
@@ -518,7 +518,7 @@ test("the automation migration is idempotent, extends the rule set without repla
 });
 
 test("the automations migration is the model part of the service's Flyway V1 baseline (no drift) — judged when the service is cloned", (t) => {
-  const initdb = new URL("../../orazaka-apps/services/orazaka-automation-service/src/main/resources/db/migration/V1__automation_baseline.sql", import.meta.url);
+  const initdb = new URL("../../services/automation/sovkora-automation-service/src/main/resources/db/migration/V1__automation_baseline.sql", import.meta.url);
   if (!existsSync(initdb)) return t.skip("orazaka-automation-service is not cloned here");
   const marker = "-- ─────────────────────────────────────────────────────────────────────────────\n-- THE AUTOMATION MODEL";
   const bootstrap = readFileSync(initdb, "utf8");
@@ -608,7 +608,7 @@ test("the semantic cache (orazaka-ai-engine#40) is additive, idempotent, OFF on 
   assert.doesNotMatch(code, /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   assert.doesNotMatch(code, /^\\c /m, "the command connects to orazaka_db itself");
   // The same table as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   const table = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/CREATE TABLE IF NOT EXISTS semantic_cache_entry \([\s\S]*?USING hnsw \(embedding vector_cosine_ops\);/)
     : null;

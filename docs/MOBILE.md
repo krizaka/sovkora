@@ -1,7 +1,7 @@
 # 📱 Mobile — the Orazaka app for iOS and Android
 
 The app is [`krizaka/orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client): Expo SDK 53, React
-Native 0.79, React Navigation, cloned in the workspace at `orazaka-apps/ui/orazaka-mobile-client`. It talks to the
+Native 0.79, React Navigation, cloned in the workspace at `apps/mobile`. It talks to the
 **edge** (`:8088`) with `Authorization: Bearer` — the same services, the same interceptor pipeline and the same
 entitlements as the web client.
 
@@ -105,7 +105,7 @@ orazaka dev --only edge,identity,studio,job,billing,router
 orazaka demo seed                      # the demo persona (local only)
 
 # 2. The app
-cd orazaka-apps/ui/orazaka-mobile-client
+cd apps/mobile
 npx expo run:ios                       # prebuild, pods, build, install, Metro
 ```
 

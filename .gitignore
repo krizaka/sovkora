@@ -96,7 +96,7 @@ out/
 # Audio and video files
 *.wav
 # The voice turn's e2e fixture is synthesised, not recorded (ADR-076).
-!orazaka-end2end/src/test/resources/voice/*.wav
+!e2e/sovkora-e2e/src/test/resources/voice/*.wav
 *.mp3
 *.aac
 *.m4a
@@ -190,19 +190,19 @@ result/
 # list in orazaka.workspace.json, cloned by: node scripts/workspace.mjs clone)
 # ─────────────────────────────────────────────────────────────────────
 /krizaka/
-/sovkora-libs/sovkora-build/
-/sovkora-libs/sovkora-contracts/
-/orazaka-apps/services/orazaka-studio/
-/sovkora-libs/sovkora-engine/
-/orazaka-apps/services/orazaka-conversation-service/
-/orazaka-apps/services/orazaka-job-service/
-/orazaka-apps/services/orazaka-knowledge-service/
-/orazaka-apps/services/orazaka-automation-service/
-/orazaka-apps/services/orazaka-edge/
-/orazaka-apps/workers/orazaka-worker-media/
+/build/
+/contracts/
+/services/studio/
+/engine/
+/services/conversation/sovkora-conversation-service/
+/services/job/sovkora-job-service/
+/services/knowledge/sovkora-knowledge-service/
+/services/automation/sovkora-automation-service/
+/services/edge/sovkora-edge-service/
+/workers/media/
 /orazaka-apps/ui/orazaka-ui-kit/
-/orazaka-apps/ui/orazaka-web-client/
-/orazaka-apps/ui/orazaka-mobile-client/
-/orazaka-apps/ui/orazaka-cli/
+/apps/web/
+/apps/mobile/
+/apps/cli/
 /orazaka-packs/
 /orazaka-apps/ui/node_modules/

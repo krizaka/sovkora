@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.crypto;
 
-import com.krizaka.sovkora.assets.domain.port.MasterKeyProvider;
-import com.krizaka.sovkora.assets.domain.port.MasterKeyProvider.WrappedKey;
-import com.krizaka.sovkora.assets.domain.port.MasterKeyUnavailableException;
+import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
+import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider.WrappedKey;
+import com.krizaka.sovkora.crypto.domain.port.MasterKeyUnavailableException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;

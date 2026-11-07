@@ -14,16 +14,16 @@ WORKDIR /app
 
 # Copy configuration and source files. The reactor aggregator (pom.xml) references
 # every module, so the sibling modules must exist for reactor construction even
-# though `-pl orazaka-apps/services/orazaka-conversation-service -am` only builds
+# though `-pl services/conversation/sovkora-conversation-service -am` only builds
 # the service + its dependencies.
 COPY pom.xml .
 COPY orazaka-libs orazaka-libs
-COPY orazaka-apps/services/orazaka-conversation-service orazaka-apps/services/orazaka-conversation-service
+COPY services/conversation/sovkora-conversation-service services/conversation/sovkora-conversation-service
 COPY orazaka-apps/workers orazaka-apps/workers
-COPY sovkora-end2end sovkora-end2end
+COPY sovkora-e2e sovkora-e2e
 
 # Compile the conversation-service module and its local orazaka-libs dependencies
-RUN mvn clean package -pl orazaka-apps/services/orazaka-conversation-service -am -DskipTests
+RUN mvn clean package -pl services/conversation/sovkora-conversation-service -am -DskipTests
 
 # ── Runtime Stage ────────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-alpine@sha256:b48e02e0ea88d7bfb305335df94923bdef394905f4147dccd52e873cf17b1088
@@ -42,7 +42,7 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Copy executable jar from builder stage
-COPY --from=builder /app/orazaka-apps/services/orazaka-conversation-service/target/sovkora-conversation-service-*.jar app.jar
+COPY --from=builder /app/services/conversation/sovkora-conversation-service/target/sovkora-conversation-service-*.jar app.jar
 
 # Enforce secure ownership on workspace files
 RUN chown -R sovkora:sovkora /app

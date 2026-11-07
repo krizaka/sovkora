@@ -42,7 +42,7 @@ startup; `infra/initdb/50-automation.sql` only creates the role and the database
 |:---|:---|
 | Depends on | [`sovkora-build`](https://github.com/krizaka/sovkora-build) · [`krizaka-billing`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing) |
 | Used by | _no other Sovkora repository._ |
-| Workspace path | `orazaka-apps/services/orazaka-automation-service` |
+| Workspace path | `services/automation/sovkora-automation-service` |
 
 ## Build
 
@@ -51,7 +51,7 @@ startup; `infra/initdb/50-automation.sql` only creates the role and the database
 ```bash
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 node scripts/workspace.mjs clone          # clones every repository at its workspace path
-./mvnw -f orazaka-apps/services/orazaka-automation-service/pom.xml verify
+./mvnw -f services/automation/sovkora-automation-service/pom.xml verify
 ```
 
 **Standalone** — upstream artifacts must be in `~/.m2` (built by the workspace) or resolvable from

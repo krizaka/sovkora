@@ -19,7 +19,7 @@ Design context: [`docs/UNIFIED_PACK_SURFACE.md`](../../docs/UNIFIED_PACK_SURFACE
 4. Read, **before writing anything**:
    - the `SecurityProperties` fix that closed `disable-ai`, and the orchestration config type you
      found — **side by side. What they share is the anchor for §3.**
-   - `sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/{GovernanceRules,SourceFileScanner,MeteringMarkerRules,PackCoherenceRules}.java`
+   - `build/sovkora-test-support/.../architecture/{GovernanceRules,SourceFileScanner,MeteringMarkerRules,PackCoherenceRules}.java`
      — the scanner you reuse and never rewrite
    - `krizaka/krizaka-billing/krizaka-billing-api/.../model/ConsumptionReport.java` — `quantityFor`,
      `megapixelSteps`, and **every caller that constructs a report**

@@ -81,7 +81,7 @@ description: ARCHITECTURAL REVIEW GATE & REJECTION CRITERIA
 2. Format: `mvn spotless:apply` or `npm run format`.
 3. Static scan: `mvn spotless:check` or `npm run lint`.
 4. Compile: `mvn clean compile -pl orazaka-apps/orazaka-router -am`.
-5. Architecture gate: `./mvnw test -pl sovkora-libs/sovkora-engine/sovkora-core -Dtest=GovernanceTest` (ArchUnit ring rules).
+5. Architecture gate: `./mvnw test -pl engine/sovkora-engine-core -Dtest=GovernanceTest` (ArchUnit ring rules).
 6. Test: `mvn test -q` or `npm test`.
 7. **Sonar — DEFERRED in the local phase** (AGENTS.md §0: 100% local, no cloud/CI). `./mvnw verify sonar:sonar`
    is **not** part of the local gate; the SonarQube rules in §3 are kept as the *target* quality bar for the

@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.client;
 
-import com.krizaka.sovkora.studio.domain.model.Run;
-import com.krizaka.sovkora.studio.domain.port.StudioRunClient;
+import com.krizaka.sovkora.studio.api.domain.model.Run;
+import com.krizaka.sovkora.studio.api.domain.port.StudioRunClient;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;

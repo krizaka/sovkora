@@ -3,7 +3,7 @@
 > This repository is one component of the **Sovkora platform**. The normative contract is
 > [`AGENTS.md`](https://github.com/krizaka/sovkora/blob/main/AGENTS.md) at the root of the Sovkora workspace
 > ([`krizaka/sovkora`](https://github.com/krizaka/sovkora)), together with its `.agent/rules/*`. When this repository
-> is cloned inside the workspace (`orazaka-apps/services/orazaka-conversation-service`), that contract is loaded first and applies
+> is cloned inside the workspace (`services/conversation/sovkora-conversation-service`), that contract is loaded first and applies
 > without exception. **No rule lives here** — this file only scopes it.
 
 ## Scope of this repository
@@ -11,7 +11,7 @@
 - **Role:** Interactive ingress of the Sovkora engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic.
 - **Layer:** Sovkora AI engine
 - **Depends on:** sovkora-build, sovkora-contracts, krizaka-users, krizaka-billing, sovkora-engine — never on another repository's Tier-3 implementation (AGENTS.md §2, [SEAM-002]).
-- **Workspace path:** `orazaka-apps/services/orazaka-conversation-service`
+- **Workspace path:** `services/conversation/sovkora-conversation-service`
 
 ## Static rules & codemods (OpenRewrite, ArchUnit)
 
@@ -39,7 +39,7 @@ The org code rules (addendum 2026-10-15) are checked by tools, not by review.
 
 1. `./mvnw verify` is green (unit + Testcontainers ITs + this repository's `*GovernanceTest`).
 2. Inside the workspace, the cross-repository rules are green as well
-   (`./mvnw -f orazaka-apps/services/orazaka-conversation-service/pom.xml verify` from the workspace root).
+   (`./mvnw -f services/conversation/sovkora-conversation-service/pom.xml verify` from the workspace root).
 3. Spotless (google-java-format) passes — it is bound to `validate`.
 4. The change ships with its tests — a unit test for logic, a Testcontainers integration test for an adapter, an
    endpoint or a flow; a fix starts with a failing test that reproduces the bug. CI runs them and must be green; no

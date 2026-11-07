@@ -7,8 +7,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.krizaka.sovkora.studio.domain.exception.TurnConsentRequiredException;
-import com.krizaka.sovkora.studio.domain.model.TurnDeclarations;
+import com.krizaka.sovkora.studio.api.domain.exception.TurnConsentRequiredException;
+import com.krizaka.sovkora.studio.api.domain.model.TurnDeclarations;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;

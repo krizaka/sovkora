@@ -389,7 +389,7 @@ Each service then declares *what differs* — its context name, its queue bindin
 rest. Tier-2 discipline applies: it changes rarely and never breaks compatibility.
 
 **Do not put `JobCommand` here.** It is a wire contract between two bounded contexts and belongs in
-a Tier-1 module (`sovkora-libs/sovkora-contracts/sovkora-jobs-api`). Two owners for one wire format is how
+a Tier-1 module (`contracts/sovkora-jobs-api`). Two owners for one wire format is how
 a producer adds a field the consumer silently drops.
 
 **Expected effect**: ~1 500 lines deleted, one place to fix a security rule, and new services start
@@ -413,7 +413,7 @@ from ~200 lines of genuine domain code instead of ~600 with 400 copied.
 | 10 | 🟠 | `RunSagaService` does six jobs (612 lines, 25 methods) | `RunSagaService.java` |
 | 11 | 🟠 | ~1 500 lines duplicated across services | §5.1 table |
 | 12 | 🟡 | `PathResolver` walk-up heuristic breaks in containers | 2× `PathResolver.java` |
-| 13 | ✅ | ~~No encryption at rest~~ — **closed** by ADR-054: envelope encryption, per-file data key, master key outside `.env`, 379 files migrated and verified | `MASTER_FEATURES.md` COMP-05 · `sovkora-libs/sovkora-engine/sovkora-assets` · commit `2b41a478` |
+| 13 | ✅ | ~~No encryption at rest~~ — **closed** by ADR-054: envelope encryption, per-file data key, master key outside `.env`, 379 files migrated and verified | `MASTER_FEATURES.md` COMP-05 · `engine/sovkora-engine-assets` · commit `2b41a478` |
 | 14 | 🟡 | Ambiguous asset resolution (`matches[0]`) | `AssetFileResolver.java` |
 | 15 | 🟡 | `MediaFileStore` lacks path containment check | 2× `MediaFileStore.java` |
 | 16 | 🟡 | `.tsx` 250-line rule violated by registries | `icon.tsx:841` |

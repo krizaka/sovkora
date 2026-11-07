@@ -43,7 +43,7 @@ procedures, working malware, or anything that enables serious harm. [See the ans
 
 This repository is the entry point of the Orazaka platform. It holds the governance contract
 ([AGENTS.md](AGENTS.md)), the workspace manifest ([`orazaka.workspace.json`](orazaka.workspace.json)),
-the local infrastructure (`infra/`), the hermetic end-to-end suite (`orazaka-end2end/`) and the
+the local infrastructure (`infra/`), the hermetic end-to-end suite (`e2e/sovkora-e2e/`) and the
 architecture documentation (`docs/`). Every component lives in its own repository so that any
 Krizaka application can pick only what it needs.
 
@@ -194,7 +194,7 @@ orazaka/                               ← this repository
 ├── AGENTS.md · orazaka.workspace.json · pom.xml (reactor)
 ├── infra/        docker-compose, initdb (reset), migrations
 ├── docs/         architecture, ADRs, generated references
-├── orazaka-end2end/                   hermetic E2E
+├── e2e/sovkora-e2e/                   hermetic E2E
 ├── sovkora-libs/                      ← cloned: orazaka-build, orazaka-contracts, orazaka-ai-engine
 ├── krizaka/                           ← cloned: krizaka-build (with the platform kit), krizaka-users, krizaka-billing (both inside krizaka-build)
 ├── orazaka-apps/services/             ← cloned: orazaka-studio, conversation, job, knowledge, automation, edge

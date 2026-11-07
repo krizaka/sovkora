@@ -126,7 +126,7 @@ test("the README of infra/localai says what the registry says about the voices",
 });
 
 test("the worker's models.yaml (when present) agrees with the registry on every licence it states", () => {
-  const manifest = new URL("../../orazaka-apps/workers/orazaka-worker-media/models.yaml", import.meta.url);
+  const manifest = new URL("../../workers/media/models.yaml", import.meta.url);
   const text = (() => { try { return readFileSync(manifest, "utf8"); } catch { return ""; } })();
   const found = manifestLicences(text);
   // the parser reads real entries; the disagreement itself is covered above and enforced by the docs build

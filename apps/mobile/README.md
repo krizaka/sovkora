@@ -63,7 +63,7 @@ Running it on a simulator against the local stack, what each screen does today a
 |:---|:---|
 | Depends on | [`orazaka-ui-kit`](https://github.com/krizaka/orazaka-ui-kit) |
 | Used by | _no other Orazaka repository._ |
-| Workspace path | `orazaka-apps/ui/orazaka-mobile-client` |
+| Workspace path | `apps/mobile` |
 
 ## Build
 

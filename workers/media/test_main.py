@@ -885,12 +885,12 @@ class TestEnvelopeInterop(unittest.TestCase):
         (
             os.path.join(_ROOT, *parts, "target", "interop")
             for parts in (
-                ("sovkora-libs", "sovkora-engine", "sovkora-assets"),
+                ("sovkora-libs", "sovkora-engine", "sovkora-engine-assets"),
                 ("orazaka-libs", "orazaka-ai-engine", "orazaka-assets"),
             )
             if os.path.isdir(os.path.join(_ROOT, *parts))
         ),
-        os.path.join(_ROOT, "sovkora-libs", "sovkora-engine", "sovkora-assets", "target", "interop"),
+        os.path.join(_ROOT, "sovkora-libs", "sovkora-engine", "sovkora-engine-assets", "target", "interop"),
     )
 
     def _keyring(self):

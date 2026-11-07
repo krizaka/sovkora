@@ -82,7 +82,7 @@ mapped write by its template (`POST /api/v1/admin/law/kinds/{id}/promote`), and 
 |:---|:---|
 | Depends on | [`sovkora-build`](https://github.com/krizaka/sovkora-build) · [`sovkora-contracts`](https://github.com/krizaka/sovkora-contracts) · [`krizaka-users`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-users) · [`krizaka-billing`](https://github.com/krizaka/krizaka-build/tree/main/krizaka-billing) · [`sovkora-engine`](https://github.com/krizaka/sovkora-engine) |
 | Used by | _no other Sovkora repository._ |
-| Workspace path | `orazaka-apps/services/orazaka-conversation-service` |
+| Workspace path | `services/conversation/sovkora-conversation-service` |
 
 ## Build
 
@@ -91,7 +91,7 @@ mapped write by its template (`POST /api/v1/admin/law/kinds/{id}/promote`), and 
 ```bash
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 node scripts/workspace.mjs clone          # clones every repository at its workspace path
-./mvnw -f orazaka-apps/services/orazaka-conversation-service/pom.xml verify
+./mvnw -f services/conversation/sovkora-conversation-service/pom.xml verify
 ```
 
 **Standalone** — upstream artifacts must be in `~/.m2` (built by the workspace) or resolvable from

@@ -21,8 +21,8 @@ const MODES: readonly TestMode[] = ["unit", "it", "e2e", "worker"] as const;
 
 /** Maven invocation per tier. The heavy E2E module is excluded from unit/it. */
 const MAVEN_ARGS: Record<TestMode, readonly string[]> = {
-  unit: ["test", "-pl", "!orazaka-end2end"],
-  it: ["verify", "-pl", "!orazaka-end2end"],
+  unit: ["test", "-pl", "!e2e/sovkora-e2e"],
+  it: ["verify", "-pl", "!e2e/sovkora-e2e"],
   e2e: ["verify", "-P", "staging"],
   // `worker` does not go through Maven — see runWorkerGate below.
   worker: [],

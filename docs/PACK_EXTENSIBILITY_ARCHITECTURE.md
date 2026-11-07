@@ -491,34 +491,34 @@ own §3.2 migration. Failsafe is now bound in the parent, `verify` included.
 ```
 # Phase A
 MODIFY  infra/initdb/30-jobs-config.sql          (+ routing_key, worker_family, billable_unit + backfill)
-CREATE  sovkora-libs/sovkora-contracts/sovkora-jobs-api/**            (Tier-1: CapabilityRouting, JobCommand — audit #17)
-MODIFY  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../AmqpStepExecutionAdapter.java   (− routingKeyFor)
+CREATE  contracts/sovkora-jobs-api/**            (Tier-1: CapabilityRouting, JobCommand — audit #17)
+MODIFY  services/studio/sovkora-studio-service/.../AmqpStepExecutionAdapter.java   (− routingKeyFor)
 MODIFY  .../application/service/BlueprintPublishService.java  (+ capability resolution check)
 
 # Phase B
-MODIFY  sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/GovernanceRules.java   (+ P1/P2)
-CREATE  sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/PackPurityRules.java
+MODIFY  build/sovkora-test-support/.../architecture/GovernanceRules.java   (+ P1/P2)
+CREATE  build/sovkora-test-support/.../architecture/PackPurityRules.java
 MODIFY  <all> <Module>GovernanceTest.java
 
 # Phase C
-MODIFY  orazaka-apps/services/orazaka-job-service/.../JobExecutionStrategy.java  (un-seal → JobExecutor)
-CREATE  orazaka-apps/services/orazaka-job-service/src/main/resources/META-INF/spring/…AutoConfiguration.imports
+MODIFY  services/job/sovkora-job-service/.../JobExecutionStrategy.java  (un-seal → JobExecutor)
+CREATE  services/job/sovkora-job-service/src/main/resources/META-INF/spring/…AutoConfiguration.imports
 CREATE  infra/initdb/30-jobs-config.sql          (+ worker_registry + heartbeat)
 CREATE  docs/WORKER_PROTOCOL.md
-MODIFY  orazaka-apps/workers/orazaka-worker-media/app/{consumer,main}.py  (+ worker.yaml, − COMPOSE_FEATURE_KEY)
+MODIFY  workers/media/app/{consumer,main}.py  (+ worker.yaml, − COMPOSE_FEATURE_KEY)
 
 # Phase D — done (ADR-039)
 CREATE  orazaka-packs/{README.md, pack.schema.json}
 CREATE  orazaka-packs/{realestate-studio,trade-showcase,outbound-prospection}/**
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-api/.../model/PackBundle.java + 8 records
+CREATE  services/studio/sovkora-studio-api/.../model/PackBundle.java + 8 records
 CREATE  krizaka/krizaka-billing/krizaka-billing-api/.../{PackProvision,EntitlementGrant,PackProvisioningClient}
-CREATE  sovkora-libs/sovkora-contracts/sovkora-jobs-api/.../{CapabilityDeclaration,CapabilityRegistrationClient}
+CREATE  contracts/sovkora-jobs-api/.../{CapabilityDeclaration,CapabilityRegistrationClient}
 CREATE  krizaka/krizaka-billing/krizaka-billing-client/.../{Http,NoOp}PackProvisioningClient.java
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../application/service/PackInstallerService.java
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../{PackInstallRepository,JdbcPackInstallRepositoryAdapter,PackBundleController}
-CREATE  orazaka-apps/services/orazaka-job-service/.../application/service/CapabilityRegistryService.java
+CREATE  services/studio/sovkora-studio-service/.../application/service/PackInstallerService.java
+CREATE  services/studio/sovkora-studio-service/.../{PackInstallRepository,JdbcPackInstallRepositoryAdapter,PackBundleController}
+CREATE  services/job/sovkora-job-service/.../application/service/CapabilityRegistryService.java
 CREATE  krizaka/krizaka-billing/krizaka-billing-service/.../rest/PackProvisioningController.java
-CREATE  orazaka-apps/ui/orazaka-cli/src/{commands/pack.command.ts,services/pack.{api,bundle}.ts}
+CREATE  apps/cli/src/{commands/pack.command.ts,services/pack.{api,bundle}.ts}
 MODIFY  infra/initdb/80-studio.sql               (− 288 lines of catalogue content, → bundles)
 MODIFY  infra/initdb/70-billing.sql              (− billing_pack seed, → bundles)
 

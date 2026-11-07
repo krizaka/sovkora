@@ -229,7 +229,7 @@ const ROLES = [
   { id: "contract", title: "Contracts", rule: "a Tier-1 `*-api` module — pure interfaces and records" },
   { id: "platform", title: "Krizaka service kit", rule: "a module of krizaka-service-kit — the cross-cutting code with one author (ADR-073), starters included" },
 ];
-const APPLICATION_LIBRARIES = ["sovkora-business", "sovkora-interceptors", "sovkora-tools"];
+const APPLICATION_LIBRARIES = ["sovkora-engine-business", "sovkora-engine-interceptors", "sovkora-engine-tools"];
 
 function roleOf(m) {
   if (/SpringApplication\.run\(/.test(javaFiles(join(m.dir, "src/main/java")).map(read).join("\n"))) return "service";
@@ -769,7 +769,7 @@ function extractMessaging(reactor, extra) {
 
 /** UseCase catalog from business/usecases. */
 function extractUseCases() {
-  const dir = sourceDir("sovkora-libs/sovkora-engine/sovkora-business", "business/usecases");
+  const dir = sourceDir("engine/sovkora-engine-business", "business/usecases");
   return javaFiles(dir)
     .filter((f) => /implements\s+UseCase\b/.test(read(f)))
     .map((f) => {
@@ -798,7 +798,7 @@ function extractUseCases() {
  * that is where the registry reads it from (ADR-051).
  */
 function coreInterceptorKeys() {
-  const src = read(sourceFile("sovkora-libs/sovkora-engine/sovkora-core", "PipelineRegistry.java"));
+  const src = read(sourceFile("engine/sovkora-engine-core", "PipelineRegistry.java"));
   const block = /CORE_INTERCEPTOR_KEYS\s*=\s*List\.of\(([\s\S]*?)\);/.exec(src);
   return block ? [...block[1].matchAll(/"(\w+)"/g)].map((m) => m[1]) : [];
 }
@@ -829,7 +829,7 @@ function classSummary(src, name) {
 
 /** Interceptor registry: classes + concern package + core rank or DB order. */
 function extractInterceptors(pipeline) {
-  const dir = sourceDir("sovkora-libs/sovkora-engine/sovkora-interceptors", "sovkora/interceptor");
+  const dir = sourceDir("engine/sovkora-engine-interceptors", "sovkora/interceptor");
   const orderByName = new Map(pipeline.map((p) => [p.interceptor.toLowerCase(), p]));
   const core = coreInterceptorKeys();
   return javaFiles(dir)
@@ -1079,7 +1079,7 @@ function extractApi() {
  * and `.option` calls.
  */
 function extractCli() {
-  const cliRoot = join(ROOT, "orazaka-apps/ui/orazaka-cli");
+  const cliRoot = join(ROOT, "apps/cli");
   const dir = join(cliRoot, "src/commands");
   if (!existsSync(dir)) return [];
   const registered = new Set([...read(join(cliRoot, "src/index.ts")).matchAll(/\.addCommand\(\s*(\w+)\s*\)/g)].map((m) => m[1]));
@@ -1125,7 +1125,7 @@ function extractCli() {
  * ```cli-journey block of CLI.md for whoever reads the markdown.
  */
 function extractCliJourney(commands) {
-  const cliRoot = join(ROOT, "orazaka-apps/ui/orazaka-cli");
+  const cliRoot = join(ROOT, "apps/cli");
   const src = (name) => read(join(cliRoot, "src/commands", `${name}.command.ts`));
   const description = (name) => commands.find((c) => c.name === name)?.description ?? "";
   // A phase announced inside `if (mode === "full"…)` only runs with `--mode full`.
@@ -1168,7 +1168,7 @@ function extractCliJourney(commands) {
  * whoever writes the rule.
  */
 function extractGovernance() {
-  const libDir = join(ROOT, "sovkora-libs/sovkora-build/sovkora-test-support/src/main/java");
+  const libDir = join(ROOT, "build/sovkora-test-support/src/main/java");
   if (!existsSync(libDir)) return [];
 
   // One entry per RULE, keyed by holder + name — not one per method. A rule offered as a no-arg
@@ -1506,7 +1506,7 @@ const mdApi = (rows) => {
  * explorer and the journey of /docs/orazaka/cli from it; CLI.md below says the same in markdown.
  */
 function cliModel(rows) {
-  const cliRoot = join(ROOT, "orazaka-apps/ui/orazaka-cli");
+  const cliRoot = join(ROOT, "apps/cli");
   const pkg = JSON.parse(read(join(cliRoot, "package.json")) || "{}");
   const alias = JSON.parse(read(join(cliRoot, "alias/package.json")) || "{}");
   return {
@@ -1825,7 +1825,7 @@ function tableColumns(sql, table) {
 // ── Business layer ──────────────────────────────────────────────────────────
 
 function extractBusiness() {
-  const moduleDir = MODULES.get("sovkora-business");
+  const moduleDir = MODULES.get("sovkora-engine-business");
   if (!moduleDir) return null;
   const javaRoot = join(moduleDir, "src/main/java");
   const files = javaFiles(javaRoot);
@@ -1995,7 +1995,7 @@ const mdBusiness = (b) => {
 // ── Tools ───────────────────────────────────────────────────────────────────
 
 function extractTools() {
-  const moduleDir = MODULES.get("sovkora-tools");
+  const moduleDir = MODULES.get("sovkora-engine-tools");
   if (!moduleDir) return null;
   const files = javaFiles(join(moduleDir, "src/main/java"));
   const byName = new Map(files.map((f) => [basename(f, ".java"), f]));

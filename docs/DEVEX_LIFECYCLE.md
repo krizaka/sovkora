@@ -118,11 +118,11 @@ orazaka onboard      # validate a clone-and-run (prereqs → build → M2M → r
 
 ## 4. E2E tests across dev / staging / prod
 
-A 4-level pyramid, driven by `orazaka-end2end` (matrix: httpyac API → Vitest CLI → Playwright UI → 4-tier validation).
+A 4-level pyramid, driven by `e2e/sovkora-e2e` (matrix: httpyac API → Vitest CLI → Playwright UI → 4-tier validation).
 
 ```mermaid
 flowchart LR
-    U["unit (per module)"] --> IT["integration (Testcontainers)"] --> E2E["E2E (orazaka-end2end)"] --> SMK["smoke / synthetic"]
+    U["unit (per module)"] --> IT["integration (Testcontainers)"] --> E2E["E2E (e2e/sovkora-e2e)"] --> SMK["smoke / synthetic"]
 
     subgraph DEVT["dev / CI — on every PR"]
         U

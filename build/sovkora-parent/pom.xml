@@ -169,7 +169,7 @@
             <!-- Internal Modules -->
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-core</artifactId>
+                <artifactId>sovkora-engine-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -179,7 +179,7 @@
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-assets</artifactId>
+                <artifactId>sovkora-engine-assets</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -194,32 +194,32 @@
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-tools</artifactId>
+                <artifactId>sovkora-engine-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-persistence-app-api</artifactId>
+                <artifactId>sovkora-persistence-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-persistence-app</artifactId>
+                <artifactId>sovkora-engine-persistence</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-interceptors</artifactId>
+                <artifactId>sovkora-engine-interceptors</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-business</artifactId>
+                <artifactId>sovkora-engine-business</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.krizaka.sovkora</groupId>
-                <artifactId>sovkora-persistence-bridge</artifactId>
+                <artifactId>sovkora-engine-persistence-bridge</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- Shared Test Support -->

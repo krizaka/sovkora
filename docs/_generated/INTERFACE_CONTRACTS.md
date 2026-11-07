@@ -8,7 +8,7 @@ generated: true
 
 # Interface Contracts (generated)
 
-## `sovkora-core`
+## `sovkora-engine-core`
 
 **Inbound ports**
 
@@ -116,7 +116,7 @@ generated: true
 - `UserRepositoryPort`
 - `VerificationTokenRepositoryPort`
 
-## `sovkora-persistence-app-api`
+## `sovkora-persistence-api`
 
 **Inbound ports**
 

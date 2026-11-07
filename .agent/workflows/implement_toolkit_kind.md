@@ -18,8 +18,8 @@ Prior run: [`measure_run_overhead.md`](measure_run_overhead.md) and
 3. Read `docs/UNIFIED_PACK_SURFACE.md` §3.3, §5, §5.1, §5.2.
 4. Read, **before writing anything**:
    - `infra/initdb/80-studio.sql` — `pack`, `studio_installation`, `pack_studio`, `studio`
-   - `orazaka-apps/services/orazaka-studio/sovkora-studio-api/.../model/{Pack,PackSummary,PackCatalogEntry,PackTier,RegulatoryClass}.java`
-   - `orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../application/service/StudioAccessService.java`
+   - `services/studio/sovkora-studio-api/.../model/{Pack,PackSummary,PackCatalogEntry,PackTier,RegulatoryClass}.java`
+   - `services/studio/sovkora-studio-service/.../application/service/StudioAccessService.java`
      — `evaluate`, `evaluateAll`, `requireEntitled`. **This is the class M1 changes.**
    - `…/application/service/PackCatalogService.java` and `…/adapter/rest/PackCatalogController.java`
    - `…/adapter/rest/StudioInstallationController.java` — what installing means today
@@ -126,10 +126,10 @@ MODIFY  infra/initdb/80-studio.sql
           + studio_run: the resolved blueprint version, if no column already carries it
           existing seeded packs stay VERTICAL — the default is the migration
 
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-api/.../model/PackKind.java      (+ its test)
+CREATE  services/studio/sovkora-studio-api/.../model/PackKind.java      (+ its test)
 MODIFY  .../model/{Pack,PackSummary,PackCatalogEntry}.java                     (+ kind, + tests)
 
-MODIFY  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../application/service/StudioAccessService.java
+MODIFY  services/studio/sovkora-studio-service/.../application/service/StudioAccessService.java
           derived installation for TOOLKIT: entitlement alone = installed, no row read
 MODIFY  .../application/service/PackCatalogService.java                        (kind on the read path)
 MODIFY  .../application/service/RunSagaService.java                            (resolve-once, §3.2.1)
@@ -140,7 +140,7 @@ MODIFY  .../adapter/rest/StudioInstallationController.java
 
 MODIFY  <ui>  the marketplace: a TOOLKIT band that reads "included", never an Install button
 
-MODIFY  sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/PackCoherenceRules.java
+MODIFY  build/sovkora-test-support/.../architecture/PackCoherenceRules.java
           [PACK-001] extended: seeded kind must satisfy the same invariant the CHECK does
 CREATE  krizaka-internal docs/adr/sovkora/ADR-0NN-pack-kind-and-derived-installation.md
 MODIFY  docs/PACK_CATALOGUE_ARCHITECTURE.md, docs/UNIFIED_PACK_SURFACE.md §5   (M1 row → done)

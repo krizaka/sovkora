@@ -83,7 +83,7 @@
         "sql": "EXISTS (SELECT 1 FROM platform_tool_configs WHERE tool_id = 'searchKnowledge')"
       }
     ],
-    "orazaka-apps/services/orazaka-studio/infra/migrations/2026-10-21-webhook-secrets-sealed.sql": [
+    "services/studio/infra/migrations/2026-10-21-webhook-secrets-sealed.sql": [
       {
         "db": "orazaka_studio_db",
         "label": "studio_webhook_endpoint.secret is TEXT",

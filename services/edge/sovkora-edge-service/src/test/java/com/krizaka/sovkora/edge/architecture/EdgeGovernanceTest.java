@@ -3,12 +3,12 @@ package com.krizaka.sovkora.edge.architecture;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-import com.krizaka.sovkora.test.architecture.ConfigBindingRules;
-import com.krizaka.sovkora.test.architecture.GovernanceRules;
-import com.krizaka.sovkora.test.architecture.LoggedContentRules;
-import com.krizaka.sovkora.test.architecture.PackPurityRules;
-import com.krizaka.sovkora.test.architecture.RunSurfaceRules;
-import com.krizaka.sovkora.test.architecture.SourceFileScanner;
+import com.krizaka.sovkora.test.support.architecture.ConfigBindingRules;
+import com.krizaka.sovkora.test.support.architecture.GovernanceRules;
+import com.krizaka.sovkora.test.support.architecture.LoggedContentRules;
+import com.krizaka.sovkora.test.support.architecture.PackPurityRules;
+import com.krizaka.sovkora.test.support.architecture.RunSurfaceRules;
+import com.krizaka.sovkora.test.support.architecture.SourceFileScanner;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -55,13 +55,13 @@ class EdgeGovernanceTest {
         .should()
         .dependOnClassesThat()
         .resideInAnyPackage(
-            "com.krizaka.sovkora.core..",
-            "com.krizaka.sovkora.business..",
+            "com.krizaka.sovkora.engine.core..",
+            "com.krizaka.sovkora.engine.business..",
             "com.krizaka.users..",
-            "com.krizaka.sovkora.tools..",
-            "com.krizaka.sovkora.interceptor..",
-            "com.krizaka.sovkora.persistence..",
-            "com.krizaka.sovkora.conversationservice..")
+            "com.krizaka.sovkora.engine.tools..",
+            "com.krizaka.sovkora.engine.interceptors..",
+            "com.krizaka.sovkora.engine.persistence..",
+            "com.krizaka.sovkora.conversation..")
         .because(
             "The edge is a transport-only facade in front of the constellation — it talks to"
                 + " backends over HTTP, never in-process")

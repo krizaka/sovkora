@@ -88,10 +88,10 @@ not capability.
 A new **Tier-3 owned domain** service, per AGENTS.md §2 and the ADR-032 phasing.
 
 ```
-orazaka-apps/services/orazaka-studio/sovkora-studio-api/     ← Tier-1: interfaces + DTOs, zero impl deps
-orazaka-apps/services/orazaka-studio/sovkora-studio-client/            ← Tier-2 SDK: HTTP/NoOp adapters for the Tier-1 ports
-orazaka-apps/services/orazaka-studio/sovkora-studio-service/  ← :8096, owns orazaka_studio_db AND the DAG interpreter
-sovkora-libs/sovkora-engine/sovkora-business/                 ← + usecases/studio/StudioRunUseCase (port-only)
+services/studio/sovkora-studio-api/     ← Tier-1: interfaces + DTOs, zero impl deps
+services/studio/sovkora-studio-client/            ← Tier-2 SDK: HTTP/NoOp adapters for the Tier-1 ports
+services/studio/sovkora-studio-service/  ← :8096, owns orazaka_studio_db AND the DAG interpreter
+engine/sovkora-engine-business/                 ← + usecases/studio/StudioRunUseCase (port-only)
 ```
 
 **Why a service and not a pack in `conversation-service`.** Three independent reasons, any one of
@@ -577,7 +577,7 @@ input; a scripting engine there is a sandbox-escape surface that no amount of re
 
 ### 6.3 Prompt storage
 
-Long prompts live in markdown under `sovkora-libs/sovkora-engine/sovkora-business/src/main/resources/prompts/studio/`
+Long prompts live in markdown under `engine/sovkora-engine-business/src/main/resources/prompts/studio/`
 and are referenced by `promptRef` — the mechanism `MarkdownPromptResolver` already implements. The
 blueprint JSON stays reviewable; prompts stay diffable.
 
@@ -666,7 +666,7 @@ sequenceDiagram
 brand overlay → 9:16 MP4). It is **a capability, not Studio code**: it belongs in
 `orazaka_capabilities` with a `handler_key` of `media.compose`, executed by the existing Python
 `orazaka-worker-media` (ffmpeg/MLX). Registering it is one seed row in `30-jobs-config.sql` plus one
-`JobExecutionStrategy`-equivalent branch in `orazaka-apps/workers/orazaka-worker-media/app/`. Every
+`JobExecutionStrategy`-equivalent branch in `workers/media/app/`. Every
 other launch step reuses a capability that exists today.
 
 ---
@@ -787,7 +787,7 @@ a browser.
 `StudioController`, `StudioInstallationController`, `StudioRunController`, `StudioBlueprintController`.
 No `Admin*` class — admin access is `@PreAuthorize`, not a name.
 
-**Edge route** — append to `orazaka-apps/services/orazaka-edge/src/main/resources/application.yml`:
+**Edge route** — append to `services/edge/sovkora-edge-service/src/main/resources/application.yml`:
 
 ```yaml
       - path-prefix: /api/v1/studios
@@ -856,7 +856,7 @@ rather than a third media one.
 
 ### 12.1 Navigation
 
-`orazaka-apps/ui/orazaka-web-client/src/components/layout/Sidebar.tsx` — insert between chat and jobs:
+`apps/web/src/components/layout/Sidebar.tsx` — insert between chat and jobs:
 
 ```ts
 { href: "/studios", icon: "studio", label: t.sidebar.studios },
@@ -959,7 +959,7 @@ Per AGENTS.md §9 — pyramid, hermetic, no staging.
 - One mirroring test file per top-level type (ERR-103).
 
 **Architecture** — `StudioServiceGovernanceTest` reusing the shared `GovernanceRules`
-(`sovkora-libs/sovkora-build/sovkora-test-support/…/architecture/`): package/kind rules [ERR-130], service naming
+(`build/sovkora-test-support/…/architecture/`): package/kind rules [ERR-130], service naming
 [ERR-129], controller naming [ERR-128], no `Orazaka` prefix [ERR-104], Tier-3 isolation [SEAM-002].
 `SqlBoundaryRules` must see `80-studio.sql` — **no cross-context FK** [SEAM-001].
 
@@ -969,7 +969,7 @@ Per AGENTS.md §9 — pyramid, hermetic, no staging.
 - Sweeper: expire a step, assert `FAILED` **and** `release` called.
 - Immutability trigger: `UPDATE` a `PUBLISHED` blueprint's `definition` → exception.
 
-**E2E** (`orazaka-end2end`) — the quality gate. One scenario: authenticate → browse → install a FREE
+**E2E** (`e2e/sovkora-e2e`) — the quality gate. One scenario: authenticate → browse → install a FREE
 Studio → run with fixture assets → assert `SUCCEEDED` and an output asset exists → assert the wallet
 moved by the settled amount.
 
@@ -1013,7 +1013,7 @@ capability, so a failure there is unambiguously an engine bug.
 | Rule | How this design satisfies it |
 |:---|:---|
 | §0 local-first | No CI, no cloud, no remote secret. Docker for Postgres/Rabbit, MLX native for compose |
-| §1 CLI only | `orazaka studio {list,install,run,logs}` in `orazaka-apps/ui/orazaka-cli/src/commands/studio.command.ts`. **No `.sh`** [ERR-125] |
+| §1 CLI only | `orazaka studio {list,install,run,logs}` in `apps/cli/src/commands/studio.command.ts`. **No `.sh`** [ERR-125] |
 | §2 hexagonal | `business` declares `BlueprintRepository`/`StepExecutionClient`; adapters are package-private in the service |
 | §2 tiers | Tier-1 `orazaka-studio-api` is the only cross-context surface; nobody imports `orazaka-studio-service` |
 | §3 naming | `StudioController` (resource), `StudioRunService` (capability), `AmqpStepExecutionAdapter`, `StudioProperties`. No `*Orchestrator`/`*Manager`/`*Handler` [ERR-129], no `Admin*` [ERR-128], no `Orazaka` prefix [ERR-104], never `gateway` |
@@ -1079,19 +1079,19 @@ infra/initdb/80-studio.sql                                                   (ne
 infra/initdb/70-billing.sql                                                  (edit: seed realestate-studio package + entitlement)
 pom.xml                                                                      (edit: 2 modules)
 .env.example / .env                                                       (edit: STUDIO_PORT, STUDIO_INTERNAL_URL, STUDIO_DB_*)
-orazaka-apps/services/orazaka-studio/sovkora-studio-api/pom.xml
+services/studio/sovkora-studio-api/pom.xml
   src/main/java/com/orazaka/studio/domain/model/{Studio,StudioPricing,StudioStatus,
       Blueprint,BlueprintStatus,BlueprintStep,StepKind,ErrorPolicy,BlueprintOutput,
       Installation,InstallationStatus,Run,RunStatus,RunStep,RunScope,StepDispatch}.java
   src/main/java/com/orazaka/studio/domain/port/{StudioCatalogClient,StudioRunClient}.java
-sovkora-libs/sovkora-engine/sovkora-business/.../api/Capability.java                        (edit: + STUDIO)
-sovkora-libs/sovkora-engine/sovkora-business/.../api/Payload.java                           (edit: + StudioPayload)
-sovkora-libs/sovkora-engine/sovkora-business/.../api/StudioPayload.java                     (new)
+engine/sovkora-engine-business/.../api/Capability.java                        (edit: + STUDIO)
+engine/sovkora-engine-business/.../api/Payload.java                           (edit: + StudioPayload)
+engine/sovkora-engine-business/.../api/StudioPayload.java                     (new)
 ```
 
 **Phase 1–2 — service, catalogue, installation**
 ```
-orazaka-apps/services/orazaka-studio/sovkora-studio-service/pom.xml
+services/studio/sovkora-studio-service/pom.xml
   src/main/java/com/orazaka/studioservice/StudioServiceApplication.java
   .../application/service/{StudioCatalogService,StudioInstallationService,
                            BlueprintPublishService,MessageDedupService,OutboxService}.java
@@ -1105,24 +1105,24 @@ orazaka-apps/services/orazaka-studio/sovkora-studio-service/pom.xml
   .../infrastructure/config/{StudioDataSourceProperties,DataSourceConfig,SecurityConfig,
                              SessionJwtProperties,AmqpConfiguration,AmqpConstants,StudioProperties}.java
   src/main/resources/application.yml
-orazaka-apps/services/orazaka-edge/src/main/resources/application.yml        (edit: route)
+services/edge/sovkora-edge-service/src/main/resources/application.yml        (edit: route)
 ```
 
 **Phase 3–4 — engine, run, media**
 ```
-orazaka-apps/services/orazaka-studio/sovkora-studio-client/**                                        (Tier-2 SDK for the Tier-1 ports)
-sovkora-libs/sovkora-engine/sovkora-business/.../usecases/studio/StudioRunUseCase.java      (depends on the PORT only)
-orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../domain/port/{BlueprintRepository,StepExecutionClient}.java
-sovkora-libs/sovkora-engine/sovkora-business/src/main/resources/prompts/studio/*.md
-orazaka-apps/services/orazaka-studio/sovkora-studio-service/
+services/studio/sovkora-studio-client/**                                        (Tier-2 SDK for the Tier-1 ports)
+engine/sovkora-engine-business/.../usecases/studio/StudioRunUseCase.java      (depends on the PORT only)
+services/studio/sovkora-studio-service/.../domain/port/{BlueprintRepository,StepExecutionClient}.java
+engine/sovkora-engine-business/src/main/resources/prompts/studio/*.md
+services/studio/sovkora-studio-service/
   .../application/service/{StudioRunService,RunSagaService,CreditReservationService}.java
   .../infrastructure/adapter/rest/StudioRunController.java
   .../infrastructure/adapter/amqp/{JobOutcomeListener,AmqpStepExecutionAdapter,OutboxRelay}.java
   .../infrastructure/adapter/persistence/{JdbcBlueprintRepositoryAdapter,JdbcRunRepositoryAdapter}.java
   .../infrastructure/adapter/schedule/{RunSweeper,RetentionSweeper}.java
 infra/initdb/30-jobs-config.sql                                              (edit: media.compose capability row)
-orazaka-apps/workers/orazaka-worker-media/app/{consumer.py,encoder.py}       (edit: compose branch)
-sovkora-libs/sovkora-engine/sovkora-interceptors/.../interceptor/enrichment/BrandContextInterceptor.java
+workers/media/app/{consumer.py,encoder.py}       (edit: compose branch)
+engine/sovkora-engine-interceptors/.../interceptor/enrichment/BrandContextInterceptor.java
 infra/initdb/60-governance.sql                                               (edit: activation predicate)
 ```
 
@@ -1130,14 +1130,14 @@ infra/initdb/60-governance.sql                                               (ed
 ```
 orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/src/schemas/studio.ts  + index.ts             (edit)
 orazaka-apps/ui/orazaka-ui-kit/orazaka-design-system/src/icon.tsx                           (edit: "studio")
-orazaka-apps/ui/orazaka-web-client/src/components/layout/Sidebar.tsx         (edit: nav item)
-orazaka-apps/ui/orazaka-web-client/src/core/context/translations{,.types}.ts (edit)
-orazaka-apps/ui/orazaka-web-client/src/app/(protected)/studios/**            (see §12.2)
-orazaka-apps/ui/orazaka-web-client/src/features/studio/**                    (see §12.2)
-orazaka-apps/ui/orazaka-web-client/src/services/studio.api.ts
-orazaka-apps/ui/orazaka-web-client/src/console/features/studio/**                     (Studio Builder)
-orazaka-apps/ui/orazaka-cli/src/commands/studio.command.ts
-orazaka-end2end/src/test/java/.../StudioLifecycleE2ETest.java
+apps/web/src/components/layout/Sidebar.tsx         (edit: nav item)
+apps/web/src/core/context/translations{,.types}.ts (edit)
+apps/web/src/app/(protected)/studios/**            (see §12.2)
+apps/web/src/features/studio/**                    (see §12.2)
+apps/web/src/services/studio.api.ts
+apps/web/src/console/features/studio/**                     (Studio Builder)
+apps/cli/src/commands/studio.command.ts
+e2e/sovkora-e2e/src/test/java/.../StudioLifecycleE2ETest.java
 ADR-034 (internal)                                       (new)
 ```
 

@@ -19,7 +19,7 @@ Decision record: [krizaka-internal docs/adr/sovkora/ADR-033-credit-metering-and-
 4. Read for pattern-matching **before writing anything**:
    - `infra/initdb/10-identity.sql` and `50-automation.sql` — the own-database initdb shape
    - `krizaka/krizaka-build/krizaka-users/krizaka-users-api/` — the Tier-1 contract module shape
-   - `orazaka-apps/services/orazaka-knowledge-service/` — the smallest complete service shape
+   - `services/knowledge/sovkora-knowledge-service/` — the smallest complete service shape
    **Mirror these. Do not invent a new structure.**
 
 ## §1 Scope of THIS run — tranche 1 only
@@ -253,8 +253,8 @@ Six things that are easy to get wrong — 4–6 were found the hard way on the f
 # 3. The architecture rules and the data seam rule both still hold. SEAM-001 is NOT in core's
 #    GovernanceTest — SqlBoundaryRules is exercised by SqlBoundaryTest in persistence, and that
 #    is the one that actually reads 70-billing.sql. Run both.
-./mvnw -q -pl sovkora-libs/sovkora-engine/sovkora-core -Dtest=GovernanceTest test
-./mvnw -q -pl sovkora-libs/sovkora-engine/sovkora-persistence-app -Dtest=SqlBoundaryTest test
+./mvnw -q -pl engine/sovkora-engine-core -Dtest=GovernanceTest test
+./mvnw -q -pl engine/sovkora-engine-persistence -Dtest=SqlBoundaryTest test
 
 # 4. The default local loop is UNCHANGED — must start exactly the usual containers,
 #    no Lago (this is the profiles: [billing] regression check)

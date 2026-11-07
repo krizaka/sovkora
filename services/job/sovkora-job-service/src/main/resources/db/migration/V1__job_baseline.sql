@@ -294,7 +294,7 @@ CREATE UNIQUE INDEX idx_pipeline_interceptor_config_key ON pipeline_interceptor_
 CREATE INDEX idx_pipeline_interceptor_config_order ON pipeline_interceptor_config (execution_order);
 
 -- The semantic cache's answers (ai-engine#40). Kept identical to sovkora-engine
--- sovkora-interceptors/src/main/resources/db/semantic-cache.sql and to the workspace migration
+-- sovkora-engine-interceptors/src/main/resources/db/semantic-cache.sql and to the workspace migration
 -- infra/migrations/2026-10-22-semantic-cache.sql.
 -- The pgvector extension is created by the database bootstrap (as the admin role), never by a migration: only assert it.
 DO $$
