@@ -76,8 +76,8 @@ public final class ExecutorCoherenceRules {
    * that best demonstrate the AMQP contract being the real SPI (ADR-037 §3.4).
    *
    * <p>The scope is read from the repository's own taxonomy rather than a hard-coded name: {@code
-   * services/**} is run as a JVM deployable and dispatches by handler key; {@code
-   * workers/**} is an external worker and does not (AGENTS.md §2).
+   * services/**} is run as a JVM deployable and dispatches by handler key; {@code workers/**} is an
+   * external worker and does not (AGENTS.md §2).
    *
    * @param repositoryRoot the repository root
    */
@@ -202,8 +202,8 @@ public final class ExecutorCoherenceRules {
   /**
    * The bindings of workers that run inside a JVM service and therefore dispatch by handler key.
    *
-   * <p>{@code services/**} is imported-and-run Java; {@code workers/**}
-   * is an external process speaking only the wire contract (AGENTS.md §2).
+   * <p>{@code services/**} is imported-and-run Java; {@code workers/**} is an external process
+   * speaking only the wire contract (AGENTS.md §2).
    */
   private static Set<String> inProcessBindings(Path root) {
     Set<String> bindings = new LinkedHashSet<>();

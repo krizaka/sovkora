@@ -19,9 +19,9 @@ import org.junit.jupiter.api.Assumptions;
  *
  * <p>Sovkora is one repository ({@code krizaka/sovkora}, ADR-029), whose root is marked by {@value
  * #MANIFEST}: a rule that reads more than its own module — no pack name in engine code, every
- * capability has an executor, a context's seed matches another's — reads the whole tree from
- * there. A rule that cannot see its subject must not report that it passed: outside the repository
- * (a module copied on its own) it is <b>skipped</b>, with the reason, through a JUnit assumption. In
+ * capability has an executor, a context's seed matches another's — reads the whole tree from there.
+ * A rule that cannot see its subject must not report that it passed: outside the repository (a
+ * module copied on its own) it is <b>skipped</b>, with the reason, through a JUnit assumption. In
  * the repository, and therefore in CI, nothing is skipped.
  */
 public final class Workspace {
@@ -91,8 +91,7 @@ public final class Workspace {
   public static Path root(Path startDir, String what) {
     Optional<Path> root = find(startDir);
     Assumptions.assumeTrue(
-        root.isPresent(),
-        () -> what + " is elsewhere in the Sovkora repository: run inside it");
+        root.isPresent(), () -> what + " is elsewhere in the Sovkora repository: run inside it");
     return root.orElseThrow();
   }
 
