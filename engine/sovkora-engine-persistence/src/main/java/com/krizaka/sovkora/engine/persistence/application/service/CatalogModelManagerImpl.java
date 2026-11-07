@@ -136,9 +136,6 @@ class CatalogModelManagerImpl implements CatalogModelManager {
   }
 
   private static CatalogModelDto toDto(CatalogModelEntity entity) {
-    if (entity == null) {
-      return null;
-    }
     return new CatalogModelDto(
         entity.getId(),
         entity.getModelName(),
