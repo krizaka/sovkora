@@ -8,7 +8,7 @@ generated: true
 
 # Business Layer
 
-`orazaka-business` (repository `orazaka-ai-engine`) is the **App Factory** of the engine: the layer that decides
+`orazaka-business` (repository `engine`) is the **App Factory** of the engine: the layer that decides
 *what* a request is for, never *how* a model answers it. Every request a client sends becomes one immutable
 `Intention`; the `UseCaseDispatcher` resolves it to the `UseCase` that serves its capability, checks the
 use-case's RBAC policy against the actor's authorities and runs it. A use-case coordinates the core's inbound
@@ -150,15 +150,6 @@ Dispatch refuses an intention with:
 |:---|:---|
 | `ERR-410` | no use-case registered for capability |
 | `ERR-403` | actor not authorized for use-case |
-
-## Entry points
-
-The adapters that hand work to the business layer:
-
-| Adapter | Repository | Role |
-|:---|:---|:---|
-| `IntentController` | `orazaka-conversation-service` | REST controller for the `intent` resource. |
-| `WorkflowAdapter` | `orazaka-conversation-service` | Router adapter translating the Business layer's `WorkflowContext` into the Core infrastructure's `Context` and `ChatRequest`. |
 
 Call it over HTTP through the edge with a session token (see the [API reference](API_REFERENCE.md)):
 

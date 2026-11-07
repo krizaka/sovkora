@@ -13,7 +13,7 @@ interceptor pipeline, capabilities, MCP servers, plans, prices, wallets, Studios
 administrator is an account holding `ROLE_ADMIN`, granted by the identity service; every
 administrative endpoint checks it on the server (`@PreAuthorize`), whatever client calls it.
 
-## The SecOps console (`orazaka-web-client`)
+## The SecOps console (`web`)
 
 A Next.js console served by `orazaka-web-client` on the admin host (`admin.orazaka.com`, host routing), started with the web client by `orazaka dev`.
 

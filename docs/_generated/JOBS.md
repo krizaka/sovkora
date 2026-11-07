@@ -13,12 +13,12 @@ Three mechanisms run work in the background, each with one owner:
 - **The job plane** (`orazaka-job-service`) — asynchronous AI work: a capability is published as a job on
   RabbitMQ and executed in process or by a worker. Studio runs and `ASYNC` intentions use it.
 - **Scheduled tasks** — sweepers and probes inside each service (`@Scheduled`), configured by properties.
-- **Automation** (`orazaka-automation-service`) — connector actions (Slack, Jira, the CLI agent…) and its
+- **Automation** (`automation`) — connector actions (Slack, Jira, the CLI agent…) and its
   Quartz scheduler.
 
 ## The job plane
 
-Asynchronous RabbitMQ listener that consumes task execution requests. Manages the state of jobs from PENDING → PROCESSING → COMPLETED or FAILED. Delegates feature-specific execution to the registered `JobExecutor` whose `handlerKey()` matches the capability's `handler_key` column. The executors arrive by the AutoConfiguration SPI, so an out-of-tree jar contributes one without touching this class (ADR-038).
+
 
 A capability row (`orazaka_capabilities`) says **where** a job goes (`routing_key`, the queue a process drains)
 and **which code** runs it (`handler_key`). Both are data: a pack adds a capability with a row, not a deploy.
@@ -26,33 +26,25 @@ and **which code** runs it (`handler_key`). Both are data: a pack adds a capabil
 | Capability | Handler | Routing key | Runs in |
 |:---|:---|:---|:---|
 | `orazaka.studio.media.compose` | `media.compose` | `job.compose.assemble` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.media.vision` | `image.analyze` | `job.media.analyze` | `VisionAnalysisStrategy` (in process) |
-| `orazaka.core.media.audio.analysis` | `audio.analyze` | `job.media.generate` | `AudioAnalysisStrategy` (in process) |
-| `orazaka.core.media.image` | `image.generate` | `job.media.generate` | `ImageGenerationStrategy` (in process) |
-| `orazaka.core.media.video.analysis` | `video.analyze` | `job.media.generate` | `VideoAnalysisStrategy` (in process) |
+| `orazaka.core.media.vision` | `image.analyze` | `job.media.analyze` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.media.audio.analysis` | `audio.analyze` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.media.image` | `image.generate` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.media.video.analysis` | `video.analyze` | `job.media.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
 | `orazaka.studio.media.sound` | `media.sound` | `job.sound.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
-| `orazaka.core.chat.completion` | `text.generate` | `job.text.process` | `ChatGenerationStrategy` (in process) |
-| `orazaka.core.checks.courtrecords` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
-| `orazaka.core.checks.credit` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
-| `orazaka.core.checks.identity` | `check.external` | `job.text.process` | `ExternalCheckStrategy` (in process) |
-| `orazaka.core.media.speech` | `speech.synthesize` | `job.text.process` | `SpeechSynthesisStrategy` (in process) |
-| `orazaka.core.research.grounded` | `research.grounded` | `job.text.process` | `GroundedResearchStrategy` (in process) |
+| `orazaka.core.chat.completion` | `text.generate` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.checks.courtrecords` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.checks.credit` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.checks.identity` | `check.external` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.media.speech` | `speech.synthesize` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
+| `orazaka.core.research.grounded` | `research.grounded` | `job.text.process` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
 | `orazaka.core.media.video` | `video.generate` | `job.video.generate` | a worker (see the [worker protocol](../WORKER_PROTOCOL.md)) |
 
 ### In-process executors
 
-One capability's execution, in process.
+
 
 | Handler key | Executor | Repository | Summary |
 |:---|:---|:---|:---|
-| `audio.analyze` | `AudioAnalysisStrategy` | `orazaka-job-service` | Executes audio transcription/analysis jobs by delegating to the `AudioPreProcessor`. |
-| `check.external` | `ExternalCheckStrategy` | `orazaka-job-service` | Runs the engine's external checks as job steps (sovkora-packs#138): the capabilities `orazaka.core.checks.courtrecords`, `.credit` and `.identity`, whose rows all name the handler `check.external`. |
-| `image.analyze` | `VisionAnalysisStrategy` | `orazaka-job-service` | Executes vision/image analysis jobs using the AI chat client with vision models. |
-| `image.generate` | `ImageGenerationStrategy` | `orazaka-job-service` | Executes image generation jobs via the AI client's image endpoint. |
-| `research.grounded` | `GroundedResearchStrategy` | `orazaka-job-service` | Runs grounded research as a job step (ADR-087 slice 5): the capability `orazaka.core.research.grounded`, whose row names the handler `research.grounded`. |
-| `speech.synthesize` | `SpeechSynthesisStrategy` | `orazaka-job-service` | Executes text-to-speech synthesis jobs via the AI client's audio endpoint. |
-| `text.generate` | `ChatGenerationStrategy` | `orazaka-job-service` | Default fallback strategy for text/chat generation jobs. |
-| `video.analyze` | `VideoAnalysisStrategy` | `orazaka-job-service` | Executes video analysis jobs by delegating to the `VideoPreProcessor`. |
 
 ### Capability and worker registries
 
@@ -87,36 +79,32 @@ the service's `application.yml` or environment.
 
 | Repository | Task | Schedule | What it does |
 |:---|:---|:---|:---|
-| `krizaka-build` | `HoldSweeper.sweep` | every 60 s (`krizaka.billing-service.sweeper.interval`) | Time-triggered inbound adapter: releases `ACTIVE` holds that outlived their TTL. |
-| `orazaka-ai-engine` | `InfrastructureProber.probeVideoInfrastructure` | every 5 s (`orazaka.core.video.probing.interval-ms`) | Periodically pings the configured video port to check if the video inference engine is responsive. |
-| `orazaka-ai-engine` | `InfrastructureProber.probeImageInfrastructure` | every 5 s (`orazaka.core.image.probing.interval-ms`) | Periodically pings the configured image port to check if the image inference engine (Stable Diffusion) is responsive. |
-| `orazaka-ai-engine` | `LawWatchJob.run` | cron `0 0 6 * * MON` (`orazaka.law.watcher.cron`) | The scheduled run of the law watcher. |
-| `orazaka-ai-engine` | `SandboxEvictionScheduler.evictExpiredSandboxes` | every 60 s | Scheduled eviction process — prunes expired or orphaned jobId sandbox contexts from memory. |
-| `orazaka-automation-service` | `SweepTicker.tick` | every 15s (`orazaka.automation-service.scheduler.interval`) | The clock of the automation service: every interval it runs one sweep (schedule slots, queued runs, lost events, retention). |
-| `orazaka-conversation-service` | `JobReconciliationService.reconcileScheduled` | every 60 s (`orazaka.jobs.reconcile-interval-ms`) | Recovers jobs whose result was written to disk but whose terminal status update never reached the database (e.g. |
-| `orazaka-conversation-service` | `JobStreamService.sendHeartbeats` | every 15 s | Service managing client Server-Sent Events (SSE) connections for real-time job lifecycle updates. |
-| `orazaka-conversation-service` | `ProtectedConversationSweeper.sweep` | cron `0 45 3 * * *` (`orazaka.router.regulated-retention.cron`) | Ages out the conversation memory of regulated packs, daily: the 30 days the consent statement states, counted from the conversation's last turn (sovkora#301). |
-| `orazaka-job-service` | `JobRetentionSweeper.sweep` | every 60 s (`orazaka.jobs.retention-sweep-interval`) | Purges expired jobs, then deletes any purged job's directory that came back. |
-| `orazaka-job-service` | `JobRetentionSweeper.sweepUploads` | every 3600 s (`orazaka.jobs.upload-retention-interval`) | Deletes uploads older than the ordinary retention window; hourly, listing is not free. |
-| `orazaka-job-service` | `WorkerHeartbeatSweeper.markStaleWorkers` | every 30 s (`orazaka.jobs.worker-sweeper-interval`) | Marks workers that have stopped heartbeating as `STALE`. |
-| `orazaka-job-service` | `WorkerSelfRegistration.heartbeat` | every 30 s (`orazaka.jobs.worker-heartbeat-interval`) | Registers the job service in the worker registry from its own `worker.yaml`. |
-| `orazaka-knowledge-service` | `AnalyticsRetentionSchedule.purge` | cron `0 27 3 * * *` | Runs the analytics retention sweep once a day (03:27 UTC — after the recommender's). |
-| `orazaka-knowledge-service` | `RetentionSchedule.purge` | cron `0 17 3 * * *` | Runs the retention sweep once a day (03:17 UTC — off the hour, off the other sweeps). |
-| `orazaka-studio` | `OutcomeListenerConcurrencyManager.refreshConcurrency` | every 5 s | — |
-| `orazaka-studio` | `PackBootstrap.install` | every 30 s (`orazaka.studio-service.packs.bootstrap-interval`) | Installs the packs this deployment ships, so a fresh environment has Studios (ADR-068, `#45`). |
-| `orazaka-studio` | `RetentionSweeper.purge` | cron `0 30 3 * * *` (`orazaka.studio-service.retention.cron`) | Purges what the retention window says may no longer be kept (ADR-034 §14, GDPR / Loi 25). |
-| `orazaka-studio` | `RunSweeper.sweep` | every 60 s (`orazaka.studio-service.sweeper.interval`) | Closes runs whose steps stopped reporting, and releases their holds. |
-| `orazaka-studio` | `WebhookSweeper.sweep` | every 10 s (`orazaka.studio-service.webhooks.interval`) | Queues and sends the webhooks of finished runs (sovkora#189 slice B). |
+| `automation` | `SweepTicker.tick` | every 15s (`orazaka.automation-service.scheduler.interval`) | The clock of the automation service: every interval it runs one sweep (schedule slots, queued runs, lost events, retention). |
+| `conversation` | `JobReconciliationService.reconcileScheduled` | every 60 s (`orazaka.jobs.reconcile-interval-ms`) | Recovers jobs whose result was written to disk but whose terminal status update never reached the database (e.g. |
+| `conversation` | `JobStreamService.sendHeartbeats` | every 15 s | Service managing client Server-Sent Events (SSE) connections for real-time job lifecycle updates. |
+| `conversation` | `ProtectedConversationSweeper.sweep` | cron `0 45 3 * * *` (`orazaka.router.regulated-retention.cron`) | Ages out the conversation memory of regulated packs, daily: the 30 days the consent statement states, counted from the conversation's last turn (sovkora#301). |
+| `engine` | `InfrastructureProber.probeVideoInfrastructure` | every 5 s (`orazaka.core.video.probing.interval-ms`) | Periodically pings the configured video port to check if the video inference engine is responsive. |
+| `engine` | `InfrastructureProber.probeImageInfrastructure` | every 5 s (`orazaka.core.image.probing.interval-ms`) | Periodically pings the configured image port to check if the image inference engine (Stable Diffusion) is responsive. |
+| `engine` | `LawWatchJob.run` | cron `0 0 6 * * MON` (`orazaka.law.watcher.cron`) | The scheduled run of the law watcher. |
+| `engine` | `SandboxEvictionScheduler.evictExpiredSandboxes` | every 60 s | Scheduled eviction process — prunes expired or orphaned jobId sandbox contexts from memory. |
+| `job` | `JobRetentionSweeper.sweep` | every 60 s (`orazaka.jobs.retention-sweep-interval`) | Purges expired jobs, then deletes any purged job's directory that came back. |
+| `job` | `JobRetentionSweeper.sweepUploads` | every 3600 s (`orazaka.jobs.upload-retention-interval`) | Deletes uploads older than the ordinary retention window; hourly, listing is not free. |
+| `job` | `WorkerHeartbeatSweeper.markStaleWorkers` | every 30 s (`orazaka.jobs.worker-sweeper-interval`) | Marks workers that have stopped heartbeating as `STALE`. |
+| `job` | `WorkerSelfRegistration.heartbeat` | every 30 s (`orazaka.jobs.worker-heartbeat-interval`) | Registers the job service in the worker registry from its own `worker.yaml`. |
+| `knowledge` | `AnalyticsRetentionSchedule.purge` | cron `0 27 3 * * *` | Runs the analytics retention sweep once a day (03:27 UTC — after the recommender's). |
+| `knowledge` | `RetentionSchedule.purge` | cron `0 17 3 * * *` | Runs the retention sweep once a day (03:17 UTC — off the hour, off the other sweeps). |
+| `krizaka-java` | `HoldSweeper.sweep` | every 60 s (`krizaka.billing-service.sweeper.interval`) | Time-triggered inbound adapter: releases `ACTIVE` holds that outlived their TTL. |
+| `studio` | `OutcomeListenerConcurrencyManager.refreshConcurrency` | every 5 s | — |
+| `studio` | `PackBootstrap.install` | every 30 s (`orazaka.studio-service.packs.bootstrap-interval`) | Installs the packs this deployment ships, so a fresh environment has Studios (ADR-068, `#45`). |
+| `studio` | `RetentionSweeper.purge` | cron `0 30 3 * * *` (`orazaka.studio-service.retention.cron`) | Purges what the retention window says may no longer be kept (ADR-034 §14, GDPR / Loi 25). |
+| `studio` | `RunSweeper.sweep` | every 60 s (`orazaka.studio-service.sweeper.interval`) | Closes runs whose steps stopped reporting, and releases their holds. |
+| `studio` | `WebhookSweeper.sweep` | every 10 s (`orazaka.studio-service.webhooks.interval`) | Queues and sends the webhooks of finished runs (sovkora#189 slice B). |
 
 ## Automation
 
 Connector actions are jobs too: a producer publishes on `job.automation.*` (exchange `orazaka.jobs`), the
 automation service consumes `orazaka.jobs.automation` (failures dead-letter to `orazaka.jobs.automation.dlq`), runs the connector and
 reports each state change on `evt.automation.telemetry` (exchange `orazaka.events`).
-
-| Producer | Repository | Routing key |
-|:---|:---|:---|
-| `AmqpStepExecutionAdapter` | `orazaka-studio` | `job.automation.approved` |
 
 | Connector | Behaviour |
 |:---|:---|

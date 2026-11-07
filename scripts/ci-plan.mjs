@@ -1,29 +1,28 @@
 #!/usr/bin/env node
 /**
- * The CI plan of the workspace job (krizaka-internal#2024, ADR-018 budgets).
+ * The Java plan of the CI (krizaka-internal#2024, ADR-018 budgets; ADR-029: one repository, one reactor).
  *
  *   node scripts/ci-plan.mjs --event pull_request [--files a,b,c | --diff HEAD^1]
  *
- * Every other repository of the workspace is cloned at its main and verified by its own CI (component.yml), so a
- * pull request here only needs the reactor compiled and the tests of what it touches: the changed Maven modules
- * and their dependents (`-pl <changed> -amd`). The full reactor (every unit test and Testcontainers IT) runs on
- * merge_group, main, the nightly and dispatch, and whenever the pull request touches what every module shares
- * (root pom, .mvn, infra, the manifest, this tooling, the workflow). It fails open: unknown means full.
+ * A pull request needs the reactor compiled and the tests of what it touches: the changed Maven modules and their
+ * dependents (`-pl <changed> -amd`). The full reactor (every unit test and Testcontainers IT) runs on merge_group, main,
+ * the nightly and dispatch, and whenever the pull request touches what every module shares (the root pom, the parent,
+ * .mvn, infra, the module catalogue, this tooling, the workflow). It fails open: unknown means full.
  *
  * Prints `mode=full|changed` and `pl=<comma list>` (also appended to $GITHUB_OUTPUT).
  */
 import { spawnSync } from "node:child_process";
-import { appendFileSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { appendFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /** What every module shares: a change here can break any of them. */
 export const SHARED =
-  /^(pom\.xml|\.mvn\/|mvnw(\.cmd)?$|infra\/|orazaka\.workspace\.json$|scripts\/(workspace|ci-plan)\.mjs$|\.github\/workflows\/ci\.yml$)/;
+  /^(pom\.xml|build\/(pom\.xml|sovkora-parent\/)|\.mvn\/|mvnw(\.cmd)?$|infra\/|modules\.json$|scripts\/ci-plan\.mjs$|\.github\/workflows\/ci\.yml$)/;
 
-/** Module directories declared by the root pom, longest first. */
-export function modulesOf(pomXml) {
-  const dirs = [...pomXml.matchAll(/<module>([^<]+)<\/module>/g)].map((m) => m[1].trim());
+/** The Maven module folders of the tree (every folder with a pom.xml, the root aside), longest first. */
+export function modulesOf(pomPaths) {
+  const dirs = pomPaths.filter((p) => p.endsWith("/pom.xml")).map((p) => p.slice(0, -"/pom.xml".length));
   return [...new Set(dirs)].sort((a, b) => b.length - a.length);
 }
 
@@ -52,7 +51,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const r = spawnSync("git", ["diff", "--name-only", arg("--diff"), "HEAD"], { cwd: root, encoding: "utf8" });
     files = r.status === 0 ? r.stdout.split("\n").filter(Boolean) : null;
   }
-  const result = plan({ event, files, modules: modulesOf(readFileSync(join(root, "pom.xml"), "utf8")) });
+  const poms = spawnSync("git", ["ls-files", "*pom.xml"], { cwd: root, encoding: "utf8" }).stdout.split("\n").filter(Boolean);
+  const result = plan({ event, files, modules: modulesOf(poms) });
   console.log(`mode=${result.mode}\npl=${result.pl}\n# ${result.reason}`);
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\npl=${result.pl}\n`);
 }

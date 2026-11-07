@@ -20,7 +20,7 @@
  *   - PACKS.md            reference packs, manifest fields, the pack authors' guide (orazaka-packs)
  *   - ADMIN.md            the SecOps console and every ADMIN-only endpoint
  *   - MODELS.md           AI model catalog (from infra/initdb seed)
- *   - REPOSITORIES.md     repository map (from orazaka.workspace.json)
+ *   - MODULES.md          module map (from modules.json)
  *
  * Output is deterministic (no timestamps) so `--check` is a pure staleness diff.
  *
@@ -30,7 +30,7 @@
  */
 import { screenRoute } from "./lib/screen-route.mjs";
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync } from "node:fs";
-import { join, basename, relative } from "node:path";
+import { join, basename, relative, resolve } from "node:path";
 import { buildModels, catalogue, manifestLicences, readmeLicences } from "./lib/model-registry.mjs";
 import { walk } from "./lib/walk.mjs";
 import { byNumber, byText, requestMatcherRules, servicePortOf } from "./lib/source-scan.mjs";
@@ -38,7 +38,6 @@ import { mdCell, stripTags, xmlDecode } from "./lib/doc-text.mjs";
 import { packsSection } from "./lib/pack-blocks.mjs";
 import { mdMeasuredRuns } from "./lib/measured-runs.mjs";
 import { mdCinema } from "./lib/cinema-measure.mjs";
-import { missingRepositories, notClonedMessage } from "./lib/workspace-cloned.mjs";
 import { mdLawBakeoff } from "./lib/bakeoff/report.mjs";
 
 const ROOT = process.cwd();
@@ -48,16 +47,22 @@ const CHECK = process.argv.includes("--check");
 const read = (p) => (existsSync(p) ? readFileSync(p, "utf8") : "");
 
 /**
- * The workspace manifest: every repository of the platform and where it is cloned. Docs are built
- * from the code of all of them, so the generator runs from the workspace root (AGENTS.md §10).
+ * The module catalogue (modules.json, ADR-029): every folder of the one Sovkora repository that is a module, in build order.
+ * The Krizaka building blocks the services run with (users, billing, the BOM) are krizaka-java's: the generator reads them
+ * from a checkout of krizaka-java at the release sovkora-parent imports (`KRIZAKA_JAVA_DIR`, default `.krizaka-java`, the
+ * folder CI checks it out to), so the docs describe exactly what the build resolves.
  */
-const WORKSPACE = JSON.parse(read(join(ROOT, "orazaka.workspace.json")) || '{"repositories":[]}');
-const REPOSITORIES = WORKSPACE.repositories;
+const CATALOGUE = JSON.parse(read(join(ROOT, "modules.json")) || '{"modules":[]}');
+const KRIZAKA_JAVA = relative(ROOT, resolve(ROOT, process.env.KRIZAKA_JAVA_DIR || ".krizaka-java")).replaceAll("\\", "/");
+const REPOSITORIES = [
+  { name: "krizaka-java", path: KRIZAKA_JAVA, kind: "maven", layer: "krizaka", description: "The Krizaka Java building blocks (com.krizaka on Maven Central).", dependsOn: [] },
+  ...CATALOGUE.modules,
+];
 
 /** The repository a workspace path belongs to (longest matching path prefix). */
 const repositoryOf = (relPath) =>
   REPOSITORIES.filter((r) => relPath === r.path || relPath.startsWith(r.path + "/"))
-    .sort((a, b) => b.path.length - a.path.length)[0]?.name ?? WORKSPACE.umbrella ?? null;
+    .sort((a, b) => b.path.length - a.path.length)[0]?.name ?? "sovkora";
 
 /**
  * Concatenated DB bootstrap in execution (alphabetical) order. Each context's file lives in the
@@ -274,7 +279,7 @@ function extractArchitecture() {
   }
 
   // Native workers and UI clients: one repository each, described by the manifest.
-  const extra = REPOSITORIES.filter((r) => r.layer === "worker" || (r.layer === "app" && r.kind === "npm")).map((r) => ({
+  const extra = REPOSITORIES.filter((r) => r.layer === "worker" || (r.layer === "app" && r.kind === "pnpm")).map((r) => ({
     id: r.name,
     dir: join(ROOT, r.path),
     path: r.path,
@@ -399,10 +404,10 @@ function extractArchitecture() {
   }
   flows.sort((a, b) => a.kind.localeCompare(b.kind) || a.from.localeCompare(b.from) || a.to.localeCompare(b.to) || a.via.localeCompare(b.via));
 
-  // The repository map (orazaka.workspace.json): which GitHub repository holds what, in build order.
+  // The module map (modules.json): which folder holds what, in build order.
   const repositories = REPOSITORIES.map((r) => ({
     name: r.name,
-    url: `https://github.com/${WORKSPACE.org}/${r.name}`,
+    url: r.name === "krizaka-java" ? "https://github.com/krizaka/krizaka-java" : `https://github.com/krizaka/sovkora/tree/main/${r.path}`,
     path: r.path,
     kind: r.kind,
     layer: r.layer,
@@ -490,7 +495,7 @@ function extractBuildingBlocks() {
   const byId = new Map(poms.filter((p) => p.id).map((p) => [p.id, p]));
   const artifacts = poms.filter((p) => p.id && !p.reactor && !p.path.split("/").includes("examples"));
   const known = new Set(artifacts.map((a) => a.id));
-  if (!known.size) throw new Error("generate-docs: no Krizaka artifact found — clone the krizaka/* repositories of orazaka.workspace.json");
+  if (!known.size) throw new Error(`generate-docs: no Krizaka artifact found in ${KRIZAKA_JAVA}: point KRIZAKA_JAVA_DIR at a krizaka-java checkout of the release sovkora-parent imports`);
 
   const roleOf = (a) => {
     if (a.path.split("/").includes("krizaka-service-kit")) return a.path.split("/").includes("starters") ? "starter" : "platform";
@@ -718,7 +723,7 @@ function extractMessaging(reactor, extra) {
   }
 
   // The retry policy of the kit's listener container (krizaka.messaging.retry), defaults read from code.
-  const retrySrc = read(sourceFile("krizaka/krizaka-build/krizaka-service-kit/krizaka-messaging", "ConsumerRetryProperties.java"));
+  const retrySrc = read(sourceFile(`${KRIZAKA_JAVA}/krizaka-service-kit/krizaka-messaging`, "ConsumerRetryProperties.java"));
   const retry = {
     maxAttempts: Number(retrySrc.match(/maxAttempts\s*=\s*maxAttempts\s*==\s*null\s*\?\s*(\d+)/)?.[1]),
     initialMs: Number(retrySrc.match(/initial\s*=\s*initial\s*==\s*null\s*\?\s*Duration\.ofMillis\((\d+)\)/)?.[1]),
@@ -883,7 +888,7 @@ function accessRules(serviceDir) {
     const code = read(f).replace(/^\s*(\/\/|\*|\/\*).*$/gm, "");
     // krizaka-security's SecurityBaseline.apply(http, serviceRules) declares the shared rules
     // first and `anyRequest().authenticated()` last, around the service's own: the same order
-    // Spring Security will evaluate them in (krizaka/krizaka-build/krizaka-service-kit, ADR-073).
+    // Spring Security will evaluate them in (krizaka-java krizaka-service-kit, ADR-073).
     const baseline = code.includes("SecurityBaseline.apply(");
     if (baseline) {
       rules.push({ pattern: "/**", label: "public", httpMethod: "OPTIONS" });
@@ -1020,7 +1025,7 @@ function extractApi() {
     if (!existsSync(dir)) continue;
     const rules = accessRules(dir);
     // A service's REST surface is not only what sits in its own module: identity hosts seven
-    // controllers from `krizaka/krizaka-build/krizaka-users/krizaka-users-core`, its owned Tier-3 (AGENTS.md §2). Scanning
+    // controllers from krizaka-java `krizaka-users/krizaka-users-core`, its owned Tier-3 (AGENTS.md §2). Scanning
     // the service directory alone dropped `/api/v1/auth/**` — the login endpoint — from the
     // reference entirely. The libs are read from the pom, so a future move needs no edit here.
     const sources = [dir, ...hostedTier3Dirs(root)];
@@ -1308,7 +1313,7 @@ const readSmoke = () => {
 
 /** The models Orazaka supports (registry metadata required — see scripts/lib/model-registry.mjs). */
 const extractRegistry = () => {
-  const worker = REPOSITORIES.find((r) => r.name === "orazaka-worker-media");
+  const worker = REPOSITORIES.find((r) => r.name === "worker-media");
   const licenceSources = [
     { name: "infra/localai/README.md", licences: readmeLicences(read(join(ROOT, "infra", "localai", "README.md"))) },
     ...(worker ? [{ name: `${worker.path}/models.yaml`, licences: manifestLicences(read(join(ROOT, worker.path, "models.yaml"))) }] : []),
@@ -1329,14 +1334,13 @@ function extractModels() {
 // ════════════════════════════════════════════════════════════════════════════
 
 /**
- * The repository map, from orazaka.workspace.json: which GitHub repository holds what, what it
- * depends on, which modules of the architecture it hosts and which bootstrap SQL it owns. Built
- * from the manifest and the module paths, so a repository added to the manifest documents itself.
+ * The module map, from modules.json: which folder of the one Sovkora repository holds what, what it depends on, which
+ * modules of the architecture it hosts and which bootstrap SQL it owns. A module added to the catalogue documents itself.
  */
 const LAYER_TITLES = {
-  foundation: "Foundation — reusable by any application",
-  domain: "Domain services — reusable by any application",
-  ai: "Orazaka AI engine",
+  krizaka: "Krizaka building blocks — from Maven Central",
+  foundation: "Foundation",
+  ai: "The AI engine and its services",
   worker: "Native workers",
   app: "Applications",
   content: "Content",
@@ -1344,28 +1348,26 @@ const LAYER_TITLES = {
 const mdRepositories = (a) => {
   const lines = [
     frontmatter(
-      "Repositories",
-      "One GitHub repository per component — what each holds, what it depends on, and how they assemble into the workspace.",
+      "Modules",
+      "The folders of the one Sovkora repository — what each holds, what it depends on, and how they build together.",
       "Architecture",
       3,
     ),
   ];
   lines.push(
-    `Orazaka is published as **${a.repositories.length + 1} repositories** in the [\`${WORKSPACE.org}\`](https://github.com/${WORKSPACE.org}) organisation: ` +
-      `one per component, plus the workspace [\`${WORKSPACE.umbrella}\`](https://github.com/${WORKSPACE.org}/${WORKSPACE.umbrella}) that assembles them ` +
-      "(governance contract, `orazaka.workspace.json`, local infrastructure, end-to-end tests, these docs).",
+    `Sovkora is **one repository**, [\`krizaka/sovkora\`](https://github.com/krizaka/sovkora) (ADR-029), made of ` +
+      `**${a.repositories.length - 1} modules**; the Krizaka building blocks come from Maven Central.`,
     "",
     "```bash",
-    `git clone https://github.com/${WORKSPACE.org}/${WORKSPACE.umbrella}.git && cd ${WORKSPACE.umbrella}`,
-    "node scripts/workspace.mjs clone   # every repository at its workspace path",
-    "./mvnw install                     # the whole platform, in one reactor",
+    "./mvnw verify          # every Java module, in one reactor",
+    "pnpm install           # the clients: apps/web, mobile, cli, desktop",
     "```",
     "",
   );
   for (const [layer, title] of Object.entries(LAYER_TITLES)) {
     const repos = a.repositories.filter((r) => r.layer === layer);
     if (!repos.length) continue;
-    lines.push(`## ${title}\n`, "| Repository | Kind | What it holds | Depends on |", "|:---|:---|:---|:---|");
+    lines.push(`## ${title}\n`, "| Module | Kind | What it holds | Depends on |", "|:---|:---|:---|:---|");
     for (const r of repos) {
       const hosted = a.modules.filter((m) => m.repository === r.name).map((m) => `\`${m.id}\``);
       const owns = REPOSITORIES.find((x) => x.name === r.name)?.initdb ?? [];
@@ -1377,16 +1379,17 @@ const mdRepositories = (a) => {
         .filter(Boolean)
         .join(" ");
       const deps = r.dependsOn.length ? r.dependsOn.map((d) => `\`${d}\``).join(", ") : "—";
-      lines.push(`| [\`${r.name}\`](${r.url}) | ${r.kind} | ${detail} | ${deps} |`);
+      const where = r.name === "krizaka-java" ? `[\`krizaka-java\`](${r.url})` : `[\`${r.path}\`](${r.url})`;
+      lines.push(`| ${where} | ${r.kind} | ${detail} | ${deps} |`);
     }
     lines.push("");
   }
   lines.push(
     "## Rules\n",
-    "- A repository depends only on repositories listed **before** it in `orazaka.workspace.json` — the graph has no cycle.",
-    "- A domain repository holds its contract, its client and its service together; other repositories depend on the contract or the client, never on the implementation.",
-    "- A repository owns its context's bootstrap SQL (`infra/initdb/NN-*.sql`).",
-    "- Cross-repository governance rules run inside the workspace and are reported as skipped — never as passed — in a standalone clone.",
+    "- A module depends only on modules listed **before** it in `modules.json` — the graph has no cycle.",
+    "- A domain module holds its contract, its client and its service together; other modules depend on the contract or the client, never on the implementation.",
+    "- A module owns its context's bootstrap SQL (`infra/initdb/NN-*.sql`).",
+    "- The rules that read the whole tree run in the repository and are reported as skipped — never as passed — outside it.",
   );
   return lines.join("\n") + "\n";
 };
@@ -2167,7 +2170,7 @@ function extractJobs(arch) {
   const contract = walk(join(ROOT, "sovkora-libs"), (p) => basename(p) === "JobExecutor.java" && p.includes("/src/main/"))[0];
   const listener = walk(join(ROOT, "orazaka-apps"), (p) => basename(p) === "JobListener.java" && p.includes("/src/main/"))[0];
 
-  const auto = REPOSITORIES.find((r) => r.name === "orazaka-automation-service");
+  const auto = REPOSITORIES.find((r) => r.name === "automation");
   const autoDir = auto ? join(ROOT, auto.path) : null;
   const autoFile = (n) => (autoDir ? walk(autoDir, (p) => basename(p) === n && p.includes("/src/main/"))[0] : undefined);
   const dispatcher = read(autoFile("ConnectorDispatcher.java") ?? "");
@@ -2439,7 +2442,7 @@ function parseYaml(text) {
  * catalogue keeps off the shelf (`catalog.status: DRAFT`, e.g. the platform's test pack).
  */
 function extractPackCatalog() {
-  const repo = REPOSITORIES.find((r) => r.name === "orazaka-packs");
+  const repo = REPOSITORIES.find((r) => r.name === "packs");
   const dir = repo ? join(ROOT, repo.path) : null;
   if (!dir || !existsSync(dir)) return [];
   const text = (o) => (o ? { label: o.label ?? null, tagline: o.tagline ?? null, description: o.description ?? null } : null);
@@ -2540,7 +2543,7 @@ function packSummary(yaml) {
 }
 
 function extractPacks() {
-  const repo = REPOSITORIES.find((r) => r.name === "orazaka-packs");
+  const repo = REPOSITORIES.find((r) => r.name === "packs");
   if (!repo) return null;
   const dir = join(ROOT, repo.path);
   const schema = JSON.parse(read(join(dir, "pack.schema.json")) || "{}");
@@ -2608,7 +2611,7 @@ const mdPacks = (p, cli, catalog) => {
       .replace(/^(#{1,5}) /gm, "#$1 ")
       // Its links are relative to the workspace root: docs → the sibling page, anything else → GitHub.
       .replace(/\]\(docs\/([A-Z_]+\.md(?:#[^)]*)?)\)/g, "](../$1)")
-      .replace(/\]\((?!https?:|#|\.\.\/)([^)]+)\)/g, (_, path) => `](https://github.com/${WORKSPACE.org}/${p.repo}/tree/main/${path.replace(new RegExp(`^${p.repo}/`), "")})`);
+      .replace(/\]\((?!https?:|#|\.\.\/)([^)]+)\)/g, (_, path) => `](https://github.com/krizaka/sovkora/tree/main/${path})`);
     lines.push("", "## Writing a pack", "", body.trim());
   }
   return lines.join("\n").trimEnd() + "\n";
@@ -2618,7 +2621,7 @@ const mdPacks = (p, cli, catalog) => {
 
 function extractAdmin(api) {
   // The operator console lives in orazaka-web-client (host routing: admin.orazaka.com), not in a repository of its own.
-  const repo = REPOSITORIES.find((r) => r.name === "orazaka-web-client");
+  const repo = REPOSITORIES.find((r) => r.name === "web");
   const src = repo ? join(ROOT, repo.path, "src") : null;
   const appDir = src ? join(src, "app", "console") : null;
   const dir = src ? join(src, "console") : null;
@@ -2723,11 +2726,9 @@ const mdAdmin = (a) => {
 // MAIN
 // ════════════════════════════════════════════════════════════════════════════
 
-// The docs read the code of every repository: stop first, and say what is missing, rather than die inside the model
-// registry (its INSERTs are in the siblings' infra/initdb).
-const notCloned = missingRepositories(ROOT, REPOSITORIES);
-if (notCloned.length) {
-  console.error(notClonedMessage(notCloned));
+// The docs read krizaka-java's code too: stop first, and say where it is expected, rather than die inside the model registry.
+if (!existsSync(join(ROOT, KRIZAKA_JAVA, "pom.xml"))) {
+  console.error(`generate-docs: krizaka-java is not at ${KRIZAKA_JAVA}: check it out there at the release sovkora-parent imports, or set KRIZAKA_JAVA_DIR`);
   process.exit(1);
 }
 
@@ -2738,7 +2739,7 @@ const arch = { ...extractArchitecture(), packs: extractPackCatalog(), models: re
 const outputs = {
   "architecture.json": JSON.stringify(arch, null, 2) + "\n",
   "ARCHITECTURE.md": mdArchitecture(arch),
-  "REPOSITORIES.md": mdRepositories(arch),
+  "MODULES.md": mdRepositories(arch),
   "INTERFACE_CONTRACTS.md": mdInterfaces(arch),
   "USE_CASES.md": mdUseCases(extractUseCases()),
   "INTERCEPTORS.md": mdInterceptors(extractInterceptors(arch.pipeline)),

@@ -1,0 +1,168 @@
+{
+  "$comment": "The modules of Sovkora, one repository (ADR-029), in build order: what each folder is, its toolchain and what it depends on. Read by the docs generator, the CI plan and the dev tools. A folder that is not here is not a module.",
+  "repository": "krizaka/sovkora",
+  "modules": [
+    {
+      "name": "build",
+      "path": "build",
+      "kind": "maven",
+      "layer": "foundation",
+      "description": "The parent POM sovkora-parent (krizaka-parent from Maven Central, the Spring Boot / Spring AI BOMs, the Sovkora BOM, the ADR-029 naming guards) and the shared governance test kit (ArchUnit rules, Testcontainers base).",
+      "dependsOn": []
+    },
+    {
+      "name": "contracts",
+      "path": "contracts",
+      "kind": "maven",
+      "layer": "foundation",
+      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api) and the secret sealing (sovkora-crypto). Pure interfaces and records.",
+      "dependsOn": [
+        "build"
+      ]
+    },
+    {
+      "name": "studio",
+      "path": "services/studio",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "Studio & pack marketplace: pack catalogue, studio blueprints, installations and saga-driven runs, with its contract (studio-api) and HTTP client (studio-client).",
+      "dependsOn": [
+        "build",
+        "contracts"
+      ],
+      "initdb": [
+        "80-studio.sql"
+      ]
+    },
+    {
+      "name": "engine",
+      "path": "engine",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "The Sovkora cognitive SDK: AiClient & provider mesh (core), the interceptor pipeline, tools (MCP · RAG · sandbox), use-case orchestration (business), application persistence and asset encryption, as sovkora-engine-* modules.",
+      "dependsOn": [
+        "build",
+        "contracts",
+        "studio"
+      ],
+      "initdb": [
+        "60-governance.sql"
+      ]
+    },
+    {
+      "name": "conversation",
+      "path": "services/conversation/sovkora-conversation-service",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "Interactive ingress of the Sovkora engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic.",
+      "dependsOn": [
+        "build",
+        "contracts",
+        "engine"
+      ],
+      "initdb": [
+        "20-conversation.sql"
+      ]
+    },
+    {
+      "name": "job",
+      "path": "services/job/sovkora-job-service",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "Asynchronous job executor of the Sovkora engine: drains the interactive and batch lanes, owns the capability registry and the worker registry.",
+      "dependsOn": [
+        "build",
+        "contracts",
+        "engine"
+      ],
+      "initdb": [
+        "30-jobs-config.sql"
+      ]
+    },
+    {
+      "name": "knowledge",
+      "path": "services/knowledge/sovkora-knowledge-service",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "Knowledge & RAG retrieval service (pgvector) with asynchronous indexing.",
+      "dependsOn": [
+        "build"
+      ],
+      "initdb": [
+        "40-knowledge.sql"
+      ]
+    },
+    {
+      "name": "automation",
+      "path": "services/automation/sovkora-automation-service",
+      "kind": "maven",
+      "layer": "ai",
+      "description": "Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry.",
+      "dependsOn": [
+        "build",
+        "engine"
+      ],
+      "initdb": [
+        "50-automation.sql"
+      ]
+    },
+    {
+      "name": "edge",
+      "path": "services/edge/sovkora-edge-service",
+      "kind": "maven",
+      "layer": "foundation",
+      "description": "Transparent HTTP edge in front of every Sovkora service: routing, API-key → JWT exchange, CORS and tracing. Spring MVC + virtual threads.",
+      "dependsOn": [
+        "build"
+      ]
+    },
+    {
+      "name": "worker-media",
+      "path": "workers/media",
+      "kind": "python",
+      "layer": "worker",
+      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol.",
+      "dependsOn": []
+    },
+    {
+      "name": "web",
+      "path": "apps/web",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "Next.js (App Router) client of the Sovkora platform with its mandatory BFF.",
+      "dependsOn": []
+    },
+    {
+      "name": "mobile",
+      "path": "apps/mobile",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "Expo / React Native client of the Sovkora platform (talks to the edge with Bearer tokens).",
+      "dependsOn": []
+    },
+    {
+      "name": "cli",
+      "path": "apps/cli",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "The developer CLI: install, start, dev, test, docs and pack tooling for the local Sovkora stack, with an offline SQLite queue.",
+      "dependsOn": []
+    },
+    {
+      "name": "desktop",
+      "path": "apps/desktop",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app.",
+      "dependsOn": []
+    },
+    {
+      "name": "packs",
+      "path": "packs",
+      "kind": "packs",
+      "layer": "content",
+      "description": "Reference packs for the Sovkora Studio marketplace (document validation, media, prospection, real-estate, wellbeing…) and the pack manifest schema.",
+      "dependsOn": []
+    }
+  ]
+}

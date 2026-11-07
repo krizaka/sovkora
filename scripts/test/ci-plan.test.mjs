@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { modulesOf, plan } from "../ci-plan.mjs";
 
-const modules = modulesOf(`<modules><module>krizaka/krizaka-build</module><module>e2e/sovkora-e2e</module>
-<module>services/edge/sovkora-edge-service</module><module>services/edge/sovkora-edge-service-x</module></modules>`);
+const modules = modulesOf(["pom.xml", "services/studio/pom.xml", "e2e/sovkora-e2e/pom.xml",
+  "services/edge/sovkora-edge-service/pom.xml", "services/edge/sovkora-edge-service-x/pom.xml"]);
 
-test("modules are read from the root pom, longest first", () => {
+test("modules are every folder with a pom.xml, the root aside, longest first", () => {
   assert.equal(modules.length, 4);
+  assert.ok(!modules.includes(""));
   assert.ok(modules.indexOf("services/edge/sovkora-edge-service-x") < modules.indexOf("services/edge/sovkora-edge-service"));
 });
 
@@ -23,7 +24,7 @@ test("a pull request builds the changed modules and their dependents", () => {
     modules,
   });
   assert.equal(p.mode, "changed");
-  assert.equal(p.pl, "services/edge/sovkora-edge-service,e2e/sovkora-e2e");
+  assert.equal(p.pl, "e2e/sovkora-e2e,services/edge/sovkora-edge-service");
 });
 
 test("a sibling directory with the same prefix is not the module", () => {
@@ -32,7 +33,7 @@ test("a sibling directory with the same prefix is not the module", () => {
 });
 
 test("what every module shares, or an unknown change set, fails open to full", () => {
-  for (const f of ["pom.xml", ".mvn/maven.config", "infra/initdb/10-x.sql", "orazaka.workspace.json", ".github/workflows/ci.yml", "scripts/ci-plan.mjs"]) {
+  for (const f of ["pom.xml", "build/pom.xml", "build/sovkora-parent/pom.xml", ".mvn/maven.config", "infra/initdb/10-x.sql", "modules.json", ".github/workflows/ci.yml", "scripts/ci-plan.mjs"]) {
     assert.equal(plan({ event: "pull_request", files: [f, "e2e/sovkora-e2e/A.java"], modules }).mode, "full", f);
   }
   assert.equal(plan({ event: "pull_request", files: [], modules }).mode, "full");
@@ -43,4 +44,9 @@ test("a pull request outside every module tests no module", () => {
   const p = plan({ event: "pull_request", files: ["docs/a.md"], modules });
   assert.equal(p.mode, "changed");
   assert.equal(p.pl, "");
+});
+
+test("a change in a module of an aggregator names the module, not the aggregator", () => {
+  const p = plan({ event: "pull_request", files: ["services/studio/sovkora-studio-api/src/A.java"], modules: modulesOf(["services/studio/pom.xml", "services/studio/sovkora-studio-api/pom.xml"]) });
+  assert.equal(p.pl, "services/studio/sovkora-studio-api");
 });

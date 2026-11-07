@@ -1962,7 +1962,7 @@ capability rows, a price, catalogue entries — and changes no code.
 
 Kept off the shelf (`catalog.status: DRAFT`): `echo-toolkit` — installable for the platform's tests, never sold.
 
-## The reference packs (`orazaka-packs`)
+## The reference packs (`packs`)
 
 | Pack | Version | Studios |
 |:---|:---|:---|
@@ -2267,7 +2267,7 @@ It must
 > ⚠ **The success key is `result`, not `output`.** Getting it wrong gives you a `SUCCEEDED` run
 > with an empty output and no error anywhere.
 
-The worked example is [`orazaka-packs/echo-toolkit`](https://github.com/krizaka/orazaka-packs/tree/main/echo-toolkit) — a manifest, a
+The worked example is [`orazaka-packs/echo-toolkit`](https://github.com/krizaka/sovkora/tree/main/orazaka-packs/echo-toolkit) — a manifest, a
 Studio and a ~120-line Python worker that reverses a string. It is deliberately trivial: everything
 in it that is not about the extension point would hide the extension point.
 

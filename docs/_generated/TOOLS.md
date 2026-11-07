@@ -9,7 +9,7 @@ generated: true
 # Tools & MCP
 
 In Orazaka a **tool** is a function a model may call during a turn (Spring AI function calling).
-`orazaka-tools` (repository `orazaka-ai-engine`) holds the tool registry, the bridge to external MCP servers, the
+`orazaka-tools` (repository `engine`) holds the tool registry, the bridge to external MCP servers, the
 tool result cache and the sandbox that isolates tools which write. Tools are attached to a turn by the
 `ToolInterceptor` of the pipeline (see the [interceptor registry](INTERCEPTORS.md)) — a model only sees the
 tools the turn needs.
@@ -24,9 +24,6 @@ tools the turn needs.
 
 ## When a tool is attached
 
-- Never on a streaming turn, nor for a vision model (model name containing `vision`, `llava`, `bakllava`).
-- `analyzePoster` only when the turn mentions `poster`, `image`, `visual`, `picture`.
-- `analyzeAudioExtract` only when the turn mentions `audio`, `clip`, `voice`, `music`, `sound`.
 - Every other registered tool is offered on every eligible turn.
 
 ## Configuration in the database

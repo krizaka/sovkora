@@ -1,24 +1,42 @@
-Orazaka
+Sovkora
 Copyright 2026 Technologies Krizaka Inc.
 
 This product includes software developed at Krizaka (https://www.krizaka.com).
 
-LICENCE
-  From the commit that introduces this notice, this repository is licensed under
-  the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2),
-  in LICENSE: any use except a Competing Use, and each version becomes
-  available under the Apache License, Version 2.0 two years after it is published.
+LICENCE, FOLDER BY FOLDER
+  Sovkora is one repository (2026-11-08) made of the folders below. Each folder keeps the licence it had
+  as its own repository; no folder changed licence in the move.
 
-  Every commit before that one remains licensed under the Apache License,
-  Version 2.0 (LICENSE-APACHE), as it was published. The last Apache-2.0-only
-  commit at the time of writing is a9a8940ddabbac483fb54adb130094e4ff50093f (2026-10-26).
+  Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2), in LICENSE: any use except
+  a Competing Use, and each version becomes available under the Apache License, Version 2.0 two years
+  after it is published. It covers every folder without a LICENSE file of its own:
+    engine/, services/ (except services/edge/), workers/, apps/web/, apps/mobile/, apps/desktop/,
+    e2e/, infra/, scripts/, docs/ and the root files.
 
-  Why: ADR-012 (internal)
+  Apache License, Version 2.0, in the folder's own LICENSE file:
+    build/, contracts/, services/edge/, apps/cli/ and packs/.
+
+  The commits made before each folder moved to FSL-1.1-ALv2 remain licensed under the Apache License,
+  Version 2.0 (LICENSE-APACHE), as they were published. The last Apache-2.0-only commit of each, in the
+  history this repository carries:
+    the repository root      a9a8940ddabbac483fb54adb130094e4ff50093f (2026-10-26)
+    engine/                  a2fcdf334776bd9f1236f0d41d5e7e1440297a00 (2026-10-26)
+    services/studio/         13a1c41943a11bbb485dcbda70392c746431af6a (2026-10-26)
+    services/conversation/   cb2cc4375da3d3fb90ec1cf08f34867f977cbce3 (2026-10-26)
+    services/job/            467482e90b3847cac6e4f1a3258082ef7c99b73b (2026-10-26)
+    services/knowledge/      d08928d8cc66470a1285d4513c3f323703cf9786 (2026-10-26)
+    services/automation/     5d32ad419fd3c8b4b5243d990ae665bf8e99c153 (2026-10-26)
+    workers/media/           7f14ef86d6bbaeacc5e840952065d4784035b528 (2026-10-26)
+    apps/web/                8ff8f61ade8ec3453f411c409a7c8a0d50adda90 (2026-10-26)
+    apps/mobile/             127f55e30c8efa55f21c0c1572d00c3ab6660514 (2026-10-26)
+
+  Why: ADR-012 (libraries Apache-2.0, products fair source) and ADR-029 (one repository, the licence
+  boundary is the folder).
 
 TRADEMARKS
-  Neither licence grants any right to the names Krizaka, Orazaka, Yomizaka,
-  Akinaza or the other Krizaka marks and birds:
-  https://github.com/krizaka/.github/blob/main/TRADEMARKS.md
+  Neither licence grants any right to the names Krizaka, Sovkora, Verikora, Folioviv or the other
+  Krizaka marks and birds: https://github.com/krizaka/.github/blob/main/TRADEMARKS.md
 
 CONTRIBUTIONS
-  External contributions require the Krizaka Contributor Licence Agreement.
+  External contributions require the Krizaka Contributor Licence Agreement (the CLA check of every
+  pull request).
