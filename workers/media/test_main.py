@@ -58,6 +58,7 @@ def _use_the_broker_mock(case):
     patcher.start()
     case.addCleanup(patcher.stop)
 
+
 # Now stub the global pipeline load to avoid model download
 mock_pipe = MagicMock()
 mock_diffusers.StableVideoDiffusionPipeline.from_pretrained.return_value = mock_pipe
@@ -175,12 +176,15 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
                 continue
             entries = (job.get("strategy") or {}).get("matrix", {}).get("include") or [{}]
             for entry in entries:
+
                 def resolve(text, entry=entry):
                     return re.sub(r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}", lambda m: str(entry.get(m.group(1), "")), text)
+
                 directory = resolve(given["working-directory"])
                 for name in re.findall(r"\btest_\w+\.py\b", resolve(given["test-command"])):
                     run.add(os.path.normpath(os.path.join(directory, name)))
-        self.assertTrue(run, "no Python test command found in ci.yml: this guard would be judging the empty set")
+        if not run:
+            self.fail("no Python test command found in ci.yml: this guard would be judging the empty set")
 
         suites = set()
         for root, directories, files in os.walk(self.REPOSITORY):

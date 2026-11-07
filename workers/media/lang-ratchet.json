@@ -28,7 +28,6 @@
   "ruff:RUF100": 38,
   "ruff:S108": 7,
   "ruff:S310": 3,
-  "ruff:S314": 1,
   "ruff:S603": 31,
   "ruff:S607": 24,
   "ruff:SIM102": 1,
