@@ -45,7 +45,7 @@ test("docs-sync starts CI on its branch itself (a GITHUB_TOKEN PR starts none) a
 test("CI holds every change to the generated docs: they are made from this tree and krizaka-java at the imported release", () => {
   const text = readFileSync(new URL("ci.yml", dir), "utf8");
   assert.match(text, /node scripts\/generate-docs\.mjs --check/);
-  assert.match(text, /repository: krizaka\/krizaka-java\n\s+ref: \$\{\{ steps\.krizaka\.outputs\.ref \}\}\n\s+path: \.krizaka-java/);
+  assert.match(text, /clone -q --depth 1 --branch "v\$version" https:\/\/github\.com\/krizaka\/krizaka-java\.git \.krizaka-java/);
 });
 
 /** Duplicate keys inside one job (two `permissions:` after a merge) make GitHub refuse the whole file at startup. */

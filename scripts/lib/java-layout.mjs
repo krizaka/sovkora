@@ -14,8 +14,7 @@ export const ROLES = new Set(["build", "contracts", "engine", "services", "e2e"]
 const BANNED = /-(common|utils?|impl|misc)(-|$)/;
 const KEBAB = /^sovkora(-[a-z0-9]+)+$/;
 
-/** XML without comments. */
-const bare = (xml) => xml.replace(/<!--[\s\S]*?-->/g, "");
+import { stripComments as bare } from "./krizaka-versions.mjs";
 
 /** A pom's own groupId (or its parent's), artifactId and packaging. */
 export function coordinates(pom) {

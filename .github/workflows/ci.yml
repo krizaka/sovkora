@@ -70,15 +70,11 @@ jobs:
         run: node scripts/check-krizaka-versions.mjs
       # The platform bootstrap and the Krizaka services Sovkora runs beside its own (users, billing) are krizaka-java's: the
       # integration tests read them from a checkout of the release sovkora-parent imports (the dev image builds the same).
-      - name: The krizaka-java release sovkora-parent imports
-        id: krizaka
-        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: krizaka/krizaka-java
-          ref: ${{ steps.krizaka.outputs.ref }}
-          path: .krizaka-java
-          persist-credentials: false
+      - name: krizaka-java at the release sovkora-parent imports (a tag of a public repository, no credential)
+        run: |
+          version=$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::krizaka.version is not a release: $version"; exit 1; }
+          git -c advice.detachedHead=false clone -q --depth 1 --branch "v$version" https://github.com/krizaka/krizaka-java.git .krizaka-java
       - name: Plan (what this event must test)
         id: plan
         env:
@@ -313,15 +309,11 @@ jobs:
       - name: Repository layout
         uses: krizaka/.github/actions/repo-layout@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
       # The tests and the generated docs read krizaka-java at the release sovkora-parent imports (billing migrations, building blocks).
-      - name: The krizaka-java release sovkora-parent imports
-        id: krizaka
-        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: krizaka/krizaka-java
-          ref: ${{ steps.krizaka.outputs.ref }}
-          path: .krizaka-java
-          persist-credentials: false
+      - name: krizaka-java at the release sovkora-parent imports (a tag of a public repository, no credential)
+        run: |
+          version=$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::krizaka.version is not a release: $version"; exit 1; }
+          git -c advice.detachedHead=false clone -q --depth 1 --branch "v$version" https://github.com/krizaka/krizaka-java.git .krizaka-java
       - name: Script tests (with the layout and naming guards of ADR-029)
         timeout-minutes: 10 # these tests take seconds: a hang is a bug, not a slow run
         run: |
