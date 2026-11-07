@@ -276,7 +276,7 @@ export function installViaBrew(formula: string): boolean {
 
 /** Absolute path to the native Python media worker (orazaka-worker-media). */
 function mediaWorkerDir(workspaceRoot: string): string {
-  return path.join(workspaceRoot, "orazaka-apps", "workers", "orazaka-worker-media");
+  return path.join(workspaceRoot, "workers", "media");
 }
 
 /**

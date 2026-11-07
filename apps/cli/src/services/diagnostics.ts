@@ -232,7 +232,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
 
   // 8. Check workspace structure
   const workspaceRoot = resolveWorkspaceRoot();
-  const requiredDirs = ["orazaka-libs", "orazaka-apps", "infra", "docs"];
+  const requiredDirs = ["engine", "services", "apps", "infra", "docs"];
   for (const dir of requiredDirs) {
     if (!fs.existsSync(path.join(workspaceRoot, dir))) {
       issues.push({

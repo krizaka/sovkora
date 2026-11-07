@@ -96,7 +96,7 @@ const SCHEMA_FILE = "pack.schema.json";
  * <p>Resolved from this CLI's own location instead: the tool doing the installing carries the
  * contract it enforces. A CLI cloned in the workspace finds `orazaka-packs/pack.schema.json` by that
  * walk. The CLI installed from npm sits outside any workspace, so it takes the schema of the workspace
- * it operates on — the one holding `orazaka.workspace.json` around the current directory, i.e. the
+ * it operates on — the one holding `modules.json` around the current directory, i.e. the
  * platform the pack is being installed into — never a file next to the bundle.
  */
 function locateSchema(): string {

@@ -57,12 +57,12 @@ export function scanWorkspaceStructure(workspaceRoot: string): {
   };
 
   return {
-    interceptorsDir: tryResolve("orazaka-libs", "orazaka-interceptors"),
-    coreDir: tryResolve("orazaka-libs", "orazaka-core"),
-    conversationDir: tryResolve("orazaka-apps", "services", "orazaka-conversation-service"),
-    uiDir: tryResolve("orazaka-apps", "ui"),
+    interceptorsDir: tryResolve("engine", "sovkora-engine-interceptors"),
+    coreDir: tryResolve("engine", "sovkora-engine-core"),
+    conversationDir: tryResolve("services", "conversation", "sovkora-conversation-service"),
+    uiDir: tryResolve("apps"),
     infraDir: tryResolve("infra"),
-    businessDir: tryResolve("orazaka-libs", "orazaka-business"),
+    businessDir: tryResolve("engine", "sovkora-engine-business"),
   };
 }
 
@@ -106,7 +106,7 @@ export function generateInterceptor(ctx: TemplateContext, workspaceRoot: string)
   const files: GeneratedFile[] = [];
 
   const struct = scanWorkspaceStructure(workspaceRoot);
-  const interceptorsBase = struct.interceptorsDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-interceptors");
+  const interceptorsBase = struct.interceptorsDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-interceptors");
   const moduleDir = path.join(interceptorsBase, `orazaka-interceptor-${kebab}`);
   const srcMain = path.join(moduleDir, "src", "main", "java", "com", "orazaka", "interceptor", pkg);
   const srcTest = path.join(moduleDir, "src", "test", "java", "com", "orazaka", "interceptor", pkg);
@@ -300,7 +300,7 @@ class ${name}InterceptorTest {
       `Add <module>orazaka-interceptor-${kebab}</module> to orazaka-interceptors/pom.xml`,
       `Add dependency to orazaka-conversation-service/pom.xml: <artifactId>orazaka-interceptor-${kebab}</artifactId>`,
       `Set the correct order in getOrder() per the context-matrix table in AGENTS.md`,
-      `Run: mvn clean install -pl orazaka-libs/orazaka-ai-engine/orazaka-interceptors/orazaka-interceptor-${kebab}`,
+      `Run: mvn clean install -pl engine/sovkora-engine-interceptors`,
     ],
   };
 }
@@ -317,7 +317,7 @@ export function generateBusinessFeature(ctx: TemplateContext, workspaceRoot: str
 
   const struct = scanWorkspaceStructure(workspaceRoot);
   const coreSrc = path.join(
-    struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+    struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
     "src",
     "main",
     "java",
@@ -326,7 +326,7 @@ export function generateBusinessFeature(ctx: TemplateContext, workspaceRoot: str
     "core",
   );
   const conversationSrc = path.join(
-    struct.conversationDir ?? path.join(workspaceRoot, "orazaka-apps", "services", "orazaka-conversation-service"),
+    struct.conversationDir ?? path.join(workspaceRoot, "services", "conversation", "sovkora-conversation-service"),
     "src",
     "main",
     "java",
@@ -334,7 +334,7 @@ export function generateBusinessFeature(ctx: TemplateContext, workspaceRoot: str
     "orazaka",
     "router",
   );
-  const uiDir = struct.uiDir ?? path.join(workspaceRoot, "orazaka-apps", "ui");
+  const uiDir = struct.uiDir ?? path.join(workspaceRoot, "apps");
 
   // Service interface (core)
   files.push(
@@ -546,7 +546,7 @@ export function generateTechnicalFeature(ctx: TemplateContext, workspaceRoot: st
 
   const struct = scanWorkspaceStructure(workspaceRoot);
   const coreSrc = path.join(
-    struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+    struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
     "src",
     "main",
     "java",
@@ -612,7 +612,7 @@ public class ${name}Configuration {
     ), // Test
     writeFile(
       path.join(
-        struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+        struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
         "src",
         "test",
         "java",
@@ -672,7 +672,7 @@ export function generateApiConnector(ctx: TemplateContext, workspaceRoot: string
 
   const struct = scanWorkspaceStructure(workspaceRoot);
   const coreSrc = path.join(
-    struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+    struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
     "src",
     "main",
     "java",
@@ -804,7 +804,7 @@ public record ${name}ConnectorProperties(
     ), // Test
     writeFile(
       path.join(
-        struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+        struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
         "src",
         "test",
         "java",

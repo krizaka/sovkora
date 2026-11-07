@@ -397,7 +397,7 @@ export const startCommand = new Command("start")
           startedServices.push("Media Worker");
         } else {
           // Native Python media worker: workers/media
-          const mediaWorkerDir = path.join(workspaceRoot, "orazaka-apps", "workers", "orazaka-worker-media");
+          const mediaWorkerDir = path.join(workspaceRoot, "workers", "media");
           const mainPy = path.join(mediaWorkerDir, "app", "main.py");
           const pythonCmd = resolveMediaWorkerPython(workspaceRoot);
 
@@ -450,9 +450,9 @@ export const startCommand = new Command("start")
           await logStep("Phase 5a: Starting Router (Spring Boot)...");
           const routerTargetDir = path.join(
             workspaceRoot,
-            "orazaka-apps",
             "services",
-            "orazaka-conversation-service",
+            "conversation",
+            "sovkora-conversation-service",
             "target",
           );
           const routerJarName = fs.existsSync(routerTargetDir)
@@ -485,7 +485,7 @@ export const startCommand = new Command("start")
         // UI
         if (shouldStart("ui")) {
           await logStep("Phase 5b: Starting Next.js UI...");
-          const uiDir = path.join(workspaceRoot, "orazaka-apps", "ui");
+          const uiDir = path.join(workspaceRoot, "apps");
           if (fs.existsSync(uiDir)) {
             const uiProcess = spawnDetachedToLog("npm", ["run", "dev"], {
               cwd: uiDir,

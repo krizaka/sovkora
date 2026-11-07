@@ -15,9 +15,8 @@ const WORKSPACE_HELP = [
   "",
   `  ${chalk.cyan("npx orazaka install")}            clones the platform into ./orazaka, then configures it`,
   "  or by hand:",
-  `  ${chalk.cyan("git clone https://github.com/krizaka/orazaka.git && cd orazaka")}`,
-  `  ${chalk.cyan("node scripts/workspace.mjs clone")}`,
-  `  ${chalk.cyan("./mvnw install")} ${chalk.gray("&&")} ${chalk.cyan("(cd orazaka-apps/ui && npm install)")}`,
+  `  ${chalk.cyan("git clone https://github.com/krizaka/sovkora.git && cd sovkora")}`,
+  `  ${chalk.cyan("./mvnw install")} ${chalk.gray("&&")} ${chalk.cyan("pnpm install")}`,
 ].join("\n");
 
 /**

@@ -20,17 +20,15 @@ describe("bootstrapWorkspace", () => {
     return { calls, run: (cmd, args, cwd) => (calls.push([cmd, ...args, `@${cwd}`]), { status, error: undefined }) };
   }
 
-  test("clones the workspace repository, then every component at its path", () => {
+  test("clones the one repository, and nothing else (ADR-029)", () => {
     const target = path.join(dir, "orazaka");
     const { calls, run } = recorder();
 
     const result = bootstrapWorkspace(target, { depth: 1, run });
 
     expect(result).toEqual({ ok: true, root: target });
-    expect(calls).toEqual([
-      ["git", "clone", "--depth", "1", WORKSPACE_REPOSITORY, target, `@${dir}`],
-      [process.execPath, path.join("scripts", "workspace.mjs"), "clone", "--depth", "1", `@${target}`],
-    ]);
+    expect(calls).toEqual([["git", "clone", "--depth", "1", WORKSPACE_REPOSITORY, target, `@${dir}`]]);
+    expect(WORKSPACE_REPOSITORY).toBe("https://github.com/krizaka/sovkora.git");
   });
 
   test("reuses a directory that already holds a workspace", () => {
@@ -38,7 +36,7 @@ describe("bootstrapWorkspace", () => {
     const { calls, run } = recorder();
 
     expect(bootstrapWorkspace(dir, { run }).ok).toBe(true);
-    expect(calls.map((c) => c[0])).toEqual([process.execPath]);
+    expect(calls).toEqual([]);
   });
 
   test("never clones into a non-empty directory", () => {

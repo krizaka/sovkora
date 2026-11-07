@@ -11,7 +11,7 @@ describe("one Node.js minimum, everywhere", () => {
     const engines = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf-8")).engines.node as string;
     expect(engines).toBe(`>=${String(NODE_MIN_MAJOR)}`);
 
-    const ci = fs.readFileSync(path.join(root, ".github", "workflows", "ci.yml"), "utf-8");
+    const ci = fs.readFileSync(path.join(root, "..", "..", ".github", "workflows", "ci.yml"), "utf-8"); // the one CI (ADR-029)
     expect([...ci.matchAll(/node-version:\s*"?(\d+)"?/g)].map((m) => Number(m[1]))).toContain(NODE_MIN_MAJOR);
 
     const readme = fs.readFileSync(path.join(root, "README.md"), "utf-8");

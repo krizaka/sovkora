@@ -298,7 +298,7 @@ export const recoverCommand = new Command("recover")
 
       // ─── Recreate media worker venv ─────────────────────────
       case "venv-recreate": {
-        const venvPath = path.join(workspaceRoot, "orazaka-apps", "workers", "orazaka-worker-media", ".venv");
+        const venvPath = path.join(workspaceRoot, "workers", "media", ".venv");
 
         if (fs.existsSync(venvPath)) {
           const shouldDelete = await confirm({

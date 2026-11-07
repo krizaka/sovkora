@@ -203,17 +203,11 @@ export const installCommand = new Command("install")
     }
 
     // ─── Phase 3: Media Worker Python Environment ───────────────
-    const mediaReqFile = path.join(
-      workspaceRoot,
-      "orazaka-apps",
-      "workers",
-      "orazaka-worker-media",
-      "requirements.txt",
-    );
+    const mediaReqFile = path.join(workspaceRoot, "workers", "media", "requirements.txt");
     if (fs.existsSync(mediaReqFile) && hasTool("python3")) {
       await logStep("Phase 3 — Media Worker Python Environment");
 
-      const venvPath = path.join(workspaceRoot, "orazaka-apps", "workers", "orazaka-worker-media", ".venv");
+      const venvPath = path.join(workspaceRoot, "workers", "media", ".venv");
       const venvExists = fs.existsSync(venvPath);
 
       if (venvExists) {
@@ -506,10 +500,10 @@ export const installCommand = new Command("install")
     if (path.relative(workspaceRoot, startDir).startsWith("..")) {
       steps.push(chalk.cyan(`cd ${path.relative(startDir, workspaceRoot)}`));
     }
-    if (!fs.existsSync(path.join(workspaceRoot, "orazaka-apps", "ui", "node_modules"))) {
+    if (!fs.existsSync(path.join(workspaceRoot, "apps", "node_modules"))) {
       steps.push(
         `${chalk.cyan("./mvnw install")}                — Build every JVM repository (one reactor)`,
-        `${chalk.cyan("(cd orazaka-apps/ui && npm install)")} — Link the web, mobile and CLI workspaces`,
+        `${chalk.cyan("pnpm install")} — Link the web, mobile and CLI workspaces`,
       );
     }
     steps.push(

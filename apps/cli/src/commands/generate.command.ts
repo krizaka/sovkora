@@ -79,7 +79,7 @@ function writeSingleTemplate(type: TemplateType, ctx: TemplateContext, workspace
     case "java-service": {
       const result = generateJavaService(ctx);
       const coreSrc = path.join(
-        struct.coreDir ?? path.join(workspaceRoot, "orazaka-libs", "orazaka-core"),
+        struct.coreDir ?? path.join(workspaceRoot, "engine", "sovkora-engine-core"),
         "src",
         "main",
         "java",
@@ -113,16 +113,13 @@ function writeSingleTemplate(type: TemplateType, ctx: TemplateContext, workspace
         });
       }
 
-      nextSteps.push(
-        "Add business logic to the ServiceImpl",
-        `Run: mvn clean install -pl orazaka-libs/orazaka-ai-engine/orazaka-core`,
-      );
+      nextSteps.push("Add business logic to the ServiceImpl", `Run: mvn clean install -pl engine/sovkora-engine-core`);
       break;
     }
     case "java-controller": {
       const content = generateJavaController(ctx);
       const conversationSrc = path.join(
-        struct.conversationDir ?? path.join(workspaceRoot, "orazaka-apps", "services", "orazaka-conversation-service"),
+        struct.conversationDir ?? path.join(workspaceRoot, "services", "conversation", "sovkora-conversation-service"),
         "src",
         "main",
         "java",
@@ -149,7 +146,7 @@ function writeSingleTemplate(type: TemplateType, ctx: TemplateContext, workspace
     }
     case "typescript-hook": {
       const content = generateTypeScriptHook(ctx);
-      const hooksDir = path.join(struct.uiDir ?? path.join(workspaceRoot, "orazaka-apps", "ui"), "src", "hooks");
+      const hooksDir = path.join(struct.uiDir ?? path.join(workspaceRoot, "apps"), "src", "hooks");
       const hookPath = path.join(hooksDir, `use${pascalCase(ctx.moduleName)}.ts`);
       fs.mkdirSync(hooksDir, { recursive: true });
       if (!fs.existsSync(hookPath)) {

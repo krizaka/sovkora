@@ -15,7 +15,7 @@ describe("locateWorkspace", () => {
   });
 
   test("finds the manifest above the current directory", () => {
-    const deep = path.join(dir, "orazaka-apps", "ui");
+    const deep = path.join(dir, "apps");
     fs.mkdirSync(deep, { recursive: true });
     fs.writeFileSync(path.join(dir, WORKSPACE_MANIFEST), "{}");
     expect(findWorkspaceManifestRoot(deep)).toBe(dir);
@@ -24,7 +24,7 @@ describe("locateWorkspace", () => {
 
   test("falls back on the workspace the CLI itself sits in", () => {
     const workspace = path.join(dir, "ws");
-    const cliDir = path.join(workspace, "orazaka-apps", "ui", "orazaka-cli", "dist", "utils");
+    const cliDir = path.join(workspace, "apps", "orazaka-cli", "dist", "utils");
     fs.mkdirSync(cliDir, { recursive: true });
     fs.writeFileSync(path.join(workspace, WORKSPACE_MANIFEST), "{}");
     const outside = path.join(dir, "outside");

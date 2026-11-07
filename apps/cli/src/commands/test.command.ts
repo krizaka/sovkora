@@ -89,7 +89,7 @@ export const testCommand = new Command("test")
  * interpreter the worker actually executes under.
  */
 async function runWorkerGate(root: string): Promise<void> {
-  const worker = path.join(root, "orazaka-apps", "workers", "orazaka-worker-media");
+  const worker = path.join(root, "workers", "media");
   const bin = path.join(worker, ".venv", "bin");
 
   if (!fs.existsSync(path.join(bin, "ruff"))) {

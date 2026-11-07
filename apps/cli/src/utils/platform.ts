@@ -65,14 +65,14 @@ export interface WorkspaceDetection {
 }
 
 /** The manifest at the root of an Orazaka workspace (krizaka/orazaka). */
-export const WORKSPACE_MANIFEST = "orazaka.workspace.json";
+export const WORKSPACE_MANIFEST = "modules.json";
 
 /** Markers that indicate an Orazaka workspace. */
-const WORKSPACE_MARKERS = [WORKSPACE_MANIFEST, "pom.xml", "orazaka-libs", "orazaka-apps", "AGENTS.md"] as const;
+const WORKSPACE_MARKERS = [WORKSPACE_MANIFEST, "pom.xml", "engine", "services", "AGENTS.md"] as const;
 
 /**
  * Detects whether a directory is an Orazaka workspace.
- * Scans for orazaka.workspace.json, pom.xml, orazaka-libs/, orazaka-apps/, AGENTS.md.
+ * Scans for modules.json, pom.xml, engine/, services/, AGENTS.md.
  */
 export function detectOrazakaWorkspace(dir: string): WorkspaceDetection {
   const found: string[] = [];

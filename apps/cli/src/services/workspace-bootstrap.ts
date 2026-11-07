@@ -1,9 +1,8 @@
 /**
  * @file workspace-bootstrap.ts
- * @description Turns an empty directory into an Orazaka workspace: clones the workspace repository
- * (krizaka/orazaka), then every component repository at its path through the workspace's own tool
- * (`node scripts/workspace.mjs clone`). This is what makes `npx orazaka install` work on a machine that
- * has nothing yet — the CLI on npm carries no copy of the platform, it fetches the real one.
+ * @description Turns an empty directory into a Sovkora workspace: clones the one Sovkora repository (krizaka/sovkora,
+ * ADR-029). This is what makes `npx orazaka install` work on a machine that has nothing yet — the CLI on npm carries no
+ * copy of the platform, it fetches the real one.
  */
 
 import * as fs from "node:fs";
@@ -11,8 +10,8 @@ import * as path from "node:path";
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 import { WORKSPACE_MANIFEST } from "../utils/platform";
 
-/** The workspace repository every component is assembled from. */
-export const WORKSPACE_REPOSITORY = "https://github.com/krizaka/orazaka.git";
+/** The one repository of the platform. */
+export const WORKSPACE_REPOSITORY = "https://github.com/krizaka/sovkora.git";
 
 /** Runs a command; injectable so the sequence is testable without git or a network. */
 export type Runner = (
@@ -31,8 +30,7 @@ export interface BootstrapResult {
 }
 
 /**
- * Clones the workspace into {@code target} (shallow by default) and every repository it lists.
- * A directory that already holds a workspace is reused — only the missing repositories are cloned.
+ * Clones the repository into {@code target} (shallow when asked). A directory that already holds it is reused as it is.
  */
 export function bootstrapWorkspace(
   target: string,
@@ -50,11 +48,6 @@ export function bootstrapWorkspace(
     if (clone.status !== 0) {
       return { ok: false, root, error: `git clone failed${clone.error ? ": " + clone.error.message : ""}.` };
     }
-  }
-
-  const components = run(process.execPath, [path.join("scripts", "workspace.mjs"), "clone", ...depth], root);
-  if (components.status !== 0) {
-    return { ok: false, root, error: "node scripts/workspace.mjs clone failed — re-run it from the workspace." };
   }
   return { ok: true, root };
 }

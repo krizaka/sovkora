@@ -19,12 +19,12 @@ import { spawnWithPrefix } from "../utils/process";
 import { PORTS } from "../utils/config";
 import { requireWorkspace } from "./workspace-guard";
 
-/** The services `dev` runs from krizaka-build: modules of the workspace reactor, which lists `krizaka/krizaka-build`
- *  only (users, billing and the platform kit joined it, ADR-021). */
+/** The Krizaka services `dev` runs beside Sovkora's: modules of krizaka-java, read from its checkout at the release
+ *  sovkora-parent imports (`.krizaka-java`, the folder scripts/generate-docs.mjs and CI use; ADR-029). */
 export const KRIZAKA_BUILD_MODULES = {
-  identity: "krizaka/krizaka-build/krizaka-users/krizaka-users-service",
-  billing: "krizaka/krizaka-build/krizaka-billing/krizaka-billing-service",
-  notifications: "krizaka/krizaka-build/krizaka-platform-kit/krizaka-notifications-service",
+  identity: ".krizaka-java/krizaka-users/krizaka-users-service",
+  billing: ".krizaka-java/krizaka-billing/krizaka-billing-service",
+  notifications: ".krizaka-java/krizaka-service-kit/krizaka-notifications-service",
 } as const;
 
 /** Stable service identifiers used by the `--only` filter. */
@@ -275,7 +275,7 @@ export const devCommand = new Command("dev")
   .option("--skip-workers", "Skip the Python workers declared by worker.yaml")
   .action(async (opts: DevOptions) => {
     const root = requireWorkspace("dev");
-    const uiRoot = path.join(root, "orazaka-apps", "ui");
+    const uiRoot = path.join(root, "apps");
     process.env.UPLOAD_DIR = absoluteUploadDir(root, process.env.UPLOAD_DIR);
 
     const enabled = resolveEnabledServices(opts);
@@ -385,7 +385,7 @@ export const devCommand = new Command("dev")
         color: chalk.cyan,
         command: "npm",
         args: ["run", "dev", "--", "--port", String(PORTS.web)],
-        cwd: path.join(uiRoot, "orazaka-web-client"),
+        cwd: path.join(uiRoot, "web"),
         enabled: isEnabled("web"),
         port: PORTS.web,
       },
@@ -395,7 +395,7 @@ export const devCommand = new Command("dev")
         color: chalk.yellow,
         command: "npx",
         args: ["expo", "start"],
-        cwd: path.join(uiRoot, "orazaka-mobile-client"),
+        cwd: path.join(uiRoot, "mobile"),
         enabled: isEnabled("mobile"),
         port: PORTS.mobile,
       },
