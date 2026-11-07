@@ -17,6 +17,7 @@ import chalk from "chalk";
 import { confirm, createSpinner, intro, isCancel, logError, logInfo, logWarning, outro } from "../ui/prompts";
 import { strEnv } from "../utils/config";
 import { resolveWorkspaceRootSmart } from "../utils/platform";
+import { toolPath } from "../services/tool-path";
 
 /** Compose `container_name` of the pgvector Postgres service (infra/docker-compose.yml). */
 const DB_CONTAINER = "orazaka-db-vector";
@@ -68,7 +69,7 @@ async function reseed(opts: { yes?: boolean }): Promise<void> {
   s.start(`Applying ${initDb.files.length} initdb files…`);
 
   const res = spawnSync(
-    "docker",
+    toolPath("docker"),
     ["exec", "-i", DB_CONTAINER, "psql", "-U", dbUser, "-d", dbName, "-v", "ON_ERROR_STOP=1", "-q", "-f", "-"],
     { input: initDb.sql },
   );

@@ -7,7 +7,8 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { isNoiseLine, spawnDetachedToLog } from "../../utils/process";
+import { spawn } from "node:child_process";
+import { isNoiseLine, spawnDetachedToLog, stopMatching } from "../../utils/process";
 
 describe("isNoiseLine", () => {
   test("flags npm script echo lines as noise", () => {
@@ -39,5 +40,24 @@ describe("spawnDetachedToLog", () => {
 
     await new Promise((r) => setTimeout(r, 700));
     expect(fs.readFileSync(logFile, "utf-8")).toContain("hello-spawn");
+  });
+});
+
+describe("stopMatching", () => {
+  test("stops the process whose command line matches, through pkill from a fixed folder", async () => {
+    const marker = `orazaka-stop-matching-${String(process.pid)}`;
+    const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)", marker], { stdio: "ignore" });
+    const exited = new Promise<NodeJS.Signals | null>((resolve) =>
+      child.on("exit", (_code, signal) => resolve(signal)),
+    );
+    await new Promise((r) => setTimeout(r, 300));
+
+    stopMatching(marker);
+
+    await expect(exited).resolves.toBe("SIGTERM");
+  });
+
+  test("never throws when nothing matches, as `pkill … || true` did", () => {
+    expect(() => stopMatching(`orazaka-nothing-runs-like-this-${String(Date.now())}`)).not.toThrow();
   });
 });

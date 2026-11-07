@@ -6,7 +6,8 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { toolPath } from "./tool-path";
 import {
   hasTool,
   getToolVersion,
@@ -63,7 +64,7 @@ export function detectDockerCompose(): {
 
   try {
     if (hasTool("docker")) {
-      execSync("docker compose version", { stdio: "ignore" });
+      execFileSync(toolPath("docker"), ["compose", "version"], { stdio: "ignore" });
       const version = getToolVersion("docker");
       return { available: true, command: "docker compose", version };
     }

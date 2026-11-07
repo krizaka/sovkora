@@ -8,13 +8,14 @@
  */
 
 import { execFileSync } from "node:child_process";
+import { toolPath } from "./tool-path";
 
 const CONTAINER = "orazaka-db-vector";
 
 /** Runs one statement against the jobs database and returns its rows, split on `|`. */
 export function queryCatalog(sql: string, env: NodeJS.ProcessEnv = process.env): string[][] {
   const out = execFileSync(
-    "docker",
+    toolPath("docker"),
     [
       "exec",
       "-i",

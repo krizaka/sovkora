@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { toolPath } from "../services/tool-path";
+import { TRUSTED_TOOL_FOLDERS, toolPath } from "../services/tool-path";
 import { firstFrameArgs, writeTreatmentFiles } from "../services/cinema.treatment";
 
 describe("toolPath", () => {
@@ -17,6 +17,18 @@ describe("toolPath", () => {
 
   it("never searches PATH and throws when the tool is absent", () => {
     expect(() => toolPath("mytool", ["/nonexistent-folder"])).toThrow(/not found/);
+  });
+
+  it("searches fixed absolute folders, the running node's own first (npm, npx), and never PATH", () => {
+    expect(TRUSTED_TOOL_FOLDERS.every((folder) => path.isAbsolute(folder))).toBe(true);
+    expect(TRUSTED_TOOL_FOLDERS[0]).toBe(path.dirname(process.execPath));
+    const saved = process.env.PATH;
+    process.env.PATH = dir;
+    try {
+      expect(() => toolPath("mytool")).toThrow(/not found/);
+    } finally {
+      process.env.PATH = saved;
+    }
   });
 
   it("refuses anything that is not a bare program name", () => {

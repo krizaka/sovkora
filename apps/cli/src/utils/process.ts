@@ -8,9 +8,10 @@
  */
 
 import * as fs from "node:fs";
-import { spawn, ChildProcess } from "node:child_process";
+import { execFileSync, spawn, ChildProcess } from "node:child_process";
 import chalk from "chalk";
 import { appendPid } from "./pid";
+import { toolPath } from "../services/tool-path";
 
 /** Lines matching these patterns are filtered from prefixed process output. */
 const NOISE_PATTERNS: RegExp[] = [
@@ -106,5 +107,17 @@ export function spawnDetachedToLog(command: string, args: string[], opts: Detach
     return child;
   } finally {
     fs.closeSync(fd);
+  }
+}
+
+/**
+ * Signals every process whose command line matches `pattern` (`pkill -f`), and never fails: no match, no `pkill`
+ * on this machine, or a refused signal all leave the caller to carry on, as `pkill -f '<pattern>' || true` did.
+ */
+export function stopMatching(pattern: string): void {
+  try {
+    execFileSync(toolPath("pkill"), ["-f", pattern], { stdio: "ignore" });
+  } catch {
+    // nothing matched, or pkill is absent: the same as `|| true`
   }
 }

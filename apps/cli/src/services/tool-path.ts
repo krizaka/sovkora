@@ -1,13 +1,16 @@
 /**
  * @file tool-path.ts
  * @description The absolute path of a program the CLI spawns (SonarCloud S4036: a program found through PATH can be
- * replaced by whoever controls PATH). Only the system and package-manager folders below are searched, never PATH.
+ * replaced by whoever controls PATH). Only the running node's own folder (npm and npx sit beside it, with nvm as on a
+ * CI runner) and the system and package-manager folders below are searched, in that order, never PATH: the same
+ * folders as the workspace scripts' scripts/lib/tool-path.mjs.
  */
 
 import * as fs from "node:fs";
 import * as path from "node:path";
 
 export const TRUSTED_TOOL_FOLDERS: readonly string[] = [
+  path.dirname(process.execPath),
   "/opt/homebrew/bin",
   "/usr/local/bin",
   "/usr/bin",

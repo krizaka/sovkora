@@ -8,6 +8,7 @@ import { execFileSync } from "node:child_process";
 import { defaultImageModel, queryCatalog, setDefaultImageModel } from "../../services/model-catalog";
 
 jest.mock("node:child_process", () => ({ execFileSync: jest.fn() }));
+jest.mock("../../services/tool-path", () => ({ toolPath: (name: string) => `/trusted/bin/${name}` }));
 const psql = execFileSync as unknown as jest.Mock;
 
 afterEach(() => psql.mockReset());
@@ -19,6 +20,7 @@ test("queryCatalog splits psql's unaligned rows and passes the statement as one 
     ["flux-2-klein-4b", "t"],
     ["z-image-turbo", "f"],
   ]);
+  expect(psql.mock.calls[0][0]).toBe("/trusted/bin/docker");
   const args = psql.mock.calls[0][1] as string[];
   expect(args).toEqual(expect.arrayContaining(["-U", "u", "-d", "db", "-c", "SELECT 1"]));
 });

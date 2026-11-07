@@ -133,7 +133,7 @@ export const stopCommand = new Command("stop")
     // ─── 2b: Database purge (optional) ──────────────────────
     if (options.purge) {
       try {
-        const dockerPs = execSync("docker ps").toString();
+        const dockerPs = execFileSync(toolPath("docker"), ["ps"]).toString();
         if (dockerPs.includes("orazaka-db-vector")) {
           spinner.start("Purging database tables...");
           const sql = `

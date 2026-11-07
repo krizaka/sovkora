@@ -11,7 +11,7 @@
 import { Command } from "commander";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync, spawn } from "node:child_process";
+import { execFileSync, execSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import { format } from "date-fns";
 import { requireWorkspace } from "./workspace-guard";
@@ -33,6 +33,7 @@ import { DB_ROLES, DB_ROLE_CONTEXTS } from "../utils/platform";
 import { resolveMediaWorkerPython } from "../services/tool-installer";
 import { findImageModel, isInstalled, sdServerArgs } from "../services/image-models";
 import { defaultImageModel } from "../services/model-catalog";
+import { toolPath } from "../services/tool-path";
 
 // `checkServiceHealth(port)` → service is up; `waitForService(port, retries)` →
 // poll until up. Both delegate to the shared health primitives (utils/health),
@@ -194,7 +195,7 @@ export const startCommand = new Command("start")
           // Try macOS app first
           if (process.platform === "darwin") {
             try {
-              execSync("open -a Ollama", { stdio: "ignore" });
+              execFileSync(toolPath("open"), ["-a", "Ollama"], { stdio: "ignore" });
               await logStep("Launched Ollama.app...");
               started = true;
             } catch {
@@ -236,10 +237,10 @@ export const startCommand = new Command("start")
         if (hasTool("ollama") && (await checkServiceHealth(PORTS.ollama))) {
           try {
             const model = OLLAMA_MODEL;
-            const modelList = execSync("ollama list").toString();
+            const modelList = execFileSync(toolPath("ollama"), ["list"]).toString();
             if (!modelList.includes(model)) {
               spinner.start(`Pulling model ${model}...`);
-              execSync(`ollama pull ${model}`, {
+              execFileSync(toolPath("ollama"), ["pull", model], {
                 stdio: options.verbose ? "inherit" : "ignore",
               });
               spinner.stop(`Model ${model} ready.`);
@@ -537,7 +538,7 @@ export const startCommand = new Command("start")
             .map((f: string) => path.join(logDir, f));
 
           if (logFiles.length > 0) {
-            const tail = spawn("tail", ["-f", ...logFiles], {
+            const tail = spawn(toolPath("tail"), ["-f", ...logFiles], {
               stdio: "inherit",
             });
             await new Promise<void>((resolve) => {

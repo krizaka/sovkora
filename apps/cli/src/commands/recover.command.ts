@@ -8,7 +8,7 @@
 import { Command } from "commander";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync, spawn } from "node:child_process";
 import chalk from "chalk";
 import { intro, outro, select, confirm, logSuccess, logWarning, logError, logInfo, createSpinner } from "../ui/prompts";
 import {
@@ -22,6 +22,8 @@ import {
   mergeEnvFile,
 } from "../ui/platform";
 import { setupMediaWorkerVenv } from "../services/tool-installer";
+import { toolPath } from "../services/tool-path";
+import { stopMatching } from "../utils/process";
 import { PORTS } from "../utils/config";
 
 interface RecoveryOption {
@@ -141,12 +143,12 @@ export const recoverCommand = new Command("recover")
         } else if (service === "ollama") {
           spinner.start("Restarting Ollama...");
           try {
-            execSync("pkill -f 'ollama serve' || true", { stdio: "ignore" });
+            stopMatching("ollama serve");
             await new Promise((r) => setTimeout(r, 2000));
             if (process.platform === "darwin") {
-              execSync("open -a Ollama", { stdio: "ignore" });
+              execFileSync(toolPath("open"), ["-a", "Ollama"], { stdio: "ignore" });
             } else if (hasTool("ollama")) {
-              execSync("nohup ollama serve > /dev/null 2>&1 &", { stdio: "ignore" });
+              spawn(toolPath("ollama"), ["serve"], { detached: true, stdio: "ignore" }).unref();
             }
             spinner.stop("Ollama restarted.");
             await logSuccess("✔ Ollama restarted");
@@ -156,7 +158,7 @@ export const recoverCommand = new Command("recover")
         } else if (service === "localai") {
           spinner.start("Restarting LocalAI...");
           try {
-            execSync("pkill -f 'local-ai' || true", { stdio: "ignore" });
+            stopMatching("local-ai");
             await new Promise((r) => setTimeout(r, 2000));
             await logInfo("LocalAI stopped. Restart via: npx orazaka start --only localai");
             spinner.stop("LocalAI stopped.");
@@ -166,7 +168,7 @@ export const recoverCommand = new Command("recover")
         } else if (service === "media") {
           spinner.start("Restarting Media Worker...");
           try {
-            execSync("pkill -f 'orazaka-worker-media.*main.py' || true", { stdio: "ignore" });
+            stopMatching("orazaka-worker-media.*main.py");
             await new Promise((r) => setTimeout(r, 2000));
             await logInfo("Media Worker stopped. Restart via: npx orazaka start --only media-worker");
             spinner.stop("Media Worker stopped.");
@@ -340,7 +342,7 @@ export const recoverCommand = new Command("recover")
 
         spinner.start("Reinstalling LocalAI...");
         try {
-          execSync("brew reinstall localai", { stdio: "inherit" });
+          execFileSync(toolPath("brew"), ["reinstall", "localai"], { stdio: "inherit" });
           spinner.stop("LocalAI reinstalled.");
           await logSuccess("✔ LocalAI reinstalled via Homebrew");
         } catch {
@@ -354,8 +356,8 @@ export const recoverCommand = new Command("recover")
       case "docker-clean": {
         spinner.start("Cleaning Docker environment...");
         try {
-          execSync("docker container prune -f", { stdio: "ignore" });
-          execSync("docker volume prune -f", { stdio: "ignore" });
+          execFileSync(toolPath("docker"), ["container", "prune", "-f"], { stdio: "ignore" });
+          execFileSync(toolPath("docker"), ["volume", "prune", "-f"], { stdio: "ignore" });
           spinner.stop("Docker environment cleaned.");
           await logSuccess("✔ Removed orphaned containers and volumes.");
         } catch {
@@ -376,7 +378,7 @@ export const recoverCommand = new Command("recover")
 
         spinner.start("Regenerating .env...");
         try {
-          execSync("npx orazaka init --force --yes", { stdio: "ignore" });
+          execFileSync(toolPath("npx"), ["orazaka", "init", "--force", "--yes"], { stdio: "ignore" });
           spinner.stop(".env regenerated.");
           await logSuccess("✔ Environment reset complete.");
         } catch {
@@ -455,8 +457,8 @@ export const recoverCommand = new Command("recover")
 
         spinner.start("Removing Docker volumes and databases...");
         try {
-          execSync("docker volume prune -f", { stdio: "ignore" });
-          execSync("docker system prune -f", { stdio: "ignore" });
+          execFileSync(toolPath("docker"), ["volume", "prune", "-f"], { stdio: "ignore" });
+          execFileSync(toolPath("docker"), ["system", "prune", "-f"], { stdio: "ignore" });
           spinner.stop("Docker cleanup complete.");
           await logSuccess("✔ Full reset complete. Run npx orazaka start to rebuild.");
         } catch {
@@ -470,7 +472,7 @@ export const recoverCommand = new Command("recover")
       case "diagnose-all": {
         spinner.start("Running full diagnostics...");
         try {
-          execSync("npx orazaka doctor --verbose", { stdio: "inherit" });
+          execFileSync(toolPath("npx"), ["orazaka", "doctor", "--verbose"], { stdio: "inherit" });
           spinner.stop();
         } catch {
           spinner.stop("Diagnostics failed", 1);

@@ -8,7 +8,8 @@
 import * as os from "node:os";
 import * as path from "node:path";
 import * as fs from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
+import { toolPath } from "../services/tool-path";
 
 /**
  * Detects whether a CLI tool exists on the host PATH.
@@ -309,7 +310,7 @@ export function writeEnvFile(filePath: string, values: Record<string, string>): 
 export function resolveDockerComposeCmd(): string | null {
   if (hasTool("docker-compose")) return "docker-compose";
   try {
-    execSync("docker compose version", { stdio: "ignore" });
+    execFileSync(toolPath("docker"), ["compose", "version"], { stdio: "ignore" });
     return "docker compose";
   } catch {
     return null;
