@@ -120,15 +120,15 @@ def _copy_one(src: Path, dst: Path, chunk: int, counter: _Counter) -> None:
     part.replace(dst)
 
 
-def stage(src: Path, dst: Path, workers: int = WORKERS, chunk: int = CHUNK, progress=None) -> Path:
-    """Copies ``src`` (a verified snapshot) to ``dst`` with parallel readers; returns ``dst``."""
+def stage(src: Path, dst: Path, workers: int = WORKERS, chunk: int = CHUNK, progress=None) -> None:
+    """Copies ``src`` (a verified snapshot) to ``dst`` with parallel readers; a copy already complete is kept as is."""
     src, dst = Path(src), Path(dst)
     manifest = _read_manifest(src) or write_manifest(src, digests=False)
     total = sum(f["bytes"] for f in manifest["files"].values())
     if _read_manifest(dst) == manifest and not verify(dst):
         if progress:
             progress(total, total)
-        return dst
+        return
     counter = _Counter(total, progress)
     todo = []
     for rel, want in manifest["files"].items():
@@ -141,18 +141,19 @@ def stage(src: Path, dst: Path, workers: int = WORKERS, chunk: int = CHUNK, prog
         for future in [pool.submit(_copy_one, src / rel, dst / rel, chunk, counter) for rel in todo]:
             future.result()
     shutil.copyfile(src / MANIFEST, dst / MANIFEST)
-    return dst
 
 
 def resolve(src: Path, stage_dir, progress=None) -> Path:
     """The directory a loader should read: the NVMe copy when ``stage_dir`` is set and usable, else ``src``."""
     if not stage_dir:
         return Path(src)
+    staged = Path(stage_dir) / Path(src).name
     try:
-        return stage(Path(src), Path(stage_dir) / Path(src).name, progress=progress)
+        stage(Path(src), staged, progress=progress)
     except OSError as unusable:
         print(f"[model-cache] staging unavailable ({unusable}); reading {src}", flush=True)
         return Path(src)
+    return staged
 
 
 def prefetch(root: Path, workers: int = WORKERS, chunk: int = CHUNK, progress=None) -> None:

@@ -61,9 +61,8 @@ class TestStaging(unittest.TestCase):
 
     def test_staging_copies_everything_and_reports_the_bytes_read(self):
         seen = []
-        out = model_cache.stage(
-            self.src, self.tmp / "nvme", workers=3, chunk=64_000, progress=lambda r, t: seen.append((r, t))
-        )
+        out = self.tmp / "nvme"
+        model_cache.stage(self.src, out, workers=3, chunk=64_000, progress=lambda r, t: seen.append((r, t)))
         self.assertEqual([], model_cache.verify(out, deep=True))
         self.assertEqual(300_002, seen[-1][0])
         self.assertTrue(all(total == 300_002 for _, total in seen))
@@ -71,16 +70,18 @@ class TestStaging(unittest.TestCase):
         self.assertEqual(sorted(reads), reads)  # the percentage never goes down
 
     def test_a_verified_stage_is_not_copied_again(self):
-        model_cache.stage(self.src, self.tmp / "nvme")
+        out = self.tmp / "nvme"
+        model_cache.stage(self.src, out)
         copies = []
-        out = model_cache.stage(self.src, self.tmp / "nvme", progress=lambda r, t: copies.append(r))
+        model_cache.stage(self.src, out, progress=lambda r, t: copies.append(r))
         self.assertEqual([300_002], copies)  # reported as complete at once, nothing read
         self.assertEqual([], model_cache.verify(out))
 
     def test_a_partial_stage_is_repaired(self):
-        out = model_cache.stage(self.src, self.tmp / "nvme")
+        out = self.tmp / "nvme"
+        model_cache.stage(self.src, out)
         (out / "x/big.safetensors").write_bytes(b"cut")
-        out = model_cache.stage(self.src, self.tmp / "nvme")
+        model_cache.stage(self.src, out)
         self.assertEqual([], model_cache.verify(out, deep=True))
 
     def test_without_a_stage_dir_the_source_is_used(self):
@@ -94,7 +95,7 @@ class TestStaging(unittest.TestCase):
 
     def test_resolve_returns_the_staged_copy(self):
         staged = model_cache.resolve(self.src, self.tmp / "nvme")
-        self.assertNotEqual(self.src, staged)
+        self.assertEqual(self.tmp / "nvme" / self.src.name, staged)
         self.assertEqual([], model_cache.verify(staged))
 
 
