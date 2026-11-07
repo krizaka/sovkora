@@ -16,6 +16,10 @@ const modules = poms.map((pom) => {
   const dir = pom.slice(0, -"/pom.xml".length);
   return { dir, pom: readFileSync(resolve(ROOT, pom), "utf8"), main: packagesOf(dir, "main"), test: packagesOf(dir, "test") };
 });
+if (modules.length < 20) {
+  console.error(`::error::only ${modules.length} Maven modules found: the reactor is not where this script looks`);
+  process.exit(1);
+}
 const found = violations(modules);
 for (const v of found) console.error(`::error::[${v.rule}] ${v.module}: ${v.message} (ADR-029)`);
 if (found.length) process.exit(1);

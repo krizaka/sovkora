@@ -1,8 +1,6 @@
 // node --test — the Java naming convention of ADR-029 (scripts/lib/java-layout.mjs): each rule fails on its own violation,
-// and the tree of this repository passes them all.
+// the tree of this repository is checked by scripts/check-java-layout.mjs (CI step « The Java layout »).
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { coordinates, rootPackage, violations } from "../lib/java-layout.mjs";
 
@@ -54,18 +52,4 @@ test("N4: the folder is the artifactId, under a role folder; an aggregator is a 
   assert.deepEqual(rules([module("engine/core", "sovkora-engine-core", ["com.krizaka.sovkora.engine.core"])]), ["N4"]);
   assert.deepEqual(rules([module("libs/sovkora-engine-core", "sovkora-engine-core", ["com.krizaka.sovkora.engine.core"])]), ["N4"]);
   assert.deepEqual(rules([module("services/studio", "sovkora-studio", [], { packaging: "pom" })]), []);
-});
-
-test("this repository's Java modules follow the convention", () => {
-  const root = new URL("../../", import.meta.url);
-  const tracked = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" }).split("\n").filter(Boolean);
-  const packagesOf = (dir, kind) =>
-    [...new Set(tracked.filter((f) => f.startsWith(`${dir}/src/${kind}/java/`) && f.endsWith(".java"))
-      .map((f) => f.slice(`${dir}/src/${kind}/java/`.length).split("/").slice(0, -1).join(".")))];
-  const modules = tracked.filter((f) => f.endsWith("/pom.xml")).map((p) => {
-    const dir = p.slice(0, -"/pom.xml".length);
-    return { dir, pom: readFileSync(new URL(p, root), "utf8"), main: packagesOf(dir, "main"), test: packagesOf(dir, "test") };
-  });
-  assert.ok(modules.length >= 20, "the reactor's modules are found");
-  assert.deepEqual(violations(modules), []);
 });
