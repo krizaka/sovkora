@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support.architecture.layoutfixture.clean;
+package com.krizaka.sovkora.test.support.architecture.layoutfixture.clean;
 
 /** Fixture: the entry point alone at the package root. */
 @CleanApplication.SpringBootApplication

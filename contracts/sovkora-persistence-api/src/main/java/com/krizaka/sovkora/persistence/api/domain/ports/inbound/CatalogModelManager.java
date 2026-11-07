@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.ports.inbound;
+package com.krizaka.sovkora.persistence.api.domain.ports.inbound;
 
 import com.krizaka.sovkora.persistence.api.domain.model.CatalogModelDto;
 import java.util.List;

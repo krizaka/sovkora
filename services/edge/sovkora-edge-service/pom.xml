@@ -15,18 +15,8 @@
     <name>sovkora-edge-service</name>
     <description>Sovkora Edge Gateway — strangler facade: route table + streaming reverse proxy (transport only, no business logic)</description>
 
-    <url>https://github.com/krizaka/sovkora-edge-service</url>
 
-    <scm>
-        <url>https://github.com/krizaka/sovkora-edge-service</url>
-        <connection>scm:git:https://github.com/krizaka/sovkora-edge-service.git</connection>
-        <developerConnection>scm:git:git@github.com:krizaka/sovkora-edge-service.git</developerConnection>
-    </scm>
 
-    <properties>
-        <!-- GitHub Packages repository this artifact is published to (sovkora-parent). -->
-        <sovkora.repository>sovkora-edge-service</sovkora.repository>
-    </properties>
 
 
     <dependencies>

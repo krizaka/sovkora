@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.exception;
+package com.krizaka.sovkora.jobs.api.domain.exception;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;

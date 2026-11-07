@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 /**
  * What an erasure removed - counts only, never content.

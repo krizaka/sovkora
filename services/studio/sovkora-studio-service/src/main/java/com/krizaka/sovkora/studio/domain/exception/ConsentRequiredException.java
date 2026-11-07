@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.exception;
+package com.krizaka.sovkora.studio.domain.exception;
 
 import com.krizaka.sovkora.studio.api.domain.model.CrisisResource;
 import java.io.Serial;

@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.port;
+package com.krizaka.sovkora.studio.domain.port;
 
 import com.krizaka.sovkora.studio.domain.model.AgentTurn;
 import com.krizaka.sovkora.studio.domain.model.AgentTurnResult;

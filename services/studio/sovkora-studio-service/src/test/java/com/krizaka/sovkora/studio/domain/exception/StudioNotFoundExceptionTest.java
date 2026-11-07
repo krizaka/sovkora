@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.exception;
+package com.krizaka.sovkora.studio.domain.exception;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

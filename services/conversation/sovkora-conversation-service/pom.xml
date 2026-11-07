@@ -15,13 +15,7 @@
     <name>sovkora-conversation-service</name>
     <description>Sovkora Conversation Service — interactive host (ex-router): HTTP/SSE ingress, job submission and SSE relay</description>
 
-    <url>https://github.com/krizaka/sovkora-conversation-service</url>
 
-    <scm>
-        <url>https://github.com/krizaka/sovkora-conversation-service</url>
-        <connection>scm:git:https://github.com/krizaka/sovkora-conversation-service.git</connection>
-        <developerConnection>scm:git:git@github.com:krizaka/sovkora-conversation-service.git</developerConnection>
-    </scm>
     <licenses>
         <license>
             <name>FSL-1.1-ALv2</name>
@@ -32,10 +26,6 @@
     </licenses>
 
 
-    <properties>
-        <!-- GitHub Packages repository this artifact is published to (sovkora-parent). -->
-        <sovkora.repository>sovkora-conversation-service</sovkora.repository>
-    </properties>
 
 
     <dependencies>

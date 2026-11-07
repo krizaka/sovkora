@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 /**
  * What a generation prompt is about, as far as the local classifier can tell.

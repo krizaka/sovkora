@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.port;
+package com.krizaka.sovkora.studio.domain.port;
 
 import java.io.IOException;
 import java.time.Duration;

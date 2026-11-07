@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.model;
+package com.krizaka.sovkora.jobs.api.domain.model;
 
 import java.util.List;
 import java.util.Objects;

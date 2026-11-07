@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support;
+package com.krizaka.sovkora.test.support;
 
 /**
  * Shared test literal constants used across multiple test modules.

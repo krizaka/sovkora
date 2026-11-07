@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 /**
  * One model a form may offer for a step, as the job plane (the owner of the model catalogue)

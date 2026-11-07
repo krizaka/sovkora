@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support.architecture;
+package com.krizaka.sovkora.test.support.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 

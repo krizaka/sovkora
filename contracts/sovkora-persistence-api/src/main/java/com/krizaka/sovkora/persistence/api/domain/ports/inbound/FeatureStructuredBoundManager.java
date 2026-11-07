@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.ports.inbound;
+package com.krizaka.sovkora.persistence.api.domain.ports.inbound;
 
 import java.util.Map;
 import java.util.OptionalInt;

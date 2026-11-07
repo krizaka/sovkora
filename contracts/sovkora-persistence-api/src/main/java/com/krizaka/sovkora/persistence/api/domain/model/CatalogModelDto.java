@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.model;
+package com.krizaka.sovkora.persistence.api.domain.model;
 
 import java.io.Serializable;
 import java.util.Objects;

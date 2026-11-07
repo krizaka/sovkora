@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.model;
+package com.krizaka.sovkora.persistence.api.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

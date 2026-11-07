@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.model;
+package com.krizaka.sovkora.jobs.api.domain.model;
 
 import java.io.Serial;
 import java.io.Serializable;

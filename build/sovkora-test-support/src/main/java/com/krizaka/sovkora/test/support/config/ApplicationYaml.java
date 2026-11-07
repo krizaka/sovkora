@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support.config;
+package com.krizaka.sovkora.test.support.config;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

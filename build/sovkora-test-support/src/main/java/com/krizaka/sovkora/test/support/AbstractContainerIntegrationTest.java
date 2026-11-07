@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support;
+package com.krizaka.sovkora.test.support;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;

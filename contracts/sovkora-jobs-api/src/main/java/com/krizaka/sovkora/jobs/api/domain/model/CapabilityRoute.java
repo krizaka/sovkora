@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.model;
+package com.krizaka.sovkora.jobs.api.domain.model;
 
 /**
  * Where one capability's work is executed — the row that replaced a substring heuristic.

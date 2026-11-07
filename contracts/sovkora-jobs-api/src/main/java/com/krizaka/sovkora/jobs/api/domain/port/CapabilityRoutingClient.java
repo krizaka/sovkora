@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.port;
+package com.krizaka.sovkora.jobs.api.domain.port;
 
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import java.util.Optional;

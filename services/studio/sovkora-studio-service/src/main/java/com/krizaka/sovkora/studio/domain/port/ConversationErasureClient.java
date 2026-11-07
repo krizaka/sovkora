@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.port;
+package com.krizaka.sovkora.studio.domain.port;
 
 /**
  * Asks the conversation service - which keeps the memory of a person's voice and listening turns -

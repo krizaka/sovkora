@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.exception;
+package com.krizaka.sovkora.studio.domain.exception;
 
 import com.krizaka.sovkora.studio.domain.model.ContentDecision;
 import com.krizaka.sovkora.studio.domain.model.ContentLabel;

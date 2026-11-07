@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support.bootstrap;
+package com.krizaka.sovkora.test.support.bootstrap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.policy;
+package com.krizaka.sovkora.studio.domain.policy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

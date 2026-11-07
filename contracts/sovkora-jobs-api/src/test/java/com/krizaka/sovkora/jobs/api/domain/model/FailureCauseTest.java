@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.model;
+package com.krizaka.sovkora.jobs.api.domain.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;

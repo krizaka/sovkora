@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 /**
  * What a caller supplies at install time for a {@code REGULATED} pack.

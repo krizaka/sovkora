@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 /**
  * Why a Studio is not installable by this actor — the copy the upsell renders.

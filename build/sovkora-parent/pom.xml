@@ -4,14 +4,14 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Sovkora inherits the Krizaka build: Maven Central metadata, Java 21, formatting, tests,
-         coverage, the enforced toolchain and the `release` profile (krizaka/krizaka-build). What
-         stays here is what is Sovkora's own: Spring AI, the Sovkora BOM, the .env-driven profiles
-         and SonarCloud. -->
+    <!-- Sovkora inherits the Krizaka build from Maven Central: Java 21, formatting, tests, coverage,
+         the enforced toolchain and the OpenRewrite style (krizaka/krizaka-java). What stays here is
+         Sovkora's own: Spring AI, the Sovkora BOM, the naming guards of ADR-029, the .env-driven
+         profiles and SonarCloud. -->
     <parent>
         <groupId>com.krizaka</groupId>
         <artifactId>krizaka-parent</artifactId>
-        <version>0.9.0</version>
+        <version>0.12.0</version>
         <relativePath/>
     </parent>
 
@@ -22,12 +22,12 @@
 
     <name>sovkora-parent</name>
     <description>Sovkora parent POM: Spring Boot / Spring AI BOMs, the Krizaka BOM, the Sovkora BOM (every component at one platform version) and the Sovkora profiles, on top of the Krizaka build conventions.</description>
-    <url>https://github.com/krizaka/sovkora-build</url>
+    <url>https://github.com/krizaka/sovkora</url>
 
     <scm>
-        <url>https://github.com/krizaka/sovkora-build</url>
-        <connection>scm:git:https://github.com/krizaka/sovkora-build.git</connection>
-        <developerConnection>scm:git:git@github.com:krizaka/sovkora-build.git</developerConnection>
+        <url>https://github.com/krizaka/sovkora</url>
+        <connection>scm:git:https://github.com/krizaka/sovkora.git</connection>
+        <developerConnection>scm:git:git@github.com:krizaka/sovkora.git</developerConnection>
     </scm>
 
     <issueManagement>
@@ -36,7 +36,6 @@
     </issueManagement>
 
     <properties>
-        <sovkora-rewrite-style.version>1.0.0-SNAPSHOT</sovkora-rewrite-style.version>
         <!-- Security overrides of the Spring Boot BOM (Dependabot alerts): the patched releases of the libraries whose
              Boot-managed version is vulnerable. Drop each one when krizaka-parent / Spring Boot manages a fixed version. -->
         <krizaka.security.jackson3.version>3.2.4</krizaka.security.jackson3.version>
@@ -46,11 +45,10 @@
         <krizaka.security.tomcat.version>11.0.27</krizaka.security.tomcat.version>
         <!-- The Krizaka artifacts (build, platform kit, users, notifications, billing) Sovkora
              is built on — one version, imported through krizaka-bom below. -->
-        <krizaka.version>0.11.1</krizaka.version>
+        <krizaka.version>0.12.0</krizaka.version>
 
-        <!-- GitHub Packages repository this module is published to. Every Sovkora repository
-             overrides it with its own name (krizaka/<repository>). -->
-        <sovkora.repository>sovkora-build</sovkora.repository>
+        <!-- ADR-029 N1/N2: the product of every module's coordinates (the enforcer rules below). -->
+        <krizaka.product>sovkora</krizaka.product>
 
         <!-- Versions -->
         <!-- Spring AI 2.0 migration (ADR-030): Spring AI 2.0.0 GA requires Spring Boot 4 +
@@ -67,7 +65,7 @@
 
         <!-- SonarQube Cloud -->
         <sonar.organization>krizaka</sonar.organization>
-        <sonar.projectKey>${sonar.organization}_${sovkora.repository}</sonar.projectKey>
+        <sonar.projectKey>${sonar.organization}_sovkora</sonar.projectKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.java.source>21</sonar.java.source>
         <sonar.coverage.jacoco.xmlReportPaths>**/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
@@ -239,25 +237,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages — krizaka/${sovkora.repository}</name>
-            <url>https://maven.pkg.github.com/krizaka/${sovkora.repository}</url>
-        </repository>
-    </distributionManagement>
-
-    <repositories>
-        <repository>
-            <id>spring-milestones</id>
-            <name>Spring Milestones</name>
-            <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <build>
         <pluginManagement>
             <plugins>
@@ -290,27 +269,62 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- OpenRewrite autodetected the import layout from the files it read: one `import java.util.*;` once folded
-                 the imports of 29 untouched files and failed rewrite:dryRun (sovkora-engine#133, #143). The layout is
-                 explicit (no star import, static imports first), as krizaka-parent does from krizaka-build#101. It is
-                 declared here too because krizaka-rewrite-style is not on Central yet, so a build resolving krizaka-parent
-                 0.2.0 from Central does not have it: sovkora-rewrite-style carries the same layout. Drop both once
-                 krizaka-parent releases it. -->
+            <!-- ADR-029, the Java naming convention, held by the build (N1, N2, N3):
+                 one groupId per product, artifactIds `sovkora-<module>[-<part>]` without the banned suffixes,
+                 and no class in two jars. A rule that fails names the module and the rule. -->
             <plugin>
-                <groupId>org.openrewrite.maven</groupId>
-                <artifactId>rewrite-maven-plugin</artifactId>
-                <configuration>
-                    <activeStyles>
-                        <style>com.krizaka.sovkora.rewrite.SovkoraJavaStyle</style>
-                    </activeStyles>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
                 <dependencies>
                     <dependency>
-                        <groupId>com.krizaka.sovkora</groupId>
-                        <artifactId>sovkora-rewrite-style</artifactId>
-                        <version>${sovkora-rewrite-style.version}</version>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.10.0</version>
                     </dependency>
                 </dependencies>
+                <executions>
+                    <execution>
+                        <id>sovkora-coordinates</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireProperty>
+                                    <property>project.groupId</property>
+                                    <regex>com\.krizaka\.${krizaka.product}</regex>
+                                    <regexMessage>N1: the groupId of a Sovkora module is com.krizaka.${krizaka.product} (ADR-029).</regexMessage>
+                                </requireProperty>
+                                <requireProperty>
+                                    <property>project.artifactId</property>
+                                    <regex>^(?!.*-(?:common|utils?|impl|misc)(?:-|$))${krizaka.product}(?:-[a-z0-9]+)+$</regex>
+                                    <regexMessage>N2: an artifactId is ${krizaka.product}-&lt;module&gt;[-&lt;part&gt;], lowercase kebab, never -common, -util(s), -impl or -misc (ADR-029).</regexMessage>
+                                </requireProperty>
+                            </rules>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- N3, no split package: warn first (ADR-029, a new guard starts in warn); third-party duplicates are
+                             reported too, so it turns to fail once they are listed. -->
+                        <id>sovkora-no-duplicate-classes</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <fail>false</fail>
+                            <rules>
+                                <banDuplicateClasses>
+                                    <findAllDuplicates>true</findAllDuplicates>
+                                    <ignoreWhenIdentical>true</ignoreWhenIdentical>
+                                    <scopes>
+                                        <scope>compile</scope>
+                                        <scope>runtime</scope>
+                                    </scopes>
+                                </banDuplicateClasses>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -331,11 +345,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
-
-
-
 
         </plugins>
     </build>

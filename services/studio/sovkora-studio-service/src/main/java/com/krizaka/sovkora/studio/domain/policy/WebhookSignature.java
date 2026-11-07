@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.policy;
+package com.krizaka.sovkora.studio.domain.policy;
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;

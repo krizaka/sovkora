@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.ports.inbound;
+package com.krizaka.sovkora.persistence.api.domain.ports.inbound;
 
 /**
  * Inbound port exposing <b>dynamic runtime config</b> (ADR-031) read from the DB ({@code

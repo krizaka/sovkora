@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.jobs.api.api.domain.model;
+package com.krizaka.sovkora.jobs.api.domain.model;
 
 /**
  * Why a job failed, <b>declared by whoever failed it</b> — never inferred from its message.

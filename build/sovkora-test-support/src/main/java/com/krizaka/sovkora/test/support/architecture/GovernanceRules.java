@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.test.support.support.architecture;
+package com.krizaka.sovkora.test.support.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;

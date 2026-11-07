@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.engine.persistence.api.domain.event;
+package com.krizaka.sovkora.persistence.api.domain.event;
 
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import java.util.Objects;

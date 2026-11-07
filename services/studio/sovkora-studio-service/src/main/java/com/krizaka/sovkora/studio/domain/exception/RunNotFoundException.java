@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.exception;
+package com.krizaka.sovkora.studio.domain.exception;
 
 import java.io.Serial;
 import java.util.UUID;

@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.studio.api.domain.model;
+package com.krizaka.sovkora.studio.domain.model;
 
 import com.krizaka.sovkora.studio.api.domain.model.RunStepStatus;
 import java.util.Objects;
