@@ -604,6 +604,15 @@ class TestPathSecurity(unittest.TestCase):
         safe_tmp = os.path.join(tmp, "some_temp_file.png")
         self.assertEqual(video_worker.validate_safe_path(safe_tmp), os.path.abspath(os.path.realpath(safe_tmp)))
 
+    def test_every_allowed_root_is_accepted_the_system_temp_directories_included(self):
+        """The paths a caller may hand over are the roots the encoder and the upscaler are given: one list."""
+        roots = video_worker._allowed_roots()
+        assert len(roots) > 3  # cwd, the temp dir, the uploads, and the system temp directories that exist
+        for root in roots:
+            inside = os.path.join(root, "clip.mp4")
+            with self.subTest(root):
+                assert video_worker.validate_safe_path(inside) == os.path.abspath(os.path.realpath(inside))
+
     def test_traversal_paths_denied(self):
         """Paths trying to access unauthorized files outside allowed boundaries must raise PermissionError."""
         bad_paths = [

@@ -155,21 +155,8 @@ def validate_safe_path(path: str) -> str:
     # Resolve to absolute normalized path
     resolved_path = os.path.abspath(os.path.realpath(path))
 
-    # Check if the resolved path is within allowed directories
-    # Allowed: current working directory, the configured upload dir, and temp dirs
-    allowed_roots = [
-        os.path.abspath(os.path.realpath(os.getcwd())),
-        os.path.abspath(os.path.realpath(tempfile.gettempdir())),
-        *_upload_roots(),
-    ]
-
-    # Also allow standard system temp directories if different.
-    # noqa S108: these paths are an *allowlist* used to validate a caller-supplied path stays
-    # inside a known root — the inverse of the risk the rule describes, which is writing to a
-    # predictable temp location.
-    for t_dir in ["/tmp", "/private/tmp", "/var/tmp"]:  # noqa: S108
-        if os.path.exists(t_dir):
-            allowed_roots.append(os.path.abspath(os.path.realpath(t_dir)))
+    # Check if the resolved path is within allowed directories: the one allow-list, resolved the same way
+    allowed_roots = [os.path.abspath(os.path.realpath(root)) for root in _allowed_roots()]
 
     is_safe = False
     for root in allowed_roots:
