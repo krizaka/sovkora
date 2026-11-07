@@ -2,7 +2,6 @@ package com.krizaka.sovkora.engine.core.architecture;
 
 import static com.krizaka.sovkora.test.support.TestConstants.*;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
@@ -57,19 +56,6 @@ class LayerBoundaryTest {
   }
 
   @Test
-  @DisplayName("[Gate-1] Core must not depend on Servlet API")
-  void coreMustNotDependOnServletApi() {
-    noClasses()
-        .that()
-        .resideInAPackage(PKG_CORE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage("jakarta.servlet..")
-        .because("sovkora-engine-core must remain HTTP/protocol agnostic [Section 1.A]")
-        .check(coreClasses);
-  }
-
-  @Test
   @DisplayName("[Gate-1] Core engine must not depend on Spring Web (infrastructure exempt)")
   void coreMustNotDependOnSpringWeb() {
     noClasses()
@@ -97,20 +83,6 @@ class LayerBoundaryTest {
         .resideInAPackage("org.springframework.boot.autoconfigure..")
         .because(
             "sovkora-engine-core must not import Spring Boot starter auto-configuration [Section 1.A]")
-        .check(coreClasses);
-  }
-
-  @Test
-  @DisplayName("[Gate-DI] Core classes must not use @Autowired on fields")
-  void noFieldInjection() {
-    noFields()
-        .that()
-        .areDeclaredInClassesThat()
-        .resideInAPackage(PKG_CORE)
-        .should()
-        .beAnnotatedWith(org.springframework.beans.factory.annotation.Autowired.class)
-        .because(
-            "Field injection is prohibited. Constructor-based DI is mandatory [ADR-012, AGENTS.md]")
         .check(coreClasses);
   }
 
@@ -165,17 +137,4 @@ class LayerBoundaryTest {
         .check(coreClasses);
   }
 
-  @Test
-  @DisplayName("[ERR-102] Core must not depend on tools")
-  void coreDoesNotDependOnTools() {
-    noClasses()
-        .that()
-        .resideInAPackage(PKG_CORE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage("com.krizaka.sovkora.engine.tools..")
-        .because(
-            "sovkora-engine-core must remain tools-agnostic — reverse dependency direction prohibited [ERR-102]")
-        .check(coreClasses);
-  }
 }

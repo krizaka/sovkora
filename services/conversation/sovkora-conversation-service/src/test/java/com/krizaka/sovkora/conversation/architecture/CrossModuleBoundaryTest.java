@@ -28,14 +28,11 @@ import org.junit.jupiter.api.Test;
  * <p>This test lives in sovkora-router because only the router has compile-time classpath
  * visibility into all sibling modules (core, identity, tools).
  *
- * <p>Enforces the Module Separation Invariant [ERR-102]:
- *
- * <ul>
- *   <li>core ↛ identity, core ↛ tools (core is fully isolated)
- *   <li>tools ↛ identity (tools is identity-blind)
- *   <li>identity ↛ core, identity ↛ tools (identity is fully isolated)
- *   <li>tools → core is ALLOWED (Ports & Adapters interface binding per ADR-007)
- * </ul>
+ * <p>Enforces the part of the Module Separation Invariant [ERR-102] only this classpath sees:
+ * identity ↛ core, identity ↛ tools (identity is fully isolated). The engine's own rules hold the
+ * rest in their modules: core ↛ identity ({@code LayerBoundaryTest}), core ↛ tools ({@code
+ * CoreIndependenceTest}), tools ↛ identity ({@code ToolsBoundaryTest}), persistence ↛ core and
+ * identity ({@code PersistenceBoundaryTest}).
  *
  * @see <a href="../../../../../../AGENTS.md">AGENTS.md §1.A, ERR-102</a>
  */
@@ -56,78 +53,6 @@ class CrossModuleBoundaryTest {
                 "com.krizaka.users.persistence",
                 "com.krizaka.sovkora.engine.interceptors",
                 "com.krizaka.sovkora.conversation");
-  }
-
-  // ── persistence isolation ──────────────────────────────────────────────────
-
-  @Test
-  @DisplayName(
-      "[ERR-102] Persistence must contain zero dependencies pointing toward identity or core")
-  void persistenceIsIsolated() {
-    noClasses()
-        .that()
-        .resideInAPackage("com.krizaka.sovkora.engine.persistence..")
-        .and()
-        .resideOutsideOfPackage("com.krizaka.sovkora.engine.persistence.bridge..")
-        .and()
-        .haveSimpleNameNotEndingWith("EventAdapter")
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(PKG_IDENTITY)
-        .orShould()
-        .dependOnClassesThat()
-        .resideInAPackage(PKG_CORE)
-        .because(
-            "sovkora-engine-persistence and krizaka-users-persistence are decoupled technical ledgers and must remain completely agnostic of orchestration and identity domains; the exceptions are EventAdapters and the sovkora-engine-persistence-bridge adapter layer (com.krizaka.sovkora.engine.persistence.bridge), whose job is to implement the core's outbound ports")
-        .check(allModuleClasses);
-  }
-
-  // ── core isolation ──────────────────────────────────────────────────────────
-
-  @Test
-  @DisplayName("[ERR-102] Core must not depend on identity layer")
-  void coreIsIdentityBlind() {
-    noClasses()
-        .that()
-        .resideInAPackage(PKG_CORE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(PKG_IDENTITY)
-        .because(
-            "sovkora-engine-core must remain 100% identity-agnostic. "
-                + "Only sovkora-router may call identity services, and core must only interact via public interfaces [ERR-102, §1.A]")
-        .check(allModuleClasses);
-  }
-
-  @Test
-  @DisplayName("[ERR-102] Core must not depend on tools layer")
-  void coreIsToolsBlind() {
-    noClasses()
-        .that()
-        .resideInAPackage(PKG_CORE)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(PKG_TOOLS)
-        .because(
-            "sovkora-engine-core defines ports (interfaces); it must never import tool adapters [ERR-102]")
-        .check(allModuleClasses);
-  }
-
-  // ── tools isolation ─────────────────────────────────────────────────────────
-
-  @Test
-  @DisplayName("[ERR-102] Tools must not depend on identity layer")
-  void toolsAreIdentityBlind() {
-    noClasses()
-        .that()
-        .resideInAPackage(PKG_TOOLS)
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage(PKG_IDENTITY)
-        .because(
-            "sovkora-engine-tools is stateless regarding user identity. "
-                + "Context is injected by the router as primitives [ERR-102]")
-        .check(allModuleClasses);
   }
 
   // ── identity isolation ──────────────────────────────────────────────────────

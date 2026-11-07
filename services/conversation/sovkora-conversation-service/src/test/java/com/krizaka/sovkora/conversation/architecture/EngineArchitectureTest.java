@@ -118,21 +118,4 @@ class EngineArchitectureTest {
         .check(allAppClasses);
   }
 
-  @Test
-  @DisplayName(
-      "Classes in com.krizaka.sovkora.engine.core.. do not depend on com.krizaka.users.repository..")
-  void coreDoesNotDependOnIdentityRepository() {
-    noClasses()
-        .that()
-        .resideInAPackage("com.krizaka.sovkora.engine.core..")
-        .should()
-        .dependOnClassesThat()
-        .resideInAPackage("com.krizaka.users.repository..")
-        .orShould()
-        .dependOnClassesThat()
-        .resideInAPackage("com.krizaka.users.infrastructure.persistence.repository..")
-        .because(
-            "Core must interact solely through high-level public Identity interface contracts, never repository/persistence layers")
-        .check(allAppClasses);
-  }
 }

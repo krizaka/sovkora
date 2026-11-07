@@ -206,17 +206,6 @@ class GlobalArchitectureGuardrailIT {
   // =========================================================================
 
   @ArchTest
-  static final ArchRule tools_must_not_import_identity =
-      noClasses()
-          .that()
-          .resideInAPackage("com.krizaka.sovkora.engine.tools..")
-          .should()
-          .dependOnClassesThat()
-          .resideInAPackage("com.krizaka.users..")
-          .as(
-              "sovkora-engine-tools must never import krizaka-users-core (ERR-102). Pass String userId from gateway.");
-
-  @ArchTest
   static final ArchRule business_must_not_import_conversation_infrastructure =
       noClasses()
           .that()
