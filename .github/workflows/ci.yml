@@ -320,7 +320,7 @@ jobs:
         timeout-minutes: 10 # these tests take seconds: a hang is a bug, not a slow run
         run: |
           mkdir -p coverage
-          node --test --test-timeout=120000 --test-force-exit --experimental-test-coverage \
+          node --test --test-timeout=120000 --experimental-test-coverage \
             --test-coverage-exclude='scripts/test/**' \
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \

@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, it } from "node:test";
+import { describe, it, test } from "node:test";
 
 const WORKFLOWS = join(import.meta.dirname, "..", "..", ".github", "workflows");
 
@@ -29,7 +29,10 @@ describe("the parser", () => {
   });
 });
 
-for (const file of readdirSync(WORKFLOWS).filter((n) => /\.ya?ml$/.test(n))) {
+const FILES = readdirSync(WORKFLOWS).filter((n) => /\.ya?ml$/.test(n));
+const examined = [];
+
+for (const file of FILES) {
   const text = readFileSync(join(WORKFLOWS, file), "utf8");
   describe(file, () => {
     it("never sleeps for minutes on a billed runner", () => {
@@ -52,6 +55,14 @@ for (const file of readdirSync(WORKFLOWS).filter((n) => /\.ya?ml$/.test(n))) {
     });
     it("a reusable workflow is pinned by SHA", () => {
       for (const m of text.matchAll(/^\s*uses:\s*(krizaka\/\S+)/gm)) assert.match(m[1], /@[0-9a-f]{40}\b/, `${file}: ${m[1]}`);
+      examined.push(file);
     });
   });
 }
+
+// A top-level test is known as soon as this file loads, so a runner that ends the file early still runs it: a guard that
+// examined fewer workflows than the folder holds fails here, never « fail 0 » (CI run 42410859306 examined 13 of 21).
+test("every workflow of the folder was examined", () => {
+  assert.ok(FILES.length > 0, "no workflow found: the guard would judge the empty set");
+  assert.deepEqual([...examined].sort(), [...FILES].sort());
+});

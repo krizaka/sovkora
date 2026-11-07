@@ -83,3 +83,15 @@ test("a workflow that mints the app token skips Dependabot pull requests (Depend
   assert.deepEqual(bad, []);
 });
 
+
+// --test-force-exit ends a test file's process as soon as the tests it knows of have finished. Under load, a file whose
+// tests are registered inside describe() blocks is cut short before the later blocks register, and the run reports the
+// tests it saw as passing: CI run 42410859306 (2026-11-07) ran the CI-COST guard on 13 of the 21 workflows, « fail 0 ».
+// Reproduced locally (1 of 6 parallel runs short by 17 tests; 8 of 8 complete without the flag). The step's
+// timeout-minutes and --test-timeout bound a hang; a silently partial run is worse than a hang.
+test("no workflow runs node --test with --test-force-exit (it drops tests silently)", () => {
+  const offenders = readdirSync(dir)
+    .filter((n) => /\.ya?ml$/.test(n))
+    .flatMap((n) => (/node --test\b[^\n]*(\\\n[^\n]*)*--test-force-exit/.test(readFileSync(new URL(n, dir), "utf8")) ? [n] : []));
+  assert.deepEqual(offenders, []);
+});
