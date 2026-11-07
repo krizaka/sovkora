@@ -40,7 +40,7 @@ test("a ci flow needs no account and no platform: no variable, no Studio, no Job
 });
 
 test("the workflow calls the org's reusable mobile-e2e at a pinned commit, for this app", () => {
-  const wf = readFileSync(new URL("../.github/workflows/mobile-e2e.yml", import.meta.url), "utf8");
+  const wf = readFileSync(new URL("../../../.github/workflows/mobile-e2e.yml", import.meta.url), "utf8");
   assert.match(wf, /uses: krizaka\/\.github\/\.github\/workflows\/mobile-e2e\.yml@[0-9a-f]{40}/);
   assert.match(wf, /app-id: com\.krizaka\.orazaka/);
   assert.match(wf, /^\s+mobile-e2e:$/m, "the job is named mobile-e2e, so the check is `mobile-e2e / gate`");

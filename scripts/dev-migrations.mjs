@@ -35,8 +35,8 @@ const MOVED_PREFIX = "krizaka/krizaka-build/krizaka-billing/";
 const DATE = /^\d{4}-\d{2}-\d{2}-/;
 
 /** Every migration file of the workspace and of its component repositories, keyed by path from the root, sorted. */
-export function migrationFiles(root, manifest = JSON.parse(readFileSync(join(root, "orazaka.workspace.json"), "utf8"))) {
-  const dirs = ["", ...manifest.repositories.map((r) => r.path), ...NESTED_COMPONENTS];
+export function migrationFiles(root, manifest = JSON.parse(readFileSync(join(root, "modules.json"), "utf8"))) {
+  const dirs = ["", ...manifest.modules.map((r) => r.path), ...NESTED_COMPONENTS];
   const out = [];
   for (const d of dirs) {
     const rel = join(d, "infra/migrations");

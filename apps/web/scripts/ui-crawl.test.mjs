@@ -5,6 +5,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const read = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
+/** The post-deploy workflow lives at the repository root (ADR-029: one repository). */
+const workflow = () => readFileSync(new URL("../../../.github/workflows/web-live.yml", import.meta.url), "utf8");
 const crawl = read("e2e/ui-crawl.mjs");
 
 test("the crawl covers dark and light, phone and desktop", () => {
@@ -46,18 +48,18 @@ test("captures go to a scratch folder (OUT), never into the repository", () => {
 
 test("it is an npm script and a step of its own post-deploy workflow (a failing smoke never hides it)", () => {
   assert.equal(JSON.parse(read("package.json")).scripts["test:ui-crawl"], "node e2e/ui-crawl.mjs");
-  const wf = read(".github/workflows/dev-preview-live.yml");
+  const wf = workflow();
   assert.ok(wf.includes("npm run test:ui-crawl"));
   assert.ok(wf.includes("Wait for the deployed build"));
 });
 
 test("the post-deploy workflow also runs the SEO family contract against the deployed site, indexed (seo.family)", () => {
-  const wf = read(".github/workflows/dev-preview-live.yml");
+  const wf = workflow();
   assert.match(
     wf,
-    /node scripts\/check-seo-family\.mjs --base https:\/\/www\.orazaka\.com --host https:\/\/www\.orazaka\.com(\s|$)/,
+    /node scripts\/check-seo-family\.mjs --base https:\/\/dev\.sovkora\.com --host https:\/\/dev\.sovkora\.com(\s|$)/,
   );
-  assert.ok(!/--index off/.test(wf), "www.orazaka.com is indexed (AGENTS.md)");
+  assert.ok(!/--index off/.test(wf), "the dev site is indexed (AGENTS.md)");
 });
 
 test("the console crawl covers every console screen in both themes and both viewports, and checks the DEV badge (admin.shell)", () => {
@@ -72,9 +74,9 @@ test("the console crawl covers every console screen in both themes and both view
 });
 
 test("the same workflow proves the console gate from outside: 403 on the admin host, 404 on the public one (admin.gated)", () => {
-  const wf = read(".github/workflows/dev-preview-live.yml");
-  assert.match(wf, /admin\.orazaka\.com\/login[^\n]*\n?[^\n]*= 403/);
-  assert.match(wf, /www\.orazaka\.com\/console[^\n]*= 404/);
+  const wf = workflow();
+  assert.match(wf, /admin\.sovkora\.com\/login[^\n]*\n?[^\n]*= 403/);
+  assert.match(wf, /dev\.sovkora\.com\/console[^\n]*= 404/);
 });
 
 test("the crawl also runs axe-core (WCAG 2.1 AA) through the audit's a11y step and ratchets it against the baselines of this repo", () => {

@@ -1,6 +1,6 @@
 // node --test scripts/test — a fresh database (the components' infra/initdb) equals a migrated one
 // (infra/migrations): every column, constraint, index and table a migration adds is in the initdb DDL.
-// The initdb files live in the component repositories (orazaka.workspace.json `initdb`), cloned next to this one.
+// The initdb files live in the modules that own them (modules.json `initdb`).
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const manifest = JSON.parse(readFileSync(join(root, "orazaka.workspace.json"), "utf8"));
+const manifest = { repositories: JSON.parse(readFileSync(join(root, "modules.json"), "utf8")).modules };
 
 /** The database of each part of a migration (`\c db`) -> the objects it adds. */
 export function objectsAdded(sql) {

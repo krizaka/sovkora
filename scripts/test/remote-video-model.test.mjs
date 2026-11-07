@@ -23,6 +23,6 @@ test("the Mac worker file carries the provider key without ever printing it", ()
   assert.doesNotMatch(sh, /echo[^\n]*INFERENCE_KEY/);
 });
 
-test("the worker's provider-model suite runs in the build", () => {
-  assert.match(read("pom.xml"), /<argument>test_remote_video\.py<\/argument>/);
+test("the worker's provider-model suite runs in CI", () => {
+  assert.match(read(".github/workflows/ci.yml"), /test_remote_video\.py/);
 });

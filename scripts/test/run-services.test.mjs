@@ -93,7 +93,7 @@ test("the hosted-video worker is the media worker in hosted-only mode, on the le
 
 test("the image carries the worker and only its lean dependencies: no torch, no GPU library", () => {
   const docker = root("infra/deploy/Dockerfile");
-  assert.match(docker, /cp -r orazaka-apps\/workers\/orazaka-worker-media \/out\/orazaka-worker-media/);
+  assert.match(docker, /cp -r workers\/media \/out\/orazaka-worker-media/);
   const pip = docker.match(/pip install --no-cache-dir ([^\n]*)/)?.[1] ?? "";
   for (const needed of ["pika==", "pyyaml==", "cryptography==", "pillow=="]) assert.ok(pip.toLowerCase().includes(needed), `${needed} in ${pip}`);
   for (const heavy of ["torch", "diffusers", "mlx", "transformers"]) assert.ok(!pip.includes(heavy), heavy);

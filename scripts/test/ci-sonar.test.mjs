@@ -27,34 +27,35 @@ test("the Sonar job is not gated by an event condition that would skip merge_gro
   assert.doesNotMatch(sonarJob, /if:.*pull_request/);
 });
 
-// Coverage is measured, not assumed (krizaka-internal#2436): the Sonar job runs the script tests with lcov before the scan, the
-// test files are not counted as covered code, and the properties point the scan at that report.
-test("the Sonar job writes the scripts' lcov report before the scan, and the scan reads it", () => {
-  const tests = sonarJob.indexOf("--experimental-test-coverage");
-  assert.ok(tests > 0, "the Sonar job runs the tests with coverage");
-  assert.ok(tests < sonarJob.indexOf("actions/sonar-scan@"), "the coverage is written before the scan");
-  assert.match(sonarJob, /--test-coverage-exclude='scripts\/test\/\*\*'/);
-  assert.match(sonarJob, /--test-reporter-destination=coverage\/lcov\.info/);
+// Coverage is measured, not assumed (krizaka-internal#2436): the scripts' tests write lcov in the scripts job, every part uploads
+// its report, and the one Sonar job (ADR-029: one project) downloads them all before it scans.
+test("the scripts job writes the lcov report of the script tests, and the Sonar job reads every part's coverage", () => {
+  const scripts = ci.split(/\n  (?=[a-z-]+:\n)/).find((block) => /^scripts:/.test(block)) ?? "";
+  assert.match(scripts, /--experimental-test-coverage/);
+  assert.match(scripts, /--test-coverage-exclude='scripts\/test\/\*\*'/);
+  assert.match(scripts, /--test-reporter-destination=coverage\/lcov\.info/);
+  assert.ok(sonarJob.indexOf("download-artifact") < sonarJob.indexOf("actions/sonar-scan@"), "the coverage is downloaded before the scan");
+  assert.match(sonarJob, /pattern: coverage-\*/);
   const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
-  assert.match(p, /^sonar\.javascript\.lcov\.reportPaths=coverage\/lcov\.info$/m);
+  for (const report of ["coverage/lcov.info", "apps/web/coverage/lcov.info", "apps/cli/coverage/lcov.info"]) {
+    assert.ok((p.match(/^sonar\.javascript\.lcov\.reportPaths=(.*)$/m)?.[1] ?? "").split(",").includes(report), report);
+  }
+  assert.match(p, /^sonar\.coverage\.jacoco\.xmlReportPaths=/m);
 });
 
-test("sonar-project.properties names the project", () => {
+test("sonar-project.properties names the one project of the repository", () => {
   assert.ok(existsSync(new URL("../../sonar-project.properties", import.meta.url)));
   const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
-  assert.match(p, /^sonar\.projectKey=krizaka_orazaka$/m);
+  assert.match(p, /^sonar\.projectKey=krizaka_sovkora$/m);
   assert.match(p, /^sonar\.organization=krizaka$/m);
 });
 
-// The scan analyses the files of krizaka/orazaka only: every cloned component repository has its own Sonar project, and
-// attributing its sources here makes them « new code » of this one.
-test("every cloned component repository is excluded from the scan", () => {
+// One repository, one project (ADR-029): every module's sources are analysed here, none is excluded as « another project's ».
+test("every module of modules.json is in the scan's sources", () => {
   const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
-  const exclusions = (p.match(/^sonar\.exclusions=(.*)$/m)?.[1] ?? "").split(",").map((s) => s.trim());
-  const { repositories } = JSON.parse(readFileSync(new URL("../../orazaka.workspace.json", import.meta.url), "utf8"));
-  const clones = repositories.filter(({ path }) => path !== ".");
-  assert.ok(clones.length > 0, "the workspace lists component repositories");
-  for (const { name, path } of clones) {
-    assert.ok(exclusions.includes(`${path.replace(/\/$/, "")}/**`), `sonar.exclusions must list ${path}/** (component ${name})`);
+  const sources = (p.match(/^sonar\.sources=(.*)$/m)?.[1] ?? "").split(",").map((x) => x.trim());
+  const { modules } = JSON.parse(readFileSync(new URL("../../modules.json", import.meta.url), "utf8"));
+  for (const { name, path } of modules) {
+    assert.ok(sources.some((s) => path === s || path.startsWith(`${s}/`) || s.startsWith(`${path}/`)), `${name} (${path}) is analysed`);
   }
 });

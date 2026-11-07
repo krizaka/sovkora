@@ -208,7 +208,7 @@ test("the recommender (ADR-078): knowledge runs in core with its own database, i
   assert.match(dev, /key: KNOWLEDGE_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql:\/\/__DATABASE_HOST__:25061\/pool-knowledge\?sslmode=require&prepareThreshold=0"/);
   assert.match(dev, /key: KNOWLEDGE_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_KNOWLEDGE_DB__"/);
   const docker = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
-  assert.match(docker, /orazaka-apps\/services\/orazaka-knowledge-service[ ,]/);
+  assert.match(docker, /services\/knowledge\/sovkora-knowledge-service[ ,]/);
   assert.match(docker, /\/out\/knowledge\.jar/);
   const runner = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
   assert.match(runner, /knowledge:knowledge\.jar:\d+ [\w:. ]*edge:edge\.jar/, "knowledge starts before the edge");
@@ -499,7 +499,7 @@ test("automations (ADR-084): the service is the eighth JVM of the core, with its
   assert.match(dev, /key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http:\/\/localhost:8096"/, "it starts Studio runs over the Studio service's REST surface");
   assert.match(dev, /key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https:\/\/www\.orazaka\.com\/edge"/, "the address a sender is shown");
   const docker = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
-  assert.match(docker, /orazaka-apps\/services\/orazaka-automation-service \\/);
+  assert.match(docker, /services\/automation\/sovkora-automation-service \\/);
   assert.match(docker, /\/out\/automation\.jar/);
   const runner = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
   assert.match(runner, /automation:automation\.jar:\d+ edge:edge\.jar/, "automation starts before the edge");

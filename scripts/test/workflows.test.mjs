@@ -42,16 +42,10 @@ test("docs-sync starts CI on its branch itself (a GITHUB_TOKEN PR starts none) a
   assert.doesNotMatch(text.split("jobs:")[0], /^  [a-z-]+: write/m, "no write scope at the top level (Scorecard TokenPermissions)");
 });
 
-test("the reusable component workflow keeps packages/id-token write on the job, not at the top level", () => {
-  const text = readFileSync(new URL("component.yml", dir), "utf8");
-  assert.doesNotMatch(text.split("jobs:")[0], /^  [a-z-]+: write/m);
-});
-
-test("CI holds a pull request to the docs gate only when it touches what the docs are made from", () => {
+test("CI holds every change to the generated docs: they are made from this tree and krizaka-java at the imported release", () => {
   const text = readFileSync(new URL("ci.yml", dir), "utf8");
-  assert.match(text, /generate-docs\.mjs --check && exit 0/);
-  assert.match(text, /::warning::docs\/_generated drifted/);
-  assert.match(text, /docs\/\|scripts\/\|infra\//);
+  assert.match(text, /node scripts\/generate-docs\.mjs --check/);
+  assert.match(text, /repository: krizaka\/krizaka-java\n\s+ref: \$\{\{ steps\.krizaka\.outputs\.ref \}\}\n\s+path: \.krizaka-java/);
 });
 
 /** Duplicate keys inside one job (two `permissions:` after a merge) make GitHub refuse the whole file at startup. */
@@ -89,13 +83,3 @@ test("a workflow that mints the app token skips Dependabot pull requests (Depend
   assert.deepEqual(bad, []);
 });
 
-// A docs-only change skips `verify`; the required « SonarCloud Code Analysis » is posted by the app only when a scan runs, so
-// component.yml must scan lightly in that case (orazaka-ai-engine#219, orazaka-web-client#395: BLOCKED, check never ran).
-test("component.yml scans lightly when verify is skipped (the required Sonar check must report)", () => {
-  const text = readFileSync(new URL("component.yml", dir), "utf8");
-  const m = /^  sonar-light:\n([\s\S]*?)(?=^  \S)/m.exec(text);
-  assert.ok(m, "component.yml has no sonar-light job");
-  assert.match(m[1], /inputs\.sonar && !cancelled\(\) && needs\.changes\.outputs\.code == 'false'/);
-  assert.match(m[1], /actions\/sonar-scan@/);
-  assert.match(m[1], /qualitygate\.wait=true/);
-});

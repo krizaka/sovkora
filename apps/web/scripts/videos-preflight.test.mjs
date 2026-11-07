@@ -85,7 +85,7 @@ describe("the report", () => {
 });
 
 describe("the download videos workflow runs the preflight before any paid step", () => {
-  const code = readFileSync(new URL("../.github/workflows/download-videos.yml", import.meta.url), "utf8").replace(
+  const code = readFileSync(new URL("../../../.github/workflows/web-videos.yml", import.meta.url), "utf8").replace(
     /^\s*#.*$/gm,
     "",
   );

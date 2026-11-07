@@ -16,7 +16,7 @@ function workspace() {
     mkdirSync(join(root, dir), { recursive: true });
     writeFileSync(join(root, dir, name), "-- x");
   }
-  writeFileSync(join(root, "orazaka.workspace.json"), JSON.stringify({ repositories: [{ path: "not/cloned" }] }));
+  writeFileSync(join(root, "modules.json"), JSON.stringify({ modules: [{ path: "not/cloned" }] }));
   return root;
 }
 
