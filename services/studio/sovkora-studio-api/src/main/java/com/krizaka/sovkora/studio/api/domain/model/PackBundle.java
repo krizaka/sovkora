@@ -57,7 +57,8 @@ public record PackBundle(
    */
   public static final String API_VERSION = "orazaka.dev/v1";
 
-  private static final Pattern KEY = Pattern.compile("^(?!-)(?!.*--)(?!.*-$)[a-z0-9-]+$");
+  private static final Pattern KEBAB_CASE_KEY =
+      Pattern.compile("^(?!-)(?!.*--)(?!.*-$)[a-z0-9-]+$");
 
   /** Compact canonical constructor enforcing the bundle's invariants (ERR-106). */
   public PackBundle {
@@ -68,7 +69,7 @@ public record PackBundle(
               + "'; this platform reads "
               + API_VERSION);
     }
-    if (key == null || !KEY.matcher(key).matches()) {
+    if (key == null || !KEBAB_CASE_KEY.matcher(key).matches()) {
       throw new IllegalArgumentException("pack key must be kebab-case: " + key);
     }
     Objects.requireNonNull(version, "version must not be null");

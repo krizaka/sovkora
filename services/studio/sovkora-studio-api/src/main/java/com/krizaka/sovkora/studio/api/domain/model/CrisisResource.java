@@ -36,11 +36,11 @@ public record CrisisResource(
     String sourceUrl,
     LocalDate verifiedOn) {
 
-  private static final Pattern REGION = Pattern.compile("^[A-Z]{2}(-[A-Z]{2})?$");
+  private static final Pattern REGION_CODE = Pattern.compile("^[A-Z]{2}(-[A-Z]{2})?$");
 
   /** Compact canonical constructor enforcing the resource's invariants (ERR-106). */
   public CrisisResource {
-    if (region == null || !REGION.matcher(region).matches()) {
+    if (region == null || !REGION_CODE.matcher(region).matches()) {
       throw new IllegalArgumentException(
           "crisis resource region must be like FR or BE-FR: " + region);
     }

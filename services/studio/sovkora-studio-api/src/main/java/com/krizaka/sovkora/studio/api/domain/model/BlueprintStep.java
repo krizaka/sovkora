@@ -59,7 +59,7 @@ public record BlueprintStep(
     String outputContract) {
 
   /** Addressable from three places, so it may not carry case, whitespace or punctuation. */
-  private static final Pattern ID = Pattern.compile("^[a-z][a-z0-9-]{0,59}$");
+  private static final Pattern STEP_ID = Pattern.compile("^[a-z][a-z0-9-]{0,59}$");
 
   /**
    * A step that could run for an hour is not a step, it is an outage — and the sweeper needs an
@@ -110,8 +110,9 @@ public record BlueprintStep(
 
   /** Compact canonical constructor enforcing everything a single step can know (ERR-106). */
   public BlueprintStep {
-    if (id == null || !ID.matcher(id).matches()) {
-      throw new IllegalArgumentException("step id must match " + ID.pattern() + ", was: " + id);
+    if (id == null || !STEP_ID.matcher(id).matches()) {
+      throw new IllegalArgumentException(
+          "step id must match " + STEP_ID.pattern() + ", was: " + id);
     }
     Objects.requireNonNull(kind, "kind must not be null");
     Objects.requireNonNull(onError, "onError must not be null");

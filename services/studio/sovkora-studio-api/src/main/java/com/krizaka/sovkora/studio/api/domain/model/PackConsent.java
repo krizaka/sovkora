@@ -28,7 +28,7 @@ public record PackConsent(String version, String statement, Map<String, String> 
   /** The language of {@link #statement}. */
   public static final String DEFAULT_LANGUAGE = "fr";
 
-  private static final Pattern VERSION = Pattern.compile("^\\d+\\.\\d+$");
+  private static final Pattern MAJOR_MINOR = Pattern.compile("^\\d+\\.\\d+$");
   private static final Pattern LANGUAGE = Pattern.compile("^[a-z]{2}$");
 
   /**
@@ -43,7 +43,7 @@ public record PackConsent(String version, String statement, Map<String, String> 
 
   /** Compact canonical constructor enforcing the declaration's invariants (ERR-106). */
   public PackConsent {
-    if (version == null || !VERSION.matcher(version).matches()) {
+    if (version == null || !MAJOR_MINOR.matcher(version).matches()) {
       throw new IllegalArgumentException("consent version must be MAJOR.MINOR, was: " + version);
     }
     if (statement == null || statement.isBlank()) {

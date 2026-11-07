@@ -32,7 +32,8 @@ public record PackStudio(
     Integer sortWeight,
     PackBlueprint blueprint) {
 
-  private static final Pattern KEY = Pattern.compile("^(?!-)(?!.*--)(?!.*-$)[a-z0-9-]+$");
+  private static final Pattern KEBAB_CASE_KEY =
+      Pattern.compile("^(?!-)(?!.*--)(?!.*-$)[a-z0-9-]+$");
 
   /** Compact canonical constructor enforcing the declaration's invariants (ERR-106). */
   public PackStudio {
@@ -40,7 +41,7 @@ public record PackStudio(
     status = status == null ? StudioStatus.DRAFT : status;
     publisherId = publisherId == null || publisherId.isBlank() ? "sovkora" : publisherId;
     sortWeight = sortWeight == null ? 0 : sortWeight;
-    if (key == null || !KEY.matcher(key).matches()) {
+    if (key == null || !KEBAB_CASE_KEY.matcher(key).matches()) {
       throw new IllegalArgumentException("studio key must be kebab-case: " + key);
     }
     if (profession == null || profession.isBlank()) {
