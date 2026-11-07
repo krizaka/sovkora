@@ -60,7 +60,7 @@ jobs:
             echo "docs/_generated is fresh."
             exit 0
           fi
-          if [ -n "$(git diff --name-only | grep -v '^docs/_generated/')" ]; then
+          if git diff --name-only | grep -q -v '^docs/_generated/'; then
             echo "Something besides docs/_generated changed; not pushing."
             exit 0
           fi

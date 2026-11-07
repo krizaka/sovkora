@@ -90,7 +90,7 @@ jobs:
         if: ${{ steps.plan.outputs.mode == 'full' }}
         run: |
           set -euo pipefail
-          node -e 'for (const m of require("./modules.json").modules) if (m.kind === "maven") console.log(`${m.path} ${m.name}`)' |
+          node -e 'for (const m of require("./modules.json").modules) if (m.kind === "maven") console.log(m.path + " " + m.name)' |
             while read -r dir name; do node scripts/check-skipped-tests.mjs "$dir" "$name"; done
       - name: The test counts, per module
         if: ${{ always() }}
