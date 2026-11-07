@@ -27,20 +27,20 @@ concurrency:
 jobs:
   # ── what changed ────────────────────────────────────────────────────────────────────────────────────────────────
   java-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       # packs/ too: the studio's bundle tests read the shipped packs.
       relevant: '^(pom\.xml|\.mvn/|mvnw(\.cmd)?$|build/|contracts/|engine/|services/|e2e/|packs/|infra/(initdb|migrations|users|brokers-infra|docker-compose)|modules\.json$|scripts/(ci-plan|check-skipped-tests|check-krizaka-versions)\.mjs$|scripts/lib/(skipped-tests|krizaka-versions)\.mjs$|scripts/skipped-tests-allowlist\.json$|\.github/workflows/ci\.yml$)'
   web-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       relevant: '^(apps/web/|packs/|docs/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   mobile-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       relevant: '^(apps/mobile/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   cli-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       relevant: '^(apps/cli/|packs/pack\.schema\.json$|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
 
@@ -208,7 +208,7 @@ jobs:
     name: Media worker
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       relevant: '^(workers/media/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
       working-directory: workers/media
@@ -276,7 +276,7 @@ jobs:
             tests: test_rules.py test_faces.py test_worker.py
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
     with:
       relevant: '^(packs/|\.github/workflows/ci\.yml$)'
       working-directory: packs/${{ matrix.worker }}
@@ -300,7 +300,7 @@ jobs:
         with:
           node-version: "22"
       - name: Repository layout
-        uses: krizaka/.github/actions/repo-layout@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+        uses: krizaka/.github/actions/repo-layout@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
       # The tests and the generated docs read krizaka-java at the release sovkora-parent imports (billing migrations, building blocks).
       - name: The krizaka-java release sovkora-parent imports
         id: krizaka
@@ -374,7 +374,7 @@ jobs:
         with:
           pattern: coverage-*
           merge-multiple: true
-      - uses: krizaka/.github/actions/sonar-scan@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+      - uses: krizaka/.github/actions/sonar-scan@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
         with:
           token: ${{ secrets.SONAR_TOKEN }}
           args: -Dsonar.qualitygate.wait=true
@@ -414,7 +414,7 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           echo "CI failed on main at ${SHA:0:7}: ${RUN_URL}" > "$RUNNER_TEMP/body.md"
-      - uses: krizaka/.github/actions/alert-issue@c8426ee46246cbdd3fbfc7c9f1c6ca4b447aa368 # main
+      - uses: krizaka/.github/actions/alert-issue@30fb422ef576d2a82f78306872ef80fff22c8a2b # main
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
