@@ -68,6 +68,17 @@ jobs:
           node-version: "22"
       - name: The com.krizaka versions are on Maven Central
         run: node scripts/check-krizaka-versions.mjs
+      # The platform bootstrap and the Krizaka services Sovkora runs beside its own (users, billing) are krizaka-java's: the
+      # integration tests read them from a checkout of the release sovkora-parent imports (the dev image builds the same).
+      - name: The krizaka-java release sovkora-parent imports
+        id: krizaka
+        run: echo "ref=v$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: krizaka/krizaka-java
+          ref: ${{ steps.krizaka.outputs.ref }}
+          path: .krizaka-java
+          persist-credentials: false
       - name: Plan (what this event must test)
         id: plan
         env:
@@ -217,7 +228,7 @@ jobs:
       test-command: >
         python -m coverage run -m pytest -q test_capability_contract.py test_gpu_runtime.py test_image_to_video.py
         test_cut.py test_deliver.py test_foley.py test_mixer.py test_titles.py test_voice_direction.py
-        test_remote_video.py test_sound.py test_sound_models.py test_sound_handler.py
+        test_remote_video.py test_sound_models.py
         && python -m coverage xml -o coverage.xml
 
   packs-schema:

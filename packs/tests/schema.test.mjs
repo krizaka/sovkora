@@ -172,10 +172,10 @@ for (const raw of ["key: [unterminated", "key: first\nkey: duplicate\n"]) {
 }
 
 test("CI installs locked dependencies and runs the manifest gate on every pull request", () => {
-  const workflow = YAML.parse(readFileSync(join(root, ".github/workflows/ci.yml"), "utf8"));
+  const workflow = YAML.parse(readFileSync(join(root, "../.github/workflows/ci.yml"), "utf8"));
   assert.ok(Object.hasOwn(workflow.on, "pull_request"));
   assert.equal(workflow.on.pull_request, null);
-  const job = workflow.jobs["schema-tests"];
+  const job = workflow.jobs["packs-schema"];
   assert.equal(job.if, undefined);
   // `npm ci --ignore-scripts`: locked, and no dependency's install script runs in CI.
   const install = job.steps.findIndex((step) => /^npm ci(\s|$)/.test(step.run ?? ""));

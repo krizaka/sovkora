@@ -76,8 +76,9 @@ test("the ruleset says what the pack cannot do, and the README repeats it", () =
 });
 
 test("the CI runs every Python suite of the worker", () => {
-  const ci = readFileSync(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8");
-  for (const suite of ["test_mrz.py", "test_rules.py", "test_worker.py"])
-    assert.ok(ci.includes(`python ${suite}`), suite);
-  assert.ok(ci.includes("python test_worker_loop.py"));
+  const ci = readFileSync(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
+  const identity = ci.slice(ci.indexOf("worker: identity-document-check/worker"));
+  const tests = identity.slice(0, identity.indexOf("\n          - worker:"));
+  for (const suite of ["test_mrz.py", "test_rules.py", "test_worker.py"]) assert.ok(tests.includes(suite), suite);
+  assert.ok(ci.includes("test_worker_loop.py"));
 });

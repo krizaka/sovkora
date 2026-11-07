@@ -1,6 +1,7 @@
 {
   "name": "orazaka-mobile-client",
   "version": "1.0.0",
+  "packageManager": "pnpm@12.10.1",
   "license": "FSL-1.1-ALv2",
   "private": true,
   "main": "src/index.ts",

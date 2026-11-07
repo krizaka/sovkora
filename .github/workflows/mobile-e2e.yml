@@ -24,7 +24,8 @@ jobs:
     with:
       app-id: com.krizaka.orazaka
       app-directory: apps/mobile
-      install-command: npx --yes pnpm@12.10.1 install --frozen-lockfile --filter .
+      package-manager: pnpm
+      install-command: pnpm install --frozen-lockfile --ignore-scripts --filter ./apps/mobile
       # The reusable job always makes a demo account (a random password for this run); the ci flows do not sign in.
       demo-email: eric@demo.orazaka.test
       relevant: '^(apps/mobile/(src/|assets/|plugins/|\.maestro/|app\.(json|config\.js)$|package\.json$|pnpm-lock\.yaml$|babel\.config\.js$|metro\.config\.js$)|\.github/workflows/mobile-e2e\.yml$)'

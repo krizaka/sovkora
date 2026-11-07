@@ -171,8 +171,8 @@ test("a run that never completes hits its configured deadline and is cancelled",
 
 test("the CI lane audits every PR but never runs PR code against the credentialed stack", async () => {
   const { readFileSync } = await import("node:fs");
-  const workflow = readFileSync(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
-  const lane = workflow.slice(workflow.indexOf("  golden-stack:"), workflow.indexOf("  py-photo:"));
+  const workflow = readFileSync(new URL("../../../.github/workflows/ci.yml", import.meta.url), "utf8");
+  const lane = readFileSync(new URL("../../../.github/workflows/packs-golden.yml", import.meta.url), "utf8");
   assert.match(lane, /github\.ref == 'refs\/heads\/main'/);
   assert.match(lane, /github\.event_name == 'workflow_dispatch'/);
   assert.match(lane, /github\.event_name == 'push'/);

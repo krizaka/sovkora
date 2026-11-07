@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
-const ci = parse(readFileSync(fileURLToPath(new URL("../.github/workflows/ci.yml", import.meta.url)), "utf8"));
+const ci = parse(readFileSync(fileURLToPath(new URL("../../.github/workflows/ci.yml", import.meta.url)), "utf8"));
 
 /** The first line of a multi-line command stops the script on the first failure. */
 export const failsFast = (command) => {
@@ -29,6 +29,13 @@ test("every multi-line command passed to a reusable workflow stops at its first 
         failsFast(command),
         `${job}.${key}: starts with 'set -euo pipefail' (a later command would hide a failure)`,
       );
+    }
+    // One job per pack worker through a matrix (ADR-029, the one CI): each entry's values fill the command.
+    for (const entry of def.strategy?.matrix?.include ?? []) {
+      for (const value of [entry.tests, entry.setup].filter((v) => typeof v === "string")) {
+        seen++;
+        assert.ok(failsFast(value), `${job} (${entry.worker}): starts with 'set -euo pipefail'`);
+      }
     }
   }
   assert.ok(seen >= 7, `the Python worker jobs were found (${seen})`);
