@@ -3,9 +3,9 @@ package com.krizaka.sovkora.engine.persistence.application.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.CapabilityEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.CapabilityRepository;
+import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;

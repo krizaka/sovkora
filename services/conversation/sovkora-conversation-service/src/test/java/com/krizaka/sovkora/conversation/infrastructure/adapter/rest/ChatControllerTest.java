@@ -47,7 +47,8 @@ class ChatControllerTest {
     pipelineExecutor = mock(DynamicPipelineExecutor.class);
     sseStreamGateway = mock(SseStreamGateway.class);
     chatSessionService = mock(ChatSessionService.class);
-    chatMemoryStore = mock(com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatMemoryStore.class);
+    chatMemoryStore =
+        mock(com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatMemoryStore.class);
 
     when(pipelineExecutor.buildSchema(any(), any()))
         .thenReturn(new AdvancedPipelineSchema("default", List.of(), List.of(), 0L));

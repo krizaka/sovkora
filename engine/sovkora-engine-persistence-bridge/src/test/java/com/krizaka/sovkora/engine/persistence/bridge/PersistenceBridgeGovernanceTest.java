@@ -18,11 +18,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Architecture governance for {@code sovkora-engine-persistence-bridge}: the pack-private {@code @Service}
- * adapters that implement the core's DB-backed outbound ports by delegating to the persistence
- * inbound ports. This is a deliberately flat adapter package (no hexagonal domain/application/
- * infrastructure sub-layers), so it reuses only the layout-agnostic shared {@link GovernanceRules}
- * plus the bridge-specific naming/visibility invariants below.
+ * Architecture governance for {@code sovkora-engine-persistence-bridge}: the pack-private
+ * {@code @Service} adapters that implement the core's DB-backed outbound ports by delegating to the
+ * persistence inbound ports. This is a deliberately flat adapter package (no hexagonal
+ * domain/application/ infrastructure sub-layers), so it reuses only the layout-agnostic shared
+ * {@link GovernanceRules} plus the bridge-specific naming/visibility invariants below.
  */
 class PersistenceBridgeGovernanceTest {
 

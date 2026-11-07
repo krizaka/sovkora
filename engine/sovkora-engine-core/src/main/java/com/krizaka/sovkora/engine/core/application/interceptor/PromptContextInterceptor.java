@@ -119,8 +119,8 @@ public interface PromptContextInterceptor {
    * Streaming screen, deterministic and cheap, called for every chunk with the text assembled so
    * far <b>before the chunk is emitted</b>. A control that can already tell the answer is wrong
    * refuses with a {@link
-   * com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException}, so the stream
-   * stops instead of finishing (sovkora-engine#125). Does nothing by default.
+   * com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException}, so the
+   * stream stops instead of finishing (sovkora-engine#125). Does nothing by default.
    *
    * @param context the prompt context of the turn
    * @param textSoFar everything streamed so far, the chunk being screened included

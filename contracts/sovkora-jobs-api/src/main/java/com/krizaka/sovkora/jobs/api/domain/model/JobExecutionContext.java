@@ -11,10 +11,10 @@ import java.util.Set;
  * <p><b>Why this exists rather than the engine's own {@code Context}.</b> The four in-process
  * executors that take a context never read a field from it; they forward it whole into an {@code
  * AiClient} request. Putting the engine's {@code Context} on this port would therefore make Tier-1
- * depend on {@code sovkora-engine-core} — Tier-2 — for a type it only passes through, and an out-of-tree
- * executor written in a repository that does not ship the engine could not implement the interface
- * at all. ADR-037 already recorded the principle: the extension point must not drag the engine
- * behind it.
+ * depend on {@code sovkora-engine-core} — Tier-2 — for a type it only passes through, and an
+ * out-of-tree executor written in a repository that does not ship the engine could not implement
+ * the interface at all. ADR-037 already recorded the principle: the extension point must not drag
+ * the engine behind it.
  *
  * <p>So the shape travels, the engine type does not. The job service maps this onto its own {@code
  * Context} at the boundary — an anti-corruption layer of exactly the kind [ERR-127] asks for.

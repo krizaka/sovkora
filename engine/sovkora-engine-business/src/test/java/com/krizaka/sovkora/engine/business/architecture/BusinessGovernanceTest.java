@@ -12,9 +12,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Governance (naming + structural hygiene) for the sovkora-engine-business module, reusing the shared
- * {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules} so the framework enforces one
- * contract.
+ * Governance (naming + structural hygiene) for the sovkora-engine-business module, reusing the
+ * shared {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules} so the framework
+ * enforces one contract.
  *
  * <p>Note: business wires its beans through explicit {@code @Bean} methods in {@code
  * BusinessAutoConfiguration} (no classpath scanning), so its {@code *Impl} classes are public on

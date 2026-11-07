@@ -124,8 +124,8 @@ public class ProtectedDataService {
    *     asking twice
    * @throws PackNotFoundException when the key names no pack, or a pack that holds no protected
    *     data
-   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the
-   *     job plane could not erase its part - nothing was deleted, ask again
+   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the job
+   *     plane could not erase its part - nothing was deleted, ask again
    */
   @Transactional
   public ErasureReceipt eraseAll(String actorId, String packKey) {
@@ -194,8 +194,8 @@ public class ProtectedDataService {
    * @param actorId the person asking
    * @param runId the entry
    * @return whether an entry was erased by this call
-   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the
-   *     job plane could not erase its part - nothing was deleted, ask again
+   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the job
+   *     plane could not erase its part - nothing was deleted, ask again
    */
   @Transactional
   public boolean eraseEntry(String actorId, UUID runId) {

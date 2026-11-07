@@ -41,8 +41,8 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
 
   /**
    * Routing keys of the job plane. Contract copy of {@code MessagingContract} — that class lives in
-   * {@code com.krizaka.sovkora.engine.persistence}, another context's Tier-3, which SEAM-002 forbids
-   * importing. The AMQP contract tests are what keep the copies honest.
+   * {@code com.krizaka.sovkora.engine.persistence}, another context's Tier-3, which SEAM-002
+   * forbids importing. The AMQP contract tests are what keep the copies honest.
    */
   private static final String JOBS_EXCHANGE = "orazaka.jobs";
 

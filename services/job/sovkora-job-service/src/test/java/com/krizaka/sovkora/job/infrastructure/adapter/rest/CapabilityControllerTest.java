@@ -6,11 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.krizaka.sovkora.job.application.service.CapabilityRegistryService;
 import com.krizaka.sovkora.jobs.api.domain.exception.UnroutableCapabilityException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import com.krizaka.sovkora.jobs.api.domain.port.CapabilityRoutingClient;
-import com.krizaka.sovkora.job.application.service.CapabilityRegistryService;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

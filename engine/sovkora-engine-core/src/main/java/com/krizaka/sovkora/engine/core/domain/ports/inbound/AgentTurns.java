@@ -13,8 +13,8 @@ public interface AgentTurns {
   /**
    * @param request the conversation, the client's tools and the actor
    * @return the text and the screened tool calls
-   * @throws com.krizaka.sovkora.engine.core.domain.model.security.AccessDeniedException when the actor may
-   *     use none of the offered tools or is not allowed the turn
+   * @throws com.krizaka.sovkora.engine.core.domain.model.security.AccessDeniedException when the
+   *     actor may use none of the offered tools or is not allowed the turn
    */
   AgentTurnResult turn(AgentTurnRequest request);
 }

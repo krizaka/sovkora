@@ -1,12 +1,12 @@
 package com.krizaka.sovkora.engine.springai.client;
 
-import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
 import com.krizaka.sovkora.engine.core.domain.model.MediaCategory;
 import com.krizaka.sovkora.engine.core.domain.model.ModelEndpoint;
 import com.krizaka.sovkora.engine.core.domain.model.embedding.EmbeddingException;
 import com.krizaka.sovkora.engine.core.domain.model.embedding.EmbeddingResult;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.EmbeddingClient;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver;
+import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
 import io.micrometer.observation.ObservationRegistry;
 import java.net.http.HttpClient;
 import java.time.Duration;

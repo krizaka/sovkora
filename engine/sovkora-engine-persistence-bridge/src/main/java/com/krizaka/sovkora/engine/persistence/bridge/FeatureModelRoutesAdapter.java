@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * DB-backed {@link FeatureModelRoutes} adapter (ADR-029): reads {@code orazaka_feature_models}
- * through the {@link FeatureRouteManager} inbound port, so {@code sovkora-engine-core} stays free of any
- * persistence import. A deployment without the port wired keeps {@link
+ * through the {@link FeatureRouteManager} inbound port, so {@code sovkora-engine-core} stays free
+ * of any persistence import. A deployment without the port wired keeps {@link
  * CatalogModelEndpointResolver}'s default (every feature routes to its category default).
  */
 @Service

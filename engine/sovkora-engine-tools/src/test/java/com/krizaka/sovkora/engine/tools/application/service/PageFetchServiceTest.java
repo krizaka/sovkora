@@ -2,13 +2,13 @@ package com.krizaka.sovkora.engine.tools.application.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.domain.model.research.*;
 import com.krizaka.sovkora.engine.tools.domain.port.HostResolver;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
 import com.krizaka.sovkora.engine.tools.domain.port.TextExtractor;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.http.PinnedHttpClient;
 import com.krizaka.sovkora.engine.tools.infrastructure.research.TestRateGate;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;

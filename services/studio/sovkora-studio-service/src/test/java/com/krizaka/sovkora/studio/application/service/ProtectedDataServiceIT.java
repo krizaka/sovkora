@@ -9,12 +9,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.api.domain.model.BlueprintStatus;
 import com.krizaka.sovkora.studio.api.domain.model.PackKind;
 import com.krizaka.sovkora.studio.api.domain.model.Studio;
 import com.krizaka.sovkora.studio.api.domain.model.StudioPricing;
 import com.krizaka.sovkora.studio.api.domain.model.StudioStatus;
-import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.domain.exception.ConsentRequiredException;
 import com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException;
 import com.krizaka.sovkora.studio.domain.exception.PackNotFoundException;

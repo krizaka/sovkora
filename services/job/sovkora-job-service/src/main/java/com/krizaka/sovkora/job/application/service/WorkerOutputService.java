@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.application.service;
 
-import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
+import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import java.util.Locale;

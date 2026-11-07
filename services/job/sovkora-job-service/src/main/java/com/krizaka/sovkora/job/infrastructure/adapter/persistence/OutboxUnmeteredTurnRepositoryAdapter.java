@@ -2,9 +2,9 @@ package com.krizaka.sovkora.job.infrastructure.adapter.persistence;
 
 import com.krizaka.billing.domain.model.UnmeteredTurn;
 import com.krizaka.billing.domain.port.UnmeteredTurnRepository;
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 

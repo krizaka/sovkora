@@ -3,9 +3,9 @@ package com.krizaka.sovkora.studio.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
 import com.krizaka.sovkora.studio.api.domain.model.StepDispatch;
-import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.domain.model.RunDetail;
 import com.krizaka.sovkora.studio.infrastructure.adapter.persistence.PersistenceTestWiring;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;

@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Outbound port for pipeline interceptor configuration persistence.
  *
- * <p>Implemented by {@code sovkora-engine-persistence} to read/write interceptor execution order and
- * enabled state from PostgreSQL.
+ * <p>Implemented by {@code sovkora-engine-persistence} to read/write interceptor execution order
+ * and enabled state from PostgreSQL.
  */
 public interface PipelineConfigProvider {
 

@@ -3,11 +3,11 @@ package com.krizaka.sovkora.engine.persistence.application.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.persistence.api.domain.model.CatalogModelDto;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.AiProviderEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.CatalogModelEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.AiProviderRepository;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.CatalogModelRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.CatalogModelDto;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

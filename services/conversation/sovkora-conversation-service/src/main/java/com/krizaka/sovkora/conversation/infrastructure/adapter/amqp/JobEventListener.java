@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.conversation.infrastructure.adapter.amqp;
 
 import com.krizaka.sovkora.conversation.application.service.JobStreamService;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

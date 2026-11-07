@@ -12,11 +12,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Governance (naming + structural hygiene) for the sovkora-engine-interceptors module, reusing the shared
- * {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules}.
+ * Governance (naming + structural hygiene) for the sovkora-engine-interceptors module, reusing the
+ * shared {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules}.
  *
- * <p>sovkora-engine-interceptors is a single module organised <b>by concern</b> (context, enrichment,
- * governance, …), not by hexagonal layer. Two router rules therefore do not apply by design:
+ * <p>sovkora-engine-interceptors is a single module organised <b>by concern</b> (context,
+ * enrichment, governance, …), not by hexagonal layer. Two router rules therefore do not apply by
+ * design:
  *
  * <ul>
  *   <li>The persistence-layout rule [ERR-109]: the governance concern co-locates its policy JPA

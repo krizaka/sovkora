@@ -167,8 +167,7 @@ class RouterGovernanceTest {
   void persistenceAdapterNaming() {
     classes()
         .that()
-        .resideInAPackage(
-            "com.krizaka.sovkora.conversation.infrastructure.adapter.persistence..")
+        .resideInAPackage("com.krizaka.sovkora.conversation.infrastructure.adapter.persistence..")
         .and()
         .areTopLevelClasses()
         .should()

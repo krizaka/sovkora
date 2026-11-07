@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.engine.springai.tool.SpringAiToolRegistry;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineTool;
 import com.krizaka.sovkora.engine.core.domain.model.security.AccessDeniedException;
 import com.krizaka.sovkora.engine.core.domain.model.security.AccessDeniedException.Reason;
@@ -14,6 +13,7 @@ import com.krizaka.sovkora.engine.core.domain.model.security.Actor;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.KnowledgeService;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformToolConfigProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolPermissionProvider;
+import com.krizaka.sovkora.engine.springai.tool.SpringAiToolRegistry;
 import com.krizaka.sovkora.engine.tools.infrastructure.cache.ToolCacheStore;
 import java.util.List;
 import java.util.Optional;
@@ -187,7 +187,8 @@ class DefaultToolCatalogueTest {
     var response =
         new DefaultToolCatalogue(registry, knowledgeService)
             .searchKnowledge(
-                new com.krizaka.sovkora.engine.tools.domain.model.search.SearchWebRequest("salary"));
+                new com.krizaka.sovkora.engine.tools.domain.model.search.SearchWebRequest(
+                    "salary"));
 
     assertThat(response.success()).isFalse();
     assertThat(response.toString()).doesNotContain("480000");

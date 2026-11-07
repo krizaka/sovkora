@@ -2,8 +2,8 @@ package com.krizaka.sovkora.job.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.engine.springai.CoreInfrastructureAutoConfiguration;
 import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
+import com.krizaka.sovkora.engine.springai.CoreInfrastructureAutoConfiguration;
 import com.krizaka.sovkora.test.support.config.ApplicationYaml;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;

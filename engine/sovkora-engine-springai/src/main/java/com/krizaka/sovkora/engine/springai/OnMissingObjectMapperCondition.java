@@ -10,9 +10,9 @@ import tools.jackson.databind.ObjectMapper;
  * context.
  *
  * <p>Vanilla Spring replacement for {@code @ConditionalOnMissingBean}, which lives in {@code
- * org.springframework.boot.autoconfigure} and is therefore banned in {@code sovkora-engine-core} by the
- * layer-boundary rule (core must not import Spring Boot starter auto-configuration). Mirrors {@link
- * OnMissingVectorStoreCondition}.
+ * org.springframework.boot.autoconfigure} and is therefore banned in {@code sovkora-engine-core} by
+ * the layer-boundary rule (core must not import Spring Boot starter auto-configuration). Mirrors
+ * {@link OnMissingVectorStoreCondition}.
  */
 public class OnMissingObjectMapperCondition implements Condition {
 

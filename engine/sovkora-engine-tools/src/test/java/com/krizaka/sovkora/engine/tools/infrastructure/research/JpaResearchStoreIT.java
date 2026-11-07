@@ -2,13 +2,13 @@ package com.krizaka.sovkora.engine.tools.infrastructure.research;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchAudit;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchRefusal;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchedDocument;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity.ResearchSourceEntity;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository.ResearchFetchRepository;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository.ResearchSourceRepository;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
@@ -34,7 +34,8 @@ class JpaResearchStoreIT extends AbstractContainerIntegrationTest {
   @SpringBootConfiguration
   @EnableAutoConfiguration
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   @Autowired private JpaResearchStore store;

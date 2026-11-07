@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
+import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import java.util.Map;

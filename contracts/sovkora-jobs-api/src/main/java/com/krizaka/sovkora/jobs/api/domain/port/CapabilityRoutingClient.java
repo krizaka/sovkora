@@ -14,8 +14,8 @@ import java.util.Optional;
  * an unresolved route has no acceptable rendering: a step with no route cannot be dispatched
  * anywhere, and picking a queue anyway is the silent misroute this port exists to end. An
  * implementation that cannot answer returns {@link Optional#empty()} and the caller raises {@link
- * com.krizaka.sovkora.jobs.api.domain.exception.UnroutableCapabilityException} — the user gets an error
- * instead of a wrong answer.
+ * com.krizaka.sovkora.jobs.api.domain.exception.UnroutableCapabilityException} — the user gets an
+ * error instead of a wrong answer.
  */
 public interface CapabilityRoutingClient {
 

@@ -105,7 +105,8 @@ class EngineTest {
         new EnginePipelineBridge(
             modelCatalogProvider,
             request ->
-                com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.ResolvedTools.none(),
+                com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.ResolvedTools
+                    .none(),
             new com.krizaka.sovkora.engine.core.application.TestPromptAssembly());
     streamBridge =
         new EngineStreamBridge(

@@ -5,12 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.krizaka.sovkora.engine.core.domain.model.research.Citation;
 import com.krizaka.sovkora.engine.core.domain.model.research.Claim;
 import com.krizaka.sovkora.engine.core.domain.model.research.ClaimStatus;
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.domain.model.law.CitedArticle;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawArticle;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawImportMode;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawImportStart;
 import com.krizaka.sovkora.engine.tools.domain.model.law.StoredRetrieval;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -48,7 +48,8 @@ class JpaLawRetrievalCacheIT extends AbstractContainerIntegrationTest {
   @SpringBootConfiguration
   @EnableAutoConfiguration
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   private static final Instant T0 = Instant.parse("2026-10-24T06:00:00Z");

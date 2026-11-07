@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.krizaka.sovkora.conversation.application.service.GateService;
+import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.IntentionRequest;
 import com.krizaka.sovkora.engine.business.api.Capability;
 import com.krizaka.sovkora.engine.business.api.ChatPayload;
 import com.krizaka.sovkora.engine.business.api.Intention;
 import com.krizaka.sovkora.engine.business.api.IntentionType;
 import com.krizaka.sovkora.engine.business.api.UseCaseDispatcher;
 import com.krizaka.sovkora.engine.business.api.UseCaseResolutionException;
-import com.krizaka.sovkora.conversation.application.service.GateService;
-import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.IntentionRequest;
 import com.krizaka.sovkora.engine.core.domain.model.chat.ChatResponse;
 import com.krizaka.users.domain.model.User;
 import java.util.List;

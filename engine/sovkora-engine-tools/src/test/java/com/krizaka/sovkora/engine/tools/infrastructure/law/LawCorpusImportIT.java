@@ -6,7 +6,6 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawSettings;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawSource;
 import com.krizaka.sovkora.engine.tools.application.service.LawImportService;
@@ -23,6 +22,7 @@ import com.krizaka.sovkora.engine.tools.infrastructure.adapter.law.LawXmlFileRea
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.law.QuebecOpenDataSource;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity.LawImportEntity;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository.LawImportRepository;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.Clock;
@@ -67,7 +67,8 @@ class LawCorpusImportIT extends AbstractContainerIntegrationTest {
   @SpringBootConfiguration
   @EnableAutoConfiguration
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   private static final Clock CLOCK =

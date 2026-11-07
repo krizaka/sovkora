@@ -1,11 +1,11 @@
 package com.krizaka.sovkora.job.application.service;
 
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;

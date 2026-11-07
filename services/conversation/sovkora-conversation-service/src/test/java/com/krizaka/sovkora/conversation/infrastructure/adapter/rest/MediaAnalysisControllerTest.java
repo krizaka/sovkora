@@ -38,7 +38,8 @@ class MediaAnalysisControllerTest {
   @BeforeEach
   void setUp() {
     controller =
-        controllerWith(new com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore());
+        controllerWith(
+            new com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore());
   }
 
   private MediaAnalysisController controllerWith(
@@ -106,7 +107,8 @@ class MediaAnalysisControllerTest {
   void searchRag_returnsContextForTheCaller() {
     UUID id = UUID.randomUUID();
     var actor =
-        com.krizaka.sovkora.engine.core.domain.model.security.Actor.of(id.toString(), Set.of("ROLE_USER"))
+        com.krizaka.sovkora.engine.core.domain.model.security.Actor.of(
+                id.toString(), Set.of("ROLE_USER"))
             .orElseThrow();
     when(knowledgeService.retrieveContext(actor, "cats", 5)).thenReturn("ctx-about-cats");
     ResponseEntity<Map<String, Object>> response = controller.searchRag("cats", user(id));

@@ -1,14 +1,5 @@
 package com.krizaka.sovkora.engine.springai;
 
-import com.krizaka.sovkora.engine.springai.memory.PersistedChatMemoryStore;
-import com.krizaka.sovkora.engine.springai.remote.HttpKnowledgeAdapter;
-import com.krizaka.sovkora.engine.springai.remote.InfrastructureProber;
-import com.krizaka.sovkora.engine.springai.remote.KnowledgeProperties;
-import com.krizaka.sovkora.engine.springai.remote.LocalAiSemanticClassifierAdapter;
-import com.krizaka.sovkora.engine.springai.remote.OllamaModelCatalogProvider;
-import com.krizaka.sovkora.engine.springai.remote.WhisperTranscriptionClient;
-import com.krizaka.sovkora.engine.springai.routing.CatalogModelEndpointResolver;
-import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
 import com.krizaka.sovkora.engine.core.application.engine.Engine;
 import com.krizaka.sovkora.engine.core.application.engine.EngineInfrastructure;
 import com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor;
@@ -58,6 +49,15 @@ import com.krizaka.sovkora.engine.core.infrastructure.adapter.routing.RuntimeSte
 import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.engine.core.infrastructure.config.SecurityProperties;
 import com.krizaka.sovkora.engine.core.infrastructure.host.HostCapabilityDetector;
+import com.krizaka.sovkora.engine.springai.memory.PersistedChatMemoryStore;
+import com.krizaka.sovkora.engine.springai.remote.HttpKnowledgeAdapter;
+import com.krizaka.sovkora.engine.springai.remote.InfrastructureProber;
+import com.krizaka.sovkora.engine.springai.remote.KnowledgeProperties;
+import com.krizaka.sovkora.engine.springai.remote.LocalAiSemanticClassifierAdapter;
+import com.krizaka.sovkora.engine.springai.remote.OllamaModelCatalogProvider;
+import com.krizaka.sovkora.engine.springai.remote.WhisperTranscriptionClient;
+import com.krizaka.sovkora.engine.springai.routing.CatalogModelEndpointResolver;
+import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
 import com.krizaka.sovkora.persistence.api.domain.model.CatalogModelDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.ChatMemoryPersistenceProvider;

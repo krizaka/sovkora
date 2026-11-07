@@ -80,8 +80,8 @@ public class CodeTurnService {
    * @throws RunNotFoundException when the run is not the caller's, or is not a Contributor run
    * @throws IllegalStateException when the run is no longer in flight
    * @throws IllegalArgumentException when the turn is malformed or over a ceiling
-   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the actor
-   *     no longer holds the Studio
+   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the
+   *     actor no longer holds the Studio
    */
   public AgentTurnResult turn(
       UUID runId,

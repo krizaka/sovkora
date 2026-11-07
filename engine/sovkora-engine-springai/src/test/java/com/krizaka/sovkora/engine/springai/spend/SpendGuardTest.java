@@ -2,8 +2,8 @@ package com.krizaka.sovkora.engine.springai.spend;
 
 import static org.assertj.core.api.Assertions.*;
 
-import com.krizaka.sovkora.engine.springai.spend.SpendGuard.Kind;
 import com.krizaka.sovkora.engine.core.domain.model.ModelEndpoint;
+import com.krizaka.sovkora.engine.springai.spend.SpendGuard.Kind;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

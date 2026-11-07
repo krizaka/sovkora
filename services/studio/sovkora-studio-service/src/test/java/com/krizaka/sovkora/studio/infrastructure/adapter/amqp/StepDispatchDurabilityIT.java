@@ -5,8 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import com.krizaka.sovkora.jobs.api.domain.port.CapabilityRoutingClient;
-import com.krizaka.sovkora.studio.api.domain.model.StepDispatch;
 import com.krizaka.sovkora.studio.StudioSchema;
+import com.krizaka.sovkora.studio.api.domain.model.StepDispatch;
 import com.krizaka.sovkora.studio.application.service.OutboxService;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
 import com.krizaka.test.container.ServiceRoles;

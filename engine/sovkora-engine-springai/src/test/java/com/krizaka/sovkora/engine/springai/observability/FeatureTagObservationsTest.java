@@ -2,10 +2,10 @@ package com.krizaka.sovkora.engine.springai.observability;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.krizaka.sovkora.engine.core.domain.model.chat.ChatRoute;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiChatInvocation;
 import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
 import com.krizaka.sovkora.engine.springai.routing.UniversalProxyChatProvider;
-import com.krizaka.sovkora.engine.core.domain.model.chat.ChatRoute;
 import com.sun.net.httpserver.HttpServer;
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationHandler;

@@ -204,8 +204,7 @@ class RestErrorResolverTest {
     assertThat(response.getBody().get("regions"))
         .isEqualTo(
             List.of(
-                new com.krizaka.sovkora.studio.infrastructure.adapter.rest.dto
-                    .CrisisLineResponse(
+                new com.krizaka.sovkora.studio.infrastructure.adapter.rest.dto.CrisisLineResponse(
                     "CA-QC",
                     "Ligne québécoise de prévention du suicide",
                     "1 866 APPELLE (1 866 277-3553)",

@@ -143,7 +143,8 @@ public class VoiceTurnService {
    * @return the prepared turn, holding its credit reservation
    * @throws VoiceTurnRefusedException 404 for an unknown installation, 403 for a recording without
    *     the audio grant, 422 when no voice speaks the locale (only when the turn is to be spoken)
-   * @throws com.krizaka.sovkora.studio.api.domain.exception.TurnConsentRequiredException 451, relayed
+   * @throws com.krizaka.sovkora.studio.api.domain.exception.TurnConsentRequiredException 451,
+   *     relayed
    * @throws com.krizaka.billing.domain.exception.InsufficientCreditsException 402
    */
   public PreparedTurn prepare(VoiceTurn turn, User actor) {

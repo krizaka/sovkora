@@ -2,10 +2,10 @@ package com.krizaka.sovkora.engine.springai.observability;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.engine.springai.client.EmbeddingClientImpl;
-import com.krizaka.sovkora.engine.springai.routing.RoutedTextToSpeechModel;
 import com.krizaka.sovkora.engine.core.domain.model.ModelEndpoint;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver;
+import com.krizaka.sovkora.engine.springai.client.EmbeddingClientImpl;
+import com.krizaka.sovkora.engine.springai.routing.RoutedTextToSpeechModel;
 import com.sun.net.httpserver.HttpServer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;

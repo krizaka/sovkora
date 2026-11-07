@@ -2,7 +2,6 @@ package com.krizaka.sovkora.engine.tools.infrastructure.config;
 
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.AiClient;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.CitationVerifier;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.ChatTokenMeter;
 import com.krizaka.sovkora.engine.tools.application.port.law.GroundedClaimsModel;
 import com.krizaka.sovkora.engine.tools.application.port.law.GroundedResearchSettings;
@@ -13,6 +12,7 @@ import com.krizaka.sovkora.engine.tools.application.service.LawCorpusResearchSer
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.law.ChatGroundedClaimsModel;
 import com.krizaka.sovkora.engine.tools.infrastructure.law.RuntimeConfigGroundedResearchSettings;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.time.Clock;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

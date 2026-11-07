@@ -11,8 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * ArchUnit boundary enforcement for the sovkora-engine-persistence module. Validates that persistence
- * remains isolated and package topology rules are strictly followed.
+ * ArchUnit boundary enforcement for the sovkora-engine-persistence module. Validates that
+ * persistence remains isolated and package topology rules are strictly followed.
  */
 class PersistenceBoundaryTest {
 

@@ -14,8 +14,8 @@ public interface ConversationErasureClient {
    * @param actorId the person
    * @param packKey the regulated pack
    * @return how many conversations were erased
-   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the
-   *     service could not erase - the caller must not claim the erasure is done, and may ask again
+   * @throws com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException when the service
+   *     could not erase - the caller must not claim the erasure is done, and may ask again
    */
   int erase(String actorId, String packKey);
 }

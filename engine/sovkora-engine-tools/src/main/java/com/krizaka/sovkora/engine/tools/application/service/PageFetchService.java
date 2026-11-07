@@ -1,12 +1,12 @@
 package com.krizaka.sovkora.engine.tools.application.service;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.domain.model.research.*;
 import com.krizaka.sovkora.engine.tools.domain.port.PageFetcher;
 import com.krizaka.sovkora.engine.tools.domain.port.RateGate;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
 import com.krizaka.sovkora.engine.tools.domain.port.SafeHttp;
 import com.krizaka.sovkora.engine.tools.domain.port.TextExtractor;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

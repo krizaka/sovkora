@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.engine.assets.infrastructure.tool;
 
+import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
-import com.krizaka.sovkora.crypto.SecretSealer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.SecureRandom;

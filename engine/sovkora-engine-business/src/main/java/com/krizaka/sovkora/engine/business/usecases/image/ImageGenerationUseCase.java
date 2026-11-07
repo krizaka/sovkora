@@ -13,8 +13,8 @@ import java.util.Set;
  * Second reference use-case — image generation. Its sole reason to exist is to prove the App
  * Factory's extensibility: adding a new product capability is a new {@code UseCase} class
  * registered with a {@code @Bean} line, and the {@link
- * com.krizaka.sovkora.engine.business.api.UseCaseRegistry} routes intentions to it by {@link Capability} —
- * no core or router change.
+ * com.krizaka.sovkora.engine.business.api.UseCaseRegistry} routes intentions to it by {@link
+ * Capability} — no core or router change.
  */
 public final class ImageGenerationUseCase implements UseCase<ImagePayload, ImageResponse> {
 

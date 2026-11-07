@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.persistence.api.domain.model.SpeechVoice;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.SpeechVoiceManager;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.CatalogModelEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.CatalogModelRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.SpeechVoice;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.SpeechVoiceManager;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

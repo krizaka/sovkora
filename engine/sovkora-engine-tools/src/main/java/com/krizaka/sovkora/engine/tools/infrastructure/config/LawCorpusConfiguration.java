@@ -1,7 +1,6 @@
 package com.krizaka.sovkora.engine.tools.infrastructure.config;
 
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolRegistry;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.*;
 import com.krizaka.sovkora.engine.tools.application.service.LawArticleReadService;
 import com.krizaka.sovkora.engine.tools.application.service.LawImportService;
@@ -14,6 +13,7 @@ import com.krizaka.sovkora.engine.tools.infrastructure.adapter.law.QuebecOpenDat
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.LookupStatuteTool;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.LookupStatuteToolRegistration;
 import com.krizaka.sovkora.engine.tools.infrastructure.law.RuntimeConfigLawSettings;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;

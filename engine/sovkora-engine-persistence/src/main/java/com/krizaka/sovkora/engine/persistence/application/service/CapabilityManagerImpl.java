@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.CapabilityEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.CapabilityRepository;
+import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

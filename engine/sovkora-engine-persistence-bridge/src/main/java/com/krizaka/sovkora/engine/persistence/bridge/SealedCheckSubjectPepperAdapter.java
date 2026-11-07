@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.engine.persistence.bridge;
 
+import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.CheckSubjectPepper;
-import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -21,8 +21,8 @@ import org.springframework.stereotype.Service;
  * mechanism of the MCP tokens), never an environment variable, never the code.
  *
  * <p>The sealed value opens to base64url text, and that text decodes to the pepper's bytes. The
- * operator writes it with {@code CheckSubjectPepperTool seal <keyfile>} (sovkora-engine-assets), which
- * draws a new random pepper and prints the statement, so nobody ever sees the pepper itself.
+ * operator writes it with {@code CheckSubjectPepperTool seal <keyfile>} (sovkora-engine-assets),
+ * which draws a new random pepper and prints the statement, so nobody ever sees the pepper itself.
  *
  * <p>It is read at each call, so a new pepper takes effect without a restart. Every way it can fail
  * answers empty, and then no check runs: no row, a blank one, a value in clear (never taken as the

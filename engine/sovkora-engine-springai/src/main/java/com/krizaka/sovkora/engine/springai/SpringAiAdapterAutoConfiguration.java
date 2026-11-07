@@ -1,5 +1,12 @@
 package com.krizaka.sovkora.engine.springai;
 
+import com.krizaka.sovkora.engine.core.application.engine.Engine;
+import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
+import com.krizaka.sovkora.engine.core.application.security.ClientToolGate;
+import com.krizaka.sovkora.engine.core.domain.ports.inbound.AgentTurns;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.*;
+import com.krizaka.sovkora.engine.core.infrastructure.adapter.security.LoggingAccessAudit;
+import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiChatInvocation;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiProviderChatClient;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiSpeechSynthesis;
@@ -28,13 +35,6 @@ import com.krizaka.sovkora.engine.springai.structured.SpringAiStructuredOutputCl
 import com.krizaka.sovkora.engine.springai.tool.SpringAiToolOptions;
 import com.krizaka.sovkora.engine.springai.tool.SpringAiToolRegistry;
 import com.krizaka.sovkora.engine.springai.tool.SpringAiToolResolution;
-import com.krizaka.sovkora.engine.core.application.engine.Engine;
-import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
-import com.krizaka.sovkora.engine.core.application.security.ClientToolGate;
-import com.krizaka.sovkora.engine.core.domain.ports.inbound.AgentTurns;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.*;
-import com.krizaka.sovkora.engine.core.infrastructure.adapter.security.LoggingAccessAudit;
-import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
 import io.micrometer.observation.ObservationRegistry;
 import java.util.List;

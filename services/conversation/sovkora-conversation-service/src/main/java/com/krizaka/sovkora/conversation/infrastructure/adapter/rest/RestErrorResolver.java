@@ -42,8 +42,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * same exception are consulted by order.
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice(
-    basePackages = "com.krizaka.sovkora.conversation.infrastructure.adapter.rest")
+@RestControllerAdvice(basePackages = "com.krizaka.sovkora.conversation.infrastructure.adapter.rest")
 public class RestErrorResolver {
 
   private static final Logger logger = LoggerFactory.getLogger(RestErrorResolver.class);

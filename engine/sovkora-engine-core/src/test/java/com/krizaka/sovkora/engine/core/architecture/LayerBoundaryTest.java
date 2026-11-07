@@ -14,8 +14,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Enforces ADR-005 and Section 1.A: sovkora-engine-core must remain 100% agnostic of router, identity, web
- * protocols, servlet infrastructure, and Spring Boot auto-configuration starters.
+ * Enforces ADR-005 and Section 1.A: sovkora-engine-core must remain 100% agnostic of router,
+ * identity, web protocols, servlet infrastructure, and Spring Boot auto-configuration starters.
  */
 class LayerBoundaryTest {
 
@@ -38,7 +38,8 @@ class LayerBoundaryTest {
         .should()
         .dependOnClassesThat()
         .resideInAPackage("com.krizaka.sovkora.conversation..")
-        .because("sovkora-engine-core is a stateless library and must remain router-agnostic [ADR-005]")
+        .because(
+            "sovkora-engine-core is a stateless library and must remain router-agnostic [ADR-005]")
         .check(coreClasses);
   }
 
@@ -125,7 +126,9 @@ class LayerBoundaryTest {
                 "reside in com.krizaka.sovkora.engine.core.infrastructure and not end with Properties") {
               @Override
               public boolean test(JavaClass input) {
-                return input.getPackageName().startsWith("com.krizaka.sovkora.engine.core.infrastructure")
+                return input
+                        .getPackageName()
+                        .startsWith("com.krizaka.sovkora.engine.core.infrastructure")
                     && !input.getName().contains("Properties");
               }
             })
@@ -150,7 +153,9 @@ class LayerBoundaryTest {
                     input.getPackageName().startsWith("javax.sound")
                         || input.getPackageName().startsWith("java.awt.image");
                 boolean isInfra =
-                    input.getPackageName().startsWith("com.krizaka.sovkora.engine.core.infrastructure")
+                    input
+                            .getPackageName()
+                            .startsWith("com.krizaka.sovkora.engine.core.infrastructure")
                         && !input.getName().contains("Properties");
                 return isMedia || isInfra;
               }

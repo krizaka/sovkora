@@ -9,10 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.krizaka.sovkora.engine.springai.chat.SpringAiChatInvocation;
-import com.krizaka.sovkora.engine.springai.prompt.MessageCompiler;
-import com.krizaka.sovkora.engine.springai.prompt.SpringAiPromptAssembly;
-import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
 import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
 import com.krizaka.sovkora.engine.core.application.security.ClientToolGate;
 import com.krizaka.sovkora.engine.core.domain.model.Authority;
@@ -28,6 +24,10 @@ import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerPr
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolPermissionProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolRegistry;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.UserMcpServerProvider;
+import com.krizaka.sovkora.engine.springai.chat.SpringAiChatInvocation;
+import com.krizaka.sovkora.engine.springai.prompt.MessageCompiler;
+import com.krizaka.sovkora.engine.springai.prompt.SpringAiPromptAssembly;
+import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;

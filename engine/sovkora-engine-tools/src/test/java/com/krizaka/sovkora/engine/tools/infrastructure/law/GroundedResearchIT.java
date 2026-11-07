@@ -6,8 +6,6 @@ import com.krizaka.sovkora.engine.core.domain.model.research.Citation;
 import com.krizaka.sovkora.engine.core.domain.model.research.Claim;
 import com.krizaka.sovkora.engine.core.domain.model.research.ClaimStatus;
 import com.krizaka.sovkora.engine.core.domain.model.research.GroundedAnswer;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.application.port.law.GroundedClaimsModel;
 import com.krizaka.sovkora.engine.tools.application.service.CitationVerificationService;
 import com.krizaka.sovkora.engine.tools.application.service.GroundedResearchService;
@@ -22,6 +20,8 @@ import com.krizaka.sovkora.engine.tools.domain.model.law.LawTargetRef;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity.ResearchSourceEntity;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository.ResearchSourceRepository;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -67,7 +67,8 @@ class GroundedResearchIT extends AbstractContainerIntegrationTest {
       includeFilters =
           @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*JpaResearchStore"))
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   private static final Instant NOW = Instant.parse("2026-10-24T12:00:00Z");
@@ -189,7 +190,8 @@ class GroundedResearchIT extends AbstractContainerIntegrationTest {
               }
 
               @Override
-              public void settle(com.krizaka.sovkora.engine.core.domain.model.chat.TokenUsage usage) {
+              public void settle(
+                  com.krizaka.sovkora.engine.core.domain.model.chat.TokenUsage usage) {
                 // nothing to settle in this test
               }
 

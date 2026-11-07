@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  * <p>A step validates what it owns: its identity, its templates' grammar, its retry and timeout
  * bounds. The rules that need the <i>whole</i> graph — dangling dependencies, cycles, duplicate ids
  * and {@code out} collisions — belong to {@link Blueprint}, which raises {@link
- * com.krizaka.sovkora.studio.api.domain.exception.BlueprintValidationException} naming the offending
- * node.
+ * com.krizaka.sovkora.studio.api.domain.exception.BlueprintValidationException} naming the
+ * offending node.
  *
  * @param id unique within the blueprint; kebab-case, because it is addressed from {@code
  *     dependsOn}, from {@code studio_run_step.step_id} and from the authoring UI

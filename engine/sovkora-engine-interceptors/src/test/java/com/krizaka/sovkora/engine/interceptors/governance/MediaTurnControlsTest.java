@@ -9,7 +9,6 @@ import com.krizaka.billing.domain.model.CreditHoldResponse;
 import com.krizaka.billing.domain.model.EntitlementSnapshot;
 import com.krizaka.billing.domain.port.CreditAuthorizationClient;
 import com.krizaka.billing.domain.port.EntitlementProvider;
-import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
 import com.krizaka.sovkora.engine.core.application.engine.Engine;
 import com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor;
 import com.krizaka.sovkora.engine.core.application.pipeline.*;
@@ -30,6 +29,7 @@ import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.engine.core.infrastructure.config.SecurityProperties;
 import com.krizaka.sovkora.engine.interceptors.reformulation.RefinerInterceptor;
 import com.krizaka.sovkora.engine.interceptors.validation.SafetyInterceptor;
+import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
@@ -231,7 +231,8 @@ class MediaTurnControlsTest {
         new EnginePipelineBridge(
             catalog,
             request ->
-                com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.ResolvedTools.none(),
+                com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.ResolvedTools
+                    .none(),
             new com.krizaka.sovkora.engine.springai.prompt.SpringAiPromptAssembly());
     UserCredentialsProvider userCredentials = mock(UserCredentialsProvider.class);
     return new Engine(

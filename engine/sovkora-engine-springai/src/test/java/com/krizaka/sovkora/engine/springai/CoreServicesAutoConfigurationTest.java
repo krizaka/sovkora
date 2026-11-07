@@ -79,8 +79,8 @@ class CoreServicesAutoConfigurationTest {
               com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider.class,
               () ->
                   mock(
-                      com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider
-                          .class))
+                      com.krizaka.sovkora.persistence.api.domain.ports.inbound
+                          .JobPersistenceProvider.class))
           .withBean(RuntimeConfigProvider.class, () -> mock(RuntimeConfigProvider.class))
           .withBean(ToolRegistry.class, () -> mock(ToolRegistry.class))
           .withBean(AccessAudit.class, () -> mock(AccessAudit.class))
@@ -96,8 +96,8 @@ class CoreServicesAutoConfigurationTest {
           assertThat(context)
               .getBean(AudioGeneratorClient.class)
               .isInstanceOf(
-                  com.krizaka.sovkora.engine.core.infrastructure.adapter.ai.DefaultAudioGeneratorClient
-                      .class);
+                  com.krizaka.sovkora.engine.core.infrastructure.adapter.ai
+                      .DefaultAudioGeneratorClient.class);
           assertThat(context)
               .getBean(CatalogModelService.class)
               .isInstanceOf(DefaultCatalogModelService.class);
@@ -107,7 +107,8 @@ class CoreServicesAutoConfigurationTest {
           assertThat(context).getBean(McpService.class).isInstanceOf(DefaultMcpService.class);
           assertThat(context)
               .getBean(com.krizaka.sovkora.engine.core.domain.ports.inbound.JobService.class)
-              .isInstanceOf(com.krizaka.sovkora.engine.core.application.service.DefaultJobService.class);
+              .isInstanceOf(
+                  com.krizaka.sovkora.engine.core.application.service.DefaultJobService.class);
           assertThat(context).getBean(StepRouter.class).isInstanceOf(PolicyStepRouter.class);
           assertThat(context)
               .getBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.AudioTranscriber.class)
@@ -115,7 +116,8 @@ class CoreServicesAutoConfigurationTest {
                   com.krizaka.sovkora.engine.springai.remote.WhisperTranscriptionClient.class);
           assertThat(context)
               .getBean(
-                  com.krizaka.sovkora.engine.core.domain.ports.outbound.InfrastructureStatusProvider.class)
+                  com.krizaka.sovkora.engine.core.domain.ports.outbound.InfrastructureStatusProvider
+                      .class)
               .isInstanceOf(com.krizaka.sovkora.engine.springai.remote.InfrastructureProber.class);
           assertThat(context)
               .hasSingleBean(com.krizaka.sovkora.engine.springai.spend.SpendGuard.class);
@@ -127,10 +129,12 @@ class CoreServicesAutoConfigurationTest {
           assertThat(context).hasSingleBean(MemoryResolver.class);
           assertThat(context).hasSingleBean(DomainEventPublisher.class);
           assertThat(context)
-              .hasSingleBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.KnowledgeService.class);
+              .hasSingleBean(
+                  com.krizaka.sovkora.engine.core.domain.ports.outbound.KnowledgeService.class);
           assertThat(context)
               .hasSingleBean(
-                  com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver.class);
+                  com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver
+                      .class);
         });
   }
 
@@ -184,7 +188,8 @@ class CoreServicesAutoConfigurationTest {
             context -> {
               assertThat(context).hasNotFailed();
               assertThat(context)
-                  .getBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatMemoryStore.class)
+                  .getBean(
+                      com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatMemoryStore.class)
                   .isInstanceOf(
                       com.krizaka.sovkora.engine.springai.memory.PersistedChatMemoryStore.class);
             });

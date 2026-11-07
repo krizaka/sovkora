@@ -1,10 +1,10 @@
 package com.krizaka.sovkora.conversation.application.service;
 
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Service;

@@ -87,8 +87,7 @@ class SeedExternalChecksTest {
     String handler =
         new ExternalCheckStrategy(
                 new com.krizaka.sovkora.engine.core.infrastructure.checks.MockConnector(),
-                new com.krizaka.sovkora.job.infrastructure.adapter.checks
-                    .MockProviderKeyStore(),
+                new com.krizaka.sovkora.job.infrastructure.adapter.checks.MockProviderKeyStore(),
                 line -> {},
                 Optional::empty,
                 Clock.systemUTC())

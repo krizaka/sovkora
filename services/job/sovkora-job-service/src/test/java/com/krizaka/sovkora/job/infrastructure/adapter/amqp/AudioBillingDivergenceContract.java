@@ -11,10 +11,10 @@ import com.krizaka.sovkora.engine.core.application.processing.ProcessedAudioPayl
 import com.krizaka.sovkora.engine.core.domain.model.audio.AudioRequest;
 import com.krizaka.sovkora.engine.core.domain.model.audio.AudioResponse;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.AiClient;
+import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext;
 import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
-import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.Map;

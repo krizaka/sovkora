@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.config;
 
-import com.krizaka.sovkora.jobs.api.domain.model.WorkerRegistration;
 import com.krizaka.sovkora.job.application.service.WorkerRegistryService;
+import com.krizaka.sovkora.jobs.api.domain.model.WorkerRegistration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

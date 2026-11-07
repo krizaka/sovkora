@@ -17,8 +17,8 @@ public interface AgentTurnClient {
    *
    * @param turn the conversation and the tools the client offers
    * @return the engine's answer
-   * @throws com.krizaka.sovkora.studio.domain.exception.AgentTurnRefusedException when the
-   *     engine refuses the turn (consent, credits, entitlement), carrying its own code
+   * @throws com.krizaka.sovkora.studio.domain.exception.AgentTurnRefusedException when the engine
+   *     refuses the turn (consent, credits, entitlement), carrying its own code
    */
   AgentTurnResult turn(AgentTurn turn);
 }

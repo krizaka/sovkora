@@ -1,6 +1,5 @@
 package com.krizaka.sovkora.engine.springai;
 
-import com.krizaka.sovkora.engine.springai.prompt.ClasspathPromptTextSource;
 import com.krizaka.sovkora.engine.business.api.UseCase;
 import com.krizaka.sovkora.engine.business.api.UseCaseDispatcher;
 import com.krizaka.sovkora.engine.business.api.UseCaseRegistry;
@@ -12,6 +11,7 @@ import com.krizaka.sovkora.engine.business.usecases.chat.ChatAssistantUseCase;
 import com.krizaka.sovkora.engine.business.usecases.image.ImageGenerationUseCase;
 import com.krizaka.sovkora.engine.business.usecases.studio.StudioRunUseCase;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.AiClient;
+import com.krizaka.sovkora.engine.springai.prompt.ClasspathPromptTextSource;
 import com.krizaka.sovkora.studio.api.domain.port.StudioRunClient;
 import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ResourceLoader;
 
 /**
- * Spring Boot auto-configuration of the sovkora-engine-business use-cases — the App Factory wiring. It
- * lives in the adapter because sovkora-engine-business is pure Java.
+ * Spring Boot auto-configuration of the sovkora-engine-business use-cases — the App Factory wiring.
+ * It lives in the adapter because sovkora-engine-business is pure Java.
  *
  * <p>Registers the prompt resolver, every {@link UseCase} bean, and the {@link UseCaseRegistry} /
  * {@link UseCaseDispatcher}. Beans are declared explicitly (no classpath scanning) so the App

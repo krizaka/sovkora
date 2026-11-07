@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.config;
 
-import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.krizaka.sovkora.job.application.service.ExecutorCoherenceService;
+import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -11,10 +11,10 @@ import org.springframework.context.annotation.Bean;
  * The job plane's executor SPI seam.
  *
  * <p>Registered through {@code META-INF/spring/…AutoConfiguration.imports}, exactly as {@code
- * sovkora-engine-interceptors} registers its pipeline [ERR-122]. That file is the extension point: a jar
- * dropped on the classpath carrying its own imports file contributes a {@link JobExecutor} with no
- * edit to this class, this service, or this repository — which is the acceptance criterion that
- * un-sealed the SPI (ADR-038).
+ * sovkora-engine-interceptors} registers its pipeline [ERR-122]. That file is the extension point:
+ * a jar dropped on the classpath carrying its own imports file contributes a {@link JobExecutor}
+ * with no edit to this class, this service, or this repository — which is the acceptance criterion
+ * that un-sealed the SPI (ADR-038).
  *
  * <p><b>Why the six in-repo executors are not declared here.</b> Two of them depend on {@code
  * ModelResolver}, which is package-private in the adapter package. Declaring them from this

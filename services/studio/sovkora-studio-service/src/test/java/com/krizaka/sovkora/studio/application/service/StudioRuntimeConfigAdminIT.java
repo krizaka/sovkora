@@ -3,8 +3,8 @@ package com.krizaka.sovkora.studio.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.krizaka.sovkora.studio.api.domain.model.StudioRuntimeConfig;
 import com.krizaka.sovkora.studio.StudioSchema;
+import com.krizaka.sovkora.studio.api.domain.model.StudioRuntimeConfig;
 import com.krizaka.sovkora.studio.domain.model.RuntimeConfigChange;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
 import com.krizaka.test.container.ServiceRoles;

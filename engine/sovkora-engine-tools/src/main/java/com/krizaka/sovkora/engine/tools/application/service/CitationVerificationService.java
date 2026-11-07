@@ -2,11 +2,11 @@ package com.krizaka.sovkora.engine.tools.application.service;
 
 import com.krizaka.sovkora.engine.core.domain.model.research.*;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.CitationVerifier;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchedDocument;
 import com.krizaka.sovkora.engine.tools.domain.model.research.ReferenceScanner;
 import com.krizaka.sovkora.engine.tools.domain.model.research.ResearchSource;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

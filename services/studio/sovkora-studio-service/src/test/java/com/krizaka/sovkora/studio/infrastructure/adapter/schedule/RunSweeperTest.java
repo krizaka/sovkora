@@ -25,9 +25,8 @@ class RunSweeperTest {
           mock(com.krizaka.sovkora.studio.application.service.RunSettlementService.class);
   private final StudioRuntimeConfigService runtimeConfigService =
       mock(StudioRuntimeConfigService.class);
-  private final com.krizaka.sovkora.studio.application.service.RunAuditService
-      runAuditService =
-          mock(com.krizaka.sovkora.studio.application.service.RunAuditService.class);
+  private final com.krizaka.sovkora.studio.application.service.RunAuditService runAuditService =
+      mock(com.krizaka.sovkora.studio.application.service.RunAuditService.class);
   private final RunSweeper sweeper =
       new RunSweeper(jdbcTemplate, settlementService, runtimeConfigService, runAuditService);
 

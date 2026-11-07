@@ -216,7 +216,8 @@ class RulesetPromotionServiceTest {
           @Override
           public String promote(
               List<UUID> ids,
-              com.krizaka.sovkora.engine.tools.application.port.law.RuleProposalStore.PromotionStep step) {
+              com.krizaka.sovkora.engine.tools.application.port.law.RuleProposalStore.PromotionStep
+                  step) {
             // Another reviewer rejects one of them just before the rows are locked.
             law.store.rows.replaceAll(
                 r ->

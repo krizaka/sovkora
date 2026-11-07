@@ -2,11 +2,11 @@ package com.krizaka.sovkora.engine.tools.infrastructure.law;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.domain.model.law.KindDemand;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawImportSummary;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawInstrumentSummary;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawVersionSummary;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -41,7 +41,8 @@ class LawReviewReadsIT extends AbstractContainerIntegrationTest {
   @SpringBootConfiguration
   @EnableAutoConfiguration
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   private static final Instant T0 = Instant.parse("2026-10-24T06:00:00Z");

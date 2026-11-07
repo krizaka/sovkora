@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.engine.persistence.bridge;
 
+import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.CheckKeyStore;
-import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;

@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.config;
 
-import com.krizaka.sovkora.job.infrastructure.adapter.research.GroundedResearchStrategy;
 import com.krizaka.sovkora.engine.tools.application.service.GroundedResearchService;
+import com.krizaka.sovkora.job.infrastructure.adapter.research.GroundedResearchStrategy;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

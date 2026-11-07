@@ -13,8 +13,7 @@ class PackDetailResponseTest {
   void detailCarriesItsShelfInline() {
     PackDetailResponse response =
         PackDetailResponse.from(
-            PackFixtures.priced(),
-            com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
+            PackFixtures.priced(), com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
 
     assertThat(response.category().label()).isEqualTo("Business");
     assertThat(response.description()).isEqualTo("Le pack métier de l'agent immobilier.");
@@ -40,8 +39,7 @@ class PackDetailResponseTest {
   void unpricedDetailSendsNull() {
     PackDetailResponse response =
         PackDetailResponse.from(
-            PackFixtures.unpriced(),
-            com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
+            PackFixtures.unpriced(), com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
 
     assertThat(response.priceCents()).isNull();
     assertThat(response.includedCredits()).isNull();

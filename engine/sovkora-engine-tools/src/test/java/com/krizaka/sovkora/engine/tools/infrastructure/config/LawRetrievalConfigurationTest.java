@@ -3,7 +3,6 @@ package com.krizaka.sovkora.engine.tools.infrastructure.config;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.CitationVerifier;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawCorpusStore;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawRetrievalCache;
 import com.krizaka.sovkora.engine.tools.application.service.LawRetrievalService;
@@ -17,6 +16,7 @@ import com.krizaka.sovkora.engine.tools.domain.model.research.FetchAudit;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchedDocument;
 import com.krizaka.sovkora.engine.tools.domain.model.research.ResearchSource;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;

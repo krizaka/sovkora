@@ -7,8 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
-import com.krizaka.sovkora.engine.springai.tool.ClientToolCallback;
 import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
 import com.krizaka.sovkora.engine.core.domain.model.chat.CacheStrategy;
 import com.krizaka.sovkora.engine.core.domain.model.chat.ChatCompletion;
@@ -20,6 +18,8 @@ import com.krizaka.sovkora.engine.core.domain.model.chat.ToolRoundsExceededExcep
 import com.krizaka.sovkora.engine.core.domain.model.chat.TurnSensitivity;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptCachePolicy;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolLoopBounds;
+import com.krizaka.sovkora.engine.springai.prompt.SpringPreparedPrompt;
+import com.krizaka.sovkora.engine.springai.tool.ClientToolCallback;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;

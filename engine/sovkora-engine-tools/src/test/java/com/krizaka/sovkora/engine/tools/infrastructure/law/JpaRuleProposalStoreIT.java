@@ -2,9 +2,9 @@ package com.krizaka.sovkora.engine.tools.infrastructure.law;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import com.krizaka.sovkora.engine.tools.domain.model.law.*;
 import com.krizaka.sovkora.engine.tools.domain.model.law.DerivationFixtures.Planted;
+import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,8 @@ class JpaRuleProposalStoreIT extends AbstractContainerIntegrationTest {
   @SpringBootConfiguration
   @EnableAutoConfiguration
   @EntityScan("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.entity")
-  @EnableJpaRepositories("com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
+  @EnableJpaRepositories(
+      "com.krizaka.sovkora.engine.tools.infrastructure.adapter.persistence.repository")
   static class Wiring {}
 
   private static final Instant T0 = Instant.parse("2026-10-24T06:00:00Z");

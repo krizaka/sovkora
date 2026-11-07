@@ -32,7 +32,8 @@ class JobMeteringServiceTest {
    * contains() chain over the feature key (ADR-038), so the row is part of the fixture.
    */
   @Mock
-  private com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager capabilityManager;
+  private com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager
+      capabilityManager;
 
   /** Seeds the capability rows these tests submit against, as the registry would hold them. */
   @org.junit.jupiter.api.BeforeEach

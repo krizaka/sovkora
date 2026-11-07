@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.RuntimeConfigEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.RuntimeConfigRepository;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;

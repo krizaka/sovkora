@@ -77,17 +77,17 @@ class DesignExampleBlueprintTest {
     ObjectMapper mapper = new ObjectMapper();
     var definition = mapper.readTree(definitionJson);
     try {
-      return com.krizaka.sovkora.studio.infrastructure.adapter.persistence
-          .BlueprintMapperBridge.toBlueprint(
-          definition.path("studioKey").asString(),
-          definition.path("version").asString(),
-          BlueprintStatus.PUBLISHED,
-          definition,
-          "{\"type\":\"object\"}",
-          Map.of(),
-          0,
-          null,
-          null);
+      return com.krizaka.sovkora.studio.infrastructure.adapter.persistence.BlueprintMapperBridge
+          .toBlueprint(
+              definition.path("studioKey").asString(),
+              definition.path("version").asString(),
+              BlueprintStatus.PUBLISHED,
+              definition,
+              "{\"type\":\"object\"}",
+              Map.of(),
+              0,
+              null,
+              null);
     } catch (RuntimeException invalid) {
       return fail(
           "docs/STUDIO_ARCHITECTURE.md §6 no longer describes a valid blueprint: "

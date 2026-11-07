@@ -64,8 +64,7 @@ class DoorOneClosedTest {
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.class)
         .orShould()
         .callMethod(
-            com.krizaka.sovkora.conversation.application.service.JobQueuePublisherService
-                .class,
+            com.krizaka.sovkora.conversation.application.service.JobQueuePublisherService.class,
             "publish",
             com.krizaka.sovkora.jobs.api.domain.model.JobCommand.class)
         .because(
@@ -93,8 +92,7 @@ class DoorOneClosedTest {
         .haveSimpleNameNotEndingWith("JobQueuePublisherService")
         .should()
         .callMethod(
-            com.krizaka.sovkora.conversation.application.service.JobQueuePublisherService
-                .class,
+            com.krizaka.sovkora.conversation.application.service.JobQueuePublisherService.class,
             "publish",
             com.krizaka.sovkora.jobs.api.domain.model.JobCommand.class)
         .because(

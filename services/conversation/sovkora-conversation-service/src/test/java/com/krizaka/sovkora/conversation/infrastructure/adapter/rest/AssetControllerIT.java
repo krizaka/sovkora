@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
-import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
-import com.krizaka.sovkora.engine.assets.infrastructure.config.AssetEncryptionProperties;
 import com.krizaka.sovkora.conversation.application.service.AssetService;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
+import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
+import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.infrastructure.config.AssetEncryptionProperties;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import com.krizaka.users.domain.model.User;
@@ -85,8 +85,10 @@ class AssetControllerIT {
                         properties,
                         assets,
                         encryption,
-                        new com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore(),
-                        new com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties(
+                        new com.krizaka.sovkora.engine.assets.infrastructure.storage
+                            .NoDurableAssetStore(),
+                        new com.krizaka.sovkora.engine.assets.infrastructure.config
+                            .MediaStorageProperties(
                             "local", null, null, "storage.bunnycdn.com", null, "default"))))
             .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
             .build();
@@ -358,8 +360,8 @@ class AssetControllerIT {
                         assets,
                         encryption,
                         durable,
-                        new com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties(
-                            "directory", null, null, "e", "x", "acme"))))
+                        new com.krizaka.sovkora.engine.assets.infrastructure.config
+                            .MediaStorageProperties("directory", null, null, "e", "x", "acme"))))
             .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
             .build();
 
@@ -404,8 +406,10 @@ class AssetControllerIT {
                         assets,
                         new AssetEncryptionProperties(
                             true, encryption.masterKeyFile(), BLOCK_SIZE, true),
-                        new com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore(),
-                        new com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties(
+                        new com.krizaka.sovkora.engine.assets.infrastructure.storage
+                            .NoDurableAssetStore(),
+                        new com.krizaka.sovkora.engine.assets.infrastructure.config
+                            .MediaStorageProperties(
                             "local", null, null, "storage.bunnycdn.com", null, "default"))))
             .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
             .build();

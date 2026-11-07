@@ -3,9 +3,9 @@ package com.krizaka.sovkora.engine.springai.routing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.krizaka.sovkora.engine.core.domain.model.ModelEndpoint;
 import com.krizaka.sovkora.engine.springai.spend.SpendBudgetExceededException;
 import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
-import com.krizaka.sovkora.engine.core.domain.model.ModelEndpoint;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.messages.AssistantMessage;

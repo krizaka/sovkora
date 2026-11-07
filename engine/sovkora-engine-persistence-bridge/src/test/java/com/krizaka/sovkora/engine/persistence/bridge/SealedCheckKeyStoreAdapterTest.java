@@ -2,9 +2,9 @@ package com.krizaka.sovkora.engine.persistence.bridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
-import com.krizaka.sovkora.crypto.SecretSealer;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.nio.file.Path;
 import java.util.HashMap;

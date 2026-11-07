@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 /**
  * DB-backed {@link PromptCachePolicy} adapter (ADR-094 slice 5, #173): reads {@code
  * orazaka_feature_cache_policy} through the {@link FeatureCachePolicyManager} inbound port, so
- * {@code sovkora-engine-core} stays free of any persistence import. With no row at all, or a value this
- * version does not know, the safe default of the port applies.
+ * {@code sovkora-engine-core} stays free of any persistence import. With no row at all, or a value
+ * this version does not know, the safe default of the port applies.
  */
 @Service
 class FeatureCachePolicyAdapter implements PromptCachePolicy {

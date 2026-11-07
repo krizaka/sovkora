@@ -144,8 +144,7 @@ class EmbeddingClientImplTest {
     var client =
         new EmbeddingClientImpl(new FixedResolver(Optional.of(paid)), RestClient.builder(), guard);
     org.assertj.core.api.Assertions.assertThatThrownBy(() -> client.embed(List.of("hello"), null))
-        .isInstanceOf(
-            com.krizaka.sovkora.engine.springai.spend.SpendBudgetExceededException.class);
+        .isInstanceOf(com.krizaka.sovkora.engine.springai.spend.SpendBudgetExceededException.class);
     assertThat(body.get()).isNull();
   }
 }

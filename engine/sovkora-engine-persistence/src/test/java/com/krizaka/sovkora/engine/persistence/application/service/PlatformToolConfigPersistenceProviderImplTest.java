@@ -3,9 +3,9 @@ package com.krizaka.sovkora.engine.persistence.application.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.persistence.api.domain.model.PlatformToolConfigDto;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.PlatformToolConfigEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.PlatformToolConfigRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.PlatformToolConfigDto;
 import java.time.Instant;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;

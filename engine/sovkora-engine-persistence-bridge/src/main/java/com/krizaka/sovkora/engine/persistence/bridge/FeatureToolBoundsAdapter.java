@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 /**
  * DB-backed {@link ToolLoopBounds} adapter (ADR-029, #169): reads {@code
  * orazaka_feature_tool_bounds} through the {@link FeatureToolBoundManager} inbound port, so {@code
- * sovkora-engine-core} stays free of any persistence import. With no row at all (not even the seeded
- * default) the safe default of the port applies.
+ * sovkora-engine-core} stays free of any persistence import. With no row at all (not even the
+ * seeded default) the safe default of the port applies.
  */
 @Service
 class FeatureToolBoundsAdapter implements ToolLoopBounds {

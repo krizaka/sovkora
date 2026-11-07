@@ -2,9 +2,9 @@ package com.krizaka.sovkora.engine.assets.infrastructure.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
 import com.krizaka.sovkora.engine.assets.domain.model.EnvelopeHeader;
-import com.krizaka.sovkora.crypto.infrastructure.adapter.FileMasterKeyProvider;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;

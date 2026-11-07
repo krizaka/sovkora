@@ -1,12 +1,12 @@
 package com.krizaka.sovkora.conversation.application.service;
 
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.jobs.api.domain.exception.UnroutableCapabilityException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import com.krizaka.sovkora.jobs.api.domain.port.CapabilityRoutingClient;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.util.Map;
 import java.util.Objects;

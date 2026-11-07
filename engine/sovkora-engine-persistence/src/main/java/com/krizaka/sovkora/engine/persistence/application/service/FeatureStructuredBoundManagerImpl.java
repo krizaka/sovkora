@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureStructuredBoundManager;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.FeatureStructuredBoundEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.FeatureStructuredBoundRepository;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureStructuredBoundManager;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;

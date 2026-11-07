@@ -1,10 +1,10 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.rest;
 
+import com.krizaka.sovkora.job.application.service.CapabilityRegistryService;
 import com.krizaka.sovkora.jobs.api.domain.exception.UnroutableCapabilityException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
 import com.krizaka.sovkora.jobs.api.domain.port.CapabilityRoutingClient;
-import com.krizaka.sovkora.job.application.service.CapabilityRegistryService;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

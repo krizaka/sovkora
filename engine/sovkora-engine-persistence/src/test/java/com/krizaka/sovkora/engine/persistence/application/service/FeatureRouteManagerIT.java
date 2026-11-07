@@ -2,9 +2,9 @@ package com.krizaka.sovkora.engine.persistence.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureRouteManager;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.FeatureModelEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.FeatureModelRepository;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureRouteManager;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import java.util.List;
 import org.junit.jupiter.api.Test;

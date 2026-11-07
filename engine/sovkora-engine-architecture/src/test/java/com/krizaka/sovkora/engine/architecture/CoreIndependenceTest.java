@@ -10,8 +10,8 @@ import org.junit.jupiter.api.Test;
 /**
  * ADR-092 §4 rule 3, sovkora-engine#122: the core knows no pack, no studio and no product. What a
  * pack or a studio needs is a port of the core, implemented at the edge; a change to a pack lands
- * with no diff in {@code sovkora-engine-core}. Strict, not a ratchet: the core has no such dependency
- * today and never gets one.
+ * with no diff in {@code sovkora-engine-core}. Strict, not a ratchet: the core has no such
+ * dependency today and never gets one.
  */
 class CoreIndependenceTest {
 

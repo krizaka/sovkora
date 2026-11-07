@@ -8,13 +8,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.krizaka.billing.domain.model.PackPrice;
 import com.krizaka.billing.domain.port.PackPricingClient;
+import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.api.domain.model.Pack;
 import com.krizaka.sovkora.studio.api.domain.model.PackCategory;
 import com.krizaka.sovkora.studio.api.domain.model.PackStatus;
 import com.krizaka.sovkora.studio.api.domain.model.PackSummary;
 import com.krizaka.sovkora.studio.api.domain.model.RegulatoryClass;
 import com.krizaka.sovkora.studio.api.domain.model.StudioStatus;
-import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.domain.port.PackRepository;
 import com.krizaka.sovkora.studio.infrastructure.adapter.persistence.PersistenceTestWiring;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;

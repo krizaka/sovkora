@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.engine.tools.infrastructure.law;
 
 import com.krizaka.sovkora.engine.core.domain.model.research.VerifyMode;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawSettings;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawTarget;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

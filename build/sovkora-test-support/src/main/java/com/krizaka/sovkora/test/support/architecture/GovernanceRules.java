@@ -81,8 +81,8 @@ public final class GovernanceRules {
    * krizaka-users-api) is deliberately absent: it is Tier-1 and shared freely.
    *
    * <p>Persistence is listed as its two <b>implementation</b> packs rather than as the whole {@code
-   * com.krizaka.sovkora.engine.persistence..} prefix, for the same reason identity is. That context's
-   * Tier-1 contract — {@code orazaka-libs/orazaka-contracts/sovkora-persistence-api} —
+   * com.krizaka.sovkora.engine.persistence..} prefix, for the same reason identity is. That
+   * context's Tier-1 contract — {@code orazaka-libs/orazaka-contracts/sovkora-persistence-api} —
    * publishes under {@code com.krizaka.sovkora.persistence.api.domain..}, sharing a prefix with the
    * Tier-3 module beside it, so a blanket ban on the prefix forbids exactly the contract the tiers
    * exist to encourage. The blanket form went unnoticed while the rule was wired only into services
@@ -703,9 +703,9 @@ public final class GovernanceRules {
    * [CAP-002] The endpoint rule has one author.
    *
    * <p>{@code uriPath} and {@code httpMethod} are both present or both absent, and the only place
-   * that decides so is {@link com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration}. A model
-   * that re-derives it — a {@code "POST"} default of its own, a {@code nullable = false} of its own
-   * — is how three of the four sites came to disagree with each other.
+   * that decides so is {@link com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration}. A
+   * model that re-derives it — a {@code "POST"} default of its own, a {@code nullable = false} of
+   * its own — is how three of the four sites came to disagree with each other.
    *
    * <p>The database's CHECK constraint is exempt and stays: it is the same rule in another system,
    * which is what catches a writer that never passed through Java at all.

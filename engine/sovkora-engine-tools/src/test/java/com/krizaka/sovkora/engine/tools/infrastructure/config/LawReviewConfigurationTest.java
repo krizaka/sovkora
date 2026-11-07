@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.*;
 import com.krizaka.sovkora.engine.tools.application.service.KindDemandService;
 import com.krizaka.sovkora.engine.tools.application.service.LawCorpusCatalogueService;
@@ -13,6 +12,7 @@ import com.krizaka.sovkora.engine.tools.application.service.RuleProposalService;
 import com.krizaka.sovkora.engine.tools.application.service.RulesetPromotionService;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawReviewRefusal;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawReviewRefusal.Code;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.security.KeyPairGenerator;
 import java.util.Arrays;
 import java.util.Base64;

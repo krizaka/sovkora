@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;
-import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
 import com.krizaka.web.problem.ConflictException;

@@ -46,7 +46,8 @@ class LawWatchServiceTest {
     settings = new FixedLawSettings();
     settings.instruments =
         List.of(
-            com.krizaka.sovkora.engine.tools.domain.model.law.LawTarget.wholeInstrument("QC", "CCQ-1991"));
+            com.krizaka.sovkora.engine.tools.domain.model.law.LawTarget.wholeInstrument(
+                "QC", "CCQ-1991"));
   }
 
   private LawWatchService watcher() {
@@ -310,7 +311,8 @@ class LawWatchServiceTest {
   @Test
   void a_jurisdiction_with_no_source_is_a_configuration_error() {
     settings.instruments =
-        List.of(com.krizaka.sovkora.engine.tools.domain.model.law.LawTarget.wholeInstrument("FR", "X"));
+        List.of(
+            com.krizaka.sovkora.engine.tools.domain.model.law.LawTarget.wholeInstrument("FR", "X"));
 
     assertThatThrownBy(() -> watcher().run())
         .isInstanceOf(IllegalStateException.class)

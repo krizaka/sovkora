@@ -119,7 +119,8 @@ class EngineStreamBridgeTest {
     when(pipelineBridge.compileContext(
             request, orchestrationPipeline, PROVIDER_OLLAMA, List.of(interceptor)))
         .thenReturn(context);
-    var ran = new com.krizaka.sovkora.engine.core.domain.model.chat.ToolCall("c1", "lookup", "{\"q\":1}");
+    var ran =
+        new com.krizaka.sovkora.engine.core.domain.model.chat.ToolCall("c1", "lookup", "{\"q\":1}");
     var chunks =
         Flux.just(
             new com.krizaka.sovkora.engine.core.domain.model.chat.ChatCompletion(

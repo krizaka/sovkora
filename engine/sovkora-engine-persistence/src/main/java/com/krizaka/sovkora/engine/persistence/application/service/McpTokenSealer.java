@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.crypto.SecretSealer;
+import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.springframework.beans.factory.ObjectProvider;

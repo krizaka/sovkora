@@ -26,7 +26,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Enforces constructor immutability and code craftsmanship governance rules across sovkora-engine-core.
+ * Enforces constructor immutability and code craftsmanship governance rules across
+ * sovkora-engine-core.
  *
  * <p>ADR-007, ADR-008: Collection fields (List, Map, Set) in non-record domain components must be
  * declared {@code private final} and initialized via immutable copying mechanisms.
@@ -528,7 +529,8 @@ class GovernanceTest {
         .that()
         .resideInAPackage(PKG_CORE)
         .and()
-        .implement(com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor.class)
+        .implement(
+            com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor.class)
         .should(
             new ArchCondition<com.tngtech.archunit.core.domain.JavaClass>(
                 "not exist — zero concrete interceptors permitted in core") {

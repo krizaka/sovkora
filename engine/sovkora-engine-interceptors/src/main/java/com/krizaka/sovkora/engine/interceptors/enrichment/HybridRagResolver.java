@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
  * Order 5 — Outbound port coordinator triggering Reciprocal Rank Fusion (RRF) over sparse text
  * search (BM25) and dense vector retrieval (PGVector) with strict tenant-isolation constraints.
  *
- * <p>Coordinates with {@code sovkora-engine-tools} adapters to produce a fused context matrix. The RRF
- * result is stored in system metadata under the key {@code rrfContextMatrix}.
+ * <p>Coordinates with {@code sovkora-engine-tools} adapters to produce a fused context matrix. The
+ * RRF result is stored in system metadata under the key {@code rrfContextMatrix}.
  *
  * <p>Current implementation is a structural stub that passes through context unchanged. Full RRF
  * execution will be wired via tracked ADR when the {@code sovkora-engine-tools} BM25 and PGVector

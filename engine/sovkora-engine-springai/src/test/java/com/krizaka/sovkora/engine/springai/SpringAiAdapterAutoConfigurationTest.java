@@ -3,6 +3,16 @@ package com.krizaka.sovkora.engine.springai;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import com.krizaka.sovkora.engine.core.application.engine.Engine;
+import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatGeneratorClient;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatInvocation;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.EmbeddingClient;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.ImageGeneratorClient;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.SpeechSynthesis;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolAnswerCodec;
+import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiChatInvocation;
 import com.krizaka.sovkora.engine.springai.chat.SpringAiSpeechSynthesis;
 import com.krizaka.sovkora.engine.springai.client.ChatGeneratorClientImpl;
@@ -16,16 +26,6 @@ import com.krizaka.sovkora.engine.springai.routing.RoutedChatModel;
 import com.krizaka.sovkora.engine.springai.routing.RoutedTextToSpeechModel;
 import com.krizaka.sovkora.engine.springai.routing.UniversalProxyChatProvider;
 import com.krizaka.sovkora.engine.springai.spend.SpendGuard;
-import com.krizaka.sovkora.engine.core.application.engine.Engine;
-import com.krizaka.sovkora.engine.core.application.routing.DynamicChatModelFactory;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatGeneratorClient;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.ChatInvocation;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.EmbeddingClient;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.ImageGeneratorClient;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelEndpointResolver;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.SpeechSynthesis;
-import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolAnswerCodec;
-import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.audio.tts.TextToSpeechModel;
@@ -69,7 +69,8 @@ class SpringAiAdapterAutoConfigurationTest {
     runner.run(
         context -> {
           assertThat(context)
-              .hasSingleBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptAssembly.class);
+              .hasSingleBean(
+                  com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptAssembly.class);
           assertThat(context)
               .getBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptAssembly.class)
               .isInstanceOf(
@@ -87,11 +88,13 @@ class SpringAiAdapterAutoConfigurationTest {
                     com.krizaka.sovkora.engine.springai.tool.SpringAiToolResolution.class));
     var own = mock(com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.class);
     runner
-        .withBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.class, () -> own)
+        .withBean(
+            com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.class, () -> own)
         .run(
             context ->
                 assertThat(context)
-                    .getBean(com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.class)
+                    .getBean(
+                        com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution.class)
                     .isSameAs(own));
   }
 

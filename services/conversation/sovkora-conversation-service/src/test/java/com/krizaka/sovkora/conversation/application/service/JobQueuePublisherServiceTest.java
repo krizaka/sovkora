@@ -5,10 +5,10 @@ import static org.mockito.Mockito.*;
 
 import com.krizaka.billing.domain.exception.InsufficientCreditsException;
 import com.krizaka.billing.domain.model.BillableCapability;
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;

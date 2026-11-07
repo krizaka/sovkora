@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.amqp;
 
-import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import com.krizaka.sovkora.job.catalog.ModelOptionsService;
 import com.krizaka.sovkora.job.catalog.ModelResolution;
+import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 

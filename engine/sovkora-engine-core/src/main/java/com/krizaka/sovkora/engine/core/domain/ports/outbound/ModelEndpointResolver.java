@@ -7,7 +7,8 @@ import java.util.Optional;
  * Outbound port (ADR-030): resolves a model to its DB-backed {@link ModelEndpoint} — the provider,
  * base-url and api-key needed to build a client. The implementing adapter reads {@code
  * orazaka_models} (model → {@code provider_name}, {@code is_default}) and {@code ai_providers}
- * (provider → base-url/api-key), keeping {@code sovkora-engine-core} free of any persistence import.
+ * (provider → base-url/api-key), keeping {@code sovkora-engine-core} free of any persistence
+ * import.
  */
 public interface ModelEndpointResolver {
 

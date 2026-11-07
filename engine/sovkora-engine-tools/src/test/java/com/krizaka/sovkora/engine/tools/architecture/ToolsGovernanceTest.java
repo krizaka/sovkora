@@ -10,9 +10,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Governance (naming + one-package-one-kind) for the sovkora-engine-tools module, reusing the shared
- * {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules}. Boundary + persistence hygiene
- * live in {@code ToolsBoundaryTest} ([ERR-102/106/109]).
+ * Governance (naming + one-package-one-kind) for the sovkora-engine-tools module, reusing the
+ * shared {@link com.krizaka.sovkora.test.support.architecture.GovernanceRules}. Boundary +
+ * persistence hygiene live in {@code ToolsBoundaryTest} ([ERR-102/106/109]).
  *
  * <p>The {@code domain.model.*} {@code *Request/*Response} records are the MCP tool I/O contracts
  * (consumed system-wide by the host apps), not HTTP transport DTOs bound by a controller — tools is

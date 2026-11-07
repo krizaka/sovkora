@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.persistence.api.domain.model.UserMcpServerDto;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.UserMcpServerEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.UserMcpServerRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.UserMcpServerDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

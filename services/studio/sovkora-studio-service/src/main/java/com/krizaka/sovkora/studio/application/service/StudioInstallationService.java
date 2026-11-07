@@ -84,8 +84,8 @@ public class StudioInstallationService {
    * @param locale the caller's locale, for the label carried back
    * @return the installation as stored
    * @throws StudioNotFoundException when the key names nothing
-   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the actor
-   *     may not install it — carrying the pack to buy so the refusal opens checkout
+   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the
+   *     actor may not install it — carrying the pack to buy so the refusal opens checkout
    */
   @Transactional
   public InstalledStudio install(

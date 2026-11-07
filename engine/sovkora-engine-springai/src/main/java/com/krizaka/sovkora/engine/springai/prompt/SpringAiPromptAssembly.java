@@ -1,6 +1,5 @@
 package com.krizaka.sovkora.engine.springai.prompt;
 
-import com.krizaka.sovkora.engine.springai.tool.ClientToolCallback;
 import com.krizaka.sovkora.engine.core.application.routing.ProviderClassifier;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineChatOptions;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineMessage;
@@ -8,6 +7,7 @@ import com.krizaka.sovkora.engine.core.domain.model.chat.InternalChatRequest;
 import com.krizaka.sovkora.engine.core.domain.model.chat.PreparedPrompt;
 import com.krizaka.sovkora.engine.core.domain.model.chat.PromptDraft;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptAssembly;
+import com.krizaka.sovkora.engine.springai.tool.ClientToolCallback;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.ai.chat.messages.Message;

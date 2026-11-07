@@ -3,6 +3,7 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
+import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.api.domain.model.BlueprintStatus;
 import com.krizaka.sovkora.studio.api.domain.model.CrisisResource;
 import com.krizaka.sovkora.studio.api.domain.model.PackBlueprint;
@@ -21,7 +22,6 @@ import com.krizaka.sovkora.studio.api.domain.model.PackTier;
 import com.krizaka.sovkora.studio.api.domain.model.RegulatoryClass;
 import com.krizaka.sovkora.studio.api.domain.model.StudioPricing;
 import com.krizaka.sovkora.studio.api.domain.model.StudioStatus;
-import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
 import com.krizaka.test.container.ServiceRoles;

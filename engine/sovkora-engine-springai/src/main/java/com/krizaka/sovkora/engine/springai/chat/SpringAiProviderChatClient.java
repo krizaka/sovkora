@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.engine.springai.chat;
 
-import com.krizaka.sovkora.engine.springai.prompt.PipelineOptionsRegistry;
-import com.krizaka.sovkora.engine.springai.response.SpringAiResponses;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineMessage;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ProviderChatClient;
+import com.krizaka.sovkora.engine.springai.prompt.PipelineOptionsRegistry;
+import com.krizaka.sovkora.engine.springai.response.SpringAiResponses;
 import java.util.*;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;

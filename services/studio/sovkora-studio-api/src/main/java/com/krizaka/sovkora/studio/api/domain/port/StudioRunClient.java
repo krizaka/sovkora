@@ -21,9 +21,9 @@ public interface StudioRunClient {
    * @param inputs the actor's answers, validated server-side against the blueprint's JSON Schema
    *     before any credit is held — the client-side form is convenience, not enforcement
    * @return the id of the accepted run
-   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the actor's
-   *     plan does not grant this Studio — distinct from having no credits, and the UI must say
-   *     which
+   * @throws com.krizaka.sovkora.studio.api.domain.exception.StudioNotEntitledException when the
+   *     actor's plan does not grant this Studio — distinct from having no credits, and the UI must
+   *     say which
    */
   String start(UUID installationId, Map<String, Object> inputs);
 

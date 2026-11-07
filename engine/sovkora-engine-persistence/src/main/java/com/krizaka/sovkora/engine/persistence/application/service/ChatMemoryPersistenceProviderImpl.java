@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.engine.persistence.application.service;
 
-import com.krizaka.sovkora.persistence.api.domain.model.ChatMessageDto;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.ChatMemoryPersistenceProvider;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.ChatMessageEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.ChatMessageRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.ChatMessageDto;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.ChatMemoryPersistenceProvider;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;

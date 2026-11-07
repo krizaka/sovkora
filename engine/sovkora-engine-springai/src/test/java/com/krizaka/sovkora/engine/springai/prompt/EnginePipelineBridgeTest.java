@@ -4,7 +4,6 @@ import static com.krizaka.sovkora.test.support.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.engine.springai.tool.SpringAiToolResolution;
 import com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor;
 import com.krizaka.sovkora.engine.core.application.pipeline.*;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
@@ -18,6 +17,7 @@ import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolRegistry;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.UserMcpServerProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.UserMcpServerProvider.UserMcpServer;
 import com.krizaka.sovkora.engine.core.infrastructure.support.CoreException;
+import com.krizaka.sovkora.engine.springai.tool.SpringAiToolResolution;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import java.util.List;

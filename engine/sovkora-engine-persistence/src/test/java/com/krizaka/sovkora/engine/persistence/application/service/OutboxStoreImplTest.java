@@ -5,10 +5,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
-import com.krizaka.sovkora.persistence.api.domain.model.PendingOutboxEvent;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.OutboxEventEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.OutboxEventRepository;
+import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
+import com.krizaka.sovkora.persistence.api.domain.model.PendingOutboxEvent;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

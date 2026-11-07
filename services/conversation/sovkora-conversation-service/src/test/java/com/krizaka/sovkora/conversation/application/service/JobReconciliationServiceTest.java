@@ -32,7 +32,8 @@ class JobReconciliationServiceTest {
   private final com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService assets =
       testAssets();
 
-  private static final com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties
+  private static final com.krizaka.sovkora.engine.assets.infrastructure.config
+          .MediaStorageProperties
       LOCAL =
           new com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties(
               "local", null, null, "storage.bunnycdn.com", null, "acme");

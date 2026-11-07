@@ -2,10 +2,10 @@ package com.krizaka.sovkora.engine.tools.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawChangeRequests;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawCorpusStore;
 import com.krizaka.sovkora.engine.tools.application.service.LawImportService;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;

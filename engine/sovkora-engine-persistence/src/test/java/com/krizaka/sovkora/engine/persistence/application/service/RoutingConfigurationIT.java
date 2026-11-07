@@ -3,12 +3,12 @@ package com.krizaka.sovkora.engine.persistence.application.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.CatalogModelEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.RuntimeConfigEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.CatalogModelRepository;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.RuntimeConfigRepository;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;

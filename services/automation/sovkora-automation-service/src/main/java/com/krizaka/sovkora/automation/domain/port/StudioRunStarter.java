@@ -16,8 +16,8 @@ public interface StudioRunStarter {
    * @param inputs the answers to its form
    * @param idempotencyKey makes a retry safe
    * @return the Studio run's id
-   * @throws com.krizaka.sovkora.automation.domain.exception.StudioStartRefusedException when
-   *     the engine refuses or cannot be reached
+   * @throws com.krizaka.sovkora.automation.domain.exception.StudioStartRefusedException when the
+   *     engine refuses or cannot be reached
    */
   UUID start(String ownerId, String studioKey, Map<String, Object> inputs, String idempotencyKey);
 

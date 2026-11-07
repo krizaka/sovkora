@@ -4,14 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.krizaka.messaging.dedup.MessageDedup;
-import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
-import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
-import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
-import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
 import com.krizaka.sovkora.job.application.service.ContextService;
 import com.krizaka.sovkora.job.infrastructure.adapter.checks.ExternalCheckStrategy;
 import com.krizaka.sovkora.job.infrastructure.adapter.checks.MockProviderKeyStore;
 import com.krizaka.sovkora.job.infrastructure.config.JobsProperties;
+import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
+import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
+import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
+import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
@@ -750,7 +750,8 @@ class JobListenerTest {
         .thenThrow(
             new RuntimeException(
                 "wrapped",
-                new com.krizaka.sovkora.engine.core.application.pipeline.PipelineDisabledException()));
+                new com.krizaka.sovkora.engine.core.application.pipeline
+                    .PipelineDisabledException()));
 
     listener.onMessage(msg, null);
 
@@ -1160,7 +1161,8 @@ class JobListenerTest {
         java.time.Clock.systemUTC());
   }
 
-  private JobListener listenerServing(com.krizaka.sovkora.jobs.api.domain.port.JobExecutor executor) {
+  private JobListener listenerServing(
+      com.krizaka.sovkora.jobs.api.domain.port.JobExecutor executor) {
     lenient()
         .when(capabilityManager.findByFeatureKey("orazaka.core.checks.courtrecords"))
         .thenReturn(

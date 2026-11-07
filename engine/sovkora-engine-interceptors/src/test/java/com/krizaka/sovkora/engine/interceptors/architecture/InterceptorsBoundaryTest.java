@@ -45,14 +45,20 @@ class InterceptorsBoundaryTest {
   @DisplayName("[ERR-102] Interceptors must not depend on tools")
   void interceptorsAreToolsBlind() {
     assertNoDependencyOn(
-        interceptorClasses, PKG, "com.krizaka.sovkora.engine.tools", "Interceptors are tools-blind");
+        interceptorClasses,
+        PKG,
+        "com.krizaka.sovkora.engine.tools",
+        "Interceptors are tools-blind");
   }
 
   @Test
   @DisplayName("[ERR-102] Interceptors must not depend on business")
   void interceptorsAreBusinessBlind() {
     assertNoDependencyOn(
-        interceptorClasses, PKG, "com.krizaka.sovkora.engine.business", "Interceptors are business-blind");
+        interceptorClasses,
+        PKG,
+        "com.krizaka.sovkora.engine.business",
+        "Interceptors are business-blind");
   }
 
   @Test

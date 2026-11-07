@@ -1,12 +1,12 @@
 package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
-import com.krizaka.sovkora.engine.business.api.*;
 import com.krizaka.sovkora.conversation.application.service.GateService;
 import com.krizaka.sovkora.conversation.domain.model.gate.AuthGate;
 import com.krizaka.sovkora.conversation.domain.model.gate.StaticGate;
 import com.krizaka.sovkora.conversation.domain.model.intent.IntentEnvelope;
 import com.krizaka.sovkora.conversation.domain.model.intent.IntentToken;
 import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.IntentionRequest;
+import com.krizaka.sovkora.engine.business.api.*;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
 import com.krizaka.users.domain.model.User;
 import java.util.List;

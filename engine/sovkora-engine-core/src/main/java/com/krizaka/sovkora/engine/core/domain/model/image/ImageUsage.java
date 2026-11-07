@@ -3,10 +3,10 @@ package com.krizaka.sovkora.engine.core.domain.model.image;
 /**
  * What one image generation actually consumed.
  *
- * <p>The image twin of {@link com.krizaka.sovkora.engine.core.domain.model.chat.TokenUsage}, and for the
- * same reason (ERR-127): this is the number image generation is billed on — {@code IMAGE_STEP},
- * which {@code ConsumptionReport} derives as {@code images × steps × megapixels} — and a value that
- * decides what a user is charged must not be reachable only by string key.
+ * <p>The image twin of {@link com.krizaka.sovkora.engine.core.domain.model.chat.TokenUsage}, and
+ * for the same reason (ERR-127): this is the number image generation is billed on — {@code
+ * IMAGE_STEP}, which {@code ConsumptionReport} derives as {@code images × steps × megapixels} — and
+ * a value that decides what a user is charged must not be reachable only by string key.
  *
  * <p>{@link #reported()} is the distinction {@code TokenUsage} draws, kept here: a generation whose
  * parameters are unknown is <b>unmeasured</b>, which releases the hold, and is a different fact

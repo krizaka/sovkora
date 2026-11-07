@@ -40,8 +40,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * be bought, {@code 402} it is owned but unaffordable right now. A UI given one status for all
  * three can only offer the right remedy a third of the time.
  */
-@RestControllerAdvice(
-    basePackages = "com.krizaka.sovkora.studio.infrastructure.adapter.rest")
+@RestControllerAdvice(basePackages = "com.krizaka.sovkora.studio.infrastructure.adapter.rest")
 public class RestErrorResolver {
 
   private static final Logger logger = LoggerFactory.getLogger(RestErrorResolver.class);

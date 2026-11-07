@@ -10,7 +10,8 @@ import org.junit.jupiter.api.Test;
 /** [layout standard] Nothing at a package root but the Spring Boot entry point. */
 class PackageRootRulesTest {
 
-  private static final String FIXTURES = "com.krizaka.sovkora.test.support.architecture.layoutfixture";
+  private static final String FIXTURES =
+      "com.krizaka.sovkora.test.support.architecture.layoutfixture";
 
   @Test
   @DisplayName("the entry point alone at the package root passes")

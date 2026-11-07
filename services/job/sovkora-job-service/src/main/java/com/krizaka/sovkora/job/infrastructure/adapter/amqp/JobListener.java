@@ -10,6 +10,12 @@ import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetServi
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException;
 import com.krizaka.sovkora.engine.core.domain.model.Authority;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
+import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
+import com.krizaka.sovkora.job.application.service.ContextService;
+import com.krizaka.sovkora.job.durable.DurableMirror;
+import com.krizaka.sovkora.job.infrastructure.config.JobsProperties;
+import com.krizaka.sovkora.job.infrastructure.support.AssetFileResolver;
+import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
 import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
@@ -17,14 +23,8 @@ import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext;
 import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
 import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
-import com.krizaka.sovkora.job.application.service.ContextService;
-import com.krizaka.sovkora.job.durable.DurableMirror;
-import com.krizaka.sovkora.job.infrastructure.config.JobsProperties;
-import com.krizaka.sovkora.job.infrastructure.support.AssetFileResolver;
-import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
-import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.users.domain.model.User;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.io.File;
@@ -550,7 +550,8 @@ public class JobListener {
       // The operator switched the engine off (ADR-062). Our decision, not the user's input and not
       // a gate's refusal: it releases the hold and blames nobody, like any platform outage.
       if (current
-          instanceof com.krizaka.sovkora.engine.core.application.pipeline.PipelineDisabledException) {
+          instanceof
+          com.krizaka.sovkora.engine.core.application.pipeline.PipelineDisabledException) {
         return FailureCause.PLATFORM_UNAVAILABLE;
       }
       if (current instanceof java.net.ConnectException
@@ -683,9 +684,9 @@ public class JobListener {
   /**
    * Narrows the engine context to the Tier-1 shape the executor port accepts.
    *
-   * <p>The port cannot carry {@code Context}: that would put {@code sovkora-engine-core} on the classpath
-   * of every out-of-tree executor (ADR-038). The listener resolves the engine context as before and
-   * narrows it here — the engine type stops at this boundary.
+   * <p>The port cannot carry {@code Context}: that would put {@code sovkora-engine-core} on the
+   * classpath of every out-of-tree executor (ADR-038). The listener resolves the engine context as
+   * before and narrows it here — the engine type stops at this boundary.
    */
   private static JobExecutionContext toExecutionContext(Context context) {
     return new JobExecutionContext(

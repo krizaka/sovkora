@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.infrastructure.adapter.persistence;
 
-import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.crypto.SecretSealer;
+import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import com.krizaka.sovkora.studio.domain.port.WebhookSecretSealer;
 import java.util.UUID;
 import org.springframework.stereotype.Component;

@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import com.krizaka.sovkora.job.catalog.ModelOptionsService;
+import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import com.krizaka.sovkora.persistence.api.domain.model.CatalogModelDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CatalogModelManager;
 import java.util.List;

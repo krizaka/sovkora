@@ -16,10 +16,10 @@ import org.springframework.web.client.RestClient;
  * Selects the Studio adapters at bootstrap.
  *
  * <p>The point of the two-bean arrangement: a consumer depends on {@link StudioRunClient} and never
- * learns whether the marketplace is deployed. This is also what lets {@code sovkora-engine-business} host
- * a Studio use-case without depending on {@code sovkora-studio-service} — which SEAM-002 forbids,
- * and which is why the Intention path goes through this SDK rather than through the service
- * directly.
+ * learns whether the marketplace is deployed. This is also what lets {@code
+ * sovkora-engine-business} host a Studio use-case without depending on {@code
+ * sovkora-studio-service} — which SEAM-002 forbids, and which is why the Intention path goes
+ * through this SDK rather than through the service directly.
  *
  * <p>Registered through the AutoConfiguration SPI so a consuming service inherits it by adding the
  * dependency, without widening its component scan.

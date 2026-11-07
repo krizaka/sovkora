@@ -1,9 +1,9 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.research;
 
-import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
-import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext;
 import com.krizaka.sovkora.engine.tools.domain.model.law.GroundedResearchRequest;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawTargetRef;
+import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
+import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;

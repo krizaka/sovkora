@@ -14,9 +14,9 @@ import java.util.UUID;
  * a Studio step, which never carries a hold (ADR-041) — by its run's hold, which the saga settles
  * once from the sum of its steps' consumption ({@code orazaka.metering.deferred}). Either way the
  * step's {@code calls} (1 when the provider answered, 0 otherwise) is what is charged, and {@link
- * com.krizaka.sovkora.job.infrastructure.adapter.amqp.JobListener JobListener} releases on 0
- * and settles one {@code CALL} on 1. A meter that held again here would hold the same call twice.
- * So {@link #hold} only checks that a hold covers the job, and {@link Hold#settle} and {@link
+ * com.krizaka.sovkora.job.infrastructure.adapter.amqp.JobListener JobListener} releases on 0 and
+ * settles one {@code CALL} on 1. A meter that held again here would hold the same call twice. So
+ * {@link #hold} only checks that a hold covers the job, and {@link Hold#settle} and {@link
  * Hold#release} do nothing: the job's settlement is the one that counts.
  *
  * <p><b>Fail closed.</b> A job with neither a hold nor a run's deferred metering would make a paid

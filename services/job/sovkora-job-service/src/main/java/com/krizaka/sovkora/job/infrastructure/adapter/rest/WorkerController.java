@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.rest;
 
-import com.krizaka.sovkora.jobs.api.domain.model.WorkerRegistration;
 import com.krizaka.sovkora.job.application.service.WorkerRegistryService;
+import com.krizaka.sovkora.jobs.api.domain.model.WorkerRegistration;
 import java.util.Objects;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;

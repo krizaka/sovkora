@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.krizaka.sovkora.engine.core.domain.model.research.*;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchAudit;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchedDocument;
 import com.krizaka.sovkora.engine.tools.domain.model.research.ResearchSource;
 import com.krizaka.sovkora.engine.tools.domain.port.ResearchStore;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

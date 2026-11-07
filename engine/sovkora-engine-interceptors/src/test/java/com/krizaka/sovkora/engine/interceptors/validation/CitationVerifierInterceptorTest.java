@@ -41,7 +41,8 @@ class CitationVerifierInterceptorTest {
                           new Claim(
                               c.text(),
                               ClaimStatus.TO_VALIDATE,
-                              com.krizaka.sovkora.engine.core.domain.model.research.ClaimReason.NO_SOURCE,
+                              com.krizaka.sovkora.engine.core.domain.model.research.ClaimReason
+                                  .NO_SOURCE,
                               c.citations()))
                   .toList(),
               answer.sources());

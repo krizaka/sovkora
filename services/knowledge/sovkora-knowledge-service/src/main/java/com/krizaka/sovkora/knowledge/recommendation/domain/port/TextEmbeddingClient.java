@@ -12,8 +12,7 @@ public interface TextEmbeddingClient {
   /**
    * Embeds the texts, in order.
    *
-   * @throws
-   *     com.krizaka.sovkora.knowledge.recommendation.domain.model.EmbeddingUnavailableException
+   * @throws com.krizaka.sovkora.knowledge.recommendation.domain.model.EmbeddingUnavailableException
    *     when the model is out of reach or answers another shape
    */
   Embeddings embed(List<String> texts);

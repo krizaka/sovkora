@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
-import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.entity.JobEntity;
 import com.krizaka.sovkora.engine.persistence.infrastructure.adapter.persistence.repository.JobRepository;
+import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
+import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;

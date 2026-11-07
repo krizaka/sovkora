@@ -68,8 +68,7 @@ class PackBundleResolverTest {
   @DisplayName("a relative source is found by walking up from a service's own module directory")
   void aRelativeSourceIsFoundFromAModuleDirectory() {
     Workspace.require(REPOSITORY_ROOT, "PACK-BUNDLE");
-    Path moduleDirectory =
-        REPOSITORY_ROOT.resolve("services/studio/sovkora-studio-service");
+    Path moduleDirectory = REPOSITORY_ROOT.resolve("services/studio/sovkora-studio-service");
 
     // The production case exactly: `spring-boot:run` works from the module, the packs are at the
     // root. A resolver that only looked in the working directory would find nothing here.

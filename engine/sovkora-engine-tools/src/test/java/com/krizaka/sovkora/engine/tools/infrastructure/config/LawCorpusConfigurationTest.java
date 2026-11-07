@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineTool;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolRegistry;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawCorpusStore;
 import com.krizaka.sovkora.engine.tools.application.port.law.LawSource;
 import com.krizaka.sovkora.engine.tools.application.port.law.ResearchMeter;
@@ -14,6 +13,7 @@ import com.krizaka.sovkora.engine.tools.application.service.LawStatuteLookupServ
 import com.krizaka.sovkora.engine.tools.domain.model.law.*;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.LookupStatuteTool;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.LookupStatuteToolRegistration;
+import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigProvider;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;

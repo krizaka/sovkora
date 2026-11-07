@@ -3,8 +3,8 @@ package com.krizaka.sovkora.job.infrastructure.adapter.amqp;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
-import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
+import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

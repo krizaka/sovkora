@@ -48,8 +48,8 @@ class PackCatalogControllerTest {
         .thenAnswer(
             call -> {
               java.util.List<PackSummary> cards = call.getArgument(0);
-              java.util.Map<String, com.krizaka.sovkora.studio.domain.model.PackAccess>
-                  bands = new java.util.LinkedHashMap<>();
+              java.util.Map<String, com.krizaka.sovkora.studio.domain.model.PackAccess> bands =
+                  new java.util.LinkedHashMap<>();
               cards.forEach(
                   card ->
                       bands.put(

@@ -4,7 +4,8 @@ import java.util.Objects;
 
 /**
  * Persistence DTO for a pipeline-interceptor configuration row — the persistence-neutral shape
- * exposed by {@link com.krizaka.sovkora.persistence.api.domain.ports.inbound.PipelineConfigManager}.
+ * exposed by {@link
+ * com.krizaka.sovkora.persistence.api.domain.ports.inbound.PipelineConfigManager}.
  */
 public record InterceptorConfigDto(
     String interceptorKey,

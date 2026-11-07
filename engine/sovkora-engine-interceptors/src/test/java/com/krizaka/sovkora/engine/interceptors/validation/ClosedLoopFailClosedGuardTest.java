@@ -202,7 +202,8 @@ class ClosedLoopFailClosedGuardTest {
             null,
             0,
             null,
-            com.krizaka.sovkora.engine.core.domain.model.control.JudgeOutagePolicy.DETERMINISTIC_ONLY);
+            com.krizaka.sovkora.engine.core.domain.model.control.JudgeOutagePolicy
+                .DETERMINISTIC_ONLY);
     var interceptor =
         new ClosedLoopValidationInterceptor(
             props, judge, null, null, recorder, null, java.time.Clock.systemUTC());
@@ -232,7 +233,8 @@ class ClosedLoopFailClosedGuardTest {
             null,
             0,
             null,
-            com.krizaka.sovkora.engine.core.domain.model.control.JudgeOutagePolicy.DETERMINISTIC_ONLY);
+            com.krizaka.sovkora.engine.core.domain.model.control.JudgeOutagePolicy
+                .DETERMINISTIC_ONLY);
     var interceptor = new ClosedLoopValidationInterceptor(props, judge, null, null);
 
     assertThatThrownBy(() -> interceptor.screenResponse(CONTEXT, "{broken"))

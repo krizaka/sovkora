@@ -2,8 +2,8 @@ package com.krizaka.sovkora.engine.assets.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
+import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.storage.BunnyAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.storage.DirectoryAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore;

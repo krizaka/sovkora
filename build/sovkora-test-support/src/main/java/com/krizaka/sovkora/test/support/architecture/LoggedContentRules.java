@@ -144,23 +144,31 @@ public final class LoggedContentRules {
   /** Where a method builds content, and which of the call's declared parameters is the content. */
   static final Map<String, List<Integer>> CONTENT_SINKS =
       Map.ofEntries(
-          Map.entry("com/krizaka/sovkora/engine/core/domain/model/chat/ChatRequest#<init>", List.of(0)),
-          Map.entry("com/krizaka/sovkora/engine/core/domain/model/chat/ChatRequest#simple", List.of(0)),
+          Map.entry(
+              "com/krizaka/sovkora/engine/core/domain/model/chat/ChatRequest#<init>", List.of(0)),
+          Map.entry(
+              "com/krizaka/sovkora/engine/core/domain/model/chat/ChatRequest#simple", List.of(0)),
           Map.entry(
               "com/krizaka/sovkora/engine/core/domain/model/chat/ChatRequest$ChatMessage#<init>",
               List.of(1)),
           Map.entry(
-              "com/krizaka/sovkora/engine/core/domain/model/chat/InternalChatRequest#<init>", List.of(0)),
+              "com/krizaka/sovkora/engine/core/domain/model/chat/InternalChatRequest#<init>",
+              List.of(0)),
           Map.entry(
-              "com/krizaka/sovkora/engine/core/domain/model/chat/InternalChatRequest#simple", List.of(0)),
+              "com/krizaka/sovkora/engine/core/domain/model/chat/InternalChatRequest#simple",
+              List.of(0)),
           Map.entry(
               "com/krizaka/sovkora/engine/core/domain/model/chat/InternalChatRequest$ChatMessage#<init>",
               List.of(1)),
-          Map.entry("com/krizaka/sovkora/engine/core/domain/model/audio/AudioRequest#<init>", List.of(0)),
-          Map.entry("com/krizaka/sovkora/engine/core/domain/model/image/ImageRequest#<init>", List.of(0)),
-          Map.entry("com/krizaka/sovkora/engine/core/domain/model/PromptContext#<init>", List.of(0, 3)),
           Map.entry(
-              "com/krizaka/sovkora/engine/core/domain/model/PromptContext#withRefinedPrompt", List.of(0)),
+              "com/krizaka/sovkora/engine/core/domain/model/audio/AudioRequest#<init>", List.of(0)),
+          Map.entry(
+              "com/krizaka/sovkora/engine/core/domain/model/image/ImageRequest#<init>", List.of(0)),
+          Map.entry(
+              "com/krizaka/sovkora/engine/core/domain/model/PromptContext#<init>", List.of(0, 3)),
+          Map.entry(
+              "com/krizaka/sovkora/engine/core/domain/model/PromptContext#withRefinedPrompt",
+              List.of(0)),
           Map.entry("org/springframework/ai/chat/messages/UserMessage#<init>", List.of(0)),
           Map.entry("org/springframework/ai/chat/messages/AssistantMessage#<init>", List.of(0)),
           Map.entry("org/springframework/ai/chat/messages/SystemMessage#<init>", List.of(0)),

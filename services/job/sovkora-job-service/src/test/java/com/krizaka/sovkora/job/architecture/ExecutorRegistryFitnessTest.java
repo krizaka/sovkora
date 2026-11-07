@@ -2,8 +2,8 @@ package com.krizaka.sovkora.job.architecture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.krizaka.sovkora.job.catalog.RoutingKeys;
+import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;

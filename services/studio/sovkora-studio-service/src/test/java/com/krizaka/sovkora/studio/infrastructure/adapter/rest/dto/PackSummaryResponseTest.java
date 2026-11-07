@@ -13,8 +13,7 @@ class PackSummaryResponseTest {
   void cardCarriesWhatItRenders() {
     PackSummaryResponse response =
         PackSummaryResponse.from(
-            PackFixtures.priced(),
-            com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
+            PackFixtures.priced(), com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
 
     assertThat(response.packKey()).isEqualTo("realestate-studio");
     assertThat(response.categoryKey()).isEqualTo("business");
@@ -33,8 +32,7 @@ class PackSummaryResponseTest {
     // agreed to, every time the billing service restarts.
     PackSummaryResponse response =
         PackSummaryResponse.from(
-            PackFixtures.unpriced(),
-            com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
+            PackFixtures.unpriced(), com.krizaka.sovkora.studio.domain.model.PackAccess.BUYABLE);
 
     assertThat(response.priceCents()).isNull();
     assertThat(response.includedCredits()).isNull();

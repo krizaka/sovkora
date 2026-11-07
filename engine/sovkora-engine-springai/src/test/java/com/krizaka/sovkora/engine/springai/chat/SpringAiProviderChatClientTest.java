@@ -6,8 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.krizaka.sovkora.engine.springai.prompt.PipelineOptionsRegistry;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineMessage;
+import com.krizaka.sovkora.engine.springai.prompt.PipelineOptionsRegistry;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
