@@ -81,13 +81,19 @@ class StudioRunContentPolicyTest {
 
               @Override
               protected void doBegin(
-                  Object t, org.springframework.transaction.TransactionDefinition d) {}
+                  Object t, org.springframework.transaction.TransactionDefinition d) {
+                // required by interface, not invoked in this test
+              }
 
               @Override
-              protected void doCommit(DefaultTransactionStatus s) {}
+              protected void doCommit(DefaultTransactionStatus s) {
+                // required by interface, not invoked in this test
+              }
 
               @Override
-              protected void doRollback(DefaultTransactionStatus s) {}
+              protected void doRollback(DefaultTransactionStatus s) {
+                // required by interface, not invoked in this test
+              }
             });
     runs =
         new StudioRunService(
