@@ -149,6 +149,7 @@ public class LocalVideoProcessor implements VideoPreProcessor {
       }
       return text.isBlank() ? null : text.trim();
     } catch (RuntimeException e) {
+      logger.debug("Could not parse response bytes as plain text", e);
       return null;
     }
   }

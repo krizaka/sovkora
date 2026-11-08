@@ -7,6 +7,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Who a retrieval or a tool call is made for: the tenant, the user and the roles and groups the
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
  * @param groups the groups, e.g. {@code GROUP_FINANCE}
  */
 public record Actor(String tenant, String subject, Set<String> roles, Set<String> groups) {
+
+  private static final Logger log = LoggerFactory.getLogger(Actor.class);
 
   /** The authority that names a tenant. */
   public static final String TENANT_PREFIX = "TENANT_";
@@ -113,6 +117,7 @@ public record Actor(String tenant, String subject, Set<String> roles, Set<String
       return Optional.of(
           new Actor(tenants.isEmpty() ? userId : tenants.iterator().next(), userId, roles, groups));
     } catch (IllegalArgumentException malformed) {
+      log.debug("Actor authorities are malformed and cannot be resolved to an Actor", malformed);
       return Optional.empty();
     }
   }

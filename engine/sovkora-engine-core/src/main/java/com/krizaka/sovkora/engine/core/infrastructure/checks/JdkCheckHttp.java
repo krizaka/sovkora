@@ -31,13 +31,13 @@ public final class JdkCheckHttp implements CheckHttp {
           client.send(request.build(), HttpResponse.BodyHandlers.ofString());
       return new Reply(reply.statusCode(), reply.body());
     } catch (HttpTimeoutException slow) {
-      throw new TimeoutException();
+      throw new TimeoutException(slow);
     } catch (IOException failure) {
-      // The cause may name the URL or the payload: nothing of it travels.
-      throw new IllegalStateException("the provider could not be reached");
+      // The class only: cause may name the URL or the payload (ADR-064).
+      throw new IllegalStateException("the provider could not be reached", failure);
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
-      throw new IllegalStateException("interrupted while waiting for the provider");
+      throw new IllegalStateException("interrupted while waiting for the provider", interrupted);
     }
   }
 }

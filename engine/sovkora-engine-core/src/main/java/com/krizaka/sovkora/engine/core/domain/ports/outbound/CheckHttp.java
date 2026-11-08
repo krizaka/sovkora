@@ -25,6 +25,11 @@ public interface CheckHttp {
     public TimeoutException() {
       super("the provider did not answer in time");
     }
+
+    /** A timeout with the underlying cause for diagnostic logging. */
+    public TimeoutException(Throwable cause) {
+      super("the provider did not answer in time", cause);
+    }
   }
 
   /**

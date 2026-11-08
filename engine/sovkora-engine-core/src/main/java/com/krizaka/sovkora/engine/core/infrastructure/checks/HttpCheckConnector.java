@@ -9,6 +9,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -28,6 +30,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 public final class HttpCheckConnector implements ExternalCheckConnector {
 
+  private static final Logger log = LoggerFactory.getLogger(HttpCheckConnector.class);
   private static final JsonMapper JSON = new JsonMapper();
 
   private final String provider;
@@ -172,6 +175,7 @@ public final class HttpCheckConnector implements ExternalCheckConnector {
           http.post(
               url, authHeaders(request.key().value()), JSON.writeValueAsString(body), timeout);
     } catch (CheckHttp.TimeoutException slow) {
+      log.debug("Check HTTP call timed out for provider={}", provider, slow);
       return CheckResult.answered(CheckOutcome.TIMEOUT, null);
     }
     if (reply == null || reply.status() < 200 || reply.status() >= 300) {
@@ -201,7 +205,8 @@ public final class HttpCheckConnector implements ExternalCheckConnector {
         default -> CheckResult.answered(CheckOutcome.PROVIDER_ERROR, null);
       };
     } catch (RuntimeException unreadable) {
-      // The body may carry the subject: only the outcome is kept.
+      // The class only: body may carry the subject (ADR-064).
+      log.debug("Check HTTP response could not be parsed ({})", unreadable.getClass().getSimpleName(), unreadable);
       return CheckResult.answered(CheckOutcome.PROVIDER_ERROR, null);
     }
   }

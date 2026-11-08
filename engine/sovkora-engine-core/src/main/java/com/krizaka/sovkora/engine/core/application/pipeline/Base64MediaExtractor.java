@@ -2,6 +2,8 @@ package com.krizaka.sovkora.engine.core.application.pipeline;
 
 import java.util.Base64;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Extracts embedded Base64 media payloads from raw user queries.
@@ -11,6 +13,8 @@ import java.util.Optional;
  * OOM attacks from oversized Base64 inputs.
  */
 public final class Base64MediaExtractor {
+
+  private static final Logger log = LoggerFactory.getLogger(Base64MediaExtractor.class);
 
   /** Maximum decoded image size: 10 MB. */
   private static final int MAX_DECODED_SIZE = 10 * 1024 * 1024;
@@ -72,6 +76,7 @@ public final class Base64MediaExtractor {
       }
       return new ExtractionResult(cleanedQuery, Optional.of(decoded));
     } catch (IllegalArgumentException e) {
+      log.debug("Base64 media payload is malformed and will be ignored", e);
       return new ExtractionResult(cleanedQuery, Optional.empty());
     }
   }

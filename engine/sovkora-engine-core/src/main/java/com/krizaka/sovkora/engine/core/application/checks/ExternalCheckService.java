@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The one door to the external checks (sovkora-engine#73). Every call, in this order:
@@ -34,6 +36,8 @@ import javax.crypto.spec.SecretKeySpec;
  * them. The same door is the engine capability a blueprint step calls (sovkora-engine#84).
  */
 public class ExternalCheckService implements ExternalCheckCapability {
+
+  private static final Logger log = LoggerFactory.getLogger(ExternalCheckService.class);
 
   /** A pepper shorter than the HMAC's block of security is refused. */
   private static final int MIN_PEPPER_BYTES = 32;
@@ -159,6 +163,7 @@ public class ExternalCheckService implements ExternalCheckCapability {
               chosen.connector(),
               new CheckRequest(call.subject(), gate.key(), chosen.row().endpoint()));
     } catch (ProviderNotConfiguredException unconfigured) {
+      log.debug("Check provider not configured for purpose={}: {}", purpose, unconfigured.getMessage(), unconfigured);
       return refused(purpose, call, subjectRef, provider, CheckRefusal.NOT_CONFIGURED);
     }
     record(purpose, call, chosen, gate.key(), result, subjectRef, start, false);
@@ -187,6 +192,7 @@ public class ExternalCheckService implements ExternalCheckCapability {
     try {
       hold = meter.hold(call.runId(), call.userId(), provider, purpose);
     } catch (CheckMeter.BudgetExhaustedException exhausted) {
+      log.debug("Check budget exhausted for purpose={}", purpose, exhausted);
       return refused(purpose, call, subjectRef, provider, CheckRefusal.BUDGET_EXHAUSTED);
     }
 
@@ -199,6 +205,7 @@ public class ExternalCheckService implements ExternalCheckCapability {
               chosen.connector(),
               new CheckRequest(call.subject(), gate.key(), chosen.row().endpoint()));
     } catch (ProviderNotConfiguredException unconfigured) {
+      log.debug("Check provider not configured for purpose={}: {}", purpose, unconfigured.getMessage(), unconfigured);
       hold.release("the provider is not configured");
       return refused(purpose, call, subjectRef, provider, CheckRefusal.NOT_CONFIGURED);
     }
@@ -255,7 +262,8 @@ public class ExternalCheckService implements ExternalCheckCapability {
     } catch (ProviderNotConfiguredException unconfigured) {
       throw unconfigured;
     } catch (RuntimeException failure) {
-      // The message stays out: it may carry the provider's payload or the subject.
+      // The class only: message may carry the provider's payload or the subject (ADR-064).
+      log.debug("Check connector failure ({})", failure.getClass().getSimpleName(), failure);
       return CheckResult.answered(CheckOutcome.PROVIDER_ERROR, null);
     }
   }
