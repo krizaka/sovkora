@@ -988,8 +988,9 @@ class TestRunServerFunction(unittest.TestCase):
                 with patch.object(HTTPServer, "server_close"):
                     with contextlib.suppress(KeyboardInterrupt, AttributeError):
                         video_worker.run(port=8188)
-        # call_args[0] = positional args: (self_instance, server_address, handler_class)
-        server_address = mock_init.call_args[0][1]
+        # patch.object replaces __init__ with a plain mock, so the captured positional
+        # args do not include self: call_args[0] = (server_address, handler_class).
+        server_address = mock_init.call_args[0][0]
         self.assertEqual(server_address[0], "127.0.0.1")
 
     def test_binds_all_interfaces_when_env_set(self):
@@ -1001,7 +1002,7 @@ class TestRunServerFunction(unittest.TestCase):
                     with patch.object(HTTPServer, "server_close"):
                         with contextlib.suppress(KeyboardInterrupt, AttributeError):
                             video_worker.run(port=8188)
-            server_address = mock_init.call_args[0][1]
+            server_address = mock_init.call_args[0][0]
             self.assertEqual(server_address[0], "")
         finally:
             os.environ.pop("MEDIA_VIDEO_HOST", None)
