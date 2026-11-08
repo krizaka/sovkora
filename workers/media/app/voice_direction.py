@@ -73,15 +73,7 @@ def emotion_vector(emotion: str) -> tuple[float, ...]:
     return tuple(round(vector[a] / total, 3) for a in AXES)
 
 
-def phrases(text: str) -> list[tuple[str, float]]:
-    """The line cut where a storyteller breathes: (phrase, pause after it), the last pause left to the line (pure)."""
-    out: list[tuple[str, float]] = []
-    for part in re.split(r"(\.\.\.|…|[,:;—])", text):
-        if part in BREAKS:
-            if out:
-                out[-1] = (out[-1][0] + ("," if part == "," else ""), BREAKS[part])
-        elif part.strip():
-            out.append((part.strip(), 0.0))
+def _merge_short(out: list[tuple[str, float]]) -> list[tuple[str, float]]:
     # A phrase of one or two words is said with the next one, its comma kept: Zonos drops such a short utterance
     # (« In Québec, … » lost its first words in every take, orazaka#289).
     merged: list[tuple[str, float]] = []
@@ -91,6 +83,18 @@ def phrases(text: str) -> list[tuple[str, float]]:
         else:
             merged.append((phrase, pause))
     return merged
+
+
+def phrases(text: str) -> list[tuple[str, float]]:
+    """The line cut where a storyteller breathes: (phrase, pause after it), the last pause left to the line (pure)."""
+    out: list[tuple[str, float]] = []
+    for part in re.split(r"(\.\.\.|…|[,:;—])", text):
+        if part in BREAKS:
+            if out:
+                out[-1] = (out[-1][0] + ("," if part == "," else ""), BREAKS[part])
+        elif part.strip():
+            out.append((part.strip(), 0.0))
+    return _merge_short(out)
 
 
 def plan(text: str, direction: dict) -> list[Phrase]:
