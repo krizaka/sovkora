@@ -337,7 +337,7 @@ export const providerName = (raw: string) => PROVIDERS[normaliseKey(raw)] ?? raw
 /** "NVIDIA H100 80GB HBM3" → "H100"; Apple silicon → "Mac"; anything else as reported. */
 export function gpuName(raw: string): string {
   if (/apple|\bm[1-9]\b|metal|mps/i.test(raw)) return "Mac";
-  const known = raw.match(/\b(B200|H200|H100|A100|L40S|L40|A10G|A10|A40|V100|T4|RTX ?\d{4}[A-Za-z]*)\b/i);
+  const known = raw.match(/\b(B200|H200|H100|A100|L40S|L40|A10G|A10|A40|V100|T4|RTX ?\d{4}[A-Z]*)\b/i);
   return known
     ? known[1].toUpperCase().replace(/^RTX(\d)/, "RTX $1")
     : raw.replace(/^nvidia\s+(geforce\s+)?/i, "").trim();

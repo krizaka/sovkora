@@ -56,5 +56,7 @@ final class InMemoryResearchStore implements ResearchStore {
   }
 
   @Override
-  public void audit(FetchAudit audit) {}
+  public void audit(FetchAudit audit) {
+    // no-op: in-memory store, deletion not needed in this test
+  }
 }

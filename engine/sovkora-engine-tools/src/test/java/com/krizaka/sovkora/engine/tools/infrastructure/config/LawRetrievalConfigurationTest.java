@@ -134,10 +134,14 @@ class LawRetrievalConfigurationTest {
     }
 
     @Override
-    public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {}
+    public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {
+      // required by interface, not invoked in this test
+    }
 
     @Override
-    public void audit(FetchAudit audit) {}
+    public void audit(FetchAudit audit) {
+      // required by interface, not invoked in this test
+    }
   }
 
   private static final class AllOn implements RuntimeConfigProvider {
@@ -185,10 +189,14 @@ class LawRetrievalConfigurationTest {
     }
 
     @Override
-    public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {}
+    public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {
+      // required by interface, not invoked in this test
+    }
 
     @Override
-    public void audit(FetchAudit audit) {}
+    public void audit(FetchAudit audit) {
+      // required by interface, not invoked in this test
+    }
   }
 
   private static final class NoCache implements LawRetrievalCache {
@@ -199,6 +207,8 @@ class LawRetrievalConfigurationTest {
     }
 
     @Override
-    public void save(StoredRetrieval retrieval) {}
+    public void save(StoredRetrieval retrieval) {
+      // required by interface, not invoked in this test
+    }
   }
 }

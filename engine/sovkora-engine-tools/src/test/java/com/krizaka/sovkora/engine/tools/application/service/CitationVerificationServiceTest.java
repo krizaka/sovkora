@@ -92,10 +92,14 @@ class CitationVerificationServiceTest {
           }
 
           @Override
-          public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {}
+          public void saveDocument(FetchedDocument document, String requestedUrl, UUID sourceId) {
+            // required by interface, not invoked in this test
+          }
 
           @Override
-          public void audit(FetchAudit audit) {}
+          public void audit(FetchAudit audit) {
+            // required by interface, not invoked in this test
+          }
         };
     RuntimeConfigProvider config =
         new RuntimeConfigProvider() {
