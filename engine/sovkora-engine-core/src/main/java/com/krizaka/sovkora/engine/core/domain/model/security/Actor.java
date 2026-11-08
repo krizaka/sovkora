@@ -112,7 +112,7 @@ public record Actor(String tenant, String subject, Set<String> roles, Set<String
     try {
       return Optional.of(
           new Actor(tenants.isEmpty() ? userId : tenants.iterator().next(), userId, roles, groups));
-    } catch (IllegalArgumentException malformed) {
+    } catch (IllegalArgumentException malformed) { // NOSONAR java:S1166 - record [ERR-135]
       return Optional.empty();
     }
   }
