@@ -32,9 +32,9 @@ export function DocsSearch({ index }: Readonly<{ index: readonly SearchEntry[] }
         onSubmit={() => hits[0] && router.push(`${pageHref(hits[0].slug)}${hits[0].id ? `#${hits[0].id}` : ""}`)}
       />
       {query.trim() && hits.length === 0 && (
-        <p role="status" className="mt-3 text-sm text-fg-secondary">
+        <output className="mt-3 text-sm text-fg-secondary">
           {d.searchEmpty}
-        </p>
+        </output>
       )}
     </div>
   );

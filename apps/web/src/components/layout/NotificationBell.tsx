@@ -55,11 +55,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ bellOpen, on
         </header>
         <section className="scrollbar-thin max-h-96 overflow-y-auto py-1">
           {lastJobs.length === 0 ? (
-            <div role="status" className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+            <output className="flex flex-col items-center gap-2 px-4 py-6 text-center">
               <Mascot bird="pigeon" mood="empty" size={72} />
               <p className="text-sm font-semibold text-fg">{t.showcase.notifications.emptyTitle}</p>
               <p className="text-xs text-fg-secondary">{t.showcase.notifications.emptyBody}</p>
-            </div>
+            </output>
           ) : (
             <ul className="divide-y divide-border-subtle/40">
               {lastJobs.map((job) => (
@@ -92,6 +92,7 @@ function JobItem({ job, onSelect }: Readonly<{ job: Job; onSelect: () => void }>
   let status = <CheckIcon size={18} className="text-fg-success" />;
   if (running) status = <Spinner size="sm" label={t.showcase.notifications.running} />;
   else if (failed) status = <WarningIcon size={18} className="text-fg-danger" />;
+  const jobStatusText = failed ? t.showcase.notifications.failed : t.showcase.notifications.done;
 
   return (
     <li>
@@ -118,12 +119,7 @@ function JobItem({ job, onSelect }: Readonly<{ job: Job; onSelect: () => void }>
             )}
           </span>
           <span className="mt-0.5 block truncate text-xs text-fg-secondary">
-            {prompt ??
-              (running
-                ? t.showcase.notifications.running
-                : failed
-                  ? t.showcase.notifications.failed
-                  : t.showcase.notifications.done)}
+            {prompt ?? (running ? t.showcase.notifications.running : jobStatusText)}
           </span>
         </span>
       </Link>

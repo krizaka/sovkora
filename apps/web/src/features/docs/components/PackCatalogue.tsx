@@ -35,7 +35,7 @@ function Chips({
           {v ?? all}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }
 

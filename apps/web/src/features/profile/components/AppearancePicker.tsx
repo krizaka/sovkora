@@ -118,9 +118,8 @@ export function AppearancePicker({ theme, onThemeChange }: Readonly<AppearancePi
       </RadioGroup.Root>
 
       {statusTheme && (
-        <p
+        <output
           key={statusTheme}
-          role="status"
           className="theme-status-slide flex items-center gap-2 rounded-lg border border-success/15 bg-success/8 px-3 py-2"
         >
           <span className="relative flex h-2 w-2">
@@ -130,7 +129,7 @@ export function AppearancePicker({ theme, onThemeChange }: Readonly<AppearancePi
           <span className="text-xs text-fg/70">
             <strong className="text-fg/90">{statusTheme}</strong> {t.settings.themeApplied}
           </span>
-        </p>
+        </output>
       )}
     </section>
   );

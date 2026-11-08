@@ -119,9 +119,9 @@ export function PlanAndPacks({ studios }: Readonly<{ studios: StudioNames }>) {
         </div>
       )}
       {holdingsUnavailable && !error && (
-        <p role="status" className="max-w-2xl text-[13px] text-fg-muted">
+        <output className="max-w-2xl text-[13px] text-fg-muted">
           {t.packs.holdingsUnavailable}
-        </p>
+        </output>
       )}
 
       <section aria-labelledby="mine-title" className="flex flex-col gap-2">

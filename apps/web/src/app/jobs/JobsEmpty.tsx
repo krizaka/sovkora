@@ -9,13 +9,13 @@ import { useTranslation } from "@/core/context/LocaleContext";
 export function JobsEmpty() {
   const { t } = useTranslation();
   return (
-    <div role="status" className="flex flex-col items-center gap-3 py-12 text-center">
+    <output className="flex flex-col items-center gap-3 py-12 text-center">
       <Mascot bird="pigeon" mood="empty" size={112} />
       <p className="text-sm font-semibold text-fg">{t.showcase.jobs.emptyTitle}</p>
       <p className="max-w-md text-[13px] text-fg-secondary">{t.showcase.jobs.emptyBody}</p>
       <Button asChild variant="primary" size="sm">
         <Link href="/studios">{t.showcase.jobs.emptyCta}</Link>
       </Button>
-    </div>
+    </output>
   );
 }

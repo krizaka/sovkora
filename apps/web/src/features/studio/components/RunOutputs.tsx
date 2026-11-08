@@ -122,10 +122,10 @@ function ArtefactMedia({
 
   if (gone) {
     return (
-      <div role="status" className="flex flex-col gap-1 bg-media px-6 py-10 text-center">
+      <output className="flex flex-col gap-1 bg-media px-6 py-10 text-center">
         <p className="text-sm font-semibold text-fg">{t.studio.resultGone}</p>
         <p className="mx-auto max-w-prose text-[13px] leading-relaxed text-fg-muted">{t.studio.resultGoneBody}</p>
-      </div>
+      </output>
     );
   }
 

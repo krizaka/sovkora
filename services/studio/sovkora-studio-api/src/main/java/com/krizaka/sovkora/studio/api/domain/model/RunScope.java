@@ -62,6 +62,7 @@ public record RunScope(
   private static final Pattern LONE_PLACEHOLDER = Pattern.compile("\\s*\\{\\{([^{}]*)}}\\s*");
 
   private static final String NAME = "[A-Za-z][A-Za-z0-9_]*";
+  private static final String TEMPLATE_NOT_NULL = "template must not be null";
 
   /**
    * The closed set of references. Everything outside it is a template error, never an empty render.
@@ -109,7 +110,7 @@ public record RunScope(
    * @throws NullPointerException if {@code template} is null
    */
   public String resolve(String template) {
-    Objects.requireNonNull(template, "template must not be null");
+    Objects.requireNonNull(template, TEMPLATE_NOT_NULL);
     Matcher matcher = PLACEHOLDER.matcher(template);
     StringBuilder rendered = new StringBuilder();
     while (matcher.find()) {
@@ -148,7 +149,7 @@ public record RunScope(
    * @throws NullPointerException if {@code template} is null
    */
   public Object resolveValue(String template) {
-    Objects.requireNonNull(template, "template must not be null");
+    Objects.requireNonNull(template, TEMPLATE_NOT_NULL);
     Matcher lone = LONE_PLACEHOLDER.matcher(template);
     if (lone.matches()) {
       Object value = lookup(reference(lone.group(1)));
@@ -211,7 +212,7 @@ public record RunScope(
    * @throws IllegalArgumentException if the placeholder is not a supported form
    */
   public List<Object> expand(String template) {
-    Objects.requireNonNull(template, "template must not be null");
+    Objects.requireNonNull(template, TEMPLATE_NOT_NULL);
     Matcher matcher = PLACEHOLDER.matcher(template.trim());
     if (!matcher.matches()) {
       throw new IllegalArgumentException(
