@@ -18,7 +18,7 @@ export function totals(xmls) {
   const sum = { tests: 0, failures: 0, errors: 0, skipped: 0 };
   for (const xml of xmls) {
     const head = /<testsuite\b([^>]*)>/.exec(xml)?.[1] ?? "";
-    for (const k of Object.keys(sum)) sum[k] += Number(new RegExp(`\\b${k}="(\\d+)"`).exec(head)?.[1] ?? 0);
+    for (const k of Object.keys(sum)) sum[k] += Number(new RegExp(String.raw`\b${k}="(\d+)"`).exec(head)?.[1] ?? 0);
   }
   return sum;
 }

@@ -21,7 +21,7 @@ export function coordinates(pom) {
   const xml = bare(pom);
   const parent = /<parent>([\s\S]*?)<\/parent>/.exec(xml)?.[1] ?? "";
   const own = xml.replace(/<(parent|dependencyManagement|dependencies|build|properties|profiles|modules|licenses|scm|reporting)>[\s\S]*?<\/\1>/g, "");
-  const tag = (src, t) => new RegExp(`<${t}>\\s*([^<\\s]+)\\s*</${t}>`).exec(src)?.[1] ?? null;
+  const tag = (src, t) => new RegExp(String.raw`<${t}>\s*([^<\s]+)\s*</${t}>`).exec(src)?.[1] ?? null;
   return {
     groupId: tag(own, "groupId") ?? tag(parent, "groupId"),
     artifactId: tag(own, "artifactId"),
