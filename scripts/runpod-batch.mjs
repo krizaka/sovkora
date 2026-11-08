@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * The unattended render batch (orazaka#508), driven by `scripts/gpu-dev.sh runpod batch`: N prompts → one image each, through the
- * `image-generation` Studio of www.orazaka.com (scripts/showcase-image-run.mjs, never a model called directly) on the pod the shell
+ * `image-generation` Studio of dev.sovkora.com (scripts/showcase-image-run.mjs, never a model called directly) on the pod the shell
  * started → the results to Bunny under `site/renders/<batch>/`. The dollar cap is enforced HERE between every prompt and by the
  * shell around it (the pod is terminated in a trap whatever happens: this script never touches the pod).
  *

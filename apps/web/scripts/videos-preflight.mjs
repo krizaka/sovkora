@@ -13,7 +13,7 @@
 //      and dev's core was deployed after the commit that last changed it (read from the DigitalOcean app; with
 //      --require-tool-proof an unreadable deploy time refuses).
 //
-//   ORAZAKA_USER_EMAIL=… ORAZAKA_USER_PASSWORD=… node scripts/videos-preflight.mjs [--base https://www.orazaka.com] [--require-rollback-guard]
+//   ORAZAKA_USER_EMAIL=… ORAZAKA_USER_PASSWORD=… node scripts/videos-preflight.mjs [--base https://dev.sovkora.com] [--require-rollback-guard]
 //
 // Exits 1 on the first failed precondition's report (all checks are still listed). Nothing secret is printed.
 import { PROOF_TOOL } from "./tour/eric.mjs";
@@ -212,7 +212,7 @@ async function deployments(token) {
 
 async function main(args) {
   const at = args.indexOf("--base");
-  const base = (at >= 0 && args[at + 1] ? args[at + 1] : "https://www.orazaka.com").replace(/\/$/, "");
+  const base = (at >= 0 && args[at + 1] ? args[at + 1] : "https://dev.sovkora.com").replace(/\/$/, "");
   const email = process.env.ORAZAKA_USER_EMAIL;
   const pass = process.env.ORAZAKA_USER_PASSWORD;
   if (!email || !pass) throw new Error("ORAZAKA_USER_EMAIL and ORAZAKA_USER_PASSWORD are required (the demo persona)");

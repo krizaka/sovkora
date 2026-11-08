@@ -1,5 +1,5 @@
 /**
- * The public bar of www.orazaka.com as data — the product-site standard of every Krizaka product (addendum 2026-10-15,
+ * The public bar of dev.sovkora.com as data — the product-site standard of every Krizaka product (addendum 2026-10-15,
  * docs/ux/information-architecture.md of the Sovkora workspace): the mark, then at most four entries grouped by the
  * visitor's question — **Product ▾** (what is it, what does it install, where do I get it?), **Docs** (how do I use
  * it?), then **Pricing** and **Open source** as direct links (#290). Simplified for epic #231: the gallery, the models page, the feature tours and the

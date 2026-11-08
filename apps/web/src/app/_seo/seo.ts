@@ -12,8 +12,8 @@ function plainDoc(slug: string): string | undefined {
   return doc ? plainText(doc.body).trim() : undefined;
 }
 
-/** The public origin of this site (www.orazaka.com: the real app, sign-up closed). */
-export const SITE_URL = "https://www.orazaka.com";
+/** The public origin of this site (dev.sovkora.com: the real app, sign-up closed). */
+export const SITE_URL = "https://dev.sovkora.com";
 export const KRIZAKA_URL = "https://www.krizaka.com";
 export const REPO_URL = "https://github.com/krizaka/orazaka";
 /** The Krizaka Organization, defined by www.krizaka.com: every JSON-LD node of the family points back to it. */

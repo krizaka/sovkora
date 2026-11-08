@@ -4,7 +4,7 @@
  * The core journey of Orazaka on the real dev backend (Dev preview `journey.core` + `journey.ai-via-orazaka`, orazaka#178):
  * a demo persona signs in, asks the chat, makes an image through the `image-generation` Studio, has it read by
  * `image-analysis`, and turns the idea into a short clip with `video-generation` — every step through the public edge
- * (https://www.orazaka.com/edge, the API the web and the phone use), no SQL, no direct model call. Each step records the
+ * (https://dev.sovkora.com/edge, the API the web and the phone use), no SQL, no direct model call. Each step records the
  * edge request id and, for a Studio, the run id, so the engine's own trace (GET /studios/runs/{id}, the jobs of its steps)
  * can be followed from the report.
  *
