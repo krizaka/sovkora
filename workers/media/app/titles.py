@@ -107,9 +107,9 @@ def on_cuts(texts: list[Text], cuts: list[float], tolerance: float = SNAP_TO_CUT
         start, end = t.start, t.end
         if t.kind == "subtitle":
             near = [c for c in cuts if abs(c - start) <= tolerance]
-            start = min(near, key=lambda c: abs(c - start)) if near else start
+            start = min(near, key=lambda c, _s=start: abs(c - _s)) if near else start
             near = [c for c in cuts if abs(c - end) <= tolerance and c > start]
-            end = min(near, key=lambda c: abs(c - end)) - 0.04 if near else end
+            end = min(near, key=lambda c, _e=end: abs(c - _e)) - 0.04 if near else end
             end = max(end, start + MIN_ON_SCREEN)
         out.append(Text(round(start, 3), round(end, 3), t.text, t.kind, t.sub))
     return out
