@@ -399,7 +399,8 @@ jobs:
   # ── the gate ────────────────────────────────────────────────────────────────────────────────────────────────────
   workspace:
     name: workspace
-    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format, sonar]
+    # Not `sonar`: its red on old debt is not the product's code and never freezes the repository (krizaka-internal#2598).
+    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
