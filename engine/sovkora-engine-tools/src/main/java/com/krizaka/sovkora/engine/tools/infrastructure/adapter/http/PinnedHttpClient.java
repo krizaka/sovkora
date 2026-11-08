@@ -22,8 +22,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -33,6 +31,8 @@ import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
 import org.apache.hc.core5.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -124,7 +124,8 @@ public class PinnedHttpClient implements SafeHttp {
         try {
           hop = hop.resolve(answer.location()).normalize();
         } catch (IllegalArgumentException badLocation) {
-          log.debug("Redirect location is not a valid URI: {}", badLocation.getMessage(), badLocation);
+          log.debug(
+              "Redirect location is not a valid URI: {}", badLocation.getMessage(), badLocation);
           return refused(FetchRefusal.REDIRECTS);
         }
         continue;

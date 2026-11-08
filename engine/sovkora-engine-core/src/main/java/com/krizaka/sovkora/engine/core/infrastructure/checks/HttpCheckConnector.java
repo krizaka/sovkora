@@ -206,7 +206,10 @@ public final class HttpCheckConnector implements ExternalCheckConnector {
       };
     } catch (RuntimeException unreadable) {
       // The class only: body may carry the subject (ADR-064).
-      log.debug("Check HTTP response could not be parsed ({})", unreadable.getClass().getSimpleName(), unreadable);
+      log.debug(
+          "Check HTTP response could not be parsed ({})",
+          unreadable.getClass().getSimpleName(),
+          unreadable);
       return CheckResult.answered(CheckOutcome.PROVIDER_ERROR, null);
     }
   }

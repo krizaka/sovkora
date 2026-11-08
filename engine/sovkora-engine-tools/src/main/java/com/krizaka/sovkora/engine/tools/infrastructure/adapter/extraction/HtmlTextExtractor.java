@@ -169,7 +169,8 @@ class HtmlTextExtractor implements TextExtractor {
     try {
       return new String(body, named == null ? StandardCharsets.UTF_8 : Charset.forName(named));
     } catch (UnsupportedCharsetException unsupported) {
-      log.debug("Charset not supported, using UTF-8 fallback: {}", unsupported.getMessage(), unsupported);
+      log.debug(
+          "Charset not supported, using UTF-8 fallback: {}", unsupported.getMessage(), unsupported);
       return new String(body, StandardCharsets.UTF_8);
     }
   }

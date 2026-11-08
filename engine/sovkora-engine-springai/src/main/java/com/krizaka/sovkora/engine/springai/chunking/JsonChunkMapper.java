@@ -14,6 +14,7 @@ import tools.jackson.databind.ObjectMapper;
 /** Utility class for mapping JSON objects to Documents. */
 final class JsonChunkMapper {
   private static final Logger log = LoggerFactory.getLogger(JsonChunkMapper.class);
+
   /** ObjectMapper instance for JSON serialization and deserialization. */
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
