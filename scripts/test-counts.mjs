@@ -11,7 +11,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** Code-point order, the order `sort()` gives strings without a compare function, said explicitly. */
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+const byCodePoint = (a, b) => {
+  const gtOrder = a > b ? 1 : 0;
+  return a < b ? -1 : gtOrder;
+};
 
 /** The totals of the JUnit XML reports in a directory: { tests, failures, errors, skipped }. */
 export function totals(xmls) {
