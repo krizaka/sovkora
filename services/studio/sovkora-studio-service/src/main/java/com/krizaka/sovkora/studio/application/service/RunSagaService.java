@@ -66,6 +66,7 @@ public class RunSagaService {
    * instead of falling back to the capability's own.
    */
   private static final String UNRESOLVED_MODEL = "default";
+
   private static final String STEP_PREFIX = STEP_PREFIX;
   private static final String STEP_ID_COL = "step_id";
 
@@ -428,7 +429,9 @@ public class RunSagaService {
         failRun(
             run,
             blueprint,
-            snapshot.failureMessages().getOrDefault(step.id(), STEP_PREFIX + step.id() + "' failed"),
+            snapshot
+                .failureMessages()
+                .getOrDefault(step.id(), STEP_PREFIX + step.id() + "' failed"),
             cause);
         return;
       }
@@ -641,7 +644,12 @@ public class RunSagaService {
           Map.of(),
           Map.of(),
           null,
-          STEP_PREFIX + step.id() + "' could not call " + step.studioKey() + ": " + reasonOf(refused),
+          STEP_PREFIX
+              + step.id()
+              + "' could not call "
+              + step.studioKey()
+              + ": "
+              + reasonOf(refused),
           causeOf(refused));
     }
   }

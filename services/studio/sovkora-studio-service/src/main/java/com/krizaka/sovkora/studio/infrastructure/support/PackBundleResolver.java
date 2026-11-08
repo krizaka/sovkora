@@ -56,6 +56,7 @@ public class PackBundleResolver {
 
   /** What makes a directory a bundle. */
   private static final String MANIFEST = "pack.yaml";
+
   private static final String CAPABILITIES_KEY = "capabilities";
   private static final String INPUT_SCHEMA_KEY = "inputSchema";
   private static final String VERSION_KEY = "version";

@@ -200,7 +200,8 @@ public class BlueprintPublishService {
       if (target.isEmpty()) {
         refused.add(STEP_PREFIX + step.id() + "' -> '" + step.studioKey() + "' is not published");
       } else if (target.get().steps().stream().anyMatch(s -> s.kind() == StepKind.STUDIO)) {
-        refused.add(STEP_PREFIX + step.id() + "' -> '" + step.studioKey() + "' calls Studios itself");
+        refused.add(
+            STEP_PREFIX + step.id() + "' -> '" + step.studioKey() + "' calls Studios itself");
       }
     }
     if (!refused.isEmpty()) {
