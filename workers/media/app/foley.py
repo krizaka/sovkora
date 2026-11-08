@@ -292,9 +292,9 @@ def _event_steps(rng: np.random.Generator, secs) -> np.ndarray:
 
 def _event_rustle_paper(rng: np.random.Generator, secs, kind: str) -> np.ndarray:
     n = secs(0.5 if kind == "rustle" else 0.7)
-    crackle = (rng.random(n) < (0.02 if kind == "paper" else 0.06)).astype(np.float32) * rng.uniform(
-        -1, 1, n
-    ).astype(np.float32)
+    crackle = (rng.random(n) < (0.02 if kind == "paper" else 0.06)).astype(np.float32) * rng.uniform(-1, 1, n).astype(
+        np.float32
+    )
     body = shaped(rng, n, 1200 if kind == "paper" else 900, 9000, -1)
     return (body * 0.5 + np.convolve(crackle, np.hanning(24), "same")) * np.sin(np.pi * np.arange(n) / n).astype(
         np.float32
@@ -370,9 +370,7 @@ def _event_sparks(rng: np.random.Generator, secs) -> np.ndarray:
         -1, 1, n
     ).astype(np.float32)
     hiss = shaped(rng, n, 3000, 14000, 1) * _env(n, 0.002, 0.15) * 0.4
-    sharp = np.convolve(
-        crackle, np.array([1.0, -0.9], np.float32), "same"
-    )  # a differentiator keeps the crackle bright
+    sharp = np.convolve(crackle, np.array([1.0, -0.9], np.float32), "same")  # a differentiator keeps the crackle bright
     return sharp + hiss
 
 

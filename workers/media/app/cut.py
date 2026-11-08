@@ -241,7 +241,7 @@ def _parse_shots(raw: dict, clip_count: int) -> list:
     return shots
 
 
-def _parse_shot(i: int, item, clip_count: int) -> "Shot":
+def _parse_shot(i: int, item, clip_count: int) -> Shot:
     """Validates and parses one shot entry from the edit list."""
     if not isinstance(item, dict):
         raise EditError(f"shot {i} must be an object")

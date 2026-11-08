@@ -19,7 +19,7 @@ from __future__ import annotations
 import gc
 import os
 import time
-from typing import Callable, Optional
+from typing import Callable
 
 # Memory safety: disable MPS high/low watermark so PyTorch can use all
 # unified memory.  VAE slicing + attention slicing at 512×512 keep the
@@ -160,7 +160,7 @@ def generate_video_frames_mlx(
     _input_image: Image.Image,
     num_frames: int = DEFAULT_NUM_FRAMES,
     num_inference_steps: int = DEFAULT_STEPS,
-    progress_callback: Optional[Callable] = None,
+    progress_callback: Callable | None = None,
     width: int = DEFAULT_WIDTH,
     height: int = DEFAULT_HEIGHT,
     prompt: str = "",
@@ -329,7 +329,7 @@ def _resolve_mlx_seed() -> int:
     return seed_val
 
 
-def _convert_to_pil(frames, progress_callback: Optional[Callable]) -> list[Image.Image]:
+def _convert_to_pil(frames, progress_callback: Callable | None) -> list[Image.Image]:
     """Converts raw diffusers frames (PIL or numpy) to PIL images, calling the progress callback per frame."""
     pil_frames = []
     for i, frame in enumerate(frames):

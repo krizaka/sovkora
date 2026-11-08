@@ -92,7 +92,7 @@ def resolve(
     return next((m for m in models.values() if m.kind == kind and m.default), None)
 
 
-def _device() -> tuple[str, "object"]:
+def _device() -> tuple[str, object]:
     import torch
 
     if torch.cuda.is_available():

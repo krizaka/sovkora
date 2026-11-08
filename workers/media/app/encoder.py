@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from typing import List
 
 from PIL import Image
 
@@ -19,7 +18,7 @@ def is_apple_silicon() -> bool:
     return sys.platform == "darwin" and platform.machine() == "arm64"
 
 
-def export_frames_to_video(frames: List[Image.Image], output_path: str, fps: int = 7) -> None:
+def export_frames_to_video(frames: list[Image.Image], output_path: str, fps: int = 7) -> None:
     """
     Encodes list of PIL Images into an MP4 video.
     Uses h264_videotoolbox on Apple Silicon for hardware acceleration,

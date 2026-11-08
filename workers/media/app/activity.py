@@ -71,7 +71,7 @@ class Heartbeat:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
-    def start(self) -> "Heartbeat":
+    def start(self) -> Heartbeat:
         if self._target is None or self._thread is not None:
             return self
         _touch_file(self._target)

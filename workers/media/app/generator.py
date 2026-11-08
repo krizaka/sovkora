@@ -135,7 +135,9 @@ def _apply_memory_guards(process) -> None:
         print(f"Error checking memory: {mem_err}", flush=True)
 
 
-def _run_svd_pipeline(input_image: Image.Image, num_frames: int, num_inference_steps: int, generator, progress_callback) -> list:
+def _run_svd_pipeline(
+    input_image: Image.Image, num_frames: int, num_inference_steps: int, generator, progress_callback
+) -> list:
     """Executes the SVD pipeline and returns frames. §12 Zero-Fallback: raises on any failure."""
     import traceback
 

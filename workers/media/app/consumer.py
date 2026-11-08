@@ -337,7 +337,9 @@ def _generate_with(job: dict, scratch: str) -> tuple:
     return result, extract_consumption(metrics)
 
 
-def _build_generation_request(job: dict, job_id: str, payload: dict, prompt: str, output_path: str, scratch: str) -> dict:
+def _build_generation_request(
+    job: dict, job_id: str, payload: dict, prompt: str, output_path: str, scratch: str
+) -> dict:
     """Assembles the HTTP body sent to the local pipeline, with model selection and image path resolved."""
     request_body = dict(payload)
     request_body["prompt"] = prompt
@@ -664,7 +666,9 @@ def _sound(job: dict) -> tuple:
 
         output_path, public_url = _output_paths(job["userId"], job["jobId"])
         readable = _materialise(video, scratch)
-        tracks, stages = _generate_sound_tracks(readable, foley_model, music_model, voice, foley_prompt, music_prompt, seed, scratch)
+        tracks, stages = _generate_sound_tracks(
+            readable, foley_model, music_model, voice, foley_prompt, music_prompt, seed, scratch
+        )
         started = time.time()
         try:
             measured = sound.add_sound(readable, sound.Tracks(**tracks), output_path)
@@ -709,7 +713,9 @@ def _resolve_sound_models(foley_prompt: str, music_prompt: str, payload: dict):
     return foley_model, music_model
 
 
-def _generate_sound_tracks(readable: str, foley_model, music_model, voice, foley_prompt: str, music_prompt: str, seed, scratch: str):
+def _generate_sound_tracks(
+    readable: str, foley_model, music_model, voice, foley_prompt: str, music_prompt: str, seed, scratch: str
+):
     """Generates all audio tracks (foley, music, voice, picture sound) and returns ``(tracks, stages)``."""
     import time
 

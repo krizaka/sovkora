@@ -124,7 +124,6 @@ def _registration_tick(declaration: dict, registered: bool) -> bool:
             print(f"[registry] registered {declaration['name']}", flush=True)
             return True
         status = _post(f"/internal/v1/workers/{declaration['name']}/heartbeat", None)
-        return status != 404
     except urllib.error.HTTPError as e:
         if e.code == 404:
             return False
@@ -133,6 +132,8 @@ def _registration_tick(declaration: dict, registered: bool) -> bool:
     except Exception as e:  # noqa: BLE001 — advisory by design; never fatal
         print(f"[registry] job service unreachable ({e}) — still consuming", flush=True)
         return False
+    else:
+        return status != 404
 
 
 def register_forever(declaration: dict) -> None:

@@ -119,7 +119,9 @@ def generate(
     return video, facts
 
 
-def _poll_until_done(job: dict, job_id: str, timeout: int, started, clock, sleep, progress, base: str, key: str, call) -> dict:
+def _poll_until_done(
+    job: dict, job_id: str, timeout: int, started, clock, sleep, progress, base: str, key: str, call
+) -> dict:
     """Polls the provider until the job reaches a terminal status and returns the final result dict."""
     status, result = job.get("status"), job
     while status not in ("completed", "succeeded", "failed", "error", "cancelled"):

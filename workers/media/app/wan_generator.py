@@ -13,8 +13,7 @@ from __future__ import annotations
 import gc
 import os
 import time
-from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from app import activity, job_control, model_cache
 from app.video_models import (
@@ -160,7 +159,7 @@ def _load(model: VideoModel, from_image: bool = False, weights_progress=None):
 
 def _evict_resident_pipeline(torch) -> None:
     """Frees the currently resident pipeline from memory, if any."""
-    global _pipe, _pipe_name  # noqa: PLW0603
+    global _pipe, _pipe_name
     if _pipe is not None:
         print(f"[wan] evicting {_pipe_name}", flush=True)
         _pipe = None
@@ -336,11 +335,11 @@ def generate_wan_frames(
     steps: int,
     seed: int,
     negative_prompt: str | None = None,
-    progress_callback: Optional[Callable] = None,
+    progress_callback: Callable | None = None,
     image=None,
     focus: tuple[float, float] = (0.5, 0.5),
     fallback_sizes: tuple = (),
-    weights_progress: Optional[Callable] = None,
+    weights_progress: Callable | None = None,
 ) -> list:
     """Runs one Wan generation and returns its frames as PIL images.
 
@@ -365,8 +364,21 @@ def generate_wan_frames(
     last_failure: Exception | None = None
     for w, h in ladder:
         result = _try_wan_size(
-            pipe, model, model_name, prompt, negative_prompt, w, h, num_frames, steps, seed,
-            image, focus, from_image, progress_callback, torch,
+            pipe,
+            model,
+            model_name,
+            prompt,
+            negative_prompt,
+            w,
+            h,
+            num_frames,
+            steps,
+            seed,
+            image,
+            focus,
+            from_image,
+            progress_callback,
+            torch,
         )
         if result is None:
             last_failure = _last_wan_failure
@@ -395,23 +407,47 @@ def _validate_image_requirements(model: VideoModel, model_name: str, image) -> N
         )
 
 
-def _try_wan_size(pipe, model: VideoModel, model_name: str, prompt: str, negative_prompt, w: int, h: int,
-                  num_frames: int, steps: int, seed: int, image, focus, from_image: bool,
-                  progress_callback, torch) -> list | None | object:
+def _try_wan_size(
+    pipe,
+    model: VideoModel,
+    model_name: str,
+    prompt: str,
+    negative_prompt,
+    w: int,
+    h: int,
+    num_frames: int,
+    steps: int,
+    seed: int,
+    image,
+    focus,
+    from_image: bool,
+    progress_callback,
+    torch,
+) -> list | object | None:
     """Attempts to run Wan inference at ``w``x``h``.
 
     Returns the frames list on success, ``None`` on OOM (try the next size), or ``_WAN_CANCELLED`` when the
     job was cancelled. Any other failure is re-raised immediately.
     """
-    global _last_wan_failure  # noqa: PLW0603
+    global _last_wan_failure
     generator = torch.Generator(device="cpu").manual_seed(int(seed))
     started = time.time()
     extra = {"image": crop_to_aspect(image, w, h, focus)} if from_image else {}
     try:
         if model.pipeline == "ltx":
             frames = _run_ltx(
-                pipe, model, prompt, negative_prompt or DEFAULT_NEGATIVE_PROMPT,
-                w, h, num_frames, steps, generator, image, focus, progress_callback,
+                pipe,
+                model,
+                prompt,
+                negative_prompt or DEFAULT_NEGATIVE_PROMPT,
+                w,
+                h,
+                num_frames,
+                steps,
+                generator,
+                image,
+                focus,
+                progress_callback,
             )
             print(
                 f"[ltx] {model_name}{' (from a photo)' if from_image else ''} {w}x{h} {len(frames)} frames, {steps} steps, seed {seed}: {time.time() - started:.0f}s",
