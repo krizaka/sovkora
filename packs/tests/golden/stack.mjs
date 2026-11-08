@@ -5,9 +5,8 @@ import { assertOutput } from "./harness.mjs";
 
 const terminal = new Set(["SUCCEEDED", "FAILED", "CANCELLED"]);
 
-/** Execute a fictional case through the public Studio API, never directly through a worker. */
-export async function runCase(suite, golden, config) {
-  const base = new URL(config.baseUrl);
+/** Validate base URL configuration. */
+function validateBaseUrl(base) {
   assert.ok(
     base.protocol === "https:" ||
       (base.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)),
@@ -17,8 +16,19 @@ export async function runCase(suite, golden, config) {
     !base.username && !base.password && base.pathname === "/" && !base.search && !base.hash,
     "baseUrl must be an origin",
   );
+}
+
+/** Validate timeout configuration. */
+function validateTimeouts(config) {
   for (const key of ["timeoutMs", "pollIntervalMs"])
     assert.ok(Number.isSafeInteger(config[key]) && config[key] > 0, `${key} must be a positive integer`);
+}
+
+/** Execute a fictional case through the public Studio API, never directly through a worker. */
+export async function runCase(suite, golden, config) {
+  const base = new URL(config.baseUrl);
+  validateBaseUrl(base);
+  validateTimeouts(config);
   assert.ok(typeof config.token === "string" && config.token.trim(), "an authenticated test account is required");
   const deadline = Date.now() + config.timeoutMs;
   const uploaded = new Map();
