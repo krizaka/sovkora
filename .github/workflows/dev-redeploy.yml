@@ -1,4 +1,4 @@
-# Keeps dev.orazaka.com's `core` in step with main (docs/DEPLOY_DEV.md § Redeploy): the image clones every component at
+# Keeps www.orazaka.com's `core` in step with main (docs/DEPLOY_DEV.md § Redeploy): the image clones every component at
 # build time, so a merge in a component repository never triggers App Platform (`deploy_on_push` cannot see it). Every 15
 # minutes (and by hand) scripts/dev-redeploy.mjs starts `doctl apps create-deployment --force-rebuild` when a repository's
 # main is newer than the last manual rebuild, and does nothing while a deployment is building. Deploys only: it never
@@ -42,10 +42,14 @@ jobs:
         if: steps.configured.outputs.ok == 'true'
         with:
           persist-credentials: false
-      - uses: digitalocean/action-doctl@3cb3953159719656269e044e0e24ca16dd2a690f # v2
+      - name: Install doctl v2.3.0
         if: steps.configured.outputs.ok == 'true'
-        with:
-          token: ${{ secrets.OPERATOR_DEPLOY_TOKEN }}
+        run: |
+          gh release download v2.3.0 --repo digitalocean/doctl \
+            --pattern 'doctl-2.3.0-linux-amd64.tar.gz' --output /tmp/doctl.tar.gz
+          tar -xzf /tmp/doctl.tar.gz -C /tmp
+          sudo mv /tmp/doctl /usr/local/bin/doctl
+          doctl auth init --access-token "$OPERATOR_DEPLOY_TOKEN"
       - name: Rebuild core when a repository moved
         if: steps.configured.outputs.ok == 'true'
         run: node scripts/dev-redeploy.mjs
