@@ -22,6 +22,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -52,6 +54,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class PinnedHttpClient implements SafeHttp {
+
+  private static final Logger log = LoggerFactory.getLogger(PinnedHttpClient.class);
 
   private final HostResolver resolver;
   private final Predicate<InetAddress> addressPolicy;
@@ -90,6 +94,7 @@ public class PinnedHttpClient implements SafeHttp {
       try {
         addresses = resolver.resolve(hop.getHost());
       } catch (UnknownHostException unknown) {
+        log.debug("DNS resolution failed for host: {}", unknown.getMessage(), unknown);
         return refused(FetchRefusal.HTTP_ERROR);
       }
       if (addresses.isEmpty() || !addresses.stream().allMatch(addressPolicy)) {
@@ -103,10 +108,13 @@ public class PinnedHttpClient implements SafeHttp {
       try {
         answer = read(hop, addresses, limits, deadline);
       } catch (InterruptedIOException slow) {
+        log.debug("HTTP request timed out", slow);
         return refused(FetchRefusal.TIMEOUT);
       } catch (TooLargeException tooLarge) {
+        log.debug("HTTP response too large", tooLarge);
         return refused(FetchRefusal.SIZE);
       } catch (IOException failed) {
+        log.debug("HTTP request failed: {}", failed.getMessage(), failed);
         return refused(FetchRefusal.HTTP_ERROR);
       }
       if (answer.status() >= 300 && answer.status() < 400) {
@@ -116,6 +124,7 @@ public class PinnedHttpClient implements SafeHttp {
         try {
           hop = hop.resolve(answer.location()).normalize();
         } catch (IllegalArgumentException badLocation) {
+          log.debug("Redirect location is not a valid URI: {}", badLocation.getMessage(), badLocation);
           return refused(FetchRefusal.REDIRECTS);
         }
         continue;
