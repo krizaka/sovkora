@@ -381,7 +381,7 @@ class WebhookIngressServiceTest {
     when(limiter.tryAcquire(
             "hooks:run:" + triggerId, SettingKey.WEBHOOK_RUNS_PER_MINUTE.defaultValue()))
         .thenReturn(new CallLimiter.Decision(false, 2));
-    WebhookRejectedException runs =
+    WebhookRejectedException rejected =
         refused(
             () ->
                 call(
@@ -389,7 +389,7 @@ class WebhookIngressServiceTest {
                     NOW.getEpochSecond(),
                     sign(secret, "msg_14", NOW.getEpochSecond(), BODY),
                     BODY));
-    assertThat(runs.rejection()).isEqualTo(Rejection.RATE_LIMITED);
+    assertThat(rejected.rejection()).isEqualTo(Rejection.RATE_LIMITED);
     verify(dispatcher, never()).submit(any());
   }
 

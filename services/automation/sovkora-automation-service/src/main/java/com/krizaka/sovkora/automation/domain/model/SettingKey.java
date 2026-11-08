@@ -72,6 +72,6 @@ public enum SettingKey {
    * @return the value, raised to the minimum or lowered to the maximum
    */
   public int clamp(int value) {
-    return Math.max(minimum, Math.min(maximum, value));
+    return Math.clamp(value, minimum, maximum);
   }
 }
