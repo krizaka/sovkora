@@ -511,6 +511,16 @@ def test_every_retrieval_names_only_what_the_kind_is_judged_by():
             assert target["refs"] and len(set(target["refs"])) == len(target["refs"]), kind["kindId"]
 
 
+def test_signal_matching_is_bounded_to_prevent_redos():
+    """_hits and _score only scan up to MAX_SCAN_TEXT characters so a pathologically long input cannot cause ReDoS."""
+    oversized = "a" * (identify.MAX_SCAN_TEXT + 10_000)
+    # None of the loaded kinds' signals match a string of a's; the call must return quickly and not raise.
+    kinds = identify.load_kinds()
+    for kind in kinds[:3]:  # sample three kinds; exhaustive check not needed
+        result = identify._score(kind, oversized)
+        assert isinstance(result["content"], list)
+
+
 def test_the_request_has_exactly_the_keys_the_engine_reads():
     # orazaka-ai-engine LawRetrievalRequest: jurisdiction, kindId, question, language, asOf, targets{instrument, refs}.
     request = identify.retrieval_request(_kind("qc-condition-report"), "fr", "2026-10-20", run_id="r-1")

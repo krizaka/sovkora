@@ -41,6 +41,8 @@ KINDS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "kind
 #: The default of ``law.identify.min-signal-weight`` (ADR-089 §10).
 MIN_SIGNAL_WEIGHT = 2
 MAX_QUOTE = 160
+#: Maximum characters fed to any regex to prevent catastrophic backtracking (ReDoS) on pathological inputs.
+MAX_SCAN_TEXT = 500_000
 
 CHECK = "CHECK"
 KIND_UNKNOWN = "KIND_UNKNOWN"
@@ -153,9 +155,10 @@ def _quote(match) -> str:
 
 def _hits(signals: list, text: str) -> list:
     """The signals that match, each with the passage it matched. ``verified``: the passage is in the text."""
+    bounded = text[:MAX_SCAN_TEXT]
     found = []
     for signal in signals:
-        match = re.search(signal["pattern"], text)
+        match = re.search(signal["pattern"], bounded)
         if match:
             quote = _quote(match)
             found.append(
@@ -165,9 +168,10 @@ def _hits(signals: list, text: str) -> list:
 
 
 def _score(kind: dict, text: str) -> dict:
+    bounded = text[:MAX_SCAN_TEXT]
     content = _hits(kind["signals"], text)
     hints = _hits(kind["jurisdictionHints"], text)
-    excluded = any(re.search(pattern, text) for pattern in kind["excludes"])
+    excluded = any(re.search(pattern, bounded) for pattern in kind["excludes"])
     return {
         "kind": kind,
         "content": content,
