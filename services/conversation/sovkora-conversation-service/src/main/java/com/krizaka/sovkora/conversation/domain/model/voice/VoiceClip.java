@@ -99,9 +99,9 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
 
   private static long le32(byte[] b, int at) {
     return (b[at] & 0xFFL)
-        | ((b[at + 1] & 0xFFL) << 8)
-        | ((b[at + 2] & 0xFFL) << 16)
-        | ((b[at + 3] & 0xFFL) << 24);
+        | (((b[at + 1] & 0xFFL) << 8))
+        | (((b[at + 2] & 0xFFL) << 16))
+        | (((b[at + 3] & 0xFFL) << 24));
   }
 
   @Override
