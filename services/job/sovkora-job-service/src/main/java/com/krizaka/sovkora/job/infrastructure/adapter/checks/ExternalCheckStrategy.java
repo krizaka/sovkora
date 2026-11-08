@@ -158,7 +158,7 @@ public final class ExternalCheckStrategy implements JobExecutor {
       return UUID.fromString(runId.toString());
     } catch (IllegalArgumentException notAUuid) {
       // The producer's field, not the user's: a platform defect.
-      throw new JobExecutionException("runId is not a UUID");
+      throw new JobExecutionException("runId is not a UUID", notAUuid);
     }
   }
 }
