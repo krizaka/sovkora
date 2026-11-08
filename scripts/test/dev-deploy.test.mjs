@@ -664,3 +664,11 @@ test("sovkora-dev: DigitalOcean alerts the team on a failed deployment or domain
     assert.match(service, /- rule: RESTART_COUNT\n {8}operator: GREATER_THAN\n {8}value: 2\n/, service.split("\n")[0]);
   }
 });
+
+test("the deployed keyring is written where the services read it (the core crashed at boot on the old folder)", () => {
+  const script = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../../services/job/sovkora-job-service/src/main/resources/application.yml", import.meta.url), "utf8");
+  assert.match(config, /\$\{user\.home\}\/\.sovkora\/master\.key/);
+  assert.match(script, /"\$HOME\/\.sovkora\/master\.key"/);
+  assert.doesNotMatch(script, /\$HOME\/\.orazaka/);
+});
