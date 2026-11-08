@@ -234,14 +234,14 @@ const ROLES = [
   { id: "contract", title: "Contracts", rule: "a Tier-1 `*-api` module — pure interfaces and records" },
   { id: "platform", title: "Krizaka service kit", rule: "a module of krizaka-service-kit — the cross-cutting code with one author (ADR-073), starters included" },
 ];
-const APPLICATION_LIBRARIES = ["sovkora-engine-business", "sovkora-engine-interceptors", "sovkora-engine-tools"];
+const APPLICATION_LIBRARIES = new Set(["sovkora-engine-business", "sovkora-engine-interceptors", "sovkora-engine-tools"]);
 
 function roleOf(m) {
   if (/SpringApplication\.run\(/.test(javaFiles(join(m.dir, "src/main/java")).map(read).join("\n"))) return "service";
   if (m.path.split("/").includes("krizaka-service-kit")) return "platform";
   if (m.id.endsWith("-api")) return "contract";
   if (m.id.endsWith("-core")) return "domain";
-  if (APPLICATION_LIBRARIES.includes(m.id)) return "application";
+  if (APPLICATION_LIBRARIES.has(m.id)) return "application";
   return "adapter";
 }
 
