@@ -48,7 +48,7 @@ public class RunDispatchService {
           starter.start(run.ownerId(), run.studioKey(), run.inputs(), runId.toString());
       runs.markRunning(runId, studioRunId);
     } catch (StudioStartRefusedException refused) {
-      logger.info("run {} refused by the engine: {}", runId, refused.code());
+      logger.info("run {} refused by the engine: {}", runId, refused.code(), refused);
       runs.markFailed(runId, refused.code(), truncate(refused.getMessage()));
     }
   }

@@ -51,7 +51,7 @@ public final class WebhookSecret {
     try {
       key = Base64.getDecoder().decode(value.substring(PREFIX.length()));
     } catch (IllegalArgumentException malformed) {
-      throw new IllegalArgumentException("not a webhook secret");
+      throw new IllegalArgumentException("not a webhook secret", malformed);
     }
     if (key.length != KEY_BYTES) {
       throw new IllegalArgumentException("not a webhook secret");

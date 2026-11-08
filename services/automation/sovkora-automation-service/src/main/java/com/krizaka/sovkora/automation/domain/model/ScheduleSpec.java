@@ -58,7 +58,8 @@ public record ScheduleSpec(LocalTime time, ZoneId zone, Set<DayOfWeek> days) {
       return new ScheduleSpec(LocalTime.parse(time.strip()), ZoneId.of(zone.strip()), parsed);
     } catch (DateTimeException invalid) {
       throw new IllegalArgumentException(
-          "the schedule needs a time as HH:mm and a region time zone such as America/Toronto");
+          "the schedule needs a time as HH:mm and a region time zone such as America/Toronto",
+          invalid);
     }
   }
 

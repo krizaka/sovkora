@@ -196,6 +196,7 @@ public class WebhookIngressService {
       long tolerance = settings.value(SettingKey.WEBHOOK_TOLERANCE_SECONDS);
       return Math.abs(clock.instant().getEpochSecond() - seconds) <= tolerance;
     } catch (NumberFormatException notANumber) {
+      logger.debug("Webhook timestamp header is not a number", notANumber);
       return false;
     }
   }
@@ -250,7 +251,7 @@ public class WebhookIngressService {
     try {
       key = WebhookSecret.of(sealer.open(triggerId, sealed)).key();
     } catch (IllegalStateException | IllegalArgumentException unreadable) {
-      logger.error("the secret of trigger {} cannot be opened", triggerId);
+      logger.error("the secret of trigger {} cannot be opened ({})", triggerId, unreadable.getClass().getSimpleName(), unreadable);
       return false;
     }
     return WebhookSignature.verify(key, signature, webhookId, timestamp, raw);
@@ -265,6 +266,7 @@ public class WebhookIngressService {
       JsonNode node = json.readTree(new String(raw, StandardCharsets.UTF_8));
       return node != null && node.isObject() ? node.toString() : null;
     } catch (RuntimeException notJson) {
+      logger.debug("Webhook body is not valid JSON; payload not kept", notJson);
       return null;
     }
   }
@@ -273,6 +275,7 @@ public class WebhookIngressService {
     try {
       return raw == null ? null : UUID.fromString(raw);
     } catch (IllegalArgumentException notAnId) {
+      logger.debug("Webhook run id header is not a valid UUID", notAnId);
       return null;
     }
   }
