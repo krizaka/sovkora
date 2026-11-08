@@ -416,7 +416,11 @@ def overlay_filters(edit: Edit, spans: list[tuple[float, float]], font: str, scr
 
 
 def _clamp(value: float) -> float:
-    return 0.0 if value < 0 else 1.0 if value > 1 else value
+    if value < 0:
+        return 0.0
+    if value > 1:
+        return 1.0
+    return value
 
 
 #: Each grade: (shadow tint RGB, highlight tint RGB, contrast, saturation, lift). Tints are added, scaled by how
