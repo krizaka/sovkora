@@ -770,7 +770,7 @@ def _first_delivery(job_id) -> bool:
         return True
 
 
-def _on_message(channel, method, properties, body) -> None:
+def _on_message(channel, method, _properties, body) -> None:
     job_id = None
     hold_id = None
     activity.touch()
