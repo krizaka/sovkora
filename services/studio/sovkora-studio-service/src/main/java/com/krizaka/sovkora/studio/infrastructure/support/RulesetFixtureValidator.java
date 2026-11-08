@@ -162,7 +162,7 @@ final class RulesetFixtureValidator {
   }
 
   private static double number(String raw) {
-    String cleaned = raw.replaceAll("[\\s ]", "").replace(",", ".");
+    String cleaned = raw.replaceAll("[\\s\u00a0]", "").replace(",", ".");
     try {
       return Double.parseDouble(cleaned);
     } catch (NumberFormatException notANumber) {

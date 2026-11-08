@@ -426,7 +426,7 @@ public final class RunSurfaceRules {
   private static String qualifiedName(Path source, String body) {
     Matcher declared = Pattern.compile("^package\\s+([\\w.]+);", Pattern.MULTILINE).matcher(body);
     String simpleName = source.getFileName().toString().replace(".java", "");
-    return declared.find() ? declared.group(1) + "." + simpleName : simpleName;
+    return declared.find() ? (declared.group(1) + "." + simpleName) : simpleName;
   }
 
   private static String read(Path source) {
