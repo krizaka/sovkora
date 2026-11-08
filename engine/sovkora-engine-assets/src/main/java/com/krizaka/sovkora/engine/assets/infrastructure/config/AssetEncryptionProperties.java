@@ -46,7 +46,7 @@ public record AssetEncryptionProperties(
   public java.nio.file.Path resolvedMasterKeyFile() {
     String path =
         masterKeyFile.startsWith("~/")
-            ? System.getProperty("user.home") + masterKeyFile.substring(1)
+            ? (System.getProperty("user.home") + masterKeyFile.substring(1))
             : masterKeyFile;
     return java.nio.file.Path.of(path);
   }

@@ -74,7 +74,7 @@ final class BlockDecryptingInputStream extends InputStream {
   public int read() throws IOException {
     byte[] one = new byte[1];
     int read = read(one, 0, 1);
-    return read < 0 ? -1 : one[0] & 0xFF;
+    return read < 0 ? -1 : (one[0] & 0xFF);
   }
 
   @Override

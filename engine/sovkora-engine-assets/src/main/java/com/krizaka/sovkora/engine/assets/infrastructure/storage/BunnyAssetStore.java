@@ -41,8 +41,8 @@ public final class BunnyAssetStore implements DurableAssetStore {
    */
   public BunnyAssetStore(String endpoint, String zone, String accessKey) {
     this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-    String host = endpoint.contains("://") ? endpoint : "https://" + endpoint;
-    this.base = (host.endsWith("/") ? host : host + "/") + zone + "/";
+    String host = endpoint.contains("://") ? endpoint : ("https://" + endpoint);
+    this.base = (host.endsWith("/") ? host : (host + "/")) + zone + "/";
     this.accessKey = accessKey;
   }
 
