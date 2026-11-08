@@ -216,6 +216,7 @@ public final class HttpCheckConnector implements ExternalCheckConnector {
     try {
       return CheckCategory.valueOf(wire.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException unknown) {
+      log.debug("Unknown check category: {}", wire, unknown);
       return CheckCategory.NONE;
     }
   }

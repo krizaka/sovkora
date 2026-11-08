@@ -64,6 +64,7 @@ final class JudgeGuard {
         breaker.onFailure();
         throw already;
       }
+      log.warn("Judge execution failed for tier={}: {}", tier, e.getMessage(), e);
       throw failed(pending, tier, String.valueOf(e.getCause()), e.getCause());
     } catch (JudgeUnavailableException empty) {
       log.debug("Judge unavailable for tier={}: {}", tier, empty.getMessage(), empty);

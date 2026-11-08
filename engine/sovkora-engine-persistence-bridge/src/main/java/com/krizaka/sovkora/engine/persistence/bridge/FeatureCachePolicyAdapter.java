@@ -4,6 +4,8 @@ import com.krizaka.sovkora.engine.core.domain.model.chat.CacheStrategy;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PromptCachePolicy;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureCachePolicyManager;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 class FeatureCachePolicyAdapter implements PromptCachePolicy {
+
+  private static final Logger logger = LoggerFactory.getLogger(FeatureCachePolicyAdapter.class);
 
   private final FeatureCachePolicyManager policy;
 
@@ -33,6 +37,7 @@ class FeatureCachePolicyAdapter implements PromptCachePolicy {
     try {
       return CacheStrategy.valueOf(stored);
     } catch (IllegalArgumentException e) {
+      logger.warn("Unknown cache strategy stored: {}", stored, e);
       return DEFAULT_STRATEGY;
     }
   }
