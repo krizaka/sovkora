@@ -20,53 +20,61 @@ const canonical = (value) => {
   );
 };
 
+/** Navigate to the assertion path and return the value. */
+function resolveAssertionPath(output, path) {
+  let actual = output;
+  for (const part of path) {
+    if (typeof actual === "string") actual = JSON.parse(actual);
+    assert.ok(
+      actual !== null && typeof actual === "object" && Object.hasOwn(actual, part),
+      `missing output path ${path.join(".")}`,
+    );
+    actual = actual[part];
+  }
+  return actual;
+}
+
+/** Execute a specific assertion operator. */
+function executeAssertion(op, actual, assertion, label) {
+  switch (op) {
+    case "equals":
+      assert.deepEqual(actual, assertion.equals, label);
+      break;
+    case "includes":
+      assert.ok((typeof actual === "string" || Array.isArray(actual)) && actual.includes(assertion.includes), label);
+      break;
+    case "atLeast":
+      assert.ok(Number.isFinite(actual) && Number.isFinite(assertion.atLeast) && actual >= assertion.atLeast, label);
+      break;
+    case "nonEmpty":
+      assert.equal(assertion.nonEmpty, true, "nonEmpty must be true");
+      assert.ok(
+        (typeof actual === "string" && actual.trim().length > 0) || (Array.isArray(actual) && actual.length > 0),
+        label,
+      );
+      if (typeof actual === "string")
+        assert.doesNotMatch(actual, /^\s*\{\{[^}]*\}\}\s*$/, `${label}: unresolved output template`);
+      break;
+    case "type": {
+      assert.ok(["object", "array", "string", "number", "boolean"].includes(assertion.type), "unknown assertion type");
+      const nullOrType = actual === null ? "null" : typeof actual;
+      const type = Array.isArray(actual) ? "array" : nullOrType;
+      assert.equal(type, assertion.type, label);
+      break;
+    }
+    default:
+      throw new Error(`Unknown assertion operator: ${op}`);
+  }
+}
+
 export function assertOutput(output, assertions) {
   for (const assertion of assertions) {
     assert.ok(Array.isArray(assertion.path) && assertion.path.length > 0, "an assertion needs an output path");
     const ops = Object.keys(assertion).filter((key) => key !== "path");
     assert.ok(ops.length === 1 && operators.includes(ops[0]), "exactly one supported assertion operator is required");
-    let actual = output;
-    for (const part of assertion.path) {
-      if (typeof actual === "string") actual = JSON.parse(actual);
-      assert.ok(
-        actual !== null && typeof actual === "object" && Object.hasOwn(actual, part),
-        `missing output path ${assertion.path.join(".")}`,
-      );
-      actual = actual[part];
-    }
+    const actual = resolveAssertionPath(output, assertion.path);
     const label = assertion.path.join(".");
-    switch (ops[0]) {
-      case "equals":
-        assert.deepEqual(actual, assertion.equals, label);
-        break;
-      case "includes":
-        assert.ok((typeof actual === "string" || Array.isArray(actual)) && actual.includes(assertion.includes), label);
-        break;
-      case "atLeast":
-        assert.ok(Number.isFinite(actual) && Number.isFinite(assertion.atLeast) && actual >= assertion.atLeast, label);
-        break;
-      case "nonEmpty":
-        assert.equal(assertion.nonEmpty, true, "nonEmpty must be true");
-        assert.ok(
-          (typeof actual === "string" && actual.trim().length > 0) || (Array.isArray(actual) && actual.length > 0),
-          label,
-        );
-        if (typeof actual === "string")
-          assert.doesNotMatch(actual, /^\s*\{\{[^}]*\}\}\s*$/, `${label}: unresolved output template`);
-        break;
-      case "type": {
-        assert.ok(
-          ["object", "array", "string", "number", "boolean"].includes(assertion.type),
-          "unknown assertion type",
-        );
-        const nullOrType = actual === null ? "null" : typeof actual;
-        const type = Array.isArray(actual) ? "array" : nullOrType;
-        assert.equal(type, assertion.type, label);
-        break;
-      }
-      default:
-        throw new Error(`Unknown assertion operator: ${ops[0]}`);
-    }
+    executeAssertion(ops[0], actual, assertion, label);
   }
 }
 
