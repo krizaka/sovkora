@@ -250,12 +250,12 @@ def tampered_set(per_type=10, seed=SEED):
         forged = f"{label}: {forged_figure} $"
         truth = {"changed": "amount", "page": 1, "box": [round(v, 1) for v in box]}
 
-        def over(pdf, font):
+        def over(pdf, font, _box=box, _forged=forged):
             pdf.setFillColorRGB(1, 1, 1)
-            pdf.rect(box[0] - 2, box[1] - 2, box[2] - box[0] + 6, box[3] - box[1] + 4, stroke=0, fill=1)
+            pdf.rect(_box[0] - 2, _box[1] - 2, _box[2] - _box[0] + 6, _box[3] - _box[1] + 4, stroke=0, fill=1)
             pdf.setFillColorRGB(0, 0, 0)
             pdf.setFont(font, 12)
-            pdf.drawString(box[0], box[1] + 3, forged)
+            pdf.drawString(_box[0], _box[1] + 3, _forged)
 
         def logo(pdf):
             image = Image.new("RGB", (160, 50), (30, 60, 140))
