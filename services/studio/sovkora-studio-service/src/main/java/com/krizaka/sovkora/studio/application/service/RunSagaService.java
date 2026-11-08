@@ -649,7 +649,8 @@ public class RunSagaService {
     try {
       runs.getObject().startChild(child, run.id(), step.studioKey(), run.actorId(), resolved);
     } catch (RuntimeException refused) {
-      logger.info("Run {} step {} could not call {}", run.id(), step.id(), step.studioKey());
+      logger.info(
+          "Run {} step {} could not call {}", run.id(), step.id(), step.studioKey(), refused);
       applyOutcome(
           child.toString(),
           Map.of(),

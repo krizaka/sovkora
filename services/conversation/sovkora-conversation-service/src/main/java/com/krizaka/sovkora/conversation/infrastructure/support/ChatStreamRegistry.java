@@ -68,7 +68,7 @@ public class ChatStreamRegistry {
               .data(Map.of("interceptorId", event.interceptorId()), MediaType.APPLICATION_JSON));
     } catch (IOException | IllegalStateException e) {
       logger.debug(
-          "Chat SSE [{}] closed before pipeline-step could be sent.", event.conversationId());
+          "Chat SSE [{}] closed before pipeline-step could be sent.", event.conversationId(), e);
       emitters.remove(event.conversationId());
     }
   }
@@ -96,7 +96,8 @@ public class ChatStreamRegistry {
               .name("tool-call")
               .data(data, MediaType.APPLICATION_JSON));
     } catch (IOException | IllegalStateException e) {
-      logger.debug("Chat SSE [{}] closed before tool-call could be sent.", event.conversationId());
+      logger.debug(
+          "Chat SSE [{}] closed before tool-call could be sent.", event.conversationId(), e);
       emitters.remove(event.conversationId());
     }
   }

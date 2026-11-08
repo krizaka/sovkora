@@ -66,7 +66,7 @@ public class ProtectedTurnRecorder implements HandlerInterceptor {
       }
     } catch (RuntimeException e) {
       // Not this interceptor's refusal to give: the turn itself judges the installation.
-      logger.debug("Turn not noted as protected: {}", e.toString());
+      logger.debug("Turn not noted as protected", e);
     }
     return true;
   }

@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,6 +27,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class WebhookEndpointService {
+
+  private static final Logger logger = LoggerFactory.getLogger(WebhookEndpointService.class);
 
   static final String MAX_ENDPOINTS_KEY = "webhook.max-endpoints-per-actor";
   static final String GRACE_HOURS_KEY = "webhook.rotation-grace-hours";
@@ -136,6 +140,7 @@ public class WebhookEndpointService {
     try {
       uri = URI.create(url.strip());
     } catch (IllegalArgumentException malformed) {
+      logger.debug("malformed webhook url", malformed);
       throw new IllegalArgumentException("the webhook url is not a URL");
     }
     if (!"https".equalsIgnoreCase(uri.getScheme())

@@ -63,6 +63,7 @@ final class CreditHold implements CheckMeter.Hold, ResearchMeter.Hold, ChatToken
    * @return the hold, or empty when there is no billable actor or the credits cannot hold the call
    *     (enforced refusal, or a grant that is not granted, which is released first)
    */
+  @SuppressWarnings("java:S1166") // metersNeverLog [ADR-033]: billing adapters must not log
   static Optional<CreditHold> take(
       CreditAuthorizationClient billing,
       BillableCapability capability,
