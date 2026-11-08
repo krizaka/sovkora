@@ -104,7 +104,7 @@ public record EnvelopeHeader(
   /** Plaintext bytes in block {@code index} — the last one is usually short. */
   public int plainBytesInBlock(int index) {
     long remaining = plainLength - (long) index * blockSize;
-    return (int) Math.min(blockSize, Math.max(0, remaining));
+    return (int) Math.clamp(remaining, 0L, blockSize);
   }
 
   /**

@@ -27,7 +27,6 @@ final class BlockDecryptingInputStream extends InputStream {
   private final SeekableByteChannel channel;
 
   private byte[] block = new byte[0];
-  private int blockIndex = -1;
   private int positionInBlock;
   private long plainPosition;
 
@@ -43,10 +42,9 @@ final class BlockDecryptingInputStream extends InputStream {
 
   /** Positions the stream at a plaintext offset by loading the one block that contains it. */
   private void seek(long offset) throws IOException {
-    long clamped = Math.min(Math.max(0, offset), header.plainLength());
+    long clamped = Math.clamp(offset, 0L, header.plainLength());
     this.plainPosition = clamped;
     if (clamped >= header.plainLength()) {
-      this.blockIndex = header.blockCount();
       this.block = new byte[0];
       this.positionInBlock = 0;
       return;
@@ -66,7 +64,6 @@ final class BlockDecryptingInputStream extends InputStream {
       }
     }
     this.block = EnvelopeCodec.openBlock(dataKey, header, index, buffer.array(), sealedLength);
-    this.blockIndex = index;
     this.positionInBlock = 0;
   }
 

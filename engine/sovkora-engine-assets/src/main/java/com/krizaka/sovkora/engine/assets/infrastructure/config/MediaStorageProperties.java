@@ -32,19 +32,15 @@ public record MediaStorageProperties(
       case null ->
           throw new IllegalArgumentException(
               "media.storage.provider must be local, bunny or directory, was " + provider);
-      case LOCAL -> {}
-      case BUNNY -> {
-        if (isBlank(zone) || isBlank(apiKey)) {
+      case LOCAL -> { /* local storage needs no extra configuration */ }
+      case BUNNY when isBlank(zone) || isBlank(apiKey) ->
           throw new IllegalArgumentException(
               "media.storage.provider=bunny needs MEDIA_STORAGE_ZONE and MEDIA_STORAGE_API_KEY");
-        }
-      }
-      case DIRECTORY -> {
-        if (isBlank(directory)) {
+      case BUNNY -> { /* zone and apiKey are present */ }
+      case DIRECTORY when isBlank(directory) ->
           throw new IllegalArgumentException(
               "media.storage.provider=directory needs MEDIA_STORAGE_DIRECTORY");
-        }
-      }
+      case DIRECTORY -> { /* directory is present */ }
     }
   }
 
