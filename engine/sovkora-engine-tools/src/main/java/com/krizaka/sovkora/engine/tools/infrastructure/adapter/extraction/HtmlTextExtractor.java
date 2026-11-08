@@ -169,7 +169,7 @@ class HtmlTextExtractor implements TextExtractor {
   }
 
   private static String normalise(String text) {
-    String collapsed = text.replace(' ', ' ').replaceAll("[ \\t\\x0B\\f\\r]++", " ");
+    String collapsed = text.replace('\u00a0', ' ').replaceAll("[ \\t\\x0B\\f\\r]++", " ");
     List<String> lines = new ArrayList<>();
     for (String line : collapsed.split("\n", -1)) {
       lines.add(trimSpaces(line));
