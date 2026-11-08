@@ -67,6 +67,7 @@ public final class SemanticCacheInterceptor implements PromptContextInterceptor 
 
   private static final Duration DEFAULT_TTL = Duration.ofDays(1);
   private static final int NEAREST = 3;
+  private static final String SEPARATOR = "\u0000";
 
   private final SemanticCacheStore store;
   private final TextEmbedder embedder;
@@ -189,11 +190,11 @@ public final class SemanticCacheInterceptor implements PromptContextInterceptor 
     String scope =
         sha256(
             actor.scope()
-                + "\u0000"
+                + SEPARATOR
                 + String.valueOf(meta.get(JobCommand.SCOPE_REFUSED_TERMS_KEY))
-                + "\u0000"
+                + SEPARATOR
                 + meta.get(JobCommand.SCOPE_REFUSAL_KEY)
-                + "\u0000"
+                + SEPARATOR
                 + meta.get(JobCommand.SAFETY_CRISIS_TERMS_KEY));
     Object tier = meta.get(MODEL_TIER_KEY);
     return new CachePartition(
@@ -212,11 +213,11 @@ public final class SemanticCacheInterceptor implements PromptContextInterceptor 
   private static String exactKey(CachePartition partition, String query) {
     return sha256(
         partition.tenantId()
-            + "\u0000"
+            + SEPARATOR
             + partition.scopeGuardHash()
-            + "\u0000"
+            + SEPARATOR
             + partition.modelTier()
-            + "\u0000"
+            + SEPARATOR
             + query.strip());
   }
 

@@ -34,6 +34,8 @@ public class CitationVerifierInterceptor implements PromptContextInterceptor {
   /** The machine-readable refusal code of a streamed answer with unverified claims. */
   public static final String REASON_UNVERIFIED = "citations_unverified";
 
+  private static final String FIELD_CLAIMS = "claims";
+  private static final String FIELD_ANSWER = "answer";
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private final CitationVerifier verifier;
@@ -115,8 +117,8 @@ public class CitationVerifierInterceptor implements PromptContextInterceptor {
     JsonNode root = parse(responseText);
     if (root == null
         || !root.isObject()
-        || !root.path("claims").isArray()
-        || !root.path("answer").isString()) {
+        || !root.path(FIELD_CLAIMS).isArray()
+        || !root.path(FIELD_ANSWER).isString()) {
       return null;
     }
     VerifyMode mode =
@@ -139,7 +141,7 @@ public class CitationVerifierInterceptor implements PromptContextInterceptor {
 
   static GroundedAnswer read(JsonNode root) {
     List<Claim> claims = new ArrayList<>();
-    for (JsonNode c : root.path("claims")) {
+    for (JsonNode c : root.path(FIELD_CLAIMS)) {
       List<Citation> citations = new ArrayList<>();
       for (JsonNode cite : c.path("citations")) {
         citations.add(
@@ -160,13 +162,13 @@ public class CitationVerifierInterceptor implements PromptContextInterceptor {
               s.path("title").asString(""),
               s.path("sourceKey").asString("")));
     }
-    return new GroundedAnswer(root.path("answer").asString(""), claims, sources);
+    return new GroundedAnswer(root.path(FIELD_ANSWER).asString(""), claims, sources);
   }
 
   static String write(GroundedAnswer answer) {
     ObjectNode root = MAPPER.createObjectNode();
-    root.put("answer", answer.answer());
-    ArrayNode claims = root.putArray("claims");
+    root.put(FIELD_ANSWER, answer.answer());
+    ArrayNode claims = root.putArray(FIELD_CLAIMS);
     for (Claim claim : answer.claims()) {
       ObjectNode c = claims.addObject();
       c.put("text", claim.text());
