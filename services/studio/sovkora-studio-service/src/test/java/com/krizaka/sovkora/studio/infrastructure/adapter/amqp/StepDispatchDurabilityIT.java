@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -43,6 +45,8 @@ import tools.jackson.databind.ObjectMapper;
  * the consumer dedups on; a rolled-back one leaves nothing at all.
  */
 class StepDispatchDurabilityIT {
+
+  private static final Logger log = LoggerFactory.getLogger(StepDispatchDurabilityIT.class);
 
   private static final String STUDIO_DB = "orazaka_studio_db";
   private static final String STUDIO_ROLE = "orazaka_studio";
@@ -167,9 +171,12 @@ class StepDispatchDurabilityIT {
     java.util.Arrays.sort(micros);
     long p50 = micros[samples / 2];
     long p95 = micros[(int) Math.ceil(0.95 * samples) - 1];
-    System.out.printf(
-        "M2.5 dispatch append: n=%d p50=%.2f ms p95=%.2f ms max=%.2f ms%n",
-        samples, p50 / 1000.0, p95 / 1000.0, micros[samples - 1] / 1000.0);
+    log.info(
+        "M2.5 dispatch append: n={} p50={} ms p95={} ms max={} ms",
+        samples,
+        String.format("%.2f", p50 / 1000.0),
+        String.format("%.2f", p95 / 1000.0),
+        String.format("%.2f", micros[samples - 1] / 1000.0));
 
     assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM studio_outbox", Integer.class))
         .as("every sample committed a row, so the measurement is of the real work")

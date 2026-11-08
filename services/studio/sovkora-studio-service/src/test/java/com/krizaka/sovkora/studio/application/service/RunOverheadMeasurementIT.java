@@ -26,6 +26,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,6 +64,8 @@ import org.testcontainers.utility.MountableFile;
  * number it produces is unwelcome puts pressure on the number.
  */
 class RunOverheadMeasurementIT {
+
+  private static final Logger log = LoggerFactory.getLogger(RunOverheadMeasurementIT.class);
 
   /** §4.1 asks for ≥ 30; 50 costs nothing here and makes the tail legible. */
   private static final int SAMPLES = 50;
@@ -385,7 +389,7 @@ class RunOverheadMeasurementIT {
             + p95
             + ", query_counts="
             + queryCounts;
-    System.out.println("[M1] " + result);
+    log.info("[M1] {}", result);
     writeHotPathMeasurement(result, outcomeMicros);
   }
 
@@ -444,7 +448,7 @@ class RunOverheadMeasurementIT {
     } catch (IOException unwritable) {
       throw new UncheckedIOException("cannot write " + target, unwritable);
     }
-    System.out.println("M1 raw samples written to " + target.toAbsolutePath());
+    log.info("M1 raw samples written to {}", target.toAbsolutePath());
   }
 
   private static Recording startJfrRecording() {
@@ -497,7 +501,7 @@ class RunOverheadMeasurementIT {
     } catch (IOException unwritable) {
       throw new UncheckedIOException("cannot write " + target, unwritable);
     }
-    System.out.println("M0 raw samples written to " + target.toAbsolutePath());
+    log.info("M0 raw samples written to {}", target.toAbsolutePath());
   }
 
   /** Records when the engine handed the command over — segment A's exit. */
