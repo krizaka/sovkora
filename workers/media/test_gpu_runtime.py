@@ -639,9 +639,8 @@ class TestHeartbeat(unittest.TestCase):
     def test_the_beat_stops_when_the_work_ends_even_on_failure(self):
         target = self._target()
         env = {"MEDIA_HEARTBEAT_FILE": str(target)}
-        with self.assertRaises(RuntimeError):
-            with activity.beating(env, every=0.05):
-                raise RuntimeError("the job failed")
+        with self.assertRaises(RuntimeError), activity.beating(env, every=0.05):
+            raise RuntimeError("the job failed")
         os.utime(target, (0, 0))
         time.sleep(0.2)
         self.assertEqual(0, target.stat().st_mtime, "no beat after the work: an idle pod must look idle")
