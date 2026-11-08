@@ -86,7 +86,10 @@ export function StackPanel({ snap, goSettings }: { snap: Snapshot; goSettings: (
     return () => void off.then((f) => f());
   }, [runAction]);
 
-  const busy = act.isPending ? act.variables.label : status.isFetching ? "status" : version.isFetching ? "version" : null;
+  let busy: string | null = null;
+  if (act.isPending) busy = act.variables.label;
+  else if (status.isFetching) busy = "status";
+  else if (version.isFetching) busy = "version";
 
   const state = stackState(services, snap.probe.state);
   const remote = snap.settings.mode === "remote";
