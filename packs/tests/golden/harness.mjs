@@ -64,6 +64,8 @@ export function assertOutput(output, assertions) {
         assert.equal(type, assertion.type, label);
         break;
       }
+      default:
+        throw new Error(`Unknown assertion operator: ${ops[0]}`);
     }
   }
 }
