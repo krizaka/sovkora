@@ -78,6 +78,6 @@ public class UniversalProxyChatProvider {
       return baseUrl;
     }
     String trimmed = baseUrl.replaceAll("/+$", "");
-    return trimmed.endsWith("/v1") || trimmed.contains("/v1/") ? trimmed : trimmed + "/v1";
+    return (trimmed.endsWith("/v1") || trimmed.contains("/v1/")) ? trimmed : (trimmed + "/v1");
   }
 }
