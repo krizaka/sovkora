@@ -182,6 +182,7 @@ test.describe("video Studio — the model list (mocked)", () => {
 const live = Boolean(process.env.E2E_BASE_URL && process.env.E2E_USER);
 
 test.describe("video Studio — the model list (live on dev)", () => {
+  // TODO: skipped — requires a live deployment with E2E_BASE_URL and QA credentials
   test.skip(!live, "live: needs E2E_BASE_URL and the QA sign-in");
 
   test("the model is a populated list with chips, and a real run starts on the chosen model", async ({ page }) => {

@@ -153,6 +153,7 @@ async function agree(page: Page, region: string) {
 }
 
 test.describe("Wellbeing Studio: consent before the first run (mocked)", () => {
+  // TODO: skipped when live — this describe block tests the mocked flow only; run against the dev server
   test.skip(live, "mocked: runs against the dev server only");
 
   test("the 451 becomes the consent step; agreeing installs with the three declarations, then runs", async ({
