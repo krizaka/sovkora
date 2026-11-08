@@ -23,9 +23,14 @@ from pathlib import Path
 from app import model_cache
 from app.video_models import load_manifest
 
+#: HuggingFace glob pattern for the tokenizer artefacts.
+_TOKENIZER_GLOB = "tokenizer/*"
+#: HuggingFace glob pattern for the text-encoder artefacts.
+_TEXT_ENCODER_GLOB = "text_encoder/*"
+
 #: What a Wan pipeline reads from its repository. The text encoder is skipped when the model borrows
 #: its donor's (``textEncoderFrom``), which is the whole point of declaring it.
-_WAN_PARTS = ["model_index.json", "scheduler/*", "tokenizer/*", "transformer/*", "transformer_2/*", "vae/*"]
+_WAN_PARTS = ["model_index.json", "scheduler/*", _TOKENIZER_GLOB, "transformer/*", "transformer_2/*", "vae/*"]
 
 
 def plan(profile: str, manifest: dict | None = None) -> dict:
@@ -46,16 +51,16 @@ def plan(profile: str, manifest: dict | None = None) -> dict:
         parts = set(_WAN_PARTS)
         if spec.get("pipeline") == "ltx":  # LTX-Video: one transformer, its own T5 text encoder, no donor
             snapshots.setdefault((spec["repo"], spec["revision"], cache), set()).update(
-                {"model_index.json", "scheduler/*", "tokenizer/*", "text_encoder/*", "transformer/*", "vae/*"}
+                {"model_index.json", "scheduler/*", _TOKENIZER_GLOB, _TEXT_ENCODER_GLOB, "transformer/*", "vae/*"}
             )
             continue
         if spec.get("textEncoderFrom"):
             donor = manifest["video"][spec["textEncoderFrom"]]
             snapshots.setdefault((donor["repo"], donor["revision"], donor.get("cache") or "volume"), set()).update(
-                {"text_encoder/*", "tokenizer/*"}
+                {_TEXT_ENCODER_GLOB, _TOKENIZER_GLOB}
             )
         else:
-            parts.add("text_encoder/*")
+            parts.add(_TEXT_ENCODER_GLOB)
         snapshots.setdefault((spec["repo"], spec["revision"], cache), set()).update(parts)
         lora = spec.get("lora")
         if lora:
