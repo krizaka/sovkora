@@ -27,11 +27,8 @@ RUN pnpm run build
 FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production
-# next start only needs node_modules (for the next binary), .next and public.
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./
+# The whole app: next.config.ts imports from src/ and the pages read content/ from disk at run time.
+COPY --from=builder /app ./
 EXPOSE 8080
 # --port 8080 matches http_port in sovkora-dev.app.yaml.
 CMD ["node_modules/.bin/next", "start", "--port", "8080"]
