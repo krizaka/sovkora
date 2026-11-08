@@ -51,6 +51,26 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 /**
+ * Generate files based on template type.
+ */
+function executeGeneration(templateType: TemplateType, ctx: TemplateContext, workspaceRoot: string): GenerationResult {
+  switch (templateType) {
+    case "interceptor":
+      return generateInterceptor(ctx, workspaceRoot);
+    case "business-feature":
+      return generateBusinessFeature(ctx, workspaceRoot);
+    case "technical-feature":
+      return generateTechnicalFeature(ctx, workspaceRoot);
+    case "api-connector":
+      return generateApiConnector(ctx, workspaceRoot);
+    case "configuration":
+      return generateConfiguration(ctx, workspaceRoot);
+    default:
+      return writeSingleTemplate(templateType, ctx, workspaceRoot);
+  }
+}
+
+/**
  * Formats a generated file for the manifest display.
  */
 function formatFileManifest(file: GeneratedFile): string {
@@ -342,26 +362,7 @@ export const generateCommand = new Command("generate")
     let result: GenerationResult;
 
     try {
-      switch (templateType as TemplateType) {
-        case "interceptor":
-          result = generateInterceptor(ctx, workspaceRoot);
-          break;
-        case "business-feature":
-          result = generateBusinessFeature(ctx, workspaceRoot);
-          break;
-        case "technical-feature":
-          result = generateTechnicalFeature(ctx, workspaceRoot);
-          break;
-        case "api-connector":
-          result = generateApiConnector(ctx, workspaceRoot);
-          break;
-        case "configuration":
-          result = generateConfiguration(ctx, workspaceRoot);
-          break;
-        default:
-          result = writeSingleTemplate(templateType as TemplateType, ctx, workspaceRoot);
-          break;
-      }
+      result = executeGeneration(templateType as TemplateType, ctx, workspaceRoot);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       await logError(`Generation failed: ${msg}`);
