@@ -45,6 +45,7 @@ import {
   type ToolCheckResult,
 } from "../services/tool-installer";
 import { ensureDbRolePasswords } from "../utils/platform";
+import { ollamaBaseUrl } from "../utils/endpoints";
 import { bootstrapWorkspace } from "../services/workspace-bootstrap";
 
 function secureHex(bytes: number): string {
@@ -317,9 +318,17 @@ export const installCommand = new Command("install")
 
       if (targetEnv !== "local_dev") {
         const ollamaHost = await text({
-          message: "Enter external Ollama hostname/IP:",
-          placeholder: "e.g., ollama-server.corp.internal",
+          message: "Enter external Ollama hostname/IP, or a full URL (https://...):",
+          placeholder: "e.g., ollama-server.corp.internal or https://ollama.corp.internal:8443",
           defaultValue: "external-ollama-host",
+          validate: (answer) => {
+            try {
+              ollamaBaseUrl(answer || "external-ollama-host");
+              return undefined;
+            } catch (error) {
+              return error instanceof Error ? error.message : String(error);
+            }
+          },
         });
         handleCancel(ollamaHost);
         externalEndpoints.ollamaHost = ollamaHost as string;
@@ -376,8 +385,9 @@ export const installCommand = new Command("install")
       envUpdates["SPRING_AI_OLLAMA_BASE_URL"] = "http://localhost:11434";
       envUpdates["OLLAMA_BASE_URL"] = "http://localhost:11434";
     } else if (infraMode === "external" && externalEndpoints.ollamaHost) {
-      envUpdates["SPRING_AI_OLLAMA_BASE_URL"] = `http://${externalEndpoints.ollamaHost}:11434`;
-      envUpdates["OLLAMA_BASE_URL"] = `http://${externalEndpoints.ollamaHost}:11434`;
+      const ollamaUrl = ollamaBaseUrl(externalEndpoints.ollamaHost);
+      envUpdates["SPRING_AI_OLLAMA_BASE_URL"] = ollamaUrl;
+      envUpdates["OLLAMA_BASE_URL"] = ollamaUrl;
     } else {
       envUpdates["SPRING_AI_OLLAMA_BASE_URL"] = "http://ollama:11434";
       envUpdates["OLLAMA_BASE_URL"] = "http://ollama:11434";
