@@ -33,7 +33,8 @@ public class SpringAiOutputJudge implements OutputJudge {
     List<Document> data = request.contexts().stream().map(Document::new).toList();
     EvaluationResponse response =
         evaluator.evaluate(new EvaluationRequest(request.question(), data, request.answer()));
-    float score = response.getScore() > 0f ? response.getScore() : (response.isPass() ? 1f : 0f);
+    float defaultScore = response.isPass() ? 1f : 0f;
+    float score = response.getScore() > 0f ? response.getScore() : defaultScore;
     return new JudgeVerdict(response.isPass(), Math.min(score, 1f), response.getFeedback());
   }
 }
