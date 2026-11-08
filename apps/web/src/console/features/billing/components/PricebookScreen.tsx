@@ -103,7 +103,7 @@ export function PricebookScreen() {
       cell: (rate) => formatCredits(rate.estimateCredits),
     },
     { id: "version", header: "v", sortable: true, align: "end" },
-    { id: "actions", header: "", align: "end", cell: (rate) => <RateActionsCell rate={rate} onEdit={edit} /> },
+    { id: "actions", header: "", align: "end", cell: (rate) => <RateActionsCell rate={rate} onEdit={edit} /> }, // NOSONAR S6478 — render prop called as a function by DataTable; RateActionsCell is defined outside; edit is stable
   ];
 
   return (

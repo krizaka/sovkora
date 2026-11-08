@@ -108,7 +108,7 @@ export function JobsTable({
         filter: "facet",
         sortable: true,
         value: (j) => d.status[j.status],
-        cell: (j) => <JobStatusCell job={j} label={d.status[j.status]} />,
+        cell: (j) => <JobStatusCell job={j} label={d.status[j.status]} />, // NOSONAR S6478 — render prop called as a function by DataTable; JobStatusCell is defined outside; d is stable (translation ref)
       },
       {
         id: "time",
@@ -140,6 +140,7 @@ export function JobsTable({
         value: (j) => new Date(j.createdAt),
         cell: (j) => timeAgoCell(j.createdAt, dateLocale),
       },
+      // prettier-ignore
       {
         id: "actions",
         header: d.columns.actions,
@@ -147,7 +148,7 @@ export function JobsTable({
         align: "end",
         hideable: false,
         card: "hidden",
-        cell: (j) => (
+        cell: (j) => ( // NOSONAR S6478 — render prop called as a function by DataTable; JobActionsCell is defined outside; copiedId/onOpenModal/onCopy/onDelete are captured via useMemo deps
           <JobActionsCell
             job={j}
             labels={actionLabels}
