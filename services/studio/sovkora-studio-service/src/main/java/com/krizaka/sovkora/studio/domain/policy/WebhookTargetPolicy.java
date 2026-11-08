@@ -54,25 +54,25 @@ public final class WebhookTargetPolicy {
     }
     byte[] raw = address.getAddress();
     if (address instanceof Inet4Address) {
-      int first = raw[0] & 0xff;
-      int second = raw[1] & 0xff;
+      int first = (raw[0] & 0xff);
+      int second = (raw[1] & 0xff);
       // 100.64.0.0/10 shared address space (carrier-grade NAT), 0.0.0.0/8, 192.0.0.0/24,
       // 198.18.0.0/15
       return !(first == 0
           || (first == 100 && second >= 64 && second <= 127)
-          || (first == 192 && second == 0 && (raw[2] & 0xff) == 0)
+          || (first == 192 && second == 0 && ((raw[2] & 0xff) == 0))
           || (first == 198 && (second == 18 || second == 19)));
     }
     if (address instanceof Inet6Address) {
       // fc00::/7 unique-local; an IPv4-mapped address is judged by its IPv4 part
-      if ((raw[0] & 0xfe) == 0xfc) {
+      if (((raw[0] & 0xfe) == 0xfc)) {
         return false;
       }
       boolean mapped = true;
       for (int i = 0; i < 10; i++) {
         mapped &= raw[i] == 0;
       }
-      if (mapped && (raw[10] & 0xff) == 0xff && (raw[11] & 0xff) == 0xff) {
+      if (mapped && ((raw[10] & 0xff) == 0xff) && ((raw[11] & 0xff) == 0xff)) {
         try {
           return isPublic(
               InetAddress.getByAddress(new byte[] {raw[12], raw[13], raw[14], raw[15]}));
