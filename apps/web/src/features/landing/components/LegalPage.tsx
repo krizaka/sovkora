@@ -49,9 +49,9 @@ export function LegalPage({ content }: { content: Record<Locale, LegalContent> }
           <p className="text-fg-secondary text-sm md:text-base leading-relaxed">{c.intro}</p>
 
           <div className="grid gap-6 md:grid-cols-2 pt-2">
-            {c.sections.map((section, idx) => (
+            {c.sections.map((section) => (
               <section
-                key={idx}
+                key={section.title}
                 className="p-5 rounded-xl border border-border-subtle bg-surface-1 hover:border-border-strong transition-colors duration-200"
               >
                 <h2 className="text-base font-bold text-fg mb-2">{section.title}</h2>

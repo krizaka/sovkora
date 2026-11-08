@@ -64,11 +64,11 @@ function Sequence({
       <ol className="m-0 list-none space-y-1.5 p-0">
         {block.items.map((it, i) =>
           it.type === "section" ? (
-            <li key={i} className="pt-3 font-semibold text-fg">
+            <li key={`section-${it.title}`} className="pt-3 font-semibold text-fg">
               {it.title}
             </li>
           ) : (
-            <li key={i} className={rowGrid}>
+            <li key={`step-${it.n}`} className={rowGrid}>
               <span className="pt-0.5 text-right font-mono text-xs text-fg-muted">
                 <span className="sr-only">{l.step} </span>
                 {it.n}
@@ -141,8 +141,8 @@ function States({
   return (
     <Figure title={l.states}>
       <ol className="m-0 list-none space-y-1.5 p-0">
-        {block.transitions.map((tr, i) => (
-          <li key={i} className="text-sm leading-relaxed text-fg-secondary">
+        {block.transitions.map((tr) => (
+          <li key={`${tr.from}->${tr.to}`} className="text-sm leading-relaxed text-fg-secondary">
             <span className={mono}>{name(tr.from)}</span> <span aria-hidden>→</span>
             <span className="sr-only"> → </span> <span className={mono}>{name(tr.to)}</span>
             <span className="text-fg-muted">: </span>

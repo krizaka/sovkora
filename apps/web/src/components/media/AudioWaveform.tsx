@@ -91,7 +91,7 @@ export function AudioWaveform({ src, label, className }: Readonly<AudioWaveformP
           const h = Math.max(2, p * 36);
           return (
             <rect
-              key={i}
+              key={`bar-${i}`}
               x={i * 4 + 0.5}
               y={20 - h / 2}
               width={2.5}
