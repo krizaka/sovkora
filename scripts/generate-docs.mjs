@@ -1345,6 +1345,26 @@ const LAYER_TITLES = {
   app: "Applications",
   content: "Content",
 };
+/** Build repository table rows for a layer. */
+const buildRepositoryRows = (a, repos) => {
+  const rows = [];
+  for (const r of repos) {
+    const hosted = a.modules.filter((m) => m.repository === r.name).map((m) => `\`${m.id}\``);
+    const owns = REPOSITORIES.find((x) => x.name === r.name)?.initdb ?? [];
+    const detail = [
+      r.description,
+      hosted.length ? `Modules: ${hosted.join(", ")}.` : "",
+      owns.length ? `Owns ${owns.map((f) => `\`${f}\``).join(", ")}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    const deps = r.dependsOn.length ? r.dependsOn.map((d) => `\`${d}\``).join(", ") : "—";
+    const where = r.name === "krizaka-java" ? `[\`krizaka-java\`](${r.url})` : `[\`${r.path}\`](${r.url})`;
+    rows.push(`| ${where} | ${r.kind} | ${detail} | ${deps} |`);
+  }
+  return rows;
+};
+
 const mdRepositories = (a) => {
   const lines = [
     frontmatter(
@@ -1368,20 +1388,7 @@ const mdRepositories = (a) => {
     const repos = a.repositories.filter((r) => r.layer === layer);
     if (!repos.length) continue;
     lines.push(`## ${title}\n`, "| Module | Kind | What it holds | Depends on |", "|:---|:---|:---|:---|");
-    for (const r of repos) {
-      const hosted = a.modules.filter((m) => m.repository === r.name).map((m) => `\`${m.id}\``);
-      const owns = REPOSITORIES.find((x) => x.name === r.name)?.initdb ?? [];
-      const detail = [
-        r.description,
-        hosted.length ? `Modules: ${hosted.join(", ")}.` : "",
-        owns.length ? `Owns ${owns.map((f) => `\`${f}\``).join(", ")}.` : "",
-      ]
-        .filter(Boolean)
-        .join(" ");
-      const deps = r.dependsOn.length ? r.dependsOn.map((d) => `\`${d}\``).join(", ") : "—";
-      const where = r.name === "krizaka-java" ? `[\`krizaka-java\`](${r.url})` : `[\`${r.path}\`](${r.url})`;
-      lines.push(`| ${where} | ${r.kind} | ${detail} | ${deps} |`);
-    }
+    lines.push(...buildRepositoryRows(a, repos));
     lines.push("");
   }
   lines.push(
