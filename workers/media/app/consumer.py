@@ -63,6 +63,7 @@ from app.telemetry import (
     send_job_error,
     send_progress_update,
 )
+import contextlib
 
 JOBS_EXCHANGE = "orazaka.jobs"
 DLX_EXCHANGE = "orazaka.dlx"
@@ -235,10 +236,8 @@ def _store(path: str, job: dict, filename: str, content_type: str, local_url: st
         gpu_out.put(path, job, filename, content_type)
         return asset_sink.upload(path, job, filename, content_type)
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.remove(path)
-        except OSError:
-            pass
 
 
 def _output_paths(user_id: str, job_id: str) -> tuple:

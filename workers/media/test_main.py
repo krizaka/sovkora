@@ -23,6 +23,7 @@ from threading import Thread
 from unittest.mock import MagicMock, patch
 
 from PIL import Image
+import contextlib
 
 # ---------------------------------------------------------------------------
 # Patch heavy ML dependencies before importing the module under test
@@ -76,10 +77,8 @@ with patch.dict(os.environ, {"SPRING_RABBITMQ_HOST": "localhost", "SPRING_RABBIT
         video_worker = importlib.util.module_from_spec(spec)
         # Prevent the top-level pipeline load from running
         with patch.object(mock_diffusers.StableVideoDiffusionPipeline, "from_pretrained", return_value=mock_pipe):
-            try:
+            with contextlib.suppress(SystemExit):
                 spec.loader.exec_module(video_worker)
-            except SystemExit:
-                pass
 
 
 class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
@@ -972,10 +971,8 @@ class TestRunServerFunction(unittest.TestCase):
         with patch.object(HTTPServer, "__init__", return_value=None) as mock_init:
             with patch.object(HTTPServer, "serve_forever", side_effect=KeyboardInterrupt):
                 with patch.object(HTTPServer, "server_close"):
-                    try:
+                    with contextlib.suppress(KeyboardInterrupt, AttributeError):
                         video_worker.run(port=8188)
-                    except (KeyboardInterrupt, AttributeError):
-                        pass
 
     def test_custom_port_from_argv(self):
         """If sys.argv provides a port, it should be used."""
@@ -989,10 +986,8 @@ class TestRunServerFunction(unittest.TestCase):
         with patch.object(HTTPServer, "__init__", return_value=None) as mock_init:
             with patch.object(HTTPServer, "serve_forever", side_effect=KeyboardInterrupt):
                 with patch.object(HTTPServer, "server_close"):
-                    try:
+                    with contextlib.suppress(KeyboardInterrupt, AttributeError):
                         video_worker.run(port=8188)
-                    except (KeyboardInterrupt, AttributeError):
-                        pass
         # call_args[0] = positional args: (self_instance, server_address, handler_class)
         server_address = mock_init.call_args[0][1]
         self.assertEqual(server_address[0], "127.0.0.1")
@@ -1004,10 +999,8 @@ class TestRunServerFunction(unittest.TestCase):
             with patch.object(HTTPServer, "__init__", return_value=None) as mock_init:
                 with patch.object(HTTPServer, "serve_forever", side_effect=KeyboardInterrupt):
                     with patch.object(HTTPServer, "server_close"):
-                        try:
+                        with contextlib.suppress(KeyboardInterrupt, AttributeError):
                             video_worker.run(port=8188)
-                        except (KeyboardInterrupt, AttributeError):
-                            pass
             server_address = mock_init.call_args[0][1]
             self.assertEqual(server_address[0], "")
         finally:
