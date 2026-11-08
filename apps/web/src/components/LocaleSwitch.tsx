@@ -9,12 +9,16 @@ import { localeHref } from "@/core/i18n/locale-negotiation";
 
 const LOCALES: readonly Locale[] = ["en", "fr"];
 
-/** A language link that sets the locale (the web client keeps it in its context and a cookie, not in the address). */
-function LocaleLink({ onClick, ...props }: ComponentProps<"a">) {
+/**
+ * A language link that sets the locale (the web client keeps it in its context and a cookie, not in the address). It is a
+ * real link, its `href` always given by the switch, so the keyboard reaches it and Enter activates it like a click.
+ */
+function LocaleLink({ href, onClick, ...props }: ComponentProps<"a">) {
   const { setLocale } = useTranslation();
   return (
     <a
       {...props}
+      href={href}
       onClick={(e) => {
         onClick?.(e);
         if (props.hrefLang && !e.defaultPrevented) {
