@@ -34,8 +34,8 @@ public final class PublicAddresses {
       return isPublicV4(b);
     }
     if (address instanceof Inet6Address) {
-      int first = b[0] & 0xff;
-      if ((first & 0xfe) == 0xfc) {
+      int first = (b[0] & 0xff);
+      if (((first & 0xfe)) == 0xfc) {
         return false; // ULA fc00::/7
       }
       if (first == 0x20
@@ -57,11 +57,11 @@ public final class PublicAddresses {
     for (int i = 0; i < 10; i++) {
       zeros80 &= b[i] == 0;
     }
-    boolean mapped = zeros80 && (b[10] & 0xff) == 0xff && (b[11] & 0xff) == 0xff;
+    boolean mapped = zeros80 && ((b[10] & 0xff) == 0xff) && ((b[11] & 0xff) == 0xff);
     boolean compatible = zeros80 && b[10] == 0 && b[11] == 0;
     // NAT64 well-known prefix 64:ff9b::/96
     boolean nat64 =
-        b[0] == 0 && (b[1] & 0xff) == 0x64 && (b[2] & 0xff) == 0xff && (b[3] & 0xff) == 0x9b;
+        b[0] == 0 && ((b[1] & 0xff) == 0x64) && ((b[2] & 0xff) == 0xff) && ((b[3] & 0xff) == 0x9b);
     return mapped || compatible || nat64;
   }
 
@@ -83,15 +83,15 @@ public final class PublicAddresses {
     if (a == 192 && c == 168) {
       return false;
     }
-    if (a == 192 && c == 0 && ((b[2] & 0xff) == 0 || (b[2] & 0xff) == 2)) {
+    if (a == 192 && c == 0 && (((b[2] & 0xff) == 0) || ((b[2] & 0xff) == 2))) {
       return false; // IETF assignments 192.0.0/24, documentation 192.0.2/24
     }
     if (a == 198 && (c == 18 || c == 19)) {
       return false; // benchmarking
     }
-    if (a == 198 && c == 51 && (b[2] & 0xff) == 100) {
+    if (a == 198 && c == 51 && ((b[2] & 0xff) == 100)) {
       return false; // documentation
     }
-    return !(a == 203 && c == 0 && (b[2] & 0xff) == 113); // documentation
+    return !(a == 203 && c == 0 && ((b[2] & 0xff) == 113)); // documentation
   }
 }

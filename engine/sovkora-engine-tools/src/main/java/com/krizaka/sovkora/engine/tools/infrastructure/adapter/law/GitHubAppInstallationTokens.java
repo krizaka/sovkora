@@ -241,7 +241,7 @@ public final class GitHubAppInstallationTokens {
     byte[] out = new byte[1 + bytes];
     out[0] = (byte) (0x80 | bytes);
     for (int i = bytes; i >= 1; i--) {
-      out[i] = (byte) (length & 0xff);
+      out[i] = (byte) ((length & 0xff));
       length >>= 8;
     }
     return out;
