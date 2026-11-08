@@ -142,7 +142,7 @@ public class LocalVideoProcessor implements VideoPreProcessor {
     try {
       String text = new String(bytes, StandardCharsets.UTF_8);
       for (int i = 0; i < Math.min(bytes.length, 100); i++) {
-        int b = bytes[i] & 0xFF;
+        int b = (bytes[i] & 0xFF);
         if (b < 32 && b != 9 && b != 10 && b != 13 && b != 0) {
           return null;
         }
