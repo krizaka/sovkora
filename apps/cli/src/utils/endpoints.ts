@@ -15,7 +15,7 @@ const SCHEME = /^[a-z][a-z0-9+.-]*:\/\//i;
  * @throws Error when the answer is empty, has a scheme other than http(s), or is not a valid URL.
  */
 export function ollamaBaseUrl(answer: string): string {
-  const value = answer.trim();
+  let value = answer.trim();
   if (value === "") {
     throw new Error("The Ollama endpoint is empty.");
   }
@@ -31,5 +31,9 @@ export function ollamaBaseUrl(answer: string): string {
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new Error(`The Ollama endpoint must be http or https, not ${url.protocol}`);
   }
-  return value.replace(/\/+$/, "");
+  // Strip trailing slashes
+  while (value.endsWith("/")) {
+    value = value.slice(0, -1);
+  }
+  return value;
 }

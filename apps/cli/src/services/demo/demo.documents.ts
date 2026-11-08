@@ -59,7 +59,7 @@ export const DEMO_INVOICE_TOTALS = { subtotal, gst, qst, total: subtotal + gst +
 const money = (amount: number) =>
   `${Math.floor(amount / 100)
     .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, " ")},${String(amount % 100).padStart(2, "0")} $`;
+    .replace(/\B(?=(?:\d{3})+(?!\d))/g, " ")},${String(amount % 100).padStart(2, "0")} $`;
 const row = (label: string, amount: number) =>
   `${label} ${".".repeat(Math.max(3, 38 - label.length))} ${money(amount).padStart(12)}`;
 
