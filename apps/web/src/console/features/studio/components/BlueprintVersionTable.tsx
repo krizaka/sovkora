@@ -11,6 +11,52 @@ interface BlueprintVersionTableProps {
   onChanged: () => void;
 }
 
+function VersionCodeCell({ version }: Readonly<{ version: string }>) {
+  return <span className="font-mono text-[12px]">{version}</span>;
+}
+
+function VersionStatusCell({ status }: Readonly<{ status: string }>) {
+  return <span className={status === "PUBLISHED" ? "text-fg-success" : "text-fg-muted"}>{status}</span>;
+}
+
+function VersionActionsCell({
+  version,
+  studioKey,
+  busy,
+  onAct,
+}: Readonly<{
+  version: BlueprintVersion;
+  studioKey: string;
+  busy: string | null;
+  onAct: (v: string, action: () => Promise<void>) => void;
+}>) {
+  return (
+    <span className="space-x-2">
+      {version.status === "DRAFT" && (
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => void onAct(version.version, () => StudioAdminApi.publish(studioKey, version.version))}
+          className="text-xs text-accent disabled:opacity-50"
+        >
+          Publier
+        </button>
+      )}
+      {version.status === "PUBLISHED" && (
+        <button
+          type="button"
+          disabled={busy !== null}
+          title="La version reste exécutable pour les installations qui l'ont épinglée"
+          onClick={() => void onAct(version.version, () => StudioAdminApi.deprecate(studioKey, version.version))}
+          className="text-xs text-fg-muted disabled:opacity-50"
+        >
+          Déprécier
+        </button>
+      )}
+    </span>
+  );
+}
+
 /**
  * The version history, with publish and deprecate.
  *
@@ -35,50 +81,15 @@ export function BlueprintVersionTable({ studioKey, versions, onChanged }: Readon
   };
 
   const columns: DataTableColumn<BlueprintVersion>[] = [
-    {
-      id: "version",
-      header: "Version",
-      card: "title",
-      cell: (version) => <span className="font-mono text-[12px]">{version.version}</span>,
-    },
-    {
-      id: "status",
-      header: "Statut",
-      cell: (version) => (
-        <span className={version.status === "PUBLISHED" ? "text-fg-success" : "text-fg-muted"}>{version.status}</span>
-      ),
-    },
+    { id: "version", header: "Version", card: "title", cell: (v) => <VersionCodeCell version={v.version} /> },
+    { id: "status", header: "Statut", cell: (v) => <VersionStatusCell status={v.status} /> },
     { id: "estimatedCredits", header: "Crédits", align: "end" },
-    { id: "changelog", header: "Note", value: (version) => version.changelog ?? "—" },
+    { id: "changelog", header: "Note", value: (v) => v.changelog ?? "—" },
     {
       id: "actions",
       header: "",
       align: "end",
-      cell: (version) => (
-        <span className="space-x-2">
-          {version.status === "DRAFT" && (
-            <button
-              type="button"
-              disabled={busy !== null}
-              onClick={() => void act(version.version, () => StudioAdminApi.publish(studioKey, version.version))}
-              className="text-xs text-accent disabled:opacity-50"
-            >
-              Publier
-            </button>
-          )}
-          {version.status === "PUBLISHED" && (
-            <button
-              type="button"
-              disabled={busy !== null}
-              title="La version reste exécutable pour les installations qui l'ont épinglée"
-              onClick={() => void act(version.version, () => StudioAdminApi.deprecate(studioKey, version.version))}
-              className="text-xs text-fg-muted disabled:opacity-50"
-            >
-              Déprécier
-            </button>
-          )}
-        </span>
-      ),
+      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={act} />,
     },
   ];
 
@@ -93,7 +104,7 @@ export function BlueprintVersionTable({ studioKey, versions, onChanged }: Readon
         caption="Versions"
         rows={versions}
         columns={columns}
-        getRowId={(version) => version.version}
+        getRowId={(v) => v.version}
         labels={{ loading: "Lecture des versions", empty: "Aucune version pour ce Studio." }}
       />
       {error && <p className="whitespace-pre-wrap text-sm text-fg-danger">{error}</p>}

@@ -8,6 +8,14 @@ import { formatCredits, type MarginPreview, type PricebookRate } from "@krizaka/
 import { BillingField } from "./BillingField";
 import { BillingAdminApi } from "@/console/services/billing.admin.api";
 
+function RateActionsCell({ rate, onEdit }: Readonly<{ rate: PricebookRate; onEdit: (r: PricebookRate) => void }>) {
+  return (
+    <Button size="sm" variant="ghost" onClick={() => onEdit(rate)}>
+      Modifier
+    </Button>
+  );
+}
+
 /**
  * The pricebook screen.
  *
@@ -95,16 +103,7 @@ export function PricebookScreen() {
       cell: (rate) => formatCredits(rate.estimateCredits),
     },
     { id: "version", header: "v", sortable: true, align: "end" },
-    {
-      id: "actions",
-      header: "",
-      align: "end",
-      cell: (rate) => (
-        <Button size="sm" variant="ghost" onClick={() => edit(rate)}>
-          Modifier
-        </Button>
-      ),
-    },
+    { id: "actions", header: "", align: "end", cell: (rate) => <RateActionsCell rate={rate} onEdit={edit} /> },
   ];
 
   return (
@@ -113,7 +112,7 @@ export function PricebookScreen() {
         <h2 className="text-lg font-semibold text-fg">Grille tarifaire</h2>
         <p className="text-sm text-fg-muted">
           Une publication clôture le tarif courant et en ouvre une nouvelle version. Les réservations en cours restent
-          facturées à la version qu’elles ont figée.
+          facturées à la version qu'elles ont figée.
         </p>
       </header>
 

@@ -20,7 +20,66 @@ interface WebhooksSectionProps {
   fetchHeaders: () => Promise<Record<string, string>>;
 }
 
+type WebhookTranslations = ReturnType<typeof useTranslation>["t"]["webhooks"];
+
 const urlCell = (e: WebhookEndpoint) => <code className="break-all font-mono text-xs">{e.url}</code>;
+
+function EndpointEventsCell({ endpoint, w }: Readonly<{ endpoint: WebhookEndpoint; w: WebhookTranslations }>) {
+  return (
+    <span className="inline-flex flex-wrap gap-1">
+      {endpoint.events.map((event) => (
+        <Badge key={event} tone="neutral" size="sm">
+          {w.events[EVENT_WORD[event]]}
+        </Badge>
+      ))}
+    </span>
+  );
+}
+
+function EndpointActionsCell({
+  endpoint,
+  w,
+  isSaving,
+  onOpenLog,
+  onRotate,
+  onRemove,
+}: Readonly<{
+  endpoint: WebhookEndpoint;
+  w: WebhookTranslations;
+  isSaving: boolean;
+  onOpenLog: (e: WebhookEndpoint) => void;
+  onRotate: (e: WebhookEndpoint) => void;
+  onRemove: (e: WebhookEndpoint) => void;
+}>) {
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      <IconButton variant="ghost" size="sm" label={w.actions.log} onClick={() => onOpenLog(endpoint)}>
+        <EyeIcon size={15} />
+      </IconButton>
+      <IconButton
+        variant="ghost"
+        size="sm"
+        label={w.actions.rotate}
+        disabled={isSaving}
+        onClick={() => {
+          if (window.confirm(w.rotateConfirm)) onRotate(endpoint);
+        }}
+      >
+        <Icon name="key" size={15} />
+      </IconButton>
+      <IconButton
+        variant="ghost"
+        size="sm"
+        label={w.actions.delete}
+        onClick={() => {
+          if (window.confirm(w.deleteConfirm)) onRemove(endpoint);
+        }}
+      >
+        <TrashIcon size={15} />
+      </IconButton>
+    </span>
+  );
+}
 
 /**
  * Webhooks settings: the endpoints that are told when a run is over, on the kit's DataTable (cards on a phone), with a
@@ -49,15 +108,7 @@ export function WebhooksSection({ fetchHeaders }: Readonly<WebhooksSectionProps>
         header: w.columns.events,
         priority: 2,
         value: (e) => e.events.map((event) => w.events[EVENT_WORD[event]]).join(", "),
-        cell: (e) => (
-          <span className="inline-flex flex-wrap gap-1">
-            {e.events.map((event) => (
-              <Badge key={event} tone="neutral" size="sm">
-                {w.events[EVENT_WORD[event]]}
-              </Badge>
-            ))}
-          </span>
-        ),
+        cell: (e) => <EndpointEventsCell endpoint={e} w={w} />,
       },
       {
         id: "created",
@@ -76,32 +127,14 @@ export function WebhooksSection({ fetchHeaders }: Readonly<WebhooksSectionProps>
         hideable: false,
         card: "hidden",
         cell: (e) => (
-          <span className="inline-flex items-center gap-0.5">
-            <IconButton variant="ghost" size="sm" label={w.actions.log} onClick={() => void hook.openLog(e)}>
-              <EyeIcon size={15} />
-            </IconButton>
-            <IconButton
-              variant="ghost"
-              size="sm"
-              label={w.actions.rotate}
-              disabled={hook.isSaving}
-              onClick={() => {
-                if (window.confirm(w.rotateConfirm)) void hook.rotate(e);
-              }}
-            >
-              <Icon name="key" size={15} />
-            </IconButton>
-            <IconButton
-              variant="ghost"
-              size="sm"
-              label={w.actions.delete}
-              onClick={() => {
-                if (window.confirm(w.deleteConfirm)) void hook.remove(e);
-              }}
-            >
-              <TrashIcon size={15} />
-            </IconButton>
-          </span>
+          <EndpointActionsCell
+            endpoint={e}
+            w={w}
+            isSaving={hook.isSaving}
+            onOpenLog={(ep) => void hook.openLog(ep)}
+            onRotate={(ep) => void hook.rotate(ep)}
+            onRemove={(ep) => void hook.remove(ep)}
+          />
         ),
       },
     ],

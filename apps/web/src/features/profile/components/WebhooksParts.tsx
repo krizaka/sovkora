@@ -115,6 +115,17 @@ const STATUS_TONE: Record<WebhookDelivery["status"], "neutral" | "success" | "da
   DEAD: "danger",
 };
 
+function DeliveryStatusCell({
+  delivery,
+  label,
+}: Readonly<{ delivery: WebhookDelivery; label: string }>) {
+  return (
+    <Badge tone={STATUS_TONE[delivery.status]} size="sm">
+      {label}
+    </Badge>
+  );
+}
+
 /** The delivery log of one endpoint, newest first. */
 export function DeliveryLog({ deliveries }: Readonly<{ deliveries: WebhookDelivery[] }>) {
   const { t, locale } = useTranslation();
@@ -134,11 +145,7 @@ export function DeliveryLog({ deliveries }: Readonly<{ deliveries: WebhookDelive
       header: w.logColumns.status,
       type: "status",
       value: (d) => w.status[d.status],
-      cell: (d) => (
-        <Badge tone={STATUS_TONE[d.status]} size="sm">
-          {w.status[d.status]}
-        </Badge>
-      ),
+      cell: (d) => <DeliveryStatusCell delivery={d} label={w.status[d.status]} />,
     },
     {
       id: "attempts",

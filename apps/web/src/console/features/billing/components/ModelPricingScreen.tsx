@@ -15,6 +15,36 @@ import { ModelRateEditor } from "./ModelRateEditor";
 import { asRate, type ModelRateDraft } from "./ModelRateDraft";
 import { BillingAdminApi } from "@/console/services/billing.admin.api";
 
+type PricingRow = {
+  model: CatalogModel;
+  capability: string;
+  own: PricebookRate | undefined;
+  fallback: PricebookRate | undefined;
+  priced: boolean;
+};
+
+function ModelStatusCell({ own, priced }: Readonly<{ own: PricebookRate | undefined; priced: boolean }>) {
+  return (
+    <>
+      {!priced && <Badge variant="danger">non tarifé</Badge>}
+      {priced && own && <Badge variant="success">tarif dédié</Badge>}
+      {priced && !own && <Badge variant="default">tarif par défaut</Badge>}
+    </>
+  );
+}
+
+function ModelActionsCell({
+  model,
+  own,
+  onDraft,
+}: Readonly<{ model: CatalogModel; own: PricebookRate | undefined; onDraft: (m: CatalogModel, r?: PricebookRate) => void }>) {
+  return (
+    <Button size="sm" variant="ghost" onClick={() => onDraft(model, own)}>
+      {own ? "Modifier" : "Tarifer"}
+    </Button>
+  );
+}
+
 /**
  * Per-model pricing.
  *
@@ -108,44 +138,18 @@ export function ModelPricingScreen() {
     }
   };
 
-  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+  const columns: DataTableColumn<PricingRow>[] = [
     { id: "model", header: "Modèle", card: "title", value: ({ model }) => model.modelLabel || model.modelName },
     { id: "category", header: "Catégorie", value: ({ model }) => model.category },
     { id: "capability", header: "Capacité" },
     { id: "unit", header: "Unité", value: ({ own, fallback }) => own?.unit ?? fallback?.unit ?? "—" },
-    {
-      id: "creditsPerUnit",
-      header: "Crédits / unité",
-      align: "end",
-      value: ({ own, fallback }) => own?.creditsPerUnit ?? fallback?.creditsPerUnit ?? "—",
-    },
-    {
-      id: "estimateCredits",
-      header: "Estimation",
-      align: "end",
-      value: ({ own, fallback }) => own?.estimateCredits ?? fallback?.estimateCredits ?? "—",
-    },
-    {
-      id: "status",
-      header: "Statut",
-      cell: ({ own, priced }) => (
-        <>
-          {!priced && <Badge variant="danger">non tarifé</Badge>}
-          {priced && own && <Badge variant="success">tarif dédié</Badge>}
-          {priced && !own && <Badge variant="default">tarif par défaut</Badge>}
-        </>
-      ),
-    },
-    {
-      id: "actions",
-      header: "",
-      align: "end",
-      cell: ({ model, own }) => (
-        <Button size="sm" variant="ghost" onClick={() => startDraft(model, own)}>
-          {own ? "Modifier" : "Tarifer"}
-        </Button>
-      ),
-    },
+    { id: "creditsPerUnit", header: "Crédits / unité", align: "end",
+      value: ({ own, fallback }) => own?.creditsPerUnit ?? fallback?.creditsPerUnit ?? "—" },
+    { id: "estimateCredits", header: "Estimation", align: "end",
+      value: ({ own, fallback }) => own?.estimateCredits ?? fallback?.estimateCredits ?? "—" },
+    { id: "status", header: "Statut", cell: ({ own, priced }) => <ModelStatusCell own={own} priced={priced} /> },
+    { id: "actions", header: "", align: "end",
+      cell: ({ model, own }) => <ModelActionsCell model={model} own={own} onDraft={startDraft} /> },
   ];
 
   return (

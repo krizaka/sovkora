@@ -29,8 +29,52 @@ import { PAGE_SIZES, TONE, type JobsTableProps } from "./jobsTableShape";
 export type { JobsTableProps } from "./jobsTableShape";
 
 const previewCell = (j: Job) => <JobThumb job={j} />;
-
 const modelCell = (name: string) => <span className="font-medium">{name}</span>;
+
+function JobStatusCell({ job, label }: Readonly<{ job: Job; label: string }>) {
+  return (
+    <Badge tone={TONE[job.status]} size="sm" dot={job.status === JOB_STATUS.PROCESSING}>
+      {label}
+    </Badge>
+  );
+}
+
+type ActionLabels = { open: string; payload: string; download: string; copied: string; copyId: string; delete: string };
+
+function JobActionsCell({ job, labels, copiedId, onOpenModal, onCopy, onDelete }: Readonly<{
+  job: Job;
+  labels: ActionLabels;
+  copiedId: string | null;
+  onOpenModal: JobsTableProps["onOpenModal"];
+  onCopy: JobsTableProps["onCopy"];
+  onDelete?: JobsTableProps["onDelete"];
+}>) {
+  const url = jobMediaUrl(job);
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      <IconButton variant="ghost" size="sm"
+        label={job.status === JOB_STATUS.COMPLETED ? labels.open : labels.payload}
+        onClick={() => onOpenModal(job, job.status === JOB_STATUS.COMPLETED ? "result" : "payload")}>
+        <EyeIcon size={15} />
+      </IconButton>
+      {url && (
+        <IconButton variant="ghost" size="sm" label={labels.download} asChild>
+          <a href={url} download><DownloadIcon size={15} /></a>
+        </IconButton>
+      )}
+      <IconButton variant="ghost" size="sm"
+        label={copiedId === job.id ? labels.copied : labels.copyId}
+        onClick={() => onCopy(job.id, job.id)}>
+        {copiedId === job.id ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
+      </IconButton>
+      {onDelete && (
+        <IconButton variant="ghost" size="sm" label={labels.delete} onClick={() => onDelete(job)}>
+          <TrashIcon size={15} />
+        </IconButton>
+      )}
+    </span>
+  );
+}
 
 /**
  * The tasks, one line each, on the kit's responsive DataTable (cards on a phone): a preview, the task and its Studio, the
@@ -58,67 +102,30 @@ export function JobsTable({
   const columns = React.useMemo<DataTableColumn<Job>[]>(() => {
     const model = (j: Job) => modelOf(j, MODEL_NAMES) ?? d.modelAuto;
     const where = (j: Job) => whereRan(j) ?? d.whereUnknown;
+    const actionLabels: ActionLabels = {
+      open: d.actions.open, payload: d.actions.payload, download: d.actions.download,
+      copied: d.actions.copied, copyId: d.actions.copyId, delete: d.actions.delete,
+    };
     return [
+      { id: "preview", header: d.columns.preview, priority: 1, hideable: false, width: 84, cell: previewCell },
       {
-        id: "preview",
-        header: d.columns.preview,
-        priority: 1,
-        hideable: false,
-        width: 84,
-        cell: previewCell,
-      },
-      {
-        id: "task",
-        header: d.columns.task,
-        type: "title",
-        filter: "text",
-        sortable: true,
+        id: "task", header: d.columns.task, type: "title", filter: "text", sortable: true,
         // What the search looks into: the kind, the id, the prompt and the model.
         value: (j) => [jobLabel(t, j), j.id, promptOf(j) ?? "", model(j)].join(" "),
         cell: (j) => jobLabel(t, j),
         subtitle: (j) => studioOf(j) ?? j.id.slice(0, 8),
       },
+      { id: "model", header: d.columns.model, priority: 2, filter: "facet", sortable: true, type: "text", nowrap: true,
+        value: model, cell: (j) => modelCell(model(j)) },
+      { id: "where", header: d.columns.where, priority: 3, filter: "facet", sortable: true, type: "text", nowrap: true,
+        value: where },
       {
-        id: "model",
-        header: d.columns.model,
-        priority: 2,
-        filter: "facet",
-        sortable: true,
-        type: "text",
-        nowrap: true,
-        value: model,
-        cell: (j) => modelCell(model(j)),
-      },
-      {
-        id: "where",
-        header: d.columns.where,
-        priority: 3,
-        filter: "facet",
-        sortable: true,
-        type: "text",
-        nowrap: true,
-        value: where,
-      },
-      {
-        id: "status",
-        header: d.columns.status,
-        type: "status",
-        filter: "facet",
-        sortable: true,
+        id: "status", header: d.columns.status, type: "status", filter: "facet", sortable: true,
         value: (j) => d.status[j.status],
-        cell: (j) => (
-          <Badge tone={TONE[j.status]} size="sm" dot={j.status === JOB_STATUS.PROCESSING}>
-            {d.status[j.status]}
-          </Badge>
-        ),
+        cell: (j) => <JobStatusCell job={j} label={d.status[j.status]} />,
       },
       {
-        id: "time",
-        header: d.columns.time,
-        priority: 2,
-        type: "number",
-        align: "end",
-        sortable: true,
+        id: "time", header: d.columns.time, priority: 2, type: "number", align: "end", sortable: true,
         value: (j) => wallTimeMs(j),
         cell: (j) =>
           j.status === JOB_STATUS.PENDING || j.status === JOB_STATUS.PROCESSING
@@ -126,64 +133,20 @@ export function JobsTable({
             : formatDuration(wallTimeMs(j) ?? 0),
       },
       {
-        id: "credits",
-        header: d.columns.credits,
-        priority: 4,
-        type: "number",
-        align: "end",
+        id: "credits", header: d.columns.credits, priority: 4, type: "number", align: "end",
         value: (j) => Number(jobFacts(j).find((f) => f.id === "credits")?.value ?? NaN) || null,
       },
       {
-        id: "created",
-        header: d.columns.created,
-        priority: 3,
-        type: "date",
-        sortable: true,
+        id: "created", header: d.columns.created, priority: 3, type: "date", sortable: true,
         value: (j) => new Date(j.createdAt),
         cell: (j) => timeAgoCell(j.createdAt, dateLocale),
       },
       {
-        id: "actions",
-        header: d.columns.actions,
-        headerHidden: true,
-        align: "end",
-        hideable: false,
-        card: "hidden",
-        cell: (j) => {
-          const url = jobMediaUrl(j);
-          return (
-            <span className="inline-flex items-center gap-0.5">
-              <IconButton
-                variant="ghost"
-                size="sm"
-                label={j.status === JOB_STATUS.COMPLETED ? d.actions.open : d.actions.payload}
-                onClick={() => onOpenModal(j, j.status === JOB_STATUS.COMPLETED ? "result" : "payload")}
-              >
-                <EyeIcon size={15} />
-              </IconButton>
-              {url && (
-                <IconButton variant="ghost" size="sm" label={d.actions.download} asChild>
-                  <a href={url} download>
-                    <DownloadIcon size={15} />
-                  </a>
-                </IconButton>
-              )}
-              <IconButton
-                variant="ghost"
-                size="sm"
-                label={copiedId === j.id ? d.actions.copied : d.actions.copyId}
-                onClick={() => onCopy(j.id, j.id)}
-              >
-                {copiedId === j.id ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
-              </IconButton>
-              {onDelete && (
-                <IconButton variant="ghost" size="sm" label={d.actions.delete} onClick={() => onDelete(j)}>
-                  <TrashIcon size={15} />
-                </IconButton>
-              )}
-            </span>
-          );
-        },
+        id: "actions", header: d.columns.actions, headerHidden: true, align: "end", hideable: false, card: "hidden",
+        cell: (j) => (
+          <JobActionsCell job={j} labels={actionLabels} copiedId={copiedId}
+            onOpenModal={onOpenModal} onCopy={onCopy} onDelete={onDelete} />
+        ),
       },
     ];
   }, [d, t, dateLocale, copiedId, onOpenModal, onCopy, onDelete]);

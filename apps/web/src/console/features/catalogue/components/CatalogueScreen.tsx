@@ -49,6 +49,19 @@ const providerColumns: DataTableColumn<ProviderSummary>[] = [
   { id: "categories", header: m.category, value: (p) => p.categories.join(", ") },
 ];
 
+function CapabilityToggleCell({
+  capability,
+  onToggle,
+}: Readonly<{ capability: Capability; onToggle: (key: string, on: boolean) => void }>) {
+  return (
+    <Switch
+      label={`${m.switchLabel} ${capability.featureKey}`}
+      checked={capability.enabled}
+      onCheckedChange={(on) => void onToggle(capability.featureKey, on)}
+    />
+  );
+}
+
 /** The models registry, its providers and the capabilities an administrator may switch off. */
 export function CatalogueScreen() {
   const data = useCatalogue();
@@ -71,13 +84,7 @@ export function CatalogueScreen() {
         id: "enabled",
         header: m.enabled,
         value: (c) => (c.enabled ? "on" : "off"),
-        cell: (c) => (
-          <Switch
-            label={`${m.switchLabel} ${c.featureKey}`}
-            checked={c.enabled}
-            onCheckedChange={(on) => void data.toggle(c.featureKey, on)}
-          />
-        ),
+        cell: (c) => <CapabilityToggleCell capability={c} onToggle={data.toggle} />,
       },
     ],
     // `toggle` is stable (useCallback with no dependencies).

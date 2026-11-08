@@ -27,6 +27,24 @@ function secondsBetween(start: string, end?: string | null): number | null {
   return end ? Math.max(0, differenceInSeconds(new Date(end), new Date(start))) : null;
 }
 
+function RunStatusCell({ run, label }: Readonly<{ run: AutomationRun; label: string }>) {
+  return (
+    <Badge tone={TONE[run.status]} size="sm" dot={run.status === STATUS.running}>
+      {label}
+    </Badge>
+  );
+}
+
+function RunDetailCell({
+  run,
+  skippedBudgetLabel,
+}: Readonly<{ run: AutomationRun; skippedBudgetLabel: string }>) {
+  if (run.status === STATUS.skipped_budget) return skippedBudgetLabel;
+  if (run.errorMessage ?? run.errorCode)
+    return <span className="text-danger">{run.errorMessage ?? run.errorCode}</span>;
+  return run.studioRunId ? <code className="font-mono text-xs">{run.studioRunId.slice(0, 8)}</code> : "—";
+}
+
 /**
  * The history of one automation, newest first, on the kit's DataTable (cards on a phone). A run that is queued or
  * running refreshes by itself; a failed one says why in its detail.
@@ -44,11 +62,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.status,
         type: "status",
         value: (run) => r.status[run.status],
-        cell: (run) => (
-          <Badge tone={TONE[run.status]} size="sm" dot={run.status === STATUS.running}>
-            {r.status[run.status]}
-          </Badge>
-        ),
+        cell: (run) => <RunStatusCell run={run} label={r.status[run.status]} />,
       },
       {
         id: "trigger",
@@ -80,12 +94,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.detail,
         priority: 2,
         value: (run) => run.errorMessage ?? run.errorCode ?? "",
-        cell: (run) => {
-          if (run.status === STATUS.skipped_budget) return r.skippedBudget;
-          if (run.errorMessage ?? run.errorCode)
-            return <span className="text-danger">{run.errorMessage ?? run.errorCode}</span>;
-          return run.studioRunId ? <code className="font-mono text-xs">{run.studioRunId.slice(0, 8)}</code> : "—";
-        },
+        cell: (run) => <RunDetailCell run={run} skippedBudgetLabel={r.skippedBudget} />,
       },
     ],
     [r, dateLocale],
