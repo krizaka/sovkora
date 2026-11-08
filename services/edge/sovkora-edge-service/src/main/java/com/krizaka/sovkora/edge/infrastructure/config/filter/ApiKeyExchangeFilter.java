@@ -38,7 +38,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String API_KEY_PREFIX = "oz_";
   private static final String APPLICATION_JSON = "application/json";
-  private static final String AUTHORIZATION_HEADER = AUTHORIZATION_HEADER;
+  private static final String AUTHORIZATION_HEADER = "Authorization";
 
   private final RestClient identityClient;
 
