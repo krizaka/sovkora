@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 public class PageFetchService implements PageFetcher {
 
   private static final Duration ROBOTS_TTL = Duration.ofHours(24);
+  private static final String OP_FETCH = "FETCH";
 
   private record CachedRobots(RobotsRules rules, Instant until) {}
 
@@ -131,7 +132,7 @@ public class PageFetchService implements PageFetcher {
       audit(
           request,
           sourceId,
-          "FETCH",
+          OP_FETCH,
           host,
           pathHash,
           started,
@@ -163,7 +164,7 @@ public class PageFetchService implements PageFetcher {
       audit(
           request,
           sourceId,
-          "FETCH",
+          OP_FETCH,
           host,
           pathHash,
           started,
@@ -177,7 +178,7 @@ public class PageFetchService implements PageFetcher {
       audit(
           request,
           sourceId,
-          "FETCH",
+          OP_FETCH,
           host,
           pathHash,
           started,
@@ -206,7 +207,7 @@ public class PageFetchService implements PageFetcher {
     audit(
         request,
         sourceId,
-        "FETCH",
+        OP_FETCH,
         host,
         pathHash,
         started,
@@ -333,7 +334,7 @@ public class PageFetchService implements PageFetcher {
       String pathHash,
       Instant started,
       FetchRefusal reason) {
-    audit(request, sourceId, "FETCH", host, pathHash, started, null, null, false, reason);
+    audit(request, sourceId, OP_FETCH, host, pathHash, started, null, null, false, reason);
     return FetchResult.refused(reason);
   }
 

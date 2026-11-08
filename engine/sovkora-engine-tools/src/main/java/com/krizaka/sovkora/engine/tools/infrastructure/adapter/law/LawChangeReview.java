@@ -15,6 +15,8 @@ import com.krizaka.sovkora.engine.tools.domain.model.law.LawChange;
 public record LawChangeReview(
     String branch, String path, String title, String body, String content) {
 
+  private static final String NONE = "(none)";
+
   /**
    * Renders the review of a change.
    *
@@ -44,12 +46,12 @@ public record LawChangeReview(
             + " ("
             + subject.language()
             + ")";
-    String previous = change.previous() == null ? "(none)" : change.previous().text();
+    String previous = change.previous() == null ? NONE : change.previous().text();
     String current =
         change.current() == null ? "(removed from the source)" : change.current().text();
     String hashBefore =
-        change.previous() == null ? "(none)" : change.previous().contentHash().hex();
-    String hashNow = change.current() == null ? "(none)" : change.current().contentHash().hex();
+        change.previous() == null ? NONE : change.previous().contentHash().hex();
+    String hashNow = change.current() == null ? NONE : change.current().contentHash().hex();
     String content =
         "# "
             + title

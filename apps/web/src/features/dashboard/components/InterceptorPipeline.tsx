@@ -54,7 +54,7 @@ export function InterceptorPipeline() {
         <Icon name="pipeline" size={16} className="text-accent" />
         <h3 className="hud-label !mb-0">INTERCEPTOR PIPELINE</h3>
         <span className="ml-auto text-[10px] font-mono text-success flex items-center gap-1.5">
-          <span className="status-dot text-success" />
+          <span className="status-dot text-success" />{' '}
           OPERATIONAL
         </span>
       </div>

@@ -64,7 +64,7 @@ export function PlanApprovalCard({
           className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-semibold bg-warning/10 text-warning border border-warning/20"
           style={{ borderRadius: "var(--kz-radius-full)" }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />{' '}
           Awaiting
         </span>
       </header>
