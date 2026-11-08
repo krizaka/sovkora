@@ -31,7 +31,7 @@ public record AssetEncryptionProperties(
     if (masterKeyFile == null || masterKeyFile.isBlank()) {
       throw new IllegalArgumentException("orazaka.assets.encryption.master-key-file is required");
     }
-    if (blockSize < 1024 || blockSize % 16 != 0) {
+    if (blockSize < 1024 || (blockSize % 16) != 0) {
       throw new IllegalArgumentException(
           "blockSize must be at least 1024 and a multiple of 16, was " + blockSize);
     }

@@ -59,7 +59,7 @@ public final class BunnyAssetStore implements DurableAssetStore {
             .PUT(HttpRequest.BodyPublishers.ofFile(file))
             .build();
     HttpResponse<Void> response = send(request, HttpResponse.BodyHandlers.discarding());
-    if (response.statusCode() / 100 != 2) {
+    if ((response.statusCode() / 100) != 2) {
       throw new IOException("durable store refused PUT: HTTP " + response.statusCode());
     }
   }
@@ -75,7 +75,7 @@ public final class BunnyAssetStore implements DurableAssetStore {
       if (response.statusCode() == 404) {
         return false;
       }
-      if (response.statusCode() / 100 != 2) {
+      if ((response.statusCode() / 100) != 2) {
         throw new IOException("durable store refused GET: HTTP " + response.statusCode());
       }
       Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
@@ -89,7 +89,7 @@ public final class BunnyAssetStore implements DurableAssetStore {
   public void delete(String key) throws IOException {
     HttpResponse<Void> response =
         send(request(key).DELETE().build(), HttpResponse.BodyHandlers.discarding());
-    if (response.statusCode() / 100 != 2 && response.statusCode() != 404) {
+    if ((response.statusCode() / 100) != 2 && response.statusCode() != 404) {
       throw new IOException("durable store refused DELETE: HTTP " + response.statusCode());
     }
   }
@@ -103,7 +103,7 @@ public final class BunnyAssetStore implements DurableAssetStore {
     if (response.statusCode() == 404) {
       return List.of();
     }
-    if (response.statusCode() / 100 != 2) {
+    if ((response.statusCode() / 100) != 2) {
       throw new IOException("durable store refused LIST: HTTP " + response.statusCode());
     }
     List<StoredObject> children = new ArrayList<>();
