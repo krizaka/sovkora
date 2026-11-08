@@ -93,8 +93,11 @@ def to_mp3(wav: bytes) -> bytes:
     return done.stdout
 
 
+#: Content type for every JSON error body this server emits.
+CONTENT_TYPE_JSON = "application/json"
+
 #: The content types a passed-through answer may carry; anything else is sent as JSON's (never a header copied as is).
-PASSED_TYPES = ("application/json", "image/png", "image/jpeg", "image/webp", "text/plain")
+PASSED_TYPES = (CONTENT_TYPE_JSON, "image/png", "image/jpeg", "image/webp", "text/plain")
 
 
 def upstream_url(upstream: str, path: str) -> str:
@@ -114,7 +117,7 @@ def safe_type(value: str | None) -> str:
     for known in PASSED_TYPES:
         if (value or "").lower().startswith(known):
             return known
-    return "application/json"
+    return CONTENT_TYPE_JSON
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -136,7 +139,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             target = upstream_url(self.upstream, self.path)
         except ValueError:
-            self._send(400, json.dumps({"error": "bad request path"}).encode(), "application/json")
+            self._send(400, json.dumps({"error": "bad request path"}).encode(), CONTENT_TYPE_JSON)
             return
         request = urllib.request.Request(target, data=body, method=self.command, headers=headers)
         try:
@@ -145,20 +148,20 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as refused:
             self._send(refused.code, refused.read(), safe_type(refused.headers.get("Content-Type")))
         except OSError as down:
-            self._send(502, json.dumps({"error": f"image engine unreachable: {down}"}).encode(), "application/json")
+            self._send(502, json.dumps({"error": f"image engine unreachable: {down}"}).encode(), CONTENT_TYPE_JSON)
 
     def _speech(self) -> None:
         length = int(self.headers.get("Content-Length") or 0)
         try:
             request = parse_request(self.rfile.read(length))
         except SpeechRequestError as bad:
-            self._send(400, json.dumps({"error": str(bad)}).encode(), "application/json")
+            self._send(400, json.dumps({"error": str(bad)}).encode(), CONTENT_TYPE_JSON)
             return
         try:
             wav = synthesize(request["text"], request["voice"], request["speed"])
             body, kind = (to_mp3(wav), "audio/mpeg") if request["format"] == "mp3" else (wav, "audio/wav")
         except Exception as failure:  # noqa: BLE001 — reported, never a silent placeholder
-            self._send(500, json.dumps({"error": f"speech failed: {failure}"}).encode(), "application/json")
+            self._send(500, json.dumps({"error": f"speech failed: {failure}"}).encode(), CONTENT_TYPE_JSON)
             return
         # The voice is not echoed in a header (a header is never built from a request's value); the model is a constant.
         self._send(200, body, kind, {"X-Orazaka-Speech-Model": MODEL})
