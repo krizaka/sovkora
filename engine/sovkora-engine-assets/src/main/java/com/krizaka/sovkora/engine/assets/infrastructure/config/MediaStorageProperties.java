@@ -46,7 +46,7 @@ public record MediaStorageProperties(
         }
       }
       default -> {
-        /* LOCAL: no extra configuration needed */
+        /* local needs no extra configuration */
       }
     }
   }
