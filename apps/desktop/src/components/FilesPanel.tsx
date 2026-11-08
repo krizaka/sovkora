@@ -50,8 +50,9 @@ export function FilesPanel({ snap }: { snap: Snapshot }) {
     const offs = [
       on<Dropped>("dropped", (d) => {
         setHover(false);
+        const droppedPaths = new Set(d.files.map((n) => n.path));
         setDropped((prev) => ({
-          files: [...d.files, ...prev.files.filter((f) => !d.files.some((n) => n.path === f.path))],
+          files: [...d.files, ...prev.files.filter((f) => !droppedPaths.has(f.path))],
           folders: [...new Set([...d.folders, ...prev.folders])],
         }));
         if (d.files[0]) {
