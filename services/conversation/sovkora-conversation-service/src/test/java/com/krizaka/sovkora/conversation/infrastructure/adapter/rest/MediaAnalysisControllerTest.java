@@ -92,7 +92,9 @@ class MediaAnalysisControllerTest {
             return false;
           }
 
-          public void delete(String key) {}
+          public void delete(String key) {
+            // required by interface, not invoked in this test
+          }
         };
     MultipartFile file =
         new MockMultipartFile("file", "photo.png", "image/png", "fake-png-data".getBytes());
