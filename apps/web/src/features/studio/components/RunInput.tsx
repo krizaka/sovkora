@@ -39,6 +39,78 @@ export function localized(
     : field;
 }
 
+/** Build input control element based on field type. */
+function buildInputElement(
+  field: InputField,
+  control: Record<string, unknown>,
+  value: string,
+  disabled: boolean,
+  onChange: (value: string) => void,
+  onBusyChange: (busy: boolean) => void,
+  allowedOptions: string[] | null | undefined,
+  inputId: string,
+  hintId: string | undefined,
+  t: ReturnType<typeof useTranslation>["t"],
+): ReactNode {
+  if (field.assetKind) {
+    return (
+      <AssetInput
+        id={inputId}
+        kind={field.assetKind}
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        onBusyChange={onBusyChange}
+        describedBy={hintId}
+        label={field.title}
+      />
+    );
+  }
+  if (field.type === "enum" && field.options) {
+    return (
+      <Select {...control} onChange={(event) => onChange(event.target.value)}>
+        {field.defaultValue === null && <option value="">{field.required ? "" : t.studio.form.unset}</option>}
+        {field.options.map((option) => (
+          <option key={option} value={option} disabled={allowedOptions !== null && !allowedOptions?.includes(option)}>
+            {field.optionLabels?.[option] ?? t.studio.choices[field.key]?.[option] ?? option}
+            {allowedOptions !== null && !allowedOptions?.includes(option) ? ` · ${t.studio.form.notForThisModel}` : ""}
+          </option>
+        ))}
+      </Select>
+    );
+  }
+
+  const textPlaceholder = field.type === "array" ? "a, b, c" : undefined;
+  const textInput = (
+    <Input
+      {...control}
+      type="text"
+      placeholder={field.placeholder ?? textPlaceholder}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+  return field.multiline ? (
+    <Textarea
+      {...control}
+      rows={6}
+      placeholder={field.placeholder ?? undefined}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ) : field.numeric ? (
+    <Input
+      {...control}
+      type="number"
+      inputMode="numeric"
+      min={field.numeric.min ?? undefined}
+      max={field.numeric.max ?? undefined}
+      placeholder={field.defaultValue ?? undefined}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ) : (
+    textInput
+  );
+}
+
 /** One generated field, on the @krizaka/ui field (label, control, hint). */
 export function RunInput({
   field,
@@ -74,68 +146,18 @@ export function RunInput({
     return <SeedControl field={field} value={value} disabled={disabled} onChange={onChange} />;
   }
 
-  const textPlaceholder = field.type === "array" ? "a, b, c" : undefined;
-  const textInput = (
-    <Input
-      {...control}
-      type="text"
-      placeholder={field.placeholder ?? textPlaceholder}
-      onChange={(event) => onChange(event.target.value)}
-    />
+  const inputElement = buildInputElement(
+    field,
+    control,
+    value,
+    disabled,
+    onChange,
+    onBusyChange,
+    allowedOptions,
+    inputId,
+    hintId,
+    t,
   );
-  const multilineOrText = field.multiline ? (
-    <Textarea
-      {...control}
-      rows={6}
-      placeholder={field.placeholder ?? undefined}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  ) : (
-    textInput
-  );
-  const numericOrText = field.numeric ? (
-    <Input
-      {...control}
-      type="number"
-      inputMode="numeric"
-      min={field.numeric.min ?? undefined}
-      max={field.numeric.max ?? undefined}
-      placeholder={field.defaultValue ?? undefined}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  ) : (
-    multilineOrText
-  );
-
-  let inputElement: ReactNode;
-  if (field.assetKind) {
-    inputElement = (
-      <AssetInput
-        id={inputId}
-        kind={field.assetKind}
-        value={value}
-        disabled={disabled}
-        onChange={onChange}
-        onBusyChange={onBusyChange}
-        describedBy={hintId}
-        label={field.title}
-      />
-    );
-  } else if (field.type === "enum" && field.options) {
-    inputElement = (
-      <Select {...control} onChange={(event) => onChange(event.target.value)}>
-        {field.defaultValue === null && <option value="">{field.required ? "" : t.studio.form.unset}</option>}
-        {field.options.map((option) => (
-          <option key={option} value={option} disabled={allowedOptions !== null && !allowedOptions.includes(option)}>
-            {field.optionLabels?.[option] ?? t.studio.choices[field.key]?.[option] ?? option}
-            {allowedOptions !== null && !allowedOptions.includes(option) ? ` · ${t.studio.form.notForThisModel}` : ""}
-          </option>
-        ))}
-      </Select>
-    );
-  } else {
-    inputElement = numericOrText;
-  }
 
   return (
     <Field.Root className="gap-1.5">
