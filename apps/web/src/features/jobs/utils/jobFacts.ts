@@ -146,7 +146,14 @@ function merged(job: Pick<Job, "payload" | "result">): Map<string, { key: string
 }
 
 const num = (v: Scalar | undefined): number | null => {
-  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  let n: number;
+  if (typeof v === "number") {
+    n = v;
+  } else if (typeof v === "string" && v.trim() !== "") {
+    n = Number(v);
+  } else {
+    n = NaN;
+  }
   return Number.isFinite(n) ? n : null;
 };
 

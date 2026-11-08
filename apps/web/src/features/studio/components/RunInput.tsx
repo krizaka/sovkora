@@ -5,6 +5,7 @@ import { useTranslation } from "@/core/context/LocaleContext";
 import { AssetInput } from "@/features/studio/components/AssetInput";
 import { ChoicePicker, EmptyChoices } from "@/features/studio/components/ChoicePicker";
 import { SeedControl } from "@/features/studio/components/SeedControl";
+import type { ReactNode } from "react";
 import type { InputField } from "@/features/studio/hooks/useInputSchema";
 
 export interface RunInputProps {
@@ -89,7 +90,9 @@ export function RunInput({
       placeholder={field.placeholder ?? undefined}
       onChange={(event) => onChange(event.target.value)}
     />
-  ) : textInput;
+  ) : (
+    textInput
+  );
   const numericOrText = field.numeric ? (
     <Input
       {...control}
@@ -100,7 +103,39 @@ export function RunInput({
       placeholder={field.defaultValue ?? undefined}
       onChange={(event) => onChange(event.target.value)}
     />
-  ) : multilineOrText;
+  ) : (
+    multilineOrText
+  );
+
+  let inputElement: ReactNode;
+  if (field.assetKind) {
+    inputElement = (
+      <AssetInput
+        id={inputId}
+        kind={field.assetKind}
+        value={value}
+        disabled={disabled}
+        onChange={onChange}
+        onBusyChange={onBusyChange}
+        describedBy={hintId}
+        label={field.title}
+      />
+    );
+  } else if (field.type === "enum" && field.options) {
+    inputElement = (
+      <Select {...control} onChange={(event) => onChange(event.target.value)}>
+        {field.defaultValue === null && <option value="">{field.required ? "" : t.studio.form.unset}</option>}
+        {field.options.map((option) => (
+          <option key={option} value={option} disabled={allowedOptions !== null && !allowedOptions.includes(option)}>
+            {field.optionLabels?.[option] ?? t.studio.choices[field.key]?.[option] ?? option}
+            {allowedOptions !== null && !allowedOptions.includes(option) ? ` · ${t.studio.form.notForThisModel}` : ""}
+          </option>
+        ))}
+      </Select>
+    );
+  } else {
+    inputElement = numericOrText;
+  }
 
   return (
     <Field.Root className="gap-1.5">
@@ -108,28 +143,7 @@ export function RunInput({
         {field.title}
         {field.required ? " *" : ""}
       </Field.Label>
-      {field.assetKind ? (
-        <AssetInput
-          id={inputId}
-          kind={field.assetKind}
-          value={value}
-          disabled={disabled}
-          onChange={onChange}
-          onBusyChange={onBusyChange}
-          describedBy={hintId}
-          label={field.title}
-        />
-      ) : field.type === "enum" && field.options ? (
-        <Select {...control} onChange={(event) => onChange(event.target.value)}>
-          {field.defaultValue === null && <option value="">{field.required ? "" : t.studio.form.unset}</option>}
-          {field.options.map((option) => (
-            <option key={option} value={option} disabled={allowedOptions !== null && !allowedOptions.includes(option)}>
-              {field.optionLabels?.[option] ?? t.studio.choices[field.key]?.[option] ?? option}
-              {allowedOptions !== null && !allowedOptions.includes(option) ? ` · ${t.studio.form.notForThisModel}` : ""}
-            </option>
-          ))}
-        </Select>
-      ) : numericOrText}
+      {inputElement}
       {field.description && <Field.Hint id={hintId}>{field.description}</Field.Hint>}
     </Field.Root>
   );
