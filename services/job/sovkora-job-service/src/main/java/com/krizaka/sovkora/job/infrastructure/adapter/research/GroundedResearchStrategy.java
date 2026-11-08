@@ -60,7 +60,7 @@ public final class GroundedResearchStrategy implements JobExecutor {
     try {
       result = engine.research(GroundedResearchInput.parse(command, context));
     } catch (IllegalArgumentException invalid) {
-      throw new JobExecutionException("grounded research input refused: " + invalid.getMessage());
+      throw new JobExecutionException("grounded research input refused: " + invalid.getMessage(), invalid);
     }
     return JobExecutionResult.of(outputsOf(result));
   }

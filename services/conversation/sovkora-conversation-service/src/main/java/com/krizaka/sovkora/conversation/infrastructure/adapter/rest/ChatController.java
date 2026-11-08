@@ -245,7 +245,7 @@ public class ChatController {
       try {
         emitter.completeWithError(e);
       } catch (Exception ignored) {
-        logger.trace("Emitter already closed during setup error [{}]", conversationId);
+        logger.trace("Emitter already closed during setup error [{}]", conversationId, ignored);
       }
     }
 
@@ -274,7 +274,7 @@ public class ChatController {
           schema.pipelineId(),
           schema.totalInterceptorCount());
     } catch (IOException e) {
-      logger.debug("Client disconnected before Early-Ack could be sent [{}]", conversationId);
+      logger.debug("Client disconnected before Early-Ack could be sent [{}]", conversationId, e);
     } catch (Exception e) {
       logger.warn("Failed to build/send Early-Ack pipeline schema — proceeding without it.", e);
     }

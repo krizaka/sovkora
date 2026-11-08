@@ -48,10 +48,10 @@ public class EmbeddingController {
     try {
       result = embeddings.embed(request.input(), request.model());
     } catch (IllegalArgumentException e) {
-      throw new InvalidRequestProblem(e.getMessage());
+      throw new InvalidRequestProblem(e.getMessage(), e);
     } catch (EmbeddingException e) {
-      logger.warn("embedding.run runId={} status=unavailable", runId);
-      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+      logger.warn("embedding.run runId={} status=unavailable", runId, e);
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage(), e);
     }
     // Ids and counts only — never an input text, never a vector.
     logger.info(

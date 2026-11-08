@@ -49,7 +49,7 @@ final class HttpStudioCatalogClient implements StudioCatalogClient {
               .body(STUDIO_LIST);
       return studios == null ? List.of() : studios;
     } catch (RestClientException unreachable) {
-      logger.warn("Could not read the studio catalogue: {}", unreachable.getMessage());
+      logger.warn("Could not read the studio catalogue", unreachable);
       return List.of();
     }
   }
@@ -60,7 +60,7 @@ final class HttpStudioCatalogClient implements StudioCatalogClient {
       return Optional.ofNullable(
           restClient.get().uri("/api/v1/studios/{key}", studioKey).retrieve().body(Studio.class));
     } catch (RestClientException unreachable) {
-      logger.warn("Could not read studio {}: {}", studioKey, unreachable.getMessage());
+      logger.warn("Could not read studio {}", studioKey, unreachable);
       return Optional.empty();
     }
   }

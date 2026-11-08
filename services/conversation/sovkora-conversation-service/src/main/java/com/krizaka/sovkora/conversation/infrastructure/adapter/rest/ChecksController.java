@@ -94,6 +94,7 @@ public class ChecksController {
                   request.address()),
               request.region());
     } catch (NullPointerException | IllegalArgumentException invalid) {
+      ACCESS_AUDIT.debug("Invalid check subject from tenant={}", actor.tenant(), invalid);
       return ResponseEntity.badRequest().body(Map.of("error", "invalid subject"));
     }
     return ResponseEntity.ok(

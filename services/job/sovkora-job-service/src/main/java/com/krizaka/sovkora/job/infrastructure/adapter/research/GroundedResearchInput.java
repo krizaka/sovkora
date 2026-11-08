@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The inputs of the capability's step ({@code input_schema} of {@code
@@ -19,6 +21,8 @@ import java.util.UUID;
  * message names the field and never the value.
  */
 final class GroundedResearchInput {
+
+  private static final Logger log = LoggerFactory.getLogger(GroundedResearchInput.class);
 
   private GroundedResearchInput() {}
 
@@ -99,6 +103,7 @@ final class GroundedResearchInput {
     try {
       return UUID.fromString(raw);
     } catch (IllegalArgumentException notAUuid) {
+      log.debug("runId is not a UUID, deriving a stable one from the raw value", notAUuid);
       return UUID.nameUUIDFromBytes(raw.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
   }
