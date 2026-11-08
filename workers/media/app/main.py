@@ -707,7 +707,7 @@ def run(port: int = 8188) -> None:
     httpd = HTTPServer(server_address, VideoInferenceHandler)
     print(f"Video Worker listening on {host}:{port}...", flush=True)
     try:
-        httpd.serve_forever()
+        httpd.serve_forever()  # NOSONAR python:S5332 - internal HTTP server bound to 127.0.0.1 by default; HTTPS over loopback adds complexity with no security benefit
     except KeyboardInterrupt:
         pass
     finally:

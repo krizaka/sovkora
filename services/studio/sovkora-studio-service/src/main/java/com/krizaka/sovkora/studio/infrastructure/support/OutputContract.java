@@ -23,31 +23,31 @@ import tools.jackson.databind.JsonNode;
  */
 public final class OutputContract {
 
-  /** Every keyword {@link #violations} enforces. Anything else is refused at load. */
-  static final Set<String> SUPPORTED =
-      Set.of(
-          "type",
-          "required",
-          "properties",
-          "additionalProperties",
-          "items",
-          "minItems",
-          "maxItems",
-          "minLength",
-          "maxLength",
-          "minimum",
-          "maximum",
-          "enum",
-          // Annotations: they change nothing a value must satisfy.
-          "title",
-          "description",
-          "$schema");
-
   private static final String PROPERTIES = "properties";
   private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
   private static final String ITEMS = "items";
   private static final String MINIMUM = "minimum";
   private static final String MAXIMUM = "maximum";
+
+  /** Every keyword {@link #violations} enforces. Anything else is refused at load. */
+  static final Set<String> SUPPORTED =
+      Set.of(
+          "type",
+          "required",
+          PROPERTIES,
+          ADDITIONAL_PROPERTIES,
+          ITEMS,
+          "minItems",
+          "maxItems",
+          "minLength",
+          "maxLength",
+          MINIMUM,
+          MAXIMUM,
+          "enum",
+          // Annotations: they change nothing a value must satisfy.
+          "title",
+          "description",
+          "$schema");
 
   private OutputContract() {}
 

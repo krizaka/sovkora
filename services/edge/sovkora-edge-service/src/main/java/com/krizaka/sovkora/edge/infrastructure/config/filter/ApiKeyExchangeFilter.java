@@ -38,6 +38,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String API_KEY_PREFIX = "oz_";
   private static final String APPLICATION_JSON = "application/json";
+  private static final String AUTHORIZATION_HEADER = AUTHORIZATION_HEADER;
 
   private final RestClient identityClient;
 
@@ -82,7 +83,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String authorization = request.getHeader("Authorization");
+    String authorization = request.getHeader(AUTHORIZATION_HEADER);
     if (authorization == null || !authorization.startsWith(BEARER_PREFIX + API_KEY_PREFIX)) {
       filterChain.doFilter(request, response);
       return;
@@ -199,12 +200,12 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
 
     @Override
     public String getHeader(String name) {
-      return "Authorization".equalsIgnoreCase(name) ? authorization : super.getHeader(name);
+      return AUTHORIZATION_HEADER.equalsIgnoreCase(name) ? authorization : super.getHeader(name);
     }
 
     @Override
     public Enumeration<String> getHeaders(String name) {
-      return "Authorization".equalsIgnoreCase(name)
+      return AUTHORIZATION_HEADER.equalsIgnoreCase(name)
           ? Collections.enumeration(java.util.List.of(authorization))
           : super.getHeaders(name);
     }

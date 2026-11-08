@@ -36,7 +36,9 @@ function VersionActionsCell({
         <button
           type="button"
           disabled={busy !== null}
-          onClick={() => void onAct(version.version, () => StudioAdminApi.publish(studioKey, version.version))}
+          onClick={() => {
+            onAct(version.version, () => StudioAdminApi.publish(studioKey, version.version));
+          }}
           className="text-xs text-accent disabled:opacity-50"
         >
           Publier
@@ -47,7 +49,9 @@ function VersionActionsCell({
           type="button"
           disabled={busy !== null}
           title="La version reste exécutable pour les installations qui l'ont épinglée"
-          onClick={() => void onAct(version.version, () => StudioAdminApi.deprecate(studioKey, version.version))}
+          onClick={() => {
+            onAct(version.version, () => StudioAdminApi.deprecate(studioKey, version.version));
+          }}
           className="text-xs text-fg-muted disabled:opacity-50"
         >
           Déprécier

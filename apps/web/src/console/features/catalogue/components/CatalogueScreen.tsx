@@ -57,7 +57,9 @@ function CapabilityToggleCell({
     <Switch
       label={`${m.switchLabel} ${capability.featureKey}`}
       checked={capability.enabled}
-      onCheckedChange={(on) => void onToggle(capability.featureKey, on)}
+      onCheckedChange={(on) => {
+        onToggle(capability.featureKey, on);
+      }}
     />
   );
 }
