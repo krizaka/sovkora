@@ -5,6 +5,9 @@ import { DataTable, type DataTableColumn } from "@krizaka/ui/data-table";
 import { StudioAdminApi } from "@/console/services/studio.admin.api";
 import type { BlueprintVersion } from "@krizaka/orazaka-shared";
 
+const versionCodeCell = (v: BlueprintVersion) => <VersionCodeCell version={v.version} />;
+const versionStatusCell = (v: BlueprintVersion) => <VersionStatusCell status={v.status} />;
+
 interface BlueprintVersionTableProps {
   studioKey: string;
   versions: BlueprintVersion[];
@@ -85,15 +88,15 @@ export function BlueprintVersionTable({ studioKey, versions, onChanged }: Readon
   };
 
   const columns: DataTableColumn<BlueprintVersion>[] = [
-    { id: "version", header: "Version", card: "title", cell: (v) => <VersionCodeCell version={v.version} /> },
-    { id: "status", header: "Statut", cell: (v) => <VersionStatusCell status={v.status} /> },
+    { id: "version", header: "Version", card: "title", cell: versionCodeCell },
+    { id: "status", header: "Statut", cell: versionStatusCell },
     { id: "estimatedCredits", header: "Crédits", align: "end" },
     { id: "changelog", header: "Note", value: (v) => v.changelog ?? "—" },
     {
       id: "actions",
       header: "",
       align: "end",
-      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={act} />,
+      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={act} />, // NOSONAR S6478 — render prop called as a function by DataTable; VersionActionsCell is defined outside; studioKey/busy/act are stable refs
     },
   ];
 

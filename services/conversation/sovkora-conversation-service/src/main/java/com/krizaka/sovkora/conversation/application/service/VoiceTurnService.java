@@ -176,8 +176,8 @@ public class VoiceTurnService {
 
     String noVoiceMessage =
         turn.voice() == null
-            ? "no voice speaks " + turn.locale() + " in the catalogue"
-            : "no catalogued voice named " + turn.voice();
+            ? ("no voice speaks " + turn.locale() + " in the catalogue")
+            : ("no catalogued voice named " + turn.voice());
     SpeechVoice voice =
         audioEntitled
             ? (turn.voice() == null

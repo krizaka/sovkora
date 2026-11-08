@@ -93,7 +93,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
     try {
       exchanged = exchange(apiKey);
     } catch (ResourceAccessException e) {
-      logger.warn("API-key exchange unreachable: {}", e.getMessage());
+      logger.warn("API-key exchange unreachable", e);
       response.setStatus(502);
       response.setContentType(APPLICATION_JSON);
       response.getWriter().write("{\"error\": \"Bad Gateway\"}");

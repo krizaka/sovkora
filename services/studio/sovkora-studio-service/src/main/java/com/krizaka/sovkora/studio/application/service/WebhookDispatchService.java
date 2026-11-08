@@ -9,6 +9,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class WebhookDispatchService {
+
+  private static final Logger logger = LoggerFactory.getLogger(WebhookDispatchService.class);
 
   static final String MAX_ATTEMPTS_KEY = "webhook.max-attempts";
   static final String BACKOFF_KEY = "webhook.backoff-seconds";
@@ -87,6 +91,7 @@ public class WebhookDispatchService {
       }
       error = "the receiver answered " + status;
     } catch (IOException unreachable) {
+      logger.debug("webhook dispatch failed for {}", webhook.id(), unreachable);
       error = "not delivered: " + abbreviate(unreachable.getMessage());
     }
     fail(webhook, status, error);

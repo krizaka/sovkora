@@ -86,7 +86,7 @@ export function CatalogueScreen() {
         id: "enabled",
         header: m.enabled,
         value: (c) => (c.enabled ? "on" : "off"),
-        cell: (c) => <CapabilityToggleCell capability={c} onToggle={data.toggle} />,
+        cell: (c) => <CapabilityToggleCell capability={c} onToggle={data.toggle} />, // NOSONAR S6478 — render prop called as a function by DataTable; CapabilityToggleCell is defined outside; data.toggle is stable (useCallback)
       },
     ],
     // `toggle` is stable (useCallback with no dependencies).

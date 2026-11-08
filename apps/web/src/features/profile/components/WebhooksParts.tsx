@@ -142,7 +142,7 @@ export function DeliveryLog({ deliveries }: Readonly<{ deliveries: WebhookDelive
       header: w.logColumns.status,
       type: "status",
       value: (d) => w.status[d.status],
-      cell: (d) => <DeliveryStatusCell delivery={d} label={w.status[d.status]} />,
+      cell: (d) => <DeliveryStatusCell delivery={d} label={w.status[d.status]} />, // NOSONAR S6478 — render prop called as a function by DataTable; DeliveryStatusCell is defined outside; w is stable (translation ref)
     },
     {
       id: "attempts",

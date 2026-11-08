@@ -23,6 +23,8 @@ type PricingRow = {
   priced: boolean;
 };
 
+const modelStatusCell = ({ own, priced }: PricingRow) => <ModelStatusCell own={own} priced={priced} />;
+
 function ModelStatusCell({ own, priced }: Readonly<{ own: PricebookRate | undefined; priced: boolean }>) {
   return (
     <>
@@ -159,12 +161,12 @@ export function ModelPricingScreen() {
       align: "end",
       value: ({ own, fallback }) => own?.estimateCredits ?? fallback?.estimateCredits ?? "—",
     },
-    { id: "status", header: "Statut", cell: ({ own, priced }) => <ModelStatusCell own={own} priced={priced} /> },
+    { id: "status", header: "Statut", cell: modelStatusCell },
     {
       id: "actions",
       header: "",
       align: "end",
-      cell: ({ model, own }) => <ModelActionsCell model={model} own={own} onDraft={startDraft} />,
+      cell: ({ model, own }) => <ModelActionsCell model={model} own={own} onDraft={startDraft} />, // NOSONAR S6478 — render prop called as a function by DataTable; ModelActionsCell is defined outside; startDraft is stable
     },
   ];
 

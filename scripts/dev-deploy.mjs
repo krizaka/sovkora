@@ -365,22 +365,24 @@ export function personaActorSql(persona) {
 
 export function seedSql(accounts) {
   const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
-  const rows = accounts.map(
-    (a) =>
-      `UPDATE users SET ${a.hash ? `password_hash = ${q(a.hash)}, ` : ""}enabled = true, rate_limit_tier = ${q(a.tier)}
+  const rows = accounts.map((a) => {
+    const hashField = a.hash ? `password_hash = ${q(a.hash)}, ` : "";
+    const hashConflict = a.hash ? "password_hash = EXCLUDED.password_hash, " : "";
+    const rolesSql = a.roles
+      .map(
+        (r) =>
+          `INSERT INTO authorities (user_id, authority_name)\n       SELECT id, ${q(r)} FROM users WHERE lower(email) = lower(${q(a.email)}) ON CONFLICT ON CONSTRAINT unique_user_authority DO NOTHING;`,
+      )
+      .join("\n");
+    return `UPDATE users SET ${hashField}enabled = true, rate_limit_tier = ${q(a.tier)}
          WHERE lower(email) = lower(${q(a.email)});
        INSERT INTO users (id, username, password_hash, email, enabled, preferences, rate_limit_tier)
        SELECT gen_random_uuid()::text, ${q(a.username)}, ${q(a.hash ?? "!")}, ${q(a.email)}, true, ${q(JSON.stringify({ language: a.language === "fr" ? "fr" : "en" }))}, ${q(a.tier)}
          WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = lower(${q(a.email)}))
-       ON CONFLICT (username) DO UPDATE SET ${a.hash ? "password_hash = EXCLUDED.password_hash, " : ""}enabled = true,
+       ON CONFLICT (username) DO UPDATE SET ${hashConflict}enabled = true,
          email = EXCLUDED.email, rate_limit_tier = EXCLUDED.rate_limit_tier;
-       ${a.roles
-         .map(
-           (r) => `INSERT INTO authorities (user_id, authority_name)
-       SELECT id, ${q(r)} FROM users WHERE lower(email) = lower(${q(a.email)}) ON CONFLICT ON CONSTRAINT unique_user_authority DO NOTHING;`,
-         )
-         .join("\n")}`,
-  );
+       ${rolesSql}`;
+  });
   return `BEGIN;\n${rows.join("\n")}\nCOMMIT;\n`;
 }
 

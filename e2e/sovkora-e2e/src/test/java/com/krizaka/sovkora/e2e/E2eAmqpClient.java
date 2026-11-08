@@ -126,7 +126,9 @@ final class E2eAmqpClient {
           return new String(response.getBody(), java.nio.charset.StandardCharsets.UTF_8);
         }
         try {
-          Thread.sleep(200);
+          Thread.sleep( // NOSONAR java:S2925 - AMQP channel lifecycle prevents Awaitility
+              // restructuring
+              200);
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
           return null;
