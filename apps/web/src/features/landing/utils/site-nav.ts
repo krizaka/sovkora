@@ -58,10 +58,9 @@ export type NavPageId = (typeof NAV_PAGES)[number]["id"];
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 
 /** The entry the page belongs to, if a group holds it. */
-export function currentEntry(pathname: string | null | undefined): { group: NavGroupId; entry: NavEntryId } | null {
-  const p = pathname ?? "";
+export function currentEntry(pathname: string | null | undefined = ""): { group: NavGroupId; entry: NavEntryId } | null {
   for (const group of NAV_GROUPS) {
-    const entry = group.entries.find((e) => e.current?.some((base) => under(p, base)));
+    const entry = group.entries.find((e) => e.current?.some((base) => under(pathname, base)));
     if (entry) return { group: group.id, entry: entry.id };
   }
   return null;

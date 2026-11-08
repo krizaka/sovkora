@@ -76,9 +76,8 @@ export function appSectionsFor(isAdmin: boolean): readonly AppSection[] {
 }
 
 /** The one section the page belongs to — Home only on `/` itself, every other one for its path and what is under it. */
-export function currentAppSection(pathname: string | null | undefined): AppSectionId | null {
-  const p = pathname ?? "";
-  if (p === "/") return AppSectionId.Home;
-  const hit = APP_SECTIONS.find((s) => s.href !== "/" && (p === s.href || p.startsWith(`${s.href}/`)));
+export function currentAppSection(pathname: string | null | undefined = ""): AppSectionId | null {
+  if (pathname === "/") return AppSectionId.Home;
+  const hit = APP_SECTIONS.find((s) => s.href !== "/" && (pathname === s.href || pathname.startsWith(`${s.href}/`)));
   return hit?.id ?? null;
 }
