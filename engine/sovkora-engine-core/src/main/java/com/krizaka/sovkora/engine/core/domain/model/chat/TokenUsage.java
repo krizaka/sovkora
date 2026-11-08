@@ -110,7 +110,7 @@ public record TokenUsage(
   }
 
   private static int clamp(Long tokens) {
-    return tokens == null ? 0 : (int) Math.min(Math.max(tokens, 0L), Integer.MAX_VALUE);
+    return tokens == null ? 0 : (int) Math.clamp(tokens, 0L, (long) Integer.MAX_VALUE);
   }
 
   /**
