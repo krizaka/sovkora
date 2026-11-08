@@ -243,9 +243,10 @@ def generate_video_frames_mlx(
         except ValueError:
             seed_val = -1
         if seed_val == -1:
-            import random
+            import secrets
 
-            seed_val = random.randint(0, 2147483647)  # noqa: S311 — a generation seed, not a secret
+            # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
+            seed_val = secrets.randbelow(2**31)
         generator = torch.manual_seed(seed_val)
         print(f"  Seed: {seed_val}", flush=True)
 

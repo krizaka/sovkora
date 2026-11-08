@@ -476,9 +476,10 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     seed_val = -1
 
                 if seed_val == -1:
-                    import random
+                    import secrets
 
-                    seed_val = random.randint(0, 2147483647)  # noqa: S311 — a generation seed, not a secret
+                    # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
+                    seed_val = secrets.randbelow(2**31)
 
                 print(f"Using video generation seed: {seed_val}", flush=True)
                 generator = torch.manual_seed(seed_val) if torch else None
