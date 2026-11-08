@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +35,8 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/v1/intent")
 public class IntentController {
+
+  private static final Logger logger = LoggerFactory.getLogger(IntentController.class);
 
   private final GateService gateEvaluator;
   private final UseCaseDispatcher dispatcher;
@@ -59,6 +63,7 @@ public class IntentController {
       Object result = dispatcher.dispatch(intention);
       return ResponseEntity.ok(result);
     } catch (UseCaseResolutionException e) {
+      logger.warn("Use case resolution failed for user={}: {}", user.getId(), e.getMessage(), e);
       boolean denied = e.getMessage() != null && e.getMessage().contains("ERR-403");
       throw new ResponseStatusException(
           denied ? HttpStatus.FORBIDDEN : HttpStatus.NOT_FOUND, e.getMessage());
@@ -81,6 +86,7 @@ public class IntentController {
     try {
       capability = Capability.valueOf(request.capability().trim().toUpperCase());
     } catch (IllegalArgumentException e) {
+      logger.warn("Unknown capability: {}", request.capability(), e);
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "unknown capability: " + request.capability());
     }

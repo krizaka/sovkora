@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class VoiceTurnUsageRegistry {
+
+  private static final Logger logger = LoggerFactory.getLogger(VoiceTurnUsageRegistry.class);
 
   /** The platform key a voice turn stamps on its chat context. */
   public static final String TURN_KEY = "orazaka.pipeline.voiceTurn";
@@ -52,8 +56,10 @@ public class VoiceTurnUsageRegistry {
     try {
       return future.get(wait.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException | ExecutionException late) {
+      logger.warn("Voice turn usage await timed out or failed for turnId={}: {}", turnId, late.getMessage(), late);
       return TokenUsage.none();
     } catch (InterruptedException interrupted) {
+      logger.warn("Voice turn usage await interrupted for turnId={}", turnId, interrupted);
       Thread.currentThread().interrupt();
       return TokenUsage.none();
     }

@@ -142,9 +142,11 @@ public class VoiceController {
       byte[] recording = audio == null || audio.isEmpty() ? null : audio.getBytes();
       return new VoiceTurn(conversationId, locale, recording, text, voice, installationId, context);
     } catch (IllegalArgumentException invalid) {
+      logger.warn("Invalid voice turn parameters: {}", invalid.getMessage(), invalid);
       throw new VoiceTurnRefusedException(
           HttpStatus.BAD_REQUEST, "invalid-voice-turn", invalid.getMessage());
     } catch (IOException unreadable) {
+      logger.warn("Failed to read audio data: {}", unreadable.getMessage(), unreadable);
       throw new VoiceTurnRefusedException(
           HttpStatus.BAD_REQUEST, "invalid-voice-turn", "the audio part could not be read");
     }

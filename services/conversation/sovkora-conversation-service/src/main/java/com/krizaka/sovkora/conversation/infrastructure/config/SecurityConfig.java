@@ -7,6 +7,8 @@ import jakarta.servlet.Filter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +43,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+  private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
   private static final String ADMIN = "ROLE_ADMIN";
   private static final String USER = "ROLE_USER";
   private static final String SERVICE = "SERVICE";
@@ -95,6 +98,7 @@ public class SecurityConfig {
     try {
       return identityJwtDecoder.decode(token);
     } catch (JwtException ex) {
+      logger.warn("JWT decoding failed: {}", ex.getMessage(), ex);
       throw new BadCredentialsException("Invalid or inactive session token");
     }
   }
@@ -110,6 +114,7 @@ public class SecurityConfig {
     try {
       return userDirectoryService.getUser(userId);
     } catch (RuntimeException ex) {
+      logger.warn("Failed to hydrate user from directory for userId={}: {}", userId, ex.getMessage(), ex);
       throw new BadCredentialsException("Invalid or inactive session token");
     }
   }

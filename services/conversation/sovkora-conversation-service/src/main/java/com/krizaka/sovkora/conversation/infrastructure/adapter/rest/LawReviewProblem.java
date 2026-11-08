@@ -2,6 +2,8 @@ package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawReviewRefusal;
 import java.io.Serial;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.function.Supplier;
 import org.springframework.http.HttpStatus;
 
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
  * caller's. The rules are the use cases'; this only translates them.
  */
 final class LawReviewProblem extends RuntimeException {
+
+  private static final Logger logger = LoggerFactory.getLogger(LawReviewProblem.class);
 
   @Serial private static final long serialVersionUID = 1L;
 
@@ -45,8 +49,10 @@ final class LawReviewProblem extends RuntimeException {
     try {
       return call.get();
     } catch (LawReviewRefusal refusal) {
+      logger.warn("Law review refusal with code: {}", refusal.code(), refusal);
       throw of(refusal.code(), refusal.getMessage());
     } catch (IllegalArgumentException invalid) {
+      logger.warn("Invalid request in law review: {}", invalid.getMessage(), invalid);
       throw new InvalidRequestProblem(invalid.getMessage());
     }
   }

@@ -11,6 +11,8 @@ import com.krizaka.users.domain.model.User;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,8 @@ import tools.jackson.databind.ObjectMapper;
 @RestController
 @RequestMapping("/api/v1/mcp")
 public class McpController {
+
+  private static final Logger logger = LoggerFactory.getLogger(McpController.class);
 
   /**
    * What an answer shows instead of a stored token: that one is set, never the token itself
@@ -96,10 +100,13 @@ public class McpController {
       return ResponseEntity.ok(Map.of("result", result));
     } catch (AccessDeniedException e) {
       // The reason is in the audit line; the answer says only that it is refused.
+      logger.warn("Access denied for MCP tool execution: {}", name, e);
       return ResponseEntity.status(403).build();
     } catch (IllegalArgumentException e) {
+      logger.warn("Invalid argument for MCP tool {}: {}", name, e.getMessage(), e);
       return ResponseEntity.notFound().build();
     } catch (JacksonException e) {
+      logger.warn("JSON parsing error for MCP tool {}: {}", name, e.getMessage(), e);
       return ResponseEntity.badRequest()
           .body(Map.of("error", "Invalid payload: " + e.getMessage()));
     }

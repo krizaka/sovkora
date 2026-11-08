@@ -6,6 +6,8 @@ import com.krizaka.sovkora.engine.tools.domain.model.law.LawArticleQuery;
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawArticleRead;
 import com.krizaka.users.domain.model.User;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,6 +40,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/law/articles")
 public class LawArticleController {
+
+  private static final Logger logger = LoggerFactory.getLogger(LawArticleController.class);
 
   /** The identifier the read was metered under. */
   static final String READ_ID_HEADER = "X-Sovkora-Read-Id";
@@ -76,6 +80,7 @@ public class LawArticleController {
               new LawArticleQuery(jurisdiction, instrument, ref, language, asOf, quote),
               user.id().toString());
     } catch (IllegalArgumentException e) {
+      logger.warn("Invalid law article request: {}", e.getMessage(), e);
       throw new InvalidRequestProblem(e.getMessage());
     }
     return switch (read.outcome()) {

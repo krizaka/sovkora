@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.FeatureCachePolicyManager;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class FeatureCachePolicyAdminController {
 
+  private static final Logger logger = LoggerFactory.getLogger(FeatureCachePolicyAdminController.class);
   private static final String DEFAULT = FeatureCachePolicyManager.DEFAULT_FEATURE_KEY;
 
   private final FeatureCachePolicyManager policies;
@@ -68,6 +71,7 @@ public class FeatureCachePolicyAdminController {
     try {
       policies.upsert(featureKey, strategy);
     } catch (IllegalArgumentException e) {
+      logger.warn("Failed to upsert feature cache policy for key={}: {}", featureKey, e.getMessage(), e);
       throw new InvalidRequestProblem(e.getMessage());
     }
     return new Policy(featureKey, strategy, DEFAULT.equals(featureKey));
