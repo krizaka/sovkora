@@ -134,6 +134,20 @@ export const DIAGRAM_LANGS = [
 export type DiagramLang = (typeof DIAGRAM_LANGS)[number];
 export type Segment = { kind: "markdown"; text: string } | { kind: "diagram"; lang: DiagramLang; source: string };
 
+/** Process a line within a diagram block. */
+function processDiagramLine(
+  line: string,
+  diagram: { lang: DiagramLang; lines: string[] },
+  segments: Segment[],
+): { lang: DiagramLang; lines: string[] } | null {
+  if (/^ {0,3}```\s*$/.test(line)) {
+    segments.push({ kind: "diagram", lang: diagram.lang, source: diagram.lines.join("\n") });
+    return null;
+  }
+  diagram.lines.push(line);
+  return diagram;
+}
+
 /** Splits a page into its markdown and its schema blocks (the fenced `architecture`, `pipeline`, `sequence`, `states`, `cli-*`). */
 export function splitSegments(body: string): Segment[] {
   const segments: Segment[] = [];
@@ -148,10 +162,7 @@ export function splitSegments(body: string): Segment[] {
   for (const line of body.split("\n")) {
     const open = /^ {0,3}(```|~~~)\s*([\w-]*)/.exec(line);
     if (diagram) {
-      if (/^ {0,3}```\s*$/.test(line)) {
-        segments.push({ kind: "diagram", lang: diagram.lang, source: diagram.lines.join("\n") });
-        diagram = null;
-      } else diagram.lines.push(line);
+      diagram = processDiagramLine(line, diagram, segments);
     } else if (fence) {
       text.push(line);
       if (line.trim().startsWith(fence)) fence = null;
