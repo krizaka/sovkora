@@ -1,6 +1,6 @@
 /**
  * @file edge.ts
- * @description The proxy's side of the operator console (admin.orazaka.com), served by this app on its own host.
+ * @description The proxy's side of the operator console (admin.sovkora.com), served by this app on its own host.
  * In order: the network gate (any address not in `AUTH_ALLOWED_IPS` gets 403, sign-in page included — only
  * `robots.txt`, which says "Disallow: /", is outside it), the sign-in gate (a page without the console's own session
  * cookie goes to `/login`; a closed console answers 404 on the BFF routes), then the rewrite under `/console`.

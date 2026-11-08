@@ -14,7 +14,7 @@ export default function OpengraphImage() {
         <span tw="text-[#fb923c]">.</span>
       </div>
       <div tw="mt-6 text-4xl font-semibold leading-tight">{SITE_DESCRIPTION}</div>
-      <div tw="mt-auto text-2xl text-[#a1a1aa]">www.orazaka.com · A Krizaka product</div>
+      <div tw="mt-auto text-2xl text-[#a1a1aa]">dev.sovkora.com · A Krizaka product</div>
     </div>,
     size,
   );

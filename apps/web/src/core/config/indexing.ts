@@ -8,13 +8,13 @@ export const NOINDEX_HEADER = "noindex, nofollow, noarchive";
 export const CLOSED_ROBOTS = "User-agent: *\nDisallow: /\n";
 
 export function indexable(env: Record<string, string | undefined> = process.env): boolean {
-  // A code-name address (www.orazaka.com) is closed by its name too: the public face is the commercial domain (wave 1, krizaka-internal#2630).
+  // A code-name address (dev.sovkora.com) is closed by its name too: the public face is the commercial domain (wave 1, krizaka-internal#2630).
   return !developmentDeployment(env) && !isCodeNameAddress(hostOf(env.APP_PUBLIC_URL));
 }
 
 /**
  * A development or preview deployment: the flag `APP_SEARCH_INDEXING=off`, or an address that is dev.* by its name. It
- * shows the « development version » notice and the code-name line; a code-name host that is live (www.orazaka.com) is
+ * shows the « development version » notice and the code-name line; a code-name host that is live (dev.sovkora.com) is
  * closed to search engines but shows neither.
  */
 export function developmentDeployment(env: Record<string, string | undefined> = process.env): boolean {
@@ -22,13 +22,13 @@ export function developmentDeployment(env: Record<string, string | undefined> = 
   return env.APP_SEARCH_INDEXING?.trim().toLowerCase() === "off" || isDevAddress(hostOf(env.APP_PUBLIC_URL), env);
 }
 
-/** The products' code-name hosts (www.orazaka.com...): a product's public address is its commercial domain, so these are never indexed. */
+/** The products' code-name hosts (dev.sovkora.com...): a product's public address is its commercial domain, so these are never indexed. */
 const CODE_NAME_HOST = /^(www\.)?(orazaka|yomizaka|akinaza)\.com$/;
 export const isCodeNameAddress = (host: string | null | undefined): boolean =>
   CODE_NAME_HOST.test((host ?? "").trim().toLowerCase().replace(/:\d+$/, ""));
 
 /* --- Two addresses, one app (epic krizaka/.github#119, krizaka-com AGENTS section 2.4) ---
-   www.orazaka.com is the public address (SITE_URL, indexed). dev.orazaka.com (APP_DEV_HOST) is the development address:
+   dev.sovkora.com is the public address (SITE_URL, indexed). dev.orazaka.com (APP_DEV_HOST) is the development address:
    every HTML page goes to www with a 308, robots.txt is Disallow, and only what is called keeps serving there - the BFF
    and auth (/api/*), /.well-known (app links) and the health check - all noindex. The engine's own API (/edge) is the
    platform ingress, not this app: it answers on both hosts. */
