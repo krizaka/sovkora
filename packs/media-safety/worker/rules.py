@@ -81,7 +81,12 @@ def _judge(checks: list, answer: object) -> Optional[list]:
 def assess(ruleset: dict, looks: Optional[list], frames: int, heard: object, expects_speech: bool) -> dict:
     """``frames`` pictures were sent, ``looks`` are the answers (a list of another length leaves the missing ones unread)."""
     # A fan-out of one picture reaches the worker as that picture's answer itself (the model's text, or its object), not as a list of one.
-    answers = looks if isinstance(looks, list) else ([looks] if isinstance(looks, (dict, str)) and frames == 1 else [])
+    if isinstance(looks, list):
+        answers = looks
+    elif isinstance(looks, (dict, str)) and frames == 1:
+        answers = [looks]
+    else:
+        answers = []
     findings: list[dict] = []
     unreadable = 0
     for index in range(frames):
@@ -99,7 +104,12 @@ def assess(ruleset: dict, looks: Optional[list], frames: int, heard: object, exp
     if frames == 0 and not expects_speech:
         unreadable += 1  # nothing was examined: that is not a pass
     blockers = sorted({f["code"] for f in findings})
-    verdict = "REJECTED" if blockers else ("UNREADABLE" if unreadable else "APPROVED")
+    if blockers:
+        verdict = "REJECTED"
+    elif unreadable:
+        verdict = "UNREADABLE"
+    else:
+        verdict = "APPROVED"
     return {
         "rulesetId": ruleset["rulesetId"],
         "rulesetVersion": ruleset["version"],
