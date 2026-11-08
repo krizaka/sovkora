@@ -6,6 +6,8 @@ import java.security.MessageDigest;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Standard Webhooks signature scheme (https://www.standardwebhooks.com): HMAC-SHA256 over
@@ -16,6 +18,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public final class WebhookSignature {
 
+  private static final Logger log = LoggerFactory.getLogger(WebhookSignature.class);
   private static final String HMAC = "HmacSHA256";
   private static final String VERSION = "v1,";
 
@@ -58,6 +61,7 @@ public final class WebhookSignature {
       try {
         given = Base64.getDecoder().decode(candidate.substring(VERSION.length()));
       } catch (IllegalArgumentException malformed) {
+        log.debug("Webhook signature candidate is not valid base64; skipping", malformed);
         continue;
       }
       matched |= MessageDigest.isEqual(expected, given);

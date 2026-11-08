@@ -79,7 +79,7 @@ class HttpStudioRunStarterAdapter implements StudioRunStarter {
       return UUID.fromString(accepted.get("id").asString());
     } catch (RestClientException unreachable) {
       logger.warn(
-          "the Studio service could not be reached: {}", unreachable.getClass().getSimpleName());
+          "the Studio service could not be reached: {}", unreachable.getClass().getSimpleName(), unreachable);
       throw new StudioStartRefusedException(
           "studio_unreachable", "the engine could not be reached");
     }
@@ -105,6 +105,7 @@ class HttpStudioRunStarterAdapter implements StudioRunStarter {
       };
     } catch (RestClientException unreadable) {
       // A run that cannot be read is not a run that failed: the next sweep tries again.
+      logger.debug("Studio run status could not be read; sweep will retry", unreadable);
       return Optional.empty();
     }
   }

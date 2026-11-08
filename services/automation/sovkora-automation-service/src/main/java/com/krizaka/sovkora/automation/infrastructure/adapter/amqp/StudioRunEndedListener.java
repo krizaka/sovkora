@@ -41,7 +41,7 @@ class StudioRunEndedListener {
       outcomes.studioRunEnded(
           UUID.fromString(runId.toString()), AmqpConstants.STUDIO_RUN_SUCCEEDED.equals(routingKey));
     } catch (IllegalArgumentException notAnId) {
-      logger.warn("a Studio run event with an unreadable run id was dropped");
+      logger.warn("a Studio run event with an unreadable run id was dropped", notAnId);
     }
   }
 }

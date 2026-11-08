@@ -38,7 +38,7 @@ class SweepTicker {
       sweep.sweep();
       limiter.evictIdle();
     } catch (RuntimeException e) {
-      logger.warn("the automation sweep failed: {}", e.getClass().getSimpleName());
+      logger.warn("the automation sweep failed: {}", e.getClass().getSimpleName(), e);
     }
   }
 }

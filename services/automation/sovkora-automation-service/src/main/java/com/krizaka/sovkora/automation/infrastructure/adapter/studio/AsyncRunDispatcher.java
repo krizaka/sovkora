@@ -35,7 +35,7 @@ class AsyncRunDispatcher implements RunDispatcher {
           try {
             dispatch.dispatch(runId);
           } catch (RuntimeException e) {
-            logger.warn("run {} could not be started now: {}", runId, e.getClass().getSimpleName());
+            logger.warn("run {} could not be started now: {}", runId, e.getClass().getSimpleName(), e);
           }
         });
   }
