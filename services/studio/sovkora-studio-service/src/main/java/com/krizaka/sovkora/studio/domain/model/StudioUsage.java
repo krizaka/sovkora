@@ -44,7 +44,7 @@ public record StudioUsage(
    * @return the rate between 0 and 1
    */
   public double successRate() {
-    return runs == 0 ? 0d : (double) succeeded / runs;
+    return runs == 0 ? 0d : ((double) succeeded / runs);
   }
 
   /**

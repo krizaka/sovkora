@@ -195,7 +195,7 @@ public final class OutputContract {
       return;
     }
     int limit = schema.path(keyword).asInt();
-    if (min ? actual < limit : actual > limit) {
+    if (min ? (actual < limit) : (actual > limit)) {
       found.add(path + ": " + keyword + " " + limit);
     }
   }

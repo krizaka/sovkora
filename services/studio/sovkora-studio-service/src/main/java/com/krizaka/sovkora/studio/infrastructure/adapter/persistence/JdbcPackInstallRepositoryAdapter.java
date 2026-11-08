@@ -195,7 +195,7 @@ class JdbcPackInstallRepositoryAdapter implements PackInstallRepository {
         bundle.key(),
         bundle.version(),
         bundle.studios().size(),
-        bundle.isCatalogued() ? " under pack " + bundle.key() : " (no pack row)");
+        bundle.isCatalogued() ? (" under pack " + bundle.key()) : " (no pack row)");
     return bundle.studios().size();
   }
 
