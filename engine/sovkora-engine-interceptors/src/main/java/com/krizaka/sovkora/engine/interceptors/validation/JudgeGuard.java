@@ -10,6 +10,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Every call to the semantic judge (Tier C / Tier D) goes through here (sovkora-engine#125): a
@@ -19,6 +21,7 @@ import java.util.function.Supplier;
  */
 final class JudgeGuard {
 
+  private static final Logger log = LoggerFactory.getLogger(JudgeGuard.class);
   private static final ExecutorService JUDGE_CALLS = Executors.newVirtualThreadPerTaskExecutor();
 
   private final JudgeCircuitBreaker breaker;
@@ -63,6 +66,7 @@ final class JudgeGuard {
       }
       throw failed(pending, tier, String.valueOf(e.getCause()), e.getCause());
     } catch (JudgeUnavailableException empty) {
+      log.debug("Judge unavailable for tier={}: {}", tier, empty.getMessage(), empty);
       breaker.onFailure();
       throw empty;
     }

@@ -522,6 +522,7 @@ public class ClosedLoopValidationInterceptor implements PromptContextInterceptor
       MAPPER.readTree(jsonCandidate);
       return Optional.empty();
     } catch (Exception e) {
+      logger.debug("JSON structure validation failed", e);
       return Optional.of("Invalid JSON structure: " + e.getMessage());
     }
   }

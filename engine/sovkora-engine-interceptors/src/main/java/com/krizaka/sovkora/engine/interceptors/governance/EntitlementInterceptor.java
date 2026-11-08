@@ -136,7 +136,8 @@ public class EntitlementInterceptor implements PromptContextInterceptor {
               Instant.now()));
       log.warn(
           "Billing unreachable for actor={}; turn served without a hold and recorded as unmetered",
-          actorId);
+          actorId,
+          unreachable);
       return context;
     }
 

@@ -11,6 +11,8 @@ import com.krizaka.sovkora.persistence.api.domain.ports.inbound.RuntimeConfigPro
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,6 +32,8 @@ import tools.jackson.databind.node.ObjectNode;
  * slice 5 turns it on per request.
  */
 public class CitationVerifierInterceptor implements PromptContextInterceptor {
+
+  private static final Logger log = LoggerFactory.getLogger(CitationVerifierInterceptor.class);
 
   /** The machine-readable refusal code of a streamed answer with unverified claims. */
   public static final String REASON_UNVERIFIED = "citations_unverified";
@@ -135,6 +139,7 @@ public class CitationVerifierInterceptor implements PromptContextInterceptor {
     try {
       return MAPPER.readTree(text);
     } catch (JacksonException notJson) {
+      log.debug("Response is not valid JSON for citation verification", notJson);
       return null;
     }
   }

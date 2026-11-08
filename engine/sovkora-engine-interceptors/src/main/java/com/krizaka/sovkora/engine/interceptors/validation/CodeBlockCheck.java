@@ -5,6 +5,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -14,6 +16,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 final class CodeBlockCheck {
 
+  private static final Logger log = LoggerFactory.getLogger(CodeBlockCheck.class);
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final Pattern CODE_FENCE =
       Pattern.compile("```([\\w+#.-]*)[ \\t]*\\R(.*?)```", Pattern.DOTALL);
@@ -52,6 +55,7 @@ final class CodeBlockCheck {
       try {
         MAPPER.readTree(code);
       } catch (Exception e) {
+        log.debug("JSON code block is not valid JSON", e);
         return Optional.of("Invalid JSON in a json code block: " + e.getMessage());
       }
     }
@@ -67,6 +71,7 @@ final class CodeBlockCheck {
           .crashTest(language, code)
           .map(failure -> "Sandbox crash-test failed (" + language + "): " + failure);
     } catch (RuntimeException e) {
+      log.debug("Sandbox crash-test could not run for language={}", language, e);
       return Optional.of("Sandbox crash-test could not run: " + e.getMessage());
     }
   }
