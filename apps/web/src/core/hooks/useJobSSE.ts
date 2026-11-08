@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable no-console */
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
