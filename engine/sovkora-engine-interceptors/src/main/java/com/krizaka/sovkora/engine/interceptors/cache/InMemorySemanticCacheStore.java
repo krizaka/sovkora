@@ -128,6 +128,6 @@ public final class InMemorySemanticCacheStore implements SemanticCacheStore {
       na += a[i] * a[i];
       nb += b[i] * b[i];
     }
-    return na == 0 || nb == 0 ? 0.0 : dot / (Math.sqrt(na) * Math.sqrt(nb));
+    return (na == 0 || nb == 0) ? 0.0 : (dot / (Math.sqrt(na) * Math.sqrt(nb)));
   }
 }

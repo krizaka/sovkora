@@ -170,6 +170,6 @@ class SemanticRouterInterceptor implements PromptContextInterceptor {
     if (text == null) {
       return "";
     }
-    return text.length() > maxLen ? text.substring(0, maxLen) + "..." : text;
+    return text.length() > maxLen ? (text.substring(0, maxLen) + "...") : text;
   }
 }
