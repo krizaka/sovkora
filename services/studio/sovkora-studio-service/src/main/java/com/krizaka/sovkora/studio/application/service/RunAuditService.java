@@ -80,6 +80,7 @@ public class RunAuditService {
     // The class is read back from the run rather than passed in: the run row is the authority on
     // what class its material carries, and a caller re-deriving it could disagree with the row the
     // sweeper and the analytics filter are both reading (ADR-051).
+    FailureCause effectiveCause = cause == null ? FailureCause.EXECUTOR_FAULT : cause;
     record(
         runId,
         actorId,
@@ -87,7 +88,7 @@ public class RunAuditService {
         dataClassOf(runId),
         succeeded ? "RUN_SUCCEEDED" : "RUN_FAILED",
         null,
-        succeeded ? null : (cause == null ? FailureCause.EXECUTOR_FAULT : cause).name());
+        succeeded ? null : effectiveCause.name());
   }
 
   /**

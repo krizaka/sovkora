@@ -33,6 +33,7 @@ public record ContentDecision(
 
   /** The audit verb for this decision. */
   public String verb() {
-    return refused ? "REFUSED" : (warnings.isEmpty() ? "ALLOWED" : "WARNED");
+    String allowedOrWarned = warnings.isEmpty() ? "ALLOWED" : "WARNED";
+    return refused ? "REFUSED" : allowedOrWarned;
   }
 }
