@@ -100,7 +100,7 @@ public class CostShieldInterceptor implements PromptContextInterceptor {
       }
 
       long usedPages = activePages + wiredPages + compressedPages;
-      return (double) usedPages / totalPages * 100.0;
+      return ((double) usedPages / totalPages) * 100.0;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       logger.debug("vm_stat interrupted — CostShield will remain passive.", e);

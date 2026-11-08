@@ -35,7 +35,7 @@ final class CodeBlockCheck {
    * @return the first failure, or empty when every block passes
    */
   Optional<String> failure(String text, boolean complete) {
-    if (complete && text.split("```", -1).length % 2 == 0) {
+    if (complete && (text.split("```", -1).length % 2) == 0) {
       return Optional.of("Unterminated code block: a ``` fence is never closed.");
     }
     Matcher blocks = CODE_FENCE.matcher(text);
