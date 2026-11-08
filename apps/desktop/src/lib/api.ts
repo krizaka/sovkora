@@ -184,7 +184,11 @@ export const api = {
 
 export const on = <T,>(event: string, cb: (payload: T) => void) => listen<T>(event, (e) => cb(e.payload));
 
-export const errorMessage = (e: unknown): string => (typeof e === "string" ? e : e instanceof Error ? e.message : JSON.stringify(e));
+export function errorMessage(e: unknown): string {
+  if (typeof e === "string") return e;
+  if (e instanceof Error) return e.message;
+  return JSON.stringify(e);
+}
 
 /** Parses the JSON array printed by `orazaka status --json`, ignoring any log noise around it. */
 export function parseServices(lines: string[]): ServiceStatus[] {
