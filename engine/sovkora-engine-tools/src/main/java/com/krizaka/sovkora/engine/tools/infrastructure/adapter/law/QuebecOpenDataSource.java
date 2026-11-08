@@ -140,10 +140,10 @@ public final class QuebecOpenDataSource implements LawSource {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof Download that
-          && notModified == that.notModified
-          && Arrays.equals(body, that.body)
-          && Objects.equals(etag, that.etag);
+      return other instanceof Download(var bd, var et, var nm)
+          && notModified == nm
+          && Arrays.equals(body, bd)
+          && Objects.equals(etag, et);
     }
 
     @Override
