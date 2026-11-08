@@ -59,12 +59,11 @@ services:
       branch: main
       deploy_on_push: true
     # The web app is one folder of the one repository (ADR-029): built on its own, with its own lockfile.
+    # Dockerfile build (krizaka-internal#2948): the DO Node.js buildpack failed to detect the app after ADR-029 moved
+    # the source to apps/web — pnpm-workspace.yaml in that folder confused buildpack detection. Consistent with core and
+    # gpu-relay. Build context is apps/web (source_dir); the Dockerfile lives beside the source it builds.
     source_dir: apps/web
-    environment_slug: node-js
-    # The web client is a pnpm project: the buildpack installs it with pnpm, then this builds it. `npm install` on a
-    # pnpm tree crashes (« Cannot read properties of null (reading 'matches') »), orazaka-web-client#282.
-    build_command: pnpm run build
-    run_command: npm start
+    dockerfile_path: apps/web/Dockerfile
     http_port: 8080
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
