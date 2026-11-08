@@ -67,7 +67,7 @@ public class RunSagaService {
    */
   private static final String UNRESOLVED_MODEL = "default";
 
-  private static final String STEP_PREFIX = STEP_PREFIX;
+  private static final String STEP_PREFIX = "step '";
   private static final String STEP_ID_COL = "step_id";
 
   private final JdbcTemplate jdbcTemplate;

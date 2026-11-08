@@ -83,7 +83,8 @@ public class MediaFileStore {
       return durableAssetStore.fetch(
           AssetKeys.jobFile(storage.tenant(), userId, jobId, filename), filePath);
     } catch (IllegalArgumentException e) {
-      logger.debug("Could not restore asset for job {} / {}: {}", jobId, filename, e.getMessage(), e);
+      logger.debug(
+          "Could not restore asset for job {} / {}: {}", jobId, filename, e.getMessage(), e);
       return false;
     }
   }

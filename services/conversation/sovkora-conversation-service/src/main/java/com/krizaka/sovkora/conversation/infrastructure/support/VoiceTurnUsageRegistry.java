@@ -56,7 +56,11 @@ public class VoiceTurnUsageRegistry {
     try {
       return future.get(wait.toMillis(), TimeUnit.MILLISECONDS);
     } catch (TimeoutException | ExecutionException late) {
-      logger.warn("Voice turn usage await timed out or failed for turnId={}: {}", turnId, late.getMessage(), late);
+      logger.warn(
+          "Voice turn usage await timed out or failed for turnId={}: {}",
+          turnId,
+          late.getMessage(),
+          late);
       return TokenUsage.none();
     } catch (InterruptedException interrupted) {
       logger.warn("Voice turn usage await interrupted for turnId={}", turnId, interrupted);
