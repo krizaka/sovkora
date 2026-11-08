@@ -57,12 +57,12 @@ export function DesktopPage({
                 className="space-y-2 border-t border-border-subtle pt-5"
               >
                 {(() => {
+                  if (stores.ios && stores.android) return null;
+                  if (!stores.ios && !stores.android) {
+                    return <p className="text-sm text-fg-secondary">{d.mobile.soon}</p>;
+                  }
                   const partialMsg = stores.ios ? d.mobile.android.soon : d.mobile.ios.soon;
-                  return stores.ios && stores.android ? null : !stores.ios && !stores.android ? (
-                    <p className="text-sm text-fg-secondary">{d.mobile.soon}</p>
-                  ) : (
-                    <p className="text-sm text-fg-secondary">{partialMsg}</p>
-                  );
+                  return <p className="text-sm text-fg-secondary">{partialMsg}</p>;
                 })()}
                 <div className="flex flex-wrap gap-3">
                   {stores.ios && (
