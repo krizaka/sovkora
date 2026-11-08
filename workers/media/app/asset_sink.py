@@ -25,6 +25,9 @@ from app.registration import _service_token
 #: An output file name: a word, never a path. The job service checks it again.
 _FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 
+#: Error message when the deployment has not declared the asset sink URL.
+_SINK_URL_NOT_SET = "MEDIA_ASSET_SINK_URL is not set"
+
 
 class AssetSinkError(RuntimeError):
     """The platform did not take the file. The job fails: an output nobody can read is not done."""
@@ -52,7 +55,7 @@ def upload(path: str, job: dict, filename: str, content_type: str, env: dict | N
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError("MEDIA_ASSET_SINK_URL is not set")
+        raise AssetSinkError(_SINK_URL_NOT_SET)
     if not _FILENAME.match(filename):
         raise AssetSinkError(f"refusing to upload under the name {filename!r}")
     token = _service_token()
@@ -99,7 +102,7 @@ def fetch_image(job: dict, target: str, env: dict | None = None, asset: str | No
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError("MEDIA_ASSET_SINK_URL is not set")
+        raise AssetSinkError(_SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
         raise AssetSinkError("no SERVICE token (ORAZAKA_SERVICE_TOKEN) to fetch the starting image")
@@ -144,7 +147,7 @@ def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict 
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError("MEDIA_ASSET_SINK_URL is not set")
+        raise AssetSinkError(_SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
         raise AssetSinkError("no SERVICE token (ORAZAKA_SERVICE_TOKEN) to read the output")
