@@ -18,4 +18,9 @@ final class InvalidRequestProblem extends DomainException {
   InvalidRequestProblem(String message) {
     super(HttpStatus.BAD_REQUEST, CODE, message);
   }
+
+  InvalidRequestProblem(String message, Throwable cause) {
+    super(HttpStatus.BAD_REQUEST, CODE, message);
+    initCause(cause);
+  }
 }
