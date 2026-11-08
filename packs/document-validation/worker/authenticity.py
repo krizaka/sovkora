@@ -61,6 +61,13 @@ LEVELS = {
 
 OBSERVED, UNUSUAL, INCONSISTENT = "observé", "inhabituel", "incohérent"
 
+#: JPEG / WebP EXIF marker prefix — the 6-byte preamble before the TIFF stream.
+EXIF_MARKER = b"Exif\0\0"
+#: Media type for TIFF images (also the EXIF host format).
+MEDIA_TYPE_TIFF = "image/tiff"
+#: OpenDocument metadata entry path inside the ZIP archive.
+ODF_META_PATH = "meta.xml"
+
 #: What this module does NOT look at. Printed by every report, because a report that hides its
 #: limits is worse than no report: it is read as covering what it never examined.
 NOT_EXAMINED = [
@@ -335,7 +342,7 @@ def _analyse_pdf(pdf_bytes: bytes, expected_issuer: str, locale: str, profile=No
 
     revisions = _count_revisions(pdf_bytes)
     if revisions > 1:
-        level = "incohérent" if revisions >= THRESHOLDS["PDF-REV-001"]["inconsistentFrom"] else "inhabituel"
+        level = INCONSISTENT if revisions >= THRESHOLDS["PDF-REV-001"]["inconsistentFrom"] else UNUSUAL
         signals.append(_emit("PDF-REV-001", locale, level=level, revisions=revisions, later=revisions - 1))
 
     if _pdf_ids_differ(reader):
@@ -464,7 +471,7 @@ def _jpeg_parts(raw: bytes):
             break
         (length,) = struct.unpack(">H", raw[at + 2 : at + 4])
         segment = raw[at + 4 : at + 2 + length]
-        if marker == 0xE1 and segment.startswith(b"Exif\0\0"):
+        if marker == 0xE1 and segment.startswith(EXIF_MARKER):
             exif = segment[6:]
         elif marker == 0xE1 and segment.startswith(b"http://ns.adobe.com/xap/1.0/\0"):
             xmp = segment
@@ -499,7 +506,7 @@ def _webp_parts(raw: bytes):
         kind, length = struct.unpack("<4sI", raw[at : at + 8])
         data = raw[at + 8 : at + 8 + length]
         if kind == b"EXIF":
-            exif = data[6:] if data.startswith(b"Exif\0\0") else data
+            exif = data[6:] if data.startswith(EXIF_MARKER) else data
         elif kind == b"XMP ":
             xmp = data
         at += 8 + length + (length & 1)
@@ -508,7 +515,7 @@ def _webp_parts(raw: bytes):
 
 def _isobmff_exif(raw: bytes) -> bytes:
     """HEIC/AVIF keep EXIF as an item whose data starts with the TIFF header: found by its signature."""
-    marker = raw.find(b"Exif\0\0")
+    marker = raw.find(EXIF_MARKER)
     if marker >= 0:
         return raw[marker + 6 :]
     for signature in (b"MM\0*", b"II*\0"):
@@ -533,7 +540,7 @@ def _analyse_image(raw: bytes, media_type: str, locale: str, profile=None):
         exif, xmp, software = _png_parts(raw)
     elif media_type == "image/webp":
         exif, xmp = _webp_parts(raw)
-    elif media_type == "image/tiff":
+    elif media_type == MEDIA_TYPE_TIFF:
         exif, xmp = raw, _xmp_packet(raw)
     else:
         exif, xmp = _isobmff_exif(raw), _xmp_packet(raw)
@@ -588,8 +595,8 @@ def _analyse_office(archive, locale: str, profile=None):
     def read(name):
         return archive.read(name).decode("utf-8", "replace") if name in names else ""
 
-    if "meta.xml" in names:  # OpenDocument
-        meta = read("meta.xml")
+    if ODF_META_PATH in names:  # OpenDocument
+        meta = read(ODF_META_PATH)
         application = _xml_value(meta, "meta:generator")
         created, modified = _iso_date(_xml_value(meta, "meta:creation-date")), _iso_date(_xml_value(meta, "dc:date"))
         revision = _xml_value(meta, "meta:editing-cycles")
@@ -618,8 +625,8 @@ def _analyse_office(archive, locale: str, profile=None):
 IMAGE_SIGNATURES = (
     (b"\xff\xd8\xff", "image/jpeg"),
     (b"\x89PNG\r\n\x1a\n", "image/png"),
-    (b"II*\0", "image/tiff"),
-    (b"MM\0*", "image/tiff"),
+    (b"II*\0", MEDIA_TYPE_TIFF),
+    (b"MM\0*", MEDIA_TYPE_TIFF),
 )
 HEIF_BRANDS = (b"heic", b"heix", b"heif", b"mif1", b"msf1", b"avif")
 
@@ -661,7 +668,7 @@ def analyse(document: bytes, expected_issuer: str = "", locale: str = "fr", docu
             archive = zipfile.ZipFile(io.BytesIO(document))
         except zipfile.BadZipFile as broken:
             raise UnreadableDocument("l'archive fournie n'a pas pu être ouverte") from broken
-        if not ({"docProps/core.xml", "meta.xml"} & set(archive.namelist())):
+        if not ({"docProps/core.xml", ODF_META_PATH} & set(archive.namelist())):
             raise UnreadableDocument(f"cette archive n'est pas un document bureautique : ce module lit {SUPPORTED}")
         pages, signals = _analyse_office(archive, locale, profile)
     else:
