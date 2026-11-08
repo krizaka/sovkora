@@ -15,7 +15,7 @@ export function EntitlementRows({
   return (
     <>
       {entitlements.map((entitlement, index) => (
-        <div key={`${index}-${entitlement.key}`} className="grid gap-2 sm:grid-cols-3">
+        <div key={entitlement.key} className="grid gap-2 sm:grid-cols-3">
           <Input
             value={entitlement.key}
             onChange={(e) => setEntitlement(index, { ...entitlement, key: e.target.value })}
