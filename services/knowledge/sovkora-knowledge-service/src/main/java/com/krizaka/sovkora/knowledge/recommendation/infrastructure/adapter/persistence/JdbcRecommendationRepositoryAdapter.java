@@ -444,7 +444,7 @@ class JdbcRecommendationRepositoryAdapter implements RecommendationRepository {
                   engagements,
                   rs.getLong(4),
                   rate(engagements, views),
-                  avg == null ? null : Math.round(rs.getDouble(5) * 10) / 10.0);
+                  avg == null ? null : (Math.round(rs.getDouble(5) * 10) / 10.0));
             },
             kinds,
             tenant,
@@ -504,7 +504,7 @@ class JdbcRecommendationRepositoryAdapter implements RecommendationRepository {
   }
 
   private static double rate(long part, long whole) {
-    return whole == 0 ? 0 : Math.round(part * 1000.0 / whole) / 1000.0;
+    return whole == 0 ? 0 : (Math.round(part * 1000.0 / whole) / 1000.0);
   }
 
   @Override

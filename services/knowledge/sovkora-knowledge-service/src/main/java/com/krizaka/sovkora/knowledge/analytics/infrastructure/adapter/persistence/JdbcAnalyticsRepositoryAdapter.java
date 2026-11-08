@@ -355,6 +355,6 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
   }
 
   private static Double rounded(Double value) {
-    return value == null ? null : Math.round(value * 100.0) / 100.0;
+    return value == null ? null : (Math.round(value * 100.0) / 100.0);
   }
 }
