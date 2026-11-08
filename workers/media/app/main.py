@@ -701,9 +701,11 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
 
 
 def run(port: int = 8188) -> None:
-    server_address = ("", port)
+    # Bind loopback by default; set MEDIA_VIDEO_HOST="" to bind all interfaces for explicit external access.
+    host = os.environ.get("MEDIA_VIDEO_HOST", "127.0.0.1")
+    server_address = (host, port)
     httpd = HTTPServer(server_address, VideoInferenceHandler)
-    print(f"Video Worker listening on port {port}...", flush=True)
+    print(f"Video Worker listening on {host}:{port}...", flush=True)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:

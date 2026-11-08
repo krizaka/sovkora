@@ -983,6 +983,36 @@ class TestRunServerFunction(unittest.TestCase):
         test_port = 9999
         self.assertEqual(int(str(test_port)), 9999)
 
+    def test_binds_loopback_by_default(self):
+        """run() must bind 127.0.0.1 unless MEDIA_VIDEO_HOST overrides it."""
+        os.environ.pop("MEDIA_VIDEO_HOST", None)
+        with patch.object(HTTPServer, "__init__", return_value=None) as mock_init:
+            with patch.object(HTTPServer, "serve_forever", side_effect=KeyboardInterrupt):
+                with patch.object(HTTPServer, "server_close"):
+                    try:
+                        video_worker.run(port=8188)
+                    except (KeyboardInterrupt, AttributeError):
+                        pass
+        # call_args[0] = positional args: (self_instance, server_address, handler_class)
+        server_address = mock_init.call_args[0][1]
+        self.assertEqual(server_address[0], "127.0.0.1")
+
+    def test_binds_all_interfaces_when_env_set(self):
+        """run() binds all interfaces when MEDIA_VIDEO_HOST is set to empty string."""
+        os.environ["MEDIA_VIDEO_HOST"] = ""
+        try:
+            with patch.object(HTTPServer, "__init__", return_value=None) as mock_init:
+                with patch.object(HTTPServer, "serve_forever", side_effect=KeyboardInterrupt):
+                    with patch.object(HTTPServer, "server_close"):
+                        try:
+                            video_worker.run(port=8188)
+                        except (KeyboardInterrupt, AttributeError):
+                            pass
+            server_address = mock_init.call_args[0][1]
+            self.assertEqual(server_address[0], "")
+        finally:
+            os.environ.pop("MEDIA_VIDEO_HOST", None)
+
 
 class TestCompositionDivergenceContract(unittest.TestCase):
     """The billed duration is the produced file's, never the requested one (ADR-063, audit #20).
