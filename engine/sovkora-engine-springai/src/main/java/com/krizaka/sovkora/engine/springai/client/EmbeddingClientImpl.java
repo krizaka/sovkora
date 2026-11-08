@@ -40,8 +40,6 @@ public class EmbeddingClientImpl implements EmbeddingClient {
   private static final int MAX_BATCH = 128;
   private static final EmbeddingModelObservationConvention DEFAULT_CONVENTION =
       new DefaultEmbeddingModelObservationConvention();
-  private static final Duration TIMEOUT = Duration.ofSeconds(30);
-
   private final ModelEndpointResolver endpoints;
   private final RestClient.Builder restClientBuilder;
 
