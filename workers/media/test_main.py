@@ -23,6 +23,7 @@ from http.server import HTTPServer
 from threading import Thread
 from unittest.mock import MagicMock, patch
 
+import pytest
 from PIL import Image
 
 # ---------------------------------------------------------------------------
@@ -633,9 +634,8 @@ class TestPathSecurity(unittest.TestCase):
             "/private/etc/evil.mp4",
         ]
         for bad in bad_paths:
-            with self.subTest(bad):
-                with self.assertRaises(PermissionError):
-                    handler._encode_output({}, [], 14, bad, None, {})
+            with self.subTest(bad), pytest.raises(PermissionError):
+                handler._encode_output({}, [], 14, bad, None, {})
 
     def test_load_image_handles_invalid_path_gracefully(self):
         """load_image should fall back to default image if image_path is outside allowed directories."""
