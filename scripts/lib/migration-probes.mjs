@@ -123,7 +123,7 @@ export function deriveProbes(sqlRaw) {
     const cols = m[2].split(",").map((c) => c.trim().replace(/"/g, ""));
     // The row is identified by the ON CONFLICT columns when there are some, else by every plain string value it carries (a number may have been repriced since).
     const tail = sql.slice(m.index + m[0].length);
-    const end = tail.search(/;\s*(\n|$)/);
+    const end = tail.search(/;[ \t]*(\n|$)/);
     const target = (end < 0 ? tail : tail.slice(0, end)).match(/on\s+conflict\s*\(([^)]*)\)/i);
     const keyCols = target ? target[1].split(",").map((c) => c.trim().replace(/"/g, "")) : null;
     for (const row of valueRows(sql, m.index + m[0].length)) {

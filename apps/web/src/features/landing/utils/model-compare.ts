@@ -116,7 +116,7 @@ export interface CompareImage extends CompareRecord {
   src: string;
 }
 
-const COMPARE_FILE = /^sites\/orazaka\/compare\/([a-z0-9-]+)--([a-z0-9-]+)\.webp$/;
+const COMPARE_FILE = /^sites\/orazaka\/compare\/([a-z0-9]+(?:-[a-z0-9]+)*)--([a-z0-9]+(?:-[a-z0-9]+)*)\.webp$/;
 
 function discover(): CompareImage[] {
   const found = mediaPaths("sites/orazaka/compare/")

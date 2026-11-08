@@ -62,7 +62,7 @@ function checkJava() {
 
     // Package root: every .java under a maven module declares com.krizaka.sovkora.*
     for (const java of walk(base, (n) => n.endsWith(".java"))) {
-      const pkg = read(java).match(/^\s*package\s+([\w.]+)\s*;/m);
+      const pkg = read(java).match(/^[ \t]*package[ \t]+([\w.]+)[ \t]*;/m);
       if (pkg && !pkg[1].startsWith("com.krizaka.sovkora")) {
         violations.push(`${rel(java)}: package ${pkg[1]} is not under com.krizaka.sovkora`);
       }
