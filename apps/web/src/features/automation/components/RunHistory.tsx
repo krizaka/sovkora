@@ -35,10 +35,7 @@ function RunStatusCell({ run, label }: Readonly<{ run: AutomationRun; label: str
   );
 }
 
-function RunDetailCell({
-  run,
-  skippedBudgetLabel,
-}: Readonly<{ run: AutomationRun; skippedBudgetLabel: string }>) {
+function RunDetailCell({ run, skippedBudgetLabel }: Readonly<{ run: AutomationRun; skippedBudgetLabel: string }>) {
   if (run.status === STATUS.skipped_budget) return skippedBudgetLabel;
   if (run.errorMessage ?? run.errorCode)
     return <span className="text-danger">{run.errorMessage ?? run.errorCode}</span>;
