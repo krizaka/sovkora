@@ -35,7 +35,7 @@ function Chips({
           {v ?? all}
         </button>
       ))}
-    </fieldset>
+    </div>
   );
 }
 
@@ -55,9 +55,9 @@ export function PackIndexView({ items }: Readonly<{ items: PackIndexItem[] }>) {
         {categories.length > 1 && (
           <Chips name={p.category} values={categories} current={category} onPick={setCategory} all={p.all} />
         )}
-        <p role="status" aria-live="polite" className="text-xs text-fg-secondary">
+        <output aria-live="polite" className="text-xs text-fg-secondary">
           {p.found.replace("{count}", String(shown.length)).replace("{total}", String(items.length))}
-        </p>
+        </output>
       </div>
       {shown.length === 0 ? (
         <p className="text-sm text-fg-secondary">{p.none}</p>
