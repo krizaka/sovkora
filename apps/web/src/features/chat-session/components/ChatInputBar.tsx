@@ -20,6 +20,33 @@ const INPUT_ATTRS: Record<string, string> = {
 };
 const SEND_ATTRS: Record<string, string> = { "data-testid": "chat-submit" };
 
+/** Extract status parts to reduce cognitive complexity. */
+const buildStatusParts = (
+  isAgentBusy: boolean,
+  status: ReturnType<typeof routingStatus>,
+  t: ChatInputBarProps["t"],
+): React.ReactElement[] => {
+  const parts: React.ReactElement[] = [];
+  if (isAgentBusy) {
+    parts.push(<span key="busy">{t.chat.composerBusy}</span>);
+    return parts;
+  }
+  if (status.localOnly) {
+    parts.push(
+      <span key="local" className="inline-flex items-center gap-1.5">
+        <ShieldIcon size={14} className="text-success" />
+        {t.chat.localBadge}
+      </span>,
+    );
+  } else if (status.routedTo) {
+    parts.push(<span key="routed">{t.chat.statusRoutedTo.replace("{provider}", status.routedTo)}</span>);
+  }
+  if (status.credits !== null) {
+    parts.push(<span key="credits">{t.chat.statusCredits.replace("{credits}", String(status.credits))}</span>);
+  }
+  return parts;
+};
+
 export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   input,
   onInputChange,
@@ -56,24 +83,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
 
   // The status line says only what is true: local only when the last routing was local, plus the estimate.
   const status = routingStatus(routing);
-  const statusParts: React.ReactElement[] = [];
-  if (isAgentBusy) {
-    statusParts.push(<span key="busy">{t.chat.composerBusy}</span>);
-  } else {
-    if (status.localOnly) {
-      statusParts.push(
-        <span key="local" className="inline-flex items-center gap-1.5">
-          <ShieldIcon size={14} className="text-success" />
-          {t.chat.localBadge}
-        </span>,
-      );
-    } else if (status.routedTo) {
-      statusParts.push(<span key="routed">{t.chat.statusRoutedTo.replace("{provider}", status.routedTo)}</span>);
-    }
-    if (status.credits !== null) {
-      statusParts.push(<span key="credits">{t.chat.statusCredits.replace("{credits}", String(status.credits))}</span>);
-    }
-  }
+  const statusParts = buildStatusParts(isAgentBusy, status, t);
 
   return (
     <section
