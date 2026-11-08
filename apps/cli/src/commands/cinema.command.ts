@@ -563,6 +563,32 @@ const treatCommand = new Command("treat")
     },
   );
 
+/** Print critique scores to console. */
+async function critiqueTreatment(
+  file: string,
+  o: { language: string; judge?: boolean; model?: string; out?: string },
+): Promise<void> {
+  const story = parseStory(JSON.parse(fs.readFileSync(file, "utf-8")));
+  const rubric = critiqueStory(story, o.language);
+  let judge;
+  if (o.judge) {
+    requireAuth();
+    const run = await restPort.run("cinematic-critique", {
+      treatment: judgePrompt(story, o.language),
+      ...(o.model ? { model: o.model } : {}),
+    });
+    judge = parseJudge(run.outputs[0]?.value ?? "", story.shots.length);
+  }
+  const decided = verdict(rubric, judge);
+  for (const [k, v] of Object.entries(rubric.scores))
+    console.log(`${k.padEnd(11)} ${v >= 0.85 ? chalk.green(v.toFixed(2)) : chalk.red(v.toFixed(2))}`);
+  if (judge) for (const [k, v] of Object.entries(judge.scores)) console.log(`judge ${k.padEnd(11)} ${v}/5`);
+  for (const r of decided.reasons) console.log(chalk.yellow(`  ${r}`));
+  if (o.out) fs.writeFileSync(o.out, `${JSON.stringify({ rubric, judge, verdict: decided }, null, 1)}\n`);
+  if (decided.pass) Logger.success("the story passes");
+  else process.exitCode = 2;
+}
+
 const critiqueCommand = new Command("critique")
   .description("Judge a treatment against the rubric (arc, purpose, alive, on-topic, continuity, voice, music, sound)")
   .argument("<treatment>", "The treatment (JSON)")
@@ -572,25 +598,7 @@ const critiqueCommand = new Command("critique")
   .option("-o, --out <file>", "Write the critique (JSON) there")
   .action(async (file: string, o: { language: string; judge?: boolean; model?: string; out?: string }) => {
     try {
-      const story = parseStory(JSON.parse(fs.readFileSync(file, "utf-8")));
-      const rubric = critiqueStory(story, o.language);
-      let judge;
-      if (o.judge) {
-        requireAuth();
-        const run = await restPort.run("cinematic-critique", {
-          treatment: judgePrompt(story, o.language),
-          ...(o.model ? { model: o.model } : {}),
-        });
-        judge = parseJudge(run.outputs[0]?.value ?? "", story.shots.length);
-      }
-      const decided = verdict(rubric, judge);
-      for (const [k, v] of Object.entries(rubric.scores))
-        console.log(`${k.padEnd(11)} ${v >= 0.85 ? chalk.green(v.toFixed(2)) : chalk.red(v.toFixed(2))}`);
-      if (judge) for (const [k, v] of Object.entries(judge.scores)) console.log(`judge ${k.padEnd(11)} ${v}/5`);
-      for (const r of decided.reasons) console.log(chalk.yellow(`  ${r}`));
-      if (o.out) fs.writeFileSync(o.out, `${JSON.stringify({ rubric, judge, verdict: decided }, null, 1)}\n`);
-      if (decided.pass) Logger.success("the story passes");
-      else process.exitCode = 2;
+      await critiqueTreatment(file, o);
     } catch (error: unknown) {
       Logger.error(error instanceof StoryError || error instanceof Error ? error.message : String(error));
       process.exit(1);
