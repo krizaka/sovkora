@@ -138,7 +138,7 @@ final class ReferenceImages {
       int steps,
       Duration timeout) {
     HttpResponse<String> response = post(root, apiKey, request, width, height, steps, timeout);
-    if (response.statusCode() / 100 != 2) {
+    if ((response.statusCode() / 100) != 2) {
       throw new CoreException(
           "the image engine refused the reference images ("
               + response.statusCode()
