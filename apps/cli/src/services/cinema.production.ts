@@ -218,7 +218,7 @@ export function repairJson(body: string): string {
     )
     .join("");
   return quoted
-    .replace(/("|\}|\]|\d|true|false|null)([ \t]*\n[ \t]*)(?=["{[])/g, "$1,$2")
+    .replace(/("|\}|\]|\d|true|false|null)([ \t]*(?:\n[ \t]*)+)(?=["{[])/g, "$1,$2")
     .replace(/,(\s*[}\]])/g, "$1");
 }
 
