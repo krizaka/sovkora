@@ -5,6 +5,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Where a webhook may go: an {@code https} address that resolves to the public internet only.
@@ -17,6 +19,8 @@ import java.net.URI;
  * (DNS rebinding) is closed by the network egress rules of the deployment, not here.
  */
 public final class WebhookTargetPolicy {
+
+  private static final Logger logger = LoggerFactory.getLogger(WebhookTargetPolicy.class);
 
   private WebhookTargetPolicy() {}
 
@@ -77,6 +81,7 @@ public final class WebhookTargetPolicy {
           return isPublic(
               InetAddress.getByAddress(new byte[] {raw[12], raw[13], raw[14], raw[15]}));
         } catch (java.net.UnknownHostException impossible) {
+          logger.debug("Failed to get IPv4 address from bytes: {}", impossible.getMessage(), impossible);
           return false;
         }
       }

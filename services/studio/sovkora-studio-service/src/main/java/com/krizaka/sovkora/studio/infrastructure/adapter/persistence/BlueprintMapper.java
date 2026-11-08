@@ -18,6 +18,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -32,6 +34,8 @@ import tools.jackson.databind.JsonNode;
  * <p>Package-private, final, static: a mapper, not a service (ERR-107/ERR-129).
  */
 final class BlueprintMapper {
+
+  private static final Logger logger = LoggerFactory.getLogger(BlueprintMapper.class);
 
   /** A step that declares no retry policy fails the run — the safe reading of silence. */
   private static final ErrorPolicy DEFAULT_ERROR_POLICY = ErrorPolicy.FAIL;
@@ -115,6 +119,7 @@ final class BlueprintMapper {
     } catch (IllegalArgumentException | NullPointerException invalid) {
       // Re-raised as a blueprint violation naming the node: an admin needs the step, not a stack
       // trace pointing at a record constructor.
+      logger.warn("Blueprint step validation failed at id={}: {}", id, invalid.getMessage(), invalid);
       throw new BlueprintValidationException(id, invalid.getMessage());
     }
   }
