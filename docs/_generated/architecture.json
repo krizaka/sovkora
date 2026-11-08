@@ -40,238 +40,230 @@
   ],
   "repositories": [
     {
-      "name": "krizaka-build",
-      "url": "https://github.com/krizaka/krizaka-build",
-      "path": "krizaka/krizaka-build",
+      "name": "krizaka-java",
+      "url": "https://github.com/krizaka/krizaka-java",
+      "path": ".krizaka-java",
       "kind": "maven",
       "layer": "krizaka",
-      "description": "Parent POM (Maven Central metadata, Java 21 build conventions, signed release) and BOM of every Krizaka JVM artifact (com.krizaka).",
+      "description": "The Krizaka Java building blocks (com.krizaka on Maven Central).",
       "dependsOn": []
     },
     {
-      "name": "orazaka-build",
-      "url": "https://github.com/krizaka/orazaka-build",
-      "path": "sovkora-libs/sovkora-build",
+      "name": "build",
+      "url": "https://github.com/krizaka/sovkora/tree/main/build",
+      "path": "build",
       "kind": "maven",
       "layer": "foundation",
-      "description": "Parent POM (Spring Boot / Spring AI BOMs, plugin management, Orazaka BOM) and the shared governance test kit (ArchUnit rules, Testcontainers base) for every Orazaka JVM repository.",
+      "description": "The parent POM sovkora-parent (krizaka-parent from Maven Central, the Spring Boot / Spring AI BOMs, the Sovkora BOM, the ADR-029 naming guards) and the shared governance test kit (ArchUnit rules, Testcontainers base).",
+      "dependsOn": []
+    },
+    {
+      "name": "contracts",
+      "url": "https://github.com/krizaka/sovkora/tree/main/contracts",
+      "path": "contracts",
+      "kind": "maven",
+      "layer": "foundation",
+      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api) and the secret sealing (sovkora-crypto). Pure interfaces and records.",
       "dependsOn": [
-        "krizaka-build"
+        "build"
       ]
     },
     {
-      "name": "orazaka-contracts",
-      "url": "https://github.com/krizaka/orazaka-contracts",
-      "path": "sovkora-libs/sovkora-contracts",
-      "kind": "maven",
-      "layer": "foundation",
-      "description": "Tier-1 platform contracts shared by every Orazaka service: the job plane (jobs-api) and the application-persistence ports (persistence-app-api). Pure interfaces and records, zero implementation.",
-      "dependsOn": [
-        "orazaka-build"
-      ]
-    },
-    {
-      "name": "orazaka-studio",
-      "url": "https://github.com/krizaka/orazaka-studio",
-      "path": "orazaka-apps/services/orazaka-studio",
+      "name": "studio",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/studio",
+      "path": "services/studio",
       "kind": "maven",
       "layer": "ai",
       "description": "Studio & pack marketplace: pack catalogue, studio blueprints, installations and saga-driven runs, with its contract (studio-api) and HTTP client (studio-client).",
       "dependsOn": [
-        "orazaka-build",
-        "orazaka-contracts"
+        "build",
+        "contracts"
       ]
     },
     {
-      "name": "orazaka-ai-engine",
-      "url": "https://github.com/krizaka/orazaka-ai-engine",
-      "path": "sovkora-libs/sovkora-engine",
+      "name": "engine",
+      "url": "https://github.com/krizaka/sovkora/tree/main/engine",
+      "path": "engine",
       "kind": "maven",
       "layer": "ai",
-      "description": "The Orazaka cognitive SDK: AiClient & provider mesh (core), the interceptor pipeline, tools (MCP · RAG · sandbox), use-case orchestration (business), application persistence and asset encryption.",
+      "description": "The Sovkora cognitive SDK: AiClient & provider mesh (core), the interceptor pipeline, tools (MCP · RAG · sandbox), use-case orchestration (business), application persistence and asset encryption, as sovkora-engine-* modules.",
       "dependsOn": [
-        "orazaka-build",
-        "orazaka-contracts",
-        "orazaka-studio"
+        "build",
+        "contracts",
+        "studio"
       ]
     },
     {
-      "name": "orazaka-conversation-service",
-      "url": "https://github.com/krizaka/orazaka-conversation-service",
-      "path": "orazaka-apps/services/orazaka-conversation-service",
+      "name": "conversation",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/conversation/sovkora-conversation-service",
+      "path": "services/conversation/sovkora-conversation-service",
       "kind": "maven",
       "layer": "ai",
-      "description": "Interactive ingress of the Orazaka engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic.",
+      "description": "Interactive ingress of the Sovkora engine: chat (SSE streaming), intents, models, pipeline, MCP and job APIs — translates transport into Intentions, never business logic.",
       "dependsOn": [
-        "orazaka-build",
-        "orazaka-contracts",
-        "orazaka-ai-engine"
+        "build",
+        "contracts",
+        "engine"
       ]
     },
     {
-      "name": "orazaka-job-service",
-      "url": "https://github.com/krizaka/orazaka-job-service",
-      "path": "orazaka-apps/services/orazaka-job-service",
+      "name": "job",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/job/sovkora-job-service",
+      "path": "services/job/sovkora-job-service",
       "kind": "maven",
       "layer": "ai",
-      "description": "Asynchronous job executor of the Orazaka engine: drains the interactive and batch lanes, owns the capability registry and the worker registry.",
+      "description": "Asynchronous job executor of the Sovkora engine: drains the interactive and batch lanes, owns the capability registry and the worker registry.",
       "dependsOn": [
-        "orazaka-build",
-        "orazaka-contracts",
-        "orazaka-ai-engine"
+        "build",
+        "contracts",
+        "engine"
       ]
     },
     {
-      "name": "orazaka-knowledge-service",
-      "url": "https://github.com/krizaka/orazaka-knowledge-service",
-      "path": "orazaka-apps/services/orazaka-knowledge-service",
+      "name": "knowledge",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/knowledge/sovkora-knowledge-service",
+      "path": "services/knowledge/sovkora-knowledge-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Knowledge & RAG retrieval service (pgvector) with asynchronous indexing.",
       "dependsOn": [
-        "krizaka-build",
-        "orazaka-build"
+        "build"
       ]
     },
     {
-      "name": "orazaka-automation-service",
-      "url": "https://github.com/krizaka/orazaka-automation-service",
-      "path": "orazaka-apps/services/orazaka-automation-service",
+      "name": "automation",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/automation/sovkora-automation-service",
+      "path": "services/automation/sovkora-automation-service",
       "kind": "maven",
       "layer": "ai",
       "description": "Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry.",
       "dependsOn": [
-        "orazaka-build",
-        "orazaka-ai-engine"
+        "build",
+        "engine"
       ]
     },
     {
-      "name": "orazaka-edge",
-      "url": "https://github.com/krizaka/orazaka-edge",
-      "path": "orazaka-apps/services/orazaka-edge",
+      "name": "edge",
+      "url": "https://github.com/krizaka/sovkora/tree/main/services/edge/sovkora-edge-service",
+      "path": "services/edge/sovkora-edge-service",
       "kind": "maven",
       "layer": "foundation",
-      "description": "Transparent HTTP edge in front of every Orazaka service: routing, API-key → JWT exchange, CORS and tracing. Spring MVC + virtual threads.",
+      "description": "Transparent HTTP edge in front of every Sovkora service: routing, API-key → JWT exchange, CORS and tracing. Spring MVC + virtual threads.",
       "dependsOn": [
-        "krizaka-build",
-        "orazaka-build"
+        "build"
       ]
     },
     {
-      "name": "orazaka-worker-media",
-      "url": "https://github.com/krizaka/orazaka-worker-media",
-      "path": "orazaka-apps/workers/orazaka-worker-media",
+      "name": "worker-media",
+      "url": "https://github.com/krizaka/sovkora/tree/main/workers/media",
+      "path": "workers/media",
       "kind": "python",
       "layer": "worker",
-      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol.",
+      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol.",
       "dependsOn": []
     },
     {
-      "name": "orazaka-ui-kit",
-      "url": "https://github.com/krizaka/orazaka-ui-kit",
-      "path": "orazaka-apps/ui/orazaka-ui-kit",
-      "kind": "npm",
-      "layer": "foundation",
-      "description": "@krizaka/orazaka-shared (TypeScript types, Zod schemas, design tokens) and @krizaka/orazaka-design-system (React components, Tailwind preset, theme, icon registry) for Next.js and React Native apps.",
+      "name": "web",
+      "url": "https://github.com/krizaka/sovkora/tree/main/apps/web",
+      "path": "apps/web",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "Next.js (App Router) client of the Sovkora platform with its mandatory BFF.",
       "dependsOn": []
     },
     {
-      "name": "orazaka-web-client",
-      "url": "https://github.com/krizaka/orazaka-web-client",
-      "path": "orazaka-apps/ui/orazaka-web-client",
-      "kind": "npm",
+      "name": "mobile",
+      "url": "https://github.com/krizaka/sovkora/tree/main/apps/mobile",
+      "path": "apps/mobile",
+      "kind": "pnpm",
       "layer": "app",
-      "description": "Next.js (App Router) client of the Orazaka platform with its mandatory BFF.",
-      "dependsOn": [
-        "orazaka-ui-kit"
-      ]
-    },
-    {
-      "name": "orazaka-mobile-client",
-      "url": "https://github.com/krizaka/orazaka-mobile-client",
-      "path": "orazaka-apps/ui/orazaka-mobile-client",
-      "kind": "npm",
-      "layer": "app",
-      "description": "Expo / React Native client of the Orazaka platform (talks to the edge with Bearer tokens).",
-      "dependsOn": [
-        "orazaka-ui-kit"
-      ]
-    },
-    {
-      "name": "orazaka-cli",
-      "url": "https://github.com/krizaka/orazaka-cli",
-      "path": "orazaka-apps/ui/orazaka-cli",
-      "kind": "npm",
-      "layer": "app",
-      "description": "The `orazaka` developer CLI: install, start, dev, test, docs and pack tooling for the Orazaka workspace, with an offline SQLite queue.",
+      "description": "Expo / React Native client of the Sovkora platform (talks to the edge with Bearer tokens).",
       "dependsOn": []
     },
     {
-      "name": "orazaka-packs",
-      "url": "https://github.com/krizaka/orazaka-packs",
-      "path": "orazaka-packs",
+      "name": "cli",
+      "url": "https://github.com/krizaka/sovkora/tree/main/apps/cli",
+      "path": "apps/cli",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "The developer CLI: install, start, dev, test, docs and pack tooling for the local Sovkora stack, with an offline SQLite queue.",
+      "dependsOn": []
+    },
+    {
+      "name": "desktop",
+      "url": "https://github.com/krizaka/sovkora/tree/main/apps/desktop",
+      "path": "apps/desktop",
+      "kind": "pnpm",
+      "layer": "app",
+      "description": "The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app.",
+      "dependsOn": []
+    },
+    {
+      "name": "packs",
+      "url": "https://github.com/krizaka/sovkora/tree/main/packs",
+      "path": "packs",
       "kind": "packs",
       "layer": "content",
-      "description": "Reference packs for the Orazaka Studio marketplace (document validation, media, prospection, real-estate, wellbeing…) and the pack manifest schema.",
+      "description": "Reference packs for the Sovkora Studio marketplace (document validation, media, prospection, real-estate, wellbeing…) and the pack manifest schema.",
       "dependsOn": []
     }
   ],
   "modules": [
     {
-      "id": "orazaka-cli",
-      "path": "orazaka-apps/ui/orazaka-cli",
-      "repository": "orazaka-cli",
+      "id": "cli",
+      "path": "apps/cli",
+      "repository": "cli",
       "owner": "orazaka",
       "role": "client",
       "layer": "app",
       "runtime": "node",
       "version": null,
-      "description": "The `orazaka` developer CLI: install, start, dev, test, docs and pack tooling for the Orazaka workspace, with an offline SQLite queue.",
+      "description": "The developer CLI: install, start, dev, test, docs and pack tooling for the local Sovkora stack, with an offline SQLite queue.",
       "ports": {
         "inbound": [],
         "outbound": []
       }
     },
     {
-      "id": "orazaka-mobile-client",
-      "path": "orazaka-apps/ui/orazaka-mobile-client",
-      "repository": "orazaka-mobile-client",
+      "id": "desktop",
+      "path": "apps/desktop",
+      "repository": "desktop",
       "owner": "orazaka",
       "role": "client",
       "layer": "app",
       "runtime": "node",
       "version": null,
-      "description": "Expo / React Native client of the Orazaka platform (talks to the edge with Bearer tokens).",
+      "description": "The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app.",
       "ports": {
         "inbound": [],
         "outbound": []
       }
     },
     {
-      "id": "orazaka-web-client",
-      "path": "orazaka-apps/ui/orazaka-web-client",
-      "repository": "orazaka-web-client",
+      "id": "mobile",
+      "path": "apps/mobile",
+      "repository": "mobile",
       "owner": "orazaka",
       "role": "client",
       "layer": "app",
       "runtime": "node",
       "version": null,
-      "description": "Next.js (App Router) client of the Orazaka platform with its mandatory BFF.",
+      "description": "Expo / React Native client of the Sovkora platform (talks to the edge with Bearer tokens).",
       "ports": {
         "inbound": [],
         "outbound": []
       }
     },
     {
-      "id": "orazaka-worker-media",
-      "path": "orazaka-apps/workers/orazaka-worker-media",
-      "repository": "orazaka-worker-media",
+      "id": "web",
+      "path": "apps/web",
+      "repository": "web",
       "owner": "orazaka",
-      "role": "service",
+      "role": "client",
       "layer": "app",
-      "runtime": "python",
+      "runtime": "node",
       "version": null,
-      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Orazaka AMQP worker protocol.",
+      "description": "Next.js (App Router) client of the Sovkora platform with its mandatory BFF.",
       "ports": {
         "inbound": [],
         "outbound": []
@@ -279,8 +271,8 @@
     },
     {
       "id": "sovkora-automation-service",
-      "path": "orazaka-apps/services/orazaka-automation-service",
-      "repository": "orazaka-automation-service",
+      "path": "services/automation/sovkora-automation-service",
+      "repository": "automation",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -294,8 +286,8 @@
     },
     {
       "id": "sovkora-conversation-service",
-      "path": "orazaka-apps/services/orazaka-conversation-service",
-      "repository": "orazaka-conversation-service",
+      "path": "services/conversation/sovkora-conversation-service",
+      "repository": "conversation",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -309,8 +301,8 @@
     },
     {
       "id": "sovkora-edge-service",
-      "path": "orazaka-apps/services/orazaka-edge",
-      "repository": "orazaka-edge",
+      "path": "services/edge/sovkora-edge-service",
+      "repository": "edge",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -324,8 +316,8 @@
     },
     {
       "id": "sovkora-job-service",
-      "path": "orazaka-apps/services/orazaka-job-service",
-      "repository": "orazaka-job-service",
+      "path": "services/job/sovkora-job-service",
+      "repository": "job",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -339,8 +331,8 @@
     },
     {
       "id": "sovkora-knowledge-service",
-      "path": "orazaka-apps/services/orazaka-knowledge-service",
-      "repository": "orazaka-knowledge-service",
+      "path": "services/knowledge/sovkora-knowledge-service",
+      "repository": "knowledge",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -354,8 +346,8 @@
     },
     {
       "id": "sovkora-studio-service",
-      "path": "orazaka-apps/services/orazaka-studio/sovkora-studio-service",
-      "repository": "orazaka-studio",
+      "path": "services/studio/sovkora-studio-service",
+      "repository": "studio",
       "owner": "orazaka",
       "role": "service",
       "layer": "app",
@@ -368,9 +360,24 @@
       }
     },
     {
+      "id": "worker-media",
+      "path": "workers/media",
+      "repository": "worker-media",
+      "owner": "orazaka",
+      "role": "service",
+      "layer": "app",
+      "runtime": "python",
+      "version": null,
+      "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol.",
+      "ports": {
+        "inbound": [],
+        "outbound": []
+      }
+    },
+    {
       "id": "krizaka-billing-service",
-      "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-service",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-billing/krizaka-billing-service",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
       "layer": "app",
@@ -384,8 +391,8 @@
     },
     {
       "id": "krizaka-notifications-service",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-notifications-service",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-service",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
       "layer": "app",
@@ -399,8 +406,8 @@
     },
     {
       "id": "krizaka-users-service",
-      "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-service",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-users/krizaka-users-service",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
       "layer": "app",
@@ -413,54 +420,9 @@
       }
     },
     {
-      "id": "sovkora-adapter-spring-ai",
-      "path": "sovkora-libs/sovkora-engine/sovkora-adapter-spring-ai",
-      "repository": "orazaka-ai-engine",
-      "owner": "orazaka",
-      "role": "adapter",
-      "layer": "framework",
-      "runtime": "jvm",
-      "version": "1.0.0-SNAPSHOT",
-      "description": "The only module that depends on Spring AI: implements the engine's ports (inference, embedding, structured output, tools) on top of it (ADR-092 §4, sovkora-engine#112)",
-      "ports": {
-        "inbound": [],
-        "outbound": []
-      }
-    },
-    {
-      "id": "sovkora-architecture",
-      "path": "sovkora-libs/sovkora-engine/sovkora-architecture",
-      "repository": "orazaka-ai-engine",
-      "owner": "orazaka",
-      "role": "adapter",
-      "layer": "framework",
-      "runtime": "jvm",
-      "version": "1.0.0-SNAPSHOT",
-      "description": "No main code: the boundary rules of the engine, read over the classes of every module, behind a ratchet (ADR-092 §4, sovkora-engine#112)",
-      "ports": {
-        "inbound": [],
-        "outbound": []
-      }
-    },
-    {
-      "id": "sovkora-assets",
-      "path": "sovkora-libs/sovkora-engine/sovkora-assets",
-      "repository": "orazaka-ai-engine",
-      "owner": "orazaka",
-      "role": "adapter",
-      "layer": "framework",
-      "runtime": "jvm",
-      "version": "1.0.0-SNAPSHOT",
-      "description": "Tier-2 SDK — envelope encryption for the asset store: a per-file data key wrapped by a master key nobody but a key provider ever sees, block-addressable so a Range request decrypts one block instead of a file",
-      "ports": {
-        "inbound": [],
-        "outbound": []
-      }
-    },
-    {
       "id": "sovkora-crypto",
-      "path": "sovkora-libs/sovkora-contracts/sovkora-crypto",
-      "repository": "orazaka-contracts",
+      "path": "contracts/sovkora-crypto",
+      "repository": "contracts",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
@@ -473,9 +435,39 @@
       }
     },
     {
-      "id": "sovkora-persistence-app",
-      "path": "sovkora-libs/sovkora-engine/sovkora-persistence-app",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-architecture",
+      "path": "engine/sovkora-engine-architecture",
+      "repository": "engine",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "version": "1.0.0-SNAPSHOT",
+      "description": "No main code: the boundary rules of the engine, read over the classes of every module, behind a ratchet (ADR-092 §4, sovkora-engine#112)",
+      "ports": {
+        "inbound": [],
+        "outbound": []
+      }
+    },
+    {
+      "id": "sovkora-engine-assets",
+      "path": "engine/sovkora-engine-assets",
+      "repository": "engine",
+      "owner": "orazaka",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "version": "1.0.0-SNAPSHOT",
+      "description": "Tier-2 SDK — envelope encryption for the asset store: a per-file data key wrapped by a master key nobody but a key provider ever sees, block-addressable so a Range request decrypts one block instead of a file",
+      "ports": {
+        "inbound": [],
+        "outbound": []
+      }
+    },
+    {
+      "id": "sovkora-engine-persistence",
+      "path": "engine/sovkora-engine-persistence",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
@@ -488,30 +480,30 @@
       }
     },
     {
-      "id": "sovkora-persistence-bridge",
-      "path": "sovkora-libs/sovkora-engine/sovkora-persistence-bridge",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-persistence-bridge",
+      "path": "engine/sovkora-engine-persistence-bridge",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
       "version": "1.0.0-SNAPSHOT",
-      "description": "Platform bridge library: package-private @Service adapters that implement the core's DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider, PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository, CheckSubjectPepper) by delegating to the sovkora-persistence-app-api inbound ports. Bundled by every service that runs the cognitive pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.sovkora component scan — no HTTP surface, no entrypoint.",
+      "description": "Platform bridge library: package-private @Service adapters that implement the core's DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, PlatformToolConfigProvider, PlatformMcpServerProvider, UserMcpServerProvider, ValidationPipelineRepository, CheckSubjectPepper) by delegating to the sovkora-persistence-api inbound ports. Bundled by every service that runs the cognitive pipeline in-process (conversation-service, job-service, …) so the shared core beans wire without each service re-implementing the same DB adapters. Discovered via the hosts' com.krizaka.sovkora component scan — no HTTP surface, no entrypoint.",
       "ports": {
         "inbound": [],
         "outbound": []
       }
     },
     {
-      "id": "sovkora-rewrite-style",
-      "path": "sovkora-libs/sovkora-build/sovkora-rewrite-style",
-      "repository": "orazaka-build",
+      "id": "sovkora-engine-springai",
+      "path": "engine/sovkora-engine-springai",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
       "version": "1.0.0-SNAPSHOT",
-      "description": "The explicit OpenRewrite import layout of the Sovkora repositories (same as krizaka-rewrite-style of krizaka-build, which is not yet on Central): no star import, static imports first.",
+      "description": "The only module that depends on Spring AI: implements the engine's ports (inference, embedding, structured output, tools) on top of it (ADR-092 §4, sovkora-engine#112)",
       "ports": {
         "inbound": [],
         "outbound": []
@@ -519,8 +511,8 @@
     },
     {
       "id": "sovkora-studio-client",
-      "path": "orazaka-apps/services/orazaka-studio/sovkora-studio-client",
-      "repository": "orazaka-studio",
+      "path": "services/studio/sovkora-studio-client",
+      "repository": "studio",
       "owner": "orazaka",
       "role": "adapter",
       "layer": "framework",
@@ -534,8 +526,8 @@
     },
     {
       "id": "krizaka-billing-client",
-      "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-client",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-billing/krizaka-billing-client",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -549,8 +541,8 @@
     },
     {
       "id": "krizaka-payments",
-      "path": "krizaka/krizaka-build/krizaka-payments",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-payments",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -564,8 +556,8 @@
     },
     {
       "id": "krizaka-quality",
-      "path": "krizaka/krizaka-build/krizaka-quality",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-quality",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -579,8 +571,8 @@
     },
     {
       "id": "krizaka-rewrite-style",
-      "path": "krizaka/krizaka-build/krizaka-rewrite-style",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-rewrite-style",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -594,8 +586,8 @@
     },
     {
       "id": "krizaka-users-client",
-      "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-client",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-users/krizaka-users-client",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -609,8 +601,8 @@
     },
     {
       "id": "krizaka-users-persistence",
-      "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-persistence",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-users/krizaka-users-persistence",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
       "layer": "framework",
@@ -623,9 +615,9 @@
       }
     },
     {
-      "id": "sovkora-business",
-      "path": "sovkora-libs/sovkora-engine/sovkora-business",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-business",
+      "path": "engine/sovkora-engine-business",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "application",
       "layer": "framework",
@@ -638,9 +630,9 @@
       }
     },
     {
-      "id": "sovkora-interceptors",
-      "path": "sovkora-libs/sovkora-engine/sovkora-interceptors",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-interceptors",
+      "path": "engine/sovkora-engine-interceptors",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "application",
       "layer": "framework",
@@ -653,9 +645,9 @@
       }
     },
     {
-      "id": "sovkora-tools",
-      "path": "sovkora-libs/sovkora-engine/sovkora-tools",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-tools",
+      "path": "engine/sovkora-engine-tools",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "application",
       "layer": "framework",
@@ -668,9 +660,9 @@
       }
     },
     {
-      "id": "sovkora-core",
-      "path": "sovkora-libs/sovkora-engine/sovkora-core",
-      "repository": "orazaka-ai-engine",
+      "id": "sovkora-engine-core",
+      "path": "engine/sovkora-engine-core",
+      "repository": "engine",
       "owner": "orazaka",
       "role": "domain",
       "layer": "framework",
@@ -746,8 +738,8 @@
     },
     {
       "id": "krizaka-users-core",
-      "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-core",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-users/krizaka-users-core",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "domain",
       "layer": "framework",
@@ -795,8 +787,8 @@
     },
     {
       "id": "sovkora-jobs-api",
-      "path": "sovkora-libs/sovkora-contracts/sovkora-jobs-api",
-      "repository": "orazaka-contracts",
+      "path": "contracts/sovkora-jobs-api",
+      "repository": "contracts",
       "owner": "orazaka",
       "role": "contract",
       "layer": "framework",
@@ -809,9 +801,9 @@
       }
     },
     {
-      "id": "sovkora-persistence-app-api",
-      "path": "sovkora-libs/sovkora-contracts/sovkora-persistence-app-api",
-      "repository": "orazaka-contracts",
+      "id": "sovkora-persistence-api",
+      "path": "contracts/sovkora-persistence-api",
+      "repository": "contracts",
       "owner": "orazaka",
       "role": "contract",
       "layer": "framework",
@@ -843,8 +835,8 @@
     },
     {
       "id": "sovkora-studio-api",
-      "path": "orazaka-apps/services/orazaka-studio/sovkora-studio-api",
-      "repository": "orazaka-studio",
+      "path": "services/studio/sovkora-studio-api",
+      "repository": "studio",
       "owner": "orazaka",
       "role": "contract",
       "layer": "framework",
@@ -858,8 +850,8 @@
     },
     {
       "id": "krizaka-billing-api",
-      "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-api",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-billing/krizaka-billing-api",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "contract",
       "layer": "framework",
@@ -873,8 +865,8 @@
     },
     {
       "id": "krizaka-users-api",
-      "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-api",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-users/krizaka-users-api",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "contract",
       "layer": "framework",
@@ -888,8 +880,8 @@
     },
     {
       "id": "krizaka-app-config",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-app-config",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-app-config",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -903,8 +895,8 @@
     },
     {
       "id": "krizaka-idempotency",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-idempotency",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-idempotency",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -918,8 +910,8 @@
     },
     {
       "id": "krizaka-messaging",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-messaging",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-messaging",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -933,8 +925,8 @@
     },
     {
       "id": "krizaka-notifications-api",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-notifications-api",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-api",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -948,8 +940,8 @@
     },
     {
       "id": "krizaka-observability",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-observability",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-observability",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -963,8 +955,8 @@
     },
     {
       "id": "krizaka-persistence",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-persistence",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-persistence",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -978,8 +970,8 @@
     },
     {
       "id": "krizaka-ratelimit",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-ratelimit",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-ratelimit",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -993,8 +985,8 @@
     },
     {
       "id": "krizaka-security",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-security",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-security",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1008,8 +1000,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-app-config",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1023,8 +1015,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-idempotency",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1038,8 +1030,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-observability",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1053,8 +1045,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-persistence",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1068,8 +1060,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-rabbitmq",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1083,8 +1075,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-ratelimit",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1098,8 +1090,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-security",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1113,8 +1105,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-web",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1128,8 +1120,8 @@
     },
     {
       "id": "krizaka-spring-boot-starter-webhooks",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1143,8 +1135,8 @@
     },
     {
       "id": "krizaka-web",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-web",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-web",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1158,8 +1150,8 @@
     },
     {
       "id": "krizaka-webhooks",
-      "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-webhooks",
-      "repository": "krizaka-build",
+      "path": ".krizaka-java/krizaka-service-kit/krizaka-webhooks",
+      "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
       "layer": "framework",
@@ -1294,38 +1286,6 @@
       "to": "krizaka-web"
     },
     {
-      "from": "sovkora-adapter-spring-ai",
-      "to": "sovkora-business"
-    },
-    {
-      "from": "sovkora-adapter-spring-ai",
-      "to": "sovkora-core"
-    },
-    {
-      "from": "sovkora-architecture",
-      "to": "sovkora-adapter-spring-ai"
-    },
-    {
-      "from": "sovkora-architecture",
-      "to": "sovkora-business"
-    },
-    {
-      "from": "sovkora-architecture",
-      "to": "sovkora-core"
-    },
-    {
-      "from": "sovkora-architecture",
-      "to": "sovkora-interceptors"
-    },
-    {
-      "from": "sovkora-architecture",
-      "to": "sovkora-tools"
-    },
-    {
-      "from": "sovkora-assets",
-      "to": "sovkora-crypto"
-    },
-    {
       "from": "sovkora-automation-service",
       "to": "krizaka-billing-client"
     },
@@ -1339,19 +1299,7 @@
     },
     {
       "from": "sovkora-automation-service",
-      "to": "sovkora-assets"
-    },
-    {
-      "from": "sovkora-business",
-      "to": "sovkora-core"
-    },
-    {
-      "from": "sovkora-business",
-      "to": "sovkora-studio-api"
-    },
-    {
-      "from": "sovkora-business",
-      "to": "sovkora-studio-client"
+      "to": "sovkora-engine-assets"
     },
     {
       "from": "sovkora-conversation-service",
@@ -1387,67 +1335,151 @@
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-assets"
+      "to": "sovkora-engine-assets"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-business"
+      "to": "sovkora-engine-business"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-core"
+      "to": "sovkora-engine-core"
     },
     {
       "from": "sovkora-conversation-service",
-      "to": "sovkora-interceptors"
+      "to": "sovkora-engine-interceptors"
+    },
+    {
+      "from": "sovkora-conversation-service",
+      "to": "sovkora-engine-persistence"
+    },
+    {
+      "from": "sovkora-conversation-service",
+      "to": "sovkora-engine-persistence-bridge"
+    },
+    {
+      "from": "sovkora-conversation-service",
+      "to": "sovkora-engine-tools"
     },
     {
       "from": "sovkora-conversation-service",
       "to": "sovkora-jobs-api"
-    },
-    {
-      "from": "sovkora-conversation-service",
-      "to": "sovkora-persistence-app"
-    },
-    {
-      "from": "sovkora-conversation-service",
-      "to": "sovkora-persistence-bridge"
     },
     {
       "from": "sovkora-conversation-service",
       "to": "sovkora-studio-client"
     },
     {
-      "from": "sovkora-conversation-service",
-      "to": "sovkora-tools"
-    },
-    {
-      "from": "sovkora-core",
-      "to": "krizaka-security"
-    },
-    {
-      "from": "sovkora-core",
-      "to": "sovkora-persistence-app-api"
-    },
-    {
       "from": "sovkora-edge-service",
       "to": "krizaka-security"
     },
     {
-      "from": "sovkora-interceptors",
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-business"
+    },
+    {
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-core"
+    },
+    {
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-interceptors"
+    },
+    {
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-springai"
+    },
+    {
+      "from": "sovkora-engine-architecture",
+      "to": "sovkora-engine-tools"
+    },
+    {
+      "from": "sovkora-engine-assets",
+      "to": "sovkora-crypto"
+    },
+    {
+      "from": "sovkora-engine-business",
+      "to": "sovkora-engine-core"
+    },
+    {
+      "from": "sovkora-engine-business",
+      "to": "sovkora-studio-api"
+    },
+    {
+      "from": "sovkora-engine-business",
+      "to": "sovkora-studio-client"
+    },
+    {
+      "from": "sovkora-engine-core",
+      "to": "krizaka-security"
+    },
+    {
+      "from": "sovkora-engine-core",
+      "to": "sovkora-persistence-api"
+    },
+    {
+      "from": "sovkora-engine-interceptors",
       "to": "krizaka-billing-api"
     },
     {
-      "from": "sovkora-interceptors",
-      "to": "sovkora-adapter-spring-ai"
+      "from": "sovkora-engine-interceptors",
+      "to": "sovkora-engine-core"
     },
     {
-      "from": "sovkora-interceptors",
-      "to": "sovkora-core"
+      "from": "sovkora-engine-interceptors",
+      "to": "sovkora-engine-springai"
     },
     {
-      "from": "sovkora-interceptors",
+      "from": "sovkora-engine-interceptors",
       "to": "sovkora-jobs-api"
+    },
+    {
+      "from": "sovkora-engine-persistence",
+      "to": "krizaka-messaging"
+    },
+    {
+      "from": "sovkora-engine-persistence",
+      "to": "sovkora-crypto"
+    },
+    {
+      "from": "sovkora-engine-persistence",
+      "to": "sovkora-jobs-api"
+    },
+    {
+      "from": "sovkora-engine-persistence",
+      "to": "sovkora-persistence-api"
+    },
+    {
+      "from": "sovkora-engine-persistence-bridge",
+      "to": "sovkora-crypto"
+    },
+    {
+      "from": "sovkora-engine-persistence-bridge",
+      "to": "sovkora-engine-core"
+    },
+    {
+      "from": "sovkora-engine-persistence-bridge",
+      "to": "sovkora-persistence-api"
+    },
+    {
+      "from": "sovkora-engine-springai",
+      "to": "sovkora-engine-business"
+    },
+    {
+      "from": "sovkora-engine-springai",
+      "to": "sovkora-engine-core"
+    },
+    {
+      "from": "sovkora-engine-tools",
+      "to": "krizaka-billing-api"
+    },
+    {
+      "from": "sovkora-engine-tools",
+      "to": "sovkora-engine-core"
+    },
+    {
+      "from": "sovkora-engine-tools",
+      "to": "sovkora-engine-springai"
     },
     {
       "from": "sovkora-job-service",
@@ -1471,35 +1503,35 @@
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-assets"
+      "to": "sovkora-engine-assets"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-business"
+      "to": "sovkora-engine-business"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-core"
+      "to": "sovkora-engine-core"
     },
     {
       "from": "sovkora-job-service",
-      "to": "sovkora-interceptors"
+      "to": "sovkora-engine-interceptors"
+    },
+    {
+      "from": "sovkora-job-service",
+      "to": "sovkora-engine-persistence"
+    },
+    {
+      "from": "sovkora-job-service",
+      "to": "sovkora-engine-persistence-bridge"
+    },
+    {
+      "from": "sovkora-job-service",
+      "to": "sovkora-engine-tools"
     },
     {
       "from": "sovkora-job-service",
       "to": "sovkora-jobs-api"
-    },
-    {
-      "from": "sovkora-job-service",
-      "to": "sovkora-persistence-app"
-    },
-    {
-      "from": "sovkora-job-service",
-      "to": "sovkora-persistence-bridge"
-    },
-    {
-      "from": "sovkora-job-service",
-      "to": "sovkora-tools"
     },
     {
       "from": "sovkora-knowledge-service",
@@ -1510,36 +1542,8 @@
       "to": "krizaka-security"
     },
     {
-      "from": "sovkora-persistence-app",
-      "to": "krizaka-messaging"
-    },
-    {
-      "from": "sovkora-persistence-app",
-      "to": "sovkora-crypto"
-    },
-    {
-      "from": "sovkora-persistence-app",
+      "from": "sovkora-persistence-api",
       "to": "sovkora-jobs-api"
-    },
-    {
-      "from": "sovkora-persistence-app",
-      "to": "sovkora-persistence-app-api"
-    },
-    {
-      "from": "sovkora-persistence-app-api",
-      "to": "sovkora-jobs-api"
-    },
-    {
-      "from": "sovkora-persistence-bridge",
-      "to": "sovkora-core"
-    },
-    {
-      "from": "sovkora-persistence-bridge",
-      "to": "sovkora-crypto"
-    },
-    {
-      "from": "sovkora-persistence-bridge",
-      "to": "sovkora-persistence-app-api"
     },
     {
       "from": "sovkora-studio-api",
@@ -1580,18 +1584,6 @@
     {
       "from": "sovkora-studio-service",
       "to": "sovkora-studio-api"
-    },
-    {
-      "from": "sovkora-tools",
-      "to": "krizaka-billing-api"
-    },
-    {
-      "from": "sovkora-tools",
-      "to": "sovkora-adapter-spring-ai"
-    },
-    {
-      "from": "sovkora-tools",
-      "to": "sovkora-core"
     }
   ],
   "flows": [
@@ -1748,25 +1740,13 @@
       "routingKey": "job.text.*, job.media.analyze"
     },
     {
-      "from": "orazaka-cli",
+      "from": "cli",
       "to": "sovkora-conversation-service",
       "kind": "http",
       "via": "localhost:8080"
     },
     {
-      "from": "orazaka-cli",
-      "to": "sovkora-edge-service",
-      "kind": "http",
-      "via": "localhost:8088"
-    },
-    {
-      "from": "orazaka-web-client",
-      "to": "sovkora-conversation-service",
-      "kind": "http",
-      "via": "localhost:8080"
-    },
-    {
-      "from": "orazaka-web-client",
+      "from": "cli",
       "to": "sovkora-edge-service",
       "kind": "http",
       "via": "localhost:8088"
@@ -1902,6 +1882,18 @@
       "to": "krizaka-notifications-service",
       "kind": "http",
       "via": "krizaka-billing-client"
+    },
+    {
+      "from": "web",
+      "to": "sovkora-conversation-service",
+      "kind": "http",
+      "via": "localhost:8080"
+    },
+    {
+      "from": "web",
+      "to": "sovkora-edge-service",
+      "kind": "http",
+      "via": "localhost:8088"
     }
   ],
   "pipeline": [
@@ -2125,7 +2117,7 @@
         "exchange": "orazaka.events",
         "binding": "job.#",
         "dlq": "orazaka.events.job-relay.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.events.studio",
@@ -2167,14 +2159,14 @@
         "exchange": "orazaka.jobs",
         "binding": "job.media.generate",
         "dlq": "orazaka.jobs.batch.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.jobs.interactive",
         "exchange": "orazaka.jobs",
         "binding": "job.text.*, job.media.analyze",
         "dlq": "orazaka.jobs.interactive.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       },
       {
         "name": "orazaka.jobs.rag",
@@ -2188,7 +2180,7 @@
         "exchange": "orazaka.jobs",
         "binding": "job.video.*",
         "dlq": "orazaka.jobs.video.dlq",
-        "declaredBy": "sovkora-persistence-app"
+        "declaredBy": "sovkora-engine-persistence"
       }
     ],
     "producers": [
@@ -2243,6 +2235,11 @@
         "routingKey": "job.automation.approved"
       },
       {
+        "module": "sovkora-engine-persistence-bridge",
+        "exchange": "orazaka.events",
+        "routingKey": "evt.control.verdict"
+      },
+      {
         "module": "sovkora-job-service",
         "exchange": "orazaka.events",
         "routingKey": "(dynamic)"
@@ -2271,11 +2268,6 @@
         "module": "sovkora-job-service",
         "exchange": "orazaka.events",
         "routingKey": "job.{…}.progress"
-      },
-      {
-        "module": "sovkora-persistence-bridge",
-        "exchange": "orazaka.events",
-        "routingKey": "evt.control.verdict"
       },
       {
         "module": "sovkora-studio-service",
@@ -2340,11 +2332,6 @@
         "retry": "kit"
       },
       {
-        "module": "orazaka-worker-media",
-        "queue": "orazaka.jobs.sound",
-        "retry": "module"
-      },
-      {
         "module": "sovkora-automation-service",
         "queue": "orazaka.automation.studio-runs",
         "retry": "kit"
@@ -2398,6 +2385,11 @@
         "module": "sovkora-studio-service",
         "queue": "orazaka.events.studio.subscription",
         "retry": "kit"
+      },
+      {
+        "module": "worker-media",
+        "queue": "orazaka.jobs.sound",
+        "retry": "module"
       }
     ],
     "capabilityRoutes": [
@@ -2516,9 +2508,135 @@
     ],
     "modules": [
       {
+        "id": "krizaka-billing-service",
+        "path": ".krizaka-java/krizaka-billing/krizaka-billing-service",
+        "repository": "krizaka-java",
+        "role": "service",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)"
+      },
+      {
+        "id": "krizaka-users-service",
+        "path": ".krizaka-java/krizaka-users/krizaka-users-service",
+        "repository": "krizaka-java",
+        "role": "service",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Identity service — the trust root: authN, RBAC, profile, credentials, API keys (hosts the krizaka-users-core + persistence-identity libraries)"
+      },
+      {
+        "id": "krizaka-billing-client",
+        "path": ".krizaka-java/krizaka-billing/krizaka-billing-client",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists"
+      },
+      {
+        "id": "krizaka-bom",
+        "path": ".krizaka-java/krizaka-bom",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "pom",
+        "version": "0.12.0",
+        "description": "Bill of materials of the Krizaka JVM artifacts: import it once and every com.krizaka dependency resolves to one coherent release."
+      },
+      {
+        "id": "krizaka-parent",
+        "path": ".krizaka-java/krizaka-parent",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "pom",
+        "version": "0.12.0",
+        "description": "Parent POM of every Krizaka JVM artifact: Maven Central metadata, Java 21 build conventions (formatting, tests, coverage, enforcer) and the signed release to Maven Central."
+      },
+      {
+        "id": "krizaka-payments",
+        "path": ".krizaka-java/krizaka-payments",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Payments for Java: the same port as @krizaka/payments (products and prices synced by lookup key, Checkout, customer portal, one verified and idempotent webhook), vendor-free; the Stripe adapter over the official stripe-java SDK is the only code that names the vendor. Money in long cents, clock injected, configuration passed in."
+      },
+      {
+        "id": "krizaka-quality",
+        "path": ".krizaka-java/krizaka-quality",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "The PMD ruleset and the SpotBugs filter every Krizaka Java build applies in verify: the local twin of the Sonar Java findings we actually have (ADR-013)."
+      },
+      {
+        "id": "krizaka-rewrite-style",
+        "path": ".krizaka-java/krizaka-rewrite-style",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "The Java code style OpenRewrite applies in every Krizaka repository, so that it never autodetects one: imports are never folded into a star import, static imports first (the layout google-java-format writes)."
+      },
+      {
+        "id": "krizaka-test-support",
+        "path": ".krizaka-java/krizaka-test-support",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Test kit of the Krizaka repositories, for test scope: generic ArchUnit code rules (hexagonal layering, one class per file, constructor injection, private state, unambiguous configuration binding), source rules, the infra/initdb locator, and Testcontainers helpers: shared PostgreSQL and RabbitMQ containers for integration tests, and the database role of services that own one."
+      },
+      {
+        "id": "krizaka-users-client",
+        "path": ".krizaka-java/krizaka-users/krizaka-users-client",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Typed HTTP client of the users service's internal API (UserDirectoryClient): user, profile, provider keys and rate-limit tiers, authenticated with a SERVICE token and cached per entry. A Spring Boot auto-configuration."
+      },
+      {
+        "id": "krizaka-users-persistence",
+        "path": ".krizaka-java/krizaka-users/krizaka-users-persistence",
+        "repository": "krizaka-java",
+        "role": "adapter",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Sovkora User and Identity Persistence Block"
+      },
+      {
+        "id": "krizaka-users-core",
+        "path": ".krizaka-java/krizaka-users/krizaka-users-core",
+        "repository": "krizaka-java",
+        "role": "domain",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Sovkora Identity and Access Management Domain"
+      },
+      {
+        "id": "krizaka-billing-api",
+        "path": ".krizaka-java/krizaka-billing/krizaka-billing-api",
+        "repository": "krizaka-java",
+        "role": "contract",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Billing and entitlements contract (ADR-033) — the credit hold/settle ports and DTOs every producer on the hot path depends on; pure JDK, no dependencies"
+      },
+      {
+        "id": "krizaka-users-api",
+        "path": ".krizaka-java/krizaka-users/krizaka-users-api",
+        "repository": "krizaka-java",
+        "role": "contract",
+        "packaging": "jar",
+        "version": "0.12.0",
+        "description": "Identity principal contract (the User record) — the only identity type downstream services keep after the Phase 2 extraction; pure JDK, no dependencies"
+      },
+      {
         "id": "krizaka-spring-boot-starter-app-config",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2526,8 +2644,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-idempotency",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2535,8 +2653,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-observability",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2544,8 +2662,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-persistence",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2553,8 +2671,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-rabbitmq",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2562,8 +2680,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-ratelimit",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2571,8 +2689,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-security",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2580,8 +2698,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-web",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2589,8 +2707,8 @@
       },
       {
         "id": "krizaka-spring-boot-starter-webhooks",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
+        "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2598,8 +2716,8 @@
       },
       {
         "id": "krizaka-app-config",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-app-config",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-app-config",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2607,8 +2725,8 @@
       },
       {
         "id": "krizaka-idempotency",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-idempotency",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-idempotency",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2616,8 +2734,8 @@
       },
       {
         "id": "krizaka-messaging",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-messaging",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-messaging",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2625,8 +2743,8 @@
       },
       {
         "id": "krizaka-notifications-api",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-notifications-api",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-api",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2634,8 +2752,8 @@
       },
       {
         "id": "krizaka-notifications-service",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-notifications-service",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-service",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2643,8 +2761,8 @@
       },
       {
         "id": "krizaka-observability",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-observability",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-observability",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2652,8 +2770,8 @@
       },
       {
         "id": "krizaka-persistence",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-persistence",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-persistence",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2661,8 +2779,8 @@
       },
       {
         "id": "krizaka-ratelimit",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-ratelimit",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-ratelimit",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2670,8 +2788,8 @@
       },
       {
         "id": "krizaka-security",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-security",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-security",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2679,8 +2797,8 @@
       },
       {
         "id": "krizaka-web",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-web",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-web",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
@@ -2688,138 +2806,12 @@
       },
       {
         "id": "krizaka-webhooks",
-        "path": "krizaka/krizaka-build/krizaka-service-kit/krizaka-webhooks",
-        "repository": "krizaka-build",
+        "path": ".krizaka-java/krizaka-service-kit/krizaka-webhooks",
+        "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
         "version": "0.12.0",
         "description": "Signed webhooks, written once, the Standard Webhooks way: sign and send with a stable id and secret rotation, verify what you receive (signature, constant-time, timestamp tolerance) with a 401 Problem Details otherwise; observed. Promoted from Sovkora (sovkora#189) and krizaka-notifications."
-      },
-      {
-        "id": "krizaka-billing-api",
-        "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-api",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Billing and entitlements contract (ADR-033) — the credit hold/settle ports and DTOs every producer on the hot path depends on; pure JDK, no dependencies"
-      },
-      {
-        "id": "krizaka-billing-client",
-        "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-client",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists"
-      },
-      {
-        "id": "krizaka-billing-service",
-        "path": "krizaka/krizaka-build/krizaka-billing/krizaka-billing-service",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)"
-      },
-      {
-        "id": "krizaka-bom",
-        "path": "krizaka/krizaka-build/krizaka-bom",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "pom",
-        "version": "0.12.0",
-        "description": "Bill of materials of the Krizaka JVM artifacts: import it once and every com.krizaka dependency resolves to one coherent release."
-      },
-      {
-        "id": "krizaka-parent",
-        "path": "krizaka/krizaka-build/krizaka-parent",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "pom",
-        "version": "0.12.0",
-        "description": "Parent POM of every Krizaka JVM artifact: Maven Central metadata, Java 21 build conventions (formatting, tests, coverage, enforcer) and the signed release to Maven Central."
-      },
-      {
-        "id": "krizaka-payments",
-        "path": "krizaka/krizaka-build/krizaka-payments",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Payments for Java: the same port as @krizaka/payments (products and prices synced by lookup key, Checkout, customer portal, one verified and idempotent webhook), vendor-free; the Stripe adapter over the official stripe-java SDK is the only code that names the vendor. Money in long cents, clock injected, configuration passed in."
-      },
-      {
-        "id": "krizaka-quality",
-        "path": "krizaka/krizaka-build/krizaka-quality",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "The PMD ruleset and the SpotBugs filter every Krizaka Java build applies in verify: the local twin of the Sonar Java findings we actually have (ADR-013)."
-      },
-      {
-        "id": "krizaka-rewrite-style",
-        "path": "krizaka/krizaka-build/krizaka-rewrite-style",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "The Java code style OpenRewrite applies in every Krizaka repository, so that it never autodetects one: imports are never folded into a star import, static imports first (the layout google-java-format writes)."
-      },
-      {
-        "id": "krizaka-test-support",
-        "path": "krizaka/krizaka-build/krizaka-test-support",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Test kit of the Krizaka repositories, for test scope: generic ArchUnit code rules (hexagonal layering, one class per file, constructor injection, private state, unambiguous configuration binding), source rules, the infra/initdb locator, and Testcontainers helpers: shared PostgreSQL and RabbitMQ containers for integration tests, and the database role of services that own one."
-      },
-      {
-        "id": "krizaka-users-api",
-        "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-api",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Identity principal contract (the User record) — the only identity type downstream services keep after the Phase 2 extraction; pure JDK, no dependencies"
-      },
-      {
-        "id": "krizaka-users-client",
-        "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-client",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Typed HTTP client of the users service's internal API (UserDirectoryClient): user, profile, provider keys and rate-limit tiers, authenticated with a SERVICE token and cached per entry. A Spring Boot auto-configuration."
-      },
-      {
-        "id": "krizaka-users-core",
-        "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-core",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Sovkora Identity and Access Management Domain"
-      },
-      {
-        "id": "krizaka-users-persistence",
-        "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-persistence",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Sovkora User and Identity Persistence Block"
-      },
-      {
-        "id": "krizaka-users-service",
-        "path": "krizaka/krizaka-build/krizaka-users/krizaka-users-service",
-        "repository": "krizaka-build",
-        "role": "build",
-        "packaging": "jar",
-        "version": "0.12.0",
-        "description": "Identity service — the trust root: authN, RBAC, profile, credentials, API keys (hosts the krizaka-users-core + persistence-identity libraries)"
       }
     ],
     "dependencies": [

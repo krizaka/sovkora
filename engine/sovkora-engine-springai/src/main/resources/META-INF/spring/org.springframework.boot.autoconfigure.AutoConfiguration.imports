@@ -1,0 +1,4 @@
+com.krizaka.sovkora.engine.springai.SpringAiAdapterAutoConfiguration
+com.krizaka.sovkora.engine.springai.CoreServicesAutoConfiguration
+com.krizaka.sovkora.engine.springai.CoreInfrastructureAutoConfiguration
+com.krizaka.sovkora.engine.springai.BusinessUseCasesAutoConfiguration

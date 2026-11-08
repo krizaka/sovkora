@@ -42,7 +42,7 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri
           lookup-only: true
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --filter .
       - name: Bundle the orazaka CLI
         run: pnpm sidecar
       - name: Types, UI tests, Rust tests (scope, sidecar allow-list, settings, files)
@@ -80,7 +80,7 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri
           lookup-only: true
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --filter .
       - name: The tag matches the app version
         run: |
           v="${GITHUB_REF_NAME#desktop-v}"
@@ -137,8 +137,11 @@ jobs:
         run: |
           flags=""
           case "$GITHUB_REF_NAME" in *-*) flags="--prerelease";; esac
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
-            && gh release upload "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 --clobber \
-            || gh release create "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 $flags \
-                 --title "Orazaka Desktop ${GITHUB_REF_NAME#desktop-v}" \
-                 --notes "Orazaka Desktop for macOS (Apple Silicon). Unsigned until the Apple Developer ID exists: right-click the app, then Open. See apps/desktop/README.md."
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 --clobber
+          else
+            # shellcheck disable=SC2086 # $flags is empty or one flag, split on purpose
+            gh release create "$GITHUB_REF_NAME" ./*.dmg ./*.sha256 $flags \
+              --title "Sovkora for Mac ${GITHUB_REF_NAME#desktop-v}" \
+              --notes "Sovkora for macOS (Apple Silicon). Unsigned until the Apple Developer ID exists: right-click the app, then Open. See apps/desktop/README.md."
+          fi

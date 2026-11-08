@@ -1,6 +1,6 @@
 ---
-title: "Delivery — how Orazaka is packaged, signed, installed and updated on a client's premises"
-description: "The delivery targets of Orazaka (one Mac, a Linux/NVIDIA server, later Kubernetes), how each is built, signed and updated, the release train, offline licences, backups, support bundles and the Loi 25 posture."
+title: "Delivery — how Sovkora is packaged, signed, installed and updated on a client's premises"
+description: "The delivery targets of Sovkora (one Mac, a Linux/NVIDIA server, later Kubernetes), how each is built, signed and updated, the release train, offline licences, backups, support bundles and the Loi 25 posture."
 category: Guidelines
 order: 20
 ---
@@ -12,15 +12,15 @@ order: 20
 > epic linked at the end. Until a step lands, AGENTS.md §0 still governs: this document lifts a
 > restriction only through the step that needs it (images to GHCR in step 3, for instance).
 
-Orazaka is sold first as **sovereign AI on the client's premises**: Montréal firms (law, accounting,
+Sovkora is sold first as **sovereign AI on the client's premises**: Montréal firms (law, accounting,
 private clinics) that cannot send their documents to a US cloud under the **Loi 25** (strategy, year 1:
 2–3 pilot licences at 1 500–3 000 CAD/year). "Delivery" therefore means: a firm with no DevOps staff
-gets a working Orazaka on hardware it owns, keeps it up to date, and never sends a byte of its data
+gets a working Sovkora on hardware it owns, keeps it up to date, and never sends a byte of its data
 anywhere — and we can prove each of those three things.
 
 Everything below reuses what exists: the `orazaka` CLI (`install`, `start`, `stop`, `doctor`, `models`,
 `pack`), `infra/docker-compose.yml`, the single JVM image of `infra/deploy/Dockerfile`, the CUDA image of
-the media worker (`ghcr.io/krizaka/orazaka-worker-media:cuda-*`, ADR-077), the native Metal path
+the media worker (`ghcr.io/krizaka/sovkora-media-worker:cuda-*`, ADR-077), the native Metal path
 (Ollama, stable-diffusion.cpp `sd-server`, the media worker on MLX/Metal, LocalAI for speech, ADR-075/076),
 `models.yaml` (pinned revisions, commercial licences only) and the pack catalogue with its entitlements.
 
@@ -28,15 +28,15 @@ the media worker (`ghcr.io/krizaka/orazaka-worker-media:cuda-*`, ADR-077), the n
 
 | Target | For | Installer | Containers | AI runtime | Updates | When |
 |---|---|---|---|---|---|---|
-| **Orazaka for Mac** | a firm of 1–15 people, one Apple Silicon Mac (Mac mini / Studio) | **Orazaka Desktop** (Tauri 2) driving the CLI | Colima VM (arm64), managed by Orazaka | native on Metal: Ollama, `sd-server`, media worker, LocalAI | Desktop → `orazaka update` | first pilots (2027-Q1 target) |
-| **Orazaka on a Linux server** | an office server or a client VM, optionally with an NVIDIA GPU | `npx orazaka install --server` (or the `install.sh` bootstrap) | Docker Engine + compose bundle, systemd | Ollama container, CUDA media-worker image (or CPU profile) | `orazaka update` (CLI) | right after the Mac |
+| **Sovkora for Mac** | a firm of 1–15 people, one Apple Silicon Mac (Mac mini / Studio) | **Sovkora Desktop** (Tauri 2) driving the CLI | Colima VM (arm64), managed by Sovkora | native on Metal: Ollama, `sd-server`, media worker, LocalAI | Desktop → `orazaka update` | first pilots (2027-Q1 target) |
+| **Sovkora on a Linux server** | an office server or a client VM, optionally with an NVIDIA GPU | `npx orazaka install --server` (or the `install.sh` bootstrap) | Docker Engine + compose bundle, systemd | Ollama container, CUDA media-worker image (or CPU profile) | `orazaka update` (CLI) | right after the Mac |
 | **Kubernetes / Helm** | bigger organisations, HA | Helm chart | per-service images | GPU operator | Helm upgrade | **later** — first client that needs HA |
 
 One **release** (one version number) covers every target; a target is a subset of its artefacts.
 
-## 2. Orazaka for Mac (Apple Silicon)
+## 2. Sovkora for Mac (Apple Silicon)
 
-**What the firm receives:** `Orazaka.dmg`. It opens on a Tauri 2 app (system WebView, ~10 MB of Rust),
+**What the firm receives:** `Sovkora.dmg`. It opens on a Tauri 2 app (system WebView, ~10 MB of Rust),
 signed with Krizaka's **Developer ID Application** certificate, hardened runtime, **notarized** and
 stapled, so Gatekeeper opens it without a warning. The app is the installer *and* the control panel;
 it never re-implements an operation — it runs the CLI as a **sidecar** and renders its JSON output.
@@ -77,17 +77,17 @@ CLI: it restarts on crash and at login, binds `127.0.0.1` only, and the containe
 the profile needs from the pinned revisions of the release manifest (Hugging Face, Ollama registry),
 verifies each file's SHA-256, and reports progress as JSON lines the Desktop app turns into a progress
 bar. For a firm with no outbound access, `orazaka models import <dir>` reads the same files from an
-**offline kit** (a USB SSD we prepare). After that, Orazaka runs with the network cable unplugged.
+**offline kit** (a USB SSD we prepare). After that, Sovkora runs with the network cable unplugged.
 
 **Hardware floor.** Apple Silicon only (M1 or later), macOS 14+, 16 GB RAM minimum (small models), 32 GB
 recommended, 150 GB free disk for the bundle and models. `orazaka doctor` checks all of it, plus
 **FileVault on** (encryption at rest is part of the Loi 25 posture).
 
-**Where things live.** `~/Library/Application Support/Orazaka/` — `config/` (`.env`, mode 600), `models/`,
+**Where things live.** `~/Library/Application Support/Sovkora/` — `config/` (`.env`, mode 600), `models/`,
 `backups/`, `logs/`, `releases/<version>/` (the current and the previous release, for rollback). The
 database volumes live in the Colima VM disk; backups leave it as `pg_dump` archives (§6).
 
-## 3. Orazaka on a Linux server (and NVIDIA boxes)
+## 3. Sovkora on a Linux server (and NVIDIA boxes)
 
 **What the firm (or its IT provider) receives:** `orazaka-server-<version>-linux-<arch>.tar.gz` — the
 CLI with its Node runtime, the **compose bundle**, the systemd units, the release manifest and its
@@ -95,7 +95,7 @@ signature, the checksums and SBOMs. An **offline** variant adds `images.tar.zst`
 image pinned in the manifest) and the model kit.
 
 **Install, one command:** `npx orazaka install --server` on a machine with Node 22, or
-`curl -fsSL https://www.orazaka.com/install.sh | sh` — a thin bootstrap that downloads the server
+`curl -fsSL https://www.sovkora.com/install.sh | sh` — a thin bootstrap that downloads the server
 tarball, checks its SHA-256 against the signed manifest and hands over to the CLI; every step of the
 installation is the CLI's (ERR-125), the script only fetches it. Offline: `sudo ./orazaka install
 --server` from the unpacked tarball. It:
@@ -130,13 +130,13 @@ not a second process.
 
 ## 5. The release train — one version for the bundle
 
-- **One version, SemVer**, for Orazaka as delivered (`1.0.0`, `1.1.0`, `1.1.1`; candidates `1.1.0-rc.1`).
+- **One version, SemVer**, for Sovkora as delivered (`1.0.0`, `1.1.0`, `1.1.1`; candidates `1.1.0-rc.1`).
   Components keep their own versions; the **release manifest** `orazaka-release.json` pins, for that
   release, each component's commit, each image by **digest**, each native artefact (Desktop dmg,
   `sd-server`, wheelhouse, server tarball) by **SHA-256 and size**, each model by **revision** with its
   licence (commercial use only), each pack by version, the CLI version and the oldest release it
   upgrades from in place (`upgradeFrom`).
-- **Built by one workflow** in this repository on a tag `vX.Y.Z`: it reads `orazaka.workspace.json`,
+- **Built by one workflow** in this repository on a tag `vX.Y.Z`: it reads `modules.json`,
   checks out every repository at the commit the release names, builds and tests (the existing reactor),
   builds **one public image per service and worker** on GHCR (`ghcr.io/krizaka/<component>`,
   multi-arch `linux/amd64` + `linux/arm64`; the media worker also as a CUDA `amd64` variant), the Metal
@@ -158,7 +158,7 @@ not a second process.
 |---|---|---|
 | Container images | **cosign keyless** (GitHub OIDC → Sigstore), plus SLSA build provenance (`actions/attest-build-provenance`) | `orazaka install/update` (online), digest pinning in the signed manifest (offline) |
 | Release manifest | **ed25519 release key** (Krizaka); public key embedded in the CLI | the CLI, offline, with Node's own crypto — no network, no extra dependency |
-| Orazaka Desktop | Apple **Developer ID Application** + **notarization** (notarytool) + staple; app updates through the Tauri updater (its own ed25519 key) | Gatekeeper; the Tauri updater |
+| Sovkora Desktop | Apple **Developer ID Application** + **notarization** (notarytool) + staple; app updates through the Tauri updater (its own ed25519 key) | Gatekeeper; the Tauri updater |
 | Server tarball, wheelhouse, `sd-server` | SHA-256 in the signed manifest; `sd-server` (macOS) also codesigned | `orazaka release verify --dir` |
 | Commercial packs | signed by the pack key; installed only with a valid licence | the CLI and the pack installer |
 
@@ -226,7 +226,7 @@ the **commercial packs**. A paid pack is unlocked **without any call home**:
 
 ### Telemetry: none
 
-Orazaka sends **nothing** to Krizaka: no analytics, no crash reports, no licence check, no automatic
+Sovkora sends **nothing** to Krizaka: no analytics, no crash reports, no licence check, no automatic
 update check. Third-party switches are forced off in the bundle (`HF_HUB_DISABLE_TELEMETRY=1`,
 `NEXT_TELEMETRY_DISABLED=1`, Ollama bound to localhost). The only outbound traffic is the one the firm
 triggers: model downloads at install, an update check, a pack download. `orazaka doctor` lists the
@@ -238,7 +238,7 @@ egress the installation is configured for, so the firm's IT can firewall everyth
 versions and the installed manifest, container and launchd states, health checks, disk/RAM/GPU, and the
 last lines of each log at WARN and above **with secrets and personal data redacted** (tokens, keys,
 e-mail addresses, file names of documents). It never contains the database, documents, prompts,
-outputs or the `.env` values (keys only). The firm reads it, then sends it by its own means — Orazaka
+outputs or the `.env` values (keys only). The firm reads it, then sends it by its own means — Sovkora
 never uploads it.
 
 ### Data, backup and restore
@@ -254,7 +254,7 @@ never uploads it.
 
 - **Data stays on site.** Documents, embeddings, prompts and outputs are processed and stored on the
   firm's hardware; models run locally; no cross-border transfer by the software (no s. 17 assessment
-  needed for Orazaka itself).
+  needed for Sovkora itself).
 - **Krizaka has no access** by default — no remote access, no telemetry; support works from a support
   bundle or a screen share the firm opens.
 - **Security by default:** encryption at rest (FileVault/LUKS checked by `doctor`, assets encrypted by
@@ -294,7 +294,7 @@ Each step is an issue of the epic, with its acceptance criteria. Steps marked **
 9. `orazaka update` / `rollback`.
 10. Models by profile with progress + offline kit import.
 11. Mac runtime: Colima profile, launchd agents, Metal `sd-server` and wheelhouse in release CI.
-12. Orazaka Desktop (Tauri 2) installer + control panel, signed and notarized — **(Oussama: Apple
+12. Sovkora Desktop (Tauri 2) installer + control panel, signed and notarized — **(Oussama: Apple
     Developer ID)**; built by the ORA-DESKTOP session.
 13. Offline licence + commercial pack entitlement — **(Oussama: licensing key, commercial terms)**.
 14. `orazaka doctor --bundle` + egress/telemetry and encryption checks.
@@ -303,5 +303,5 @@ Each step is an issue of the epic, with its acceptance criteria. Steps marked **
 17. Security by default (secrets generated, localhost binding, TLS, hardened non-root containers,
     scan gate) checked by `orazaka doctor`. `SECURITY.md` is written (this document's PR); the defaults and
     their checks are the issue.
-18. "Run Orazaka on your own infrastructure" guide ([`SELF_HOSTING.md`](SELF_HOSTING.md)) in the README,
-    published on www.orazaka.com/docs.
+18. "Run Sovkora on your own infrastructure" guide ([`SELF_HOSTING.md`](SELF_HOSTING.md)) in the README,
+    published on dev.sovkora.com/docs.

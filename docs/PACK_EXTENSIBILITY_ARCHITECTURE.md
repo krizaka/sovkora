@@ -1,15 +1,15 @@
 ---
-title: "Orazaka — Pack extensibility: workflows, workers, open-core"
+title: "Sovkora — Pack extensibility: workflows, workers, open-core"
 description: "Target architecture turning a Pack into a distributable unit: the pack manifest, the four extension seams that must be opened, the AMQP worker SPI, feature independence, and the open-source / managed-cloud split."
 category: Architecture
 order: 9
 ---
 
-# Orazaka — Pack extensibility: workflows, workers, open-core
+# Sovkora — Pack extensibility: workflows, workers, open-core
 
 > **What this document answers.** Packs exist and are categorised (ADR-036). This is the next
 > question: how does a Pack bring **its own workflows and its own workers**, how do its features stay
-> **independent**, and how does Orazaka stay a clean open-source core while you run a managed cloud
+> **independent**, and how does Sovkora stay a clean open-source core while you run a managed cloud
 > with packs that are not in the open repository?
 >
 > **The finding.** The current implementation is good and the model is right — but **three hardcoded
@@ -49,7 +49,7 @@ as document amendments rather than silent deviations is the process working.
 
 The architecture promises *"a new pack is a row, never a deploy"*. That holds only while a pack reuses
 capabilities that already exist. The moment a pack needs a new one — and the Validation pack does,
-because nothing in Orazaka reads a PDF today — the promise breaks in three places.
+because nothing in Sovkora reads a PDF today — the promise breaks in three places.
 
 ### 2.1 ✅ CLOSED (phase A) — Step routing was a substring heuristic
 
@@ -96,7 +96,7 @@ Package-private **and** `sealed`. Adding an executor requires editing a file in 
 and recompiling the core. A cloud-only pack cannot add one. A third party cannot add one. An
 open-core model is structurally impossible against a sealed interface.
 
-The irony is that Orazaka already solved this exact problem once: `orazaka-interceptors` ships an
+The irony is that Sovkora already solved this exact problem once: `orazaka-interceptors` ships an
 `AutoConfiguration.imports` SPI with seven registrations, and AGENTS.md §2 makes it a rule
 (*"All implementations live in `orazaka-interceptors/` (AutoConfiguration SPI) [ERR-122]"*). The job
 plane never got the same treatment.
@@ -131,7 +131,7 @@ coupled to a pack. Add a fourth media capability and you edit Python.
 |:---|:---|
 | "des workers adaptés au besoin" | §2.2 — you cannot add a worker without forking the core |
 | "flexibilité des workflows" | §2.1 — a new capability misroutes silently |
-| "ne pas polluer Orazaka" | §2.3 — pack-specific keys already live in core worker code |
+| "ne pas polluer Sovkora" | §2.3 — pack-specific keys already live in core worker code |
 | "la version cloud managée par moi" | §2.2 + §2.3 — cloud packs would be core patches, i.e. a fork |
 
 None of this is expensive to fix. It is roughly one week, and it must happen **before** the three
@@ -153,7 +153,7 @@ Not every pack needs the same machinery, and pretending they do is how the model
 | **W — Worker pack** | its own worker process | bundle + an OCI image + queue bindings | **Validation** (PDF/OCR/authenticity) |
 
 **The tier is a property of the pack, not a new concept in the code.** A Tier-D pack installs on an
-untouched Orazaka. A Tier-W pack declares a worker and the platform refuses to publish it until that
+untouched Sovkora. A Tier-W pack declares a worker and the platform refuses to publish it until that
 worker is registered and healthy. Same manifest, different sections filled.
 
 ### 3.2 The Pack Manifest — the unit of distribution
@@ -248,7 +248,7 @@ it just is not written down.
 
 `orazaka-worker-media` is **Python**. It participates fully: it consumes `job.video.*` on
 `orazaka.jobs` and answers `job.{jobId}.done|error` on `orazaka.events`. It implements no Java
-interface and links no Orazaka library.
+interface and links no Sovkora library.
 
 **Therefore: a worker is anything that honours the message contract.** Publish that contract as a
 versioned specification (`docs/WORKER_PROTOCOL.md`) — envelope, correlation, progress events,
@@ -281,7 +281,7 @@ about a dead worker from a support ticket.
 
 ### 4.1 The split
 
-Orazaka is Apache-2.0. Apache-2.0 permits anyone to run and resell it, so the moat is **not** the
+Sovkora is Apache-2.0. Apache-2.0 permits anyone to run and resell it, so the moat is **not** the
 licence — it is the managed service and the packs you keep. Which means the split must be clean
 enough that "cloud pack" never means "core patch".
 
@@ -309,7 +309,7 @@ the Python worker's `COMPOSE_FEATURE_KEY` comparison are pack knowledge inside c
 
 | Rule | Enforcement |
 |:---|:---|
-| **P1** — no pack, studio or capability key as a literal in core code | ✅ **[PACK-002]** `PackPurityRules`, run by every `<Module>GovernanceTest`. Scans `sovkora-libs/**`, `orazaka-apps/services/**`, `orazaka-apps/workers/**` for `orazaka\.(doc\|studio)\.` and the known pack keys; `orazaka-packs/**` and `infra/initdb/**` are outside the scanned roots |
+| **P1** — no pack, studio or capability key as a literal in core code | ✅ **[PACK-002]** `PackPurityRules`, run by every `<Module>GovernanceTest`. Scans `engine/**`, `services/**`, `workers/**` for `orazaka\.(doc\|studio)\.` and the known pack keys; `orazaka-packs/**` and `infra/initdb/**` are outside the scanned roots |
 | **P2** — no `if (packKey == …)` / `switch (featureKey)` in core | ✅ **[PACK-003]** same rule, extended to conditionals — **including through a constant declared in the same file**, which is the shape both violations actually took |
 | **P3** — core seeds contain reference data only; pack content ships with the pack | `PackCoherenceRules` extended: a `studio` row in `80-studio.sql` whose `pack_key` names a non-reference pack fails the build |
 | **P4** — a worker declares its bindings; it never names a capability | `worker.yaml` schema check in the worker's own CI-equivalent local gate |
@@ -491,40 +491,40 @@ own §3.2 migration. Failsafe is now bound in the parent, `verify` included.
 ```
 # Phase A
 MODIFY  infra/initdb/30-jobs-config.sql          (+ routing_key, worker_family, billable_unit + backfill)
-CREATE  sovkora-libs/sovkora-contracts/sovkora-jobs-api/**            (Tier-1: CapabilityRouting, JobCommand — audit #17)
-MODIFY  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../AmqpStepExecutionAdapter.java   (− routingKeyFor)
+CREATE  contracts/sovkora-jobs-api/**            (Tier-1: CapabilityRouting, JobCommand — audit #17)
+MODIFY  services/studio/sovkora-studio-service/.../AmqpStepExecutionAdapter.java   (− routingKeyFor)
 MODIFY  .../application/service/BlueprintPublishService.java  (+ capability resolution check)
 
 # Phase B
-MODIFY  sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/GovernanceRules.java   (+ P1/P2)
-CREATE  sovkora-libs/sovkora-build/sovkora-test-support/.../architecture/PackPurityRules.java
+MODIFY  build/sovkora-test-support/.../architecture/GovernanceRules.java   (+ P1/P2)
+CREATE  build/sovkora-test-support/.../architecture/PackPurityRules.java
 MODIFY  <all> <Module>GovernanceTest.java
 
 # Phase C
-MODIFY  orazaka-apps/services/orazaka-job-service/.../JobExecutionStrategy.java  (un-seal → JobExecutor)
-CREATE  orazaka-apps/services/orazaka-job-service/src/main/resources/META-INF/spring/…AutoConfiguration.imports
+MODIFY  services/job/sovkora-job-service/.../JobExecutionStrategy.java  (un-seal → JobExecutor)
+CREATE  services/job/sovkora-job-service/src/main/resources/META-INF/spring/…AutoConfiguration.imports
 CREATE  infra/initdb/30-jobs-config.sql          (+ worker_registry + heartbeat)
 CREATE  docs/WORKER_PROTOCOL.md
-MODIFY  orazaka-apps/workers/orazaka-worker-media/app/{consumer,main}.py  (+ worker.yaml, − COMPOSE_FEATURE_KEY)
+MODIFY  workers/media/app/{consumer,main}.py  (+ worker.yaml, − COMPOSE_FEATURE_KEY)
 
 # Phase D — done (ADR-039)
 CREATE  orazaka-packs/{README.md, pack.schema.json}
 CREATE  orazaka-packs/{realestate-studio,trade-showcase,outbound-prospection}/**
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-api/.../model/PackBundle.java + 8 records
+CREATE  services/studio/sovkora-studio-api/.../model/PackBundle.java + 8 records
 CREATE  krizaka/krizaka-billing/krizaka-billing-api/.../{PackProvision,EntitlementGrant,PackProvisioningClient}
-CREATE  sovkora-libs/sovkora-contracts/sovkora-jobs-api/.../{CapabilityDeclaration,CapabilityRegistrationClient}
+CREATE  contracts/sovkora-jobs-api/.../{CapabilityDeclaration,CapabilityRegistrationClient}
 CREATE  krizaka/krizaka-billing/krizaka-billing-client/.../{Http,NoOp}PackProvisioningClient.java
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../application/service/PackInstallerService.java
-CREATE  orazaka-apps/services/orazaka-studio/sovkora-studio-service/.../{PackInstallRepository,JdbcPackInstallRepositoryAdapter,PackBundleController}
-CREATE  orazaka-apps/services/orazaka-job-service/.../application/service/CapabilityRegistryService.java
+CREATE  services/studio/sovkora-studio-service/.../application/service/PackInstallerService.java
+CREATE  services/studio/sovkora-studio-service/.../{PackInstallRepository,JdbcPackInstallRepositoryAdapter,PackBundleController}
+CREATE  services/job/sovkora-job-service/.../application/service/CapabilityRegistryService.java
 CREATE  krizaka/krizaka-billing/krizaka-billing-service/.../rest/PackProvisioningController.java
-CREATE  orazaka-apps/ui/orazaka-cli/src/{commands/pack.command.ts,services/pack.{api,bundle}.ts}
+CREATE  apps/cli/src/{commands/pack.command.ts,services/pack.{api,bundle}.ts}
 MODIFY  infra/initdb/80-studio.sql               (− 288 lines of catalogue content, → bundles)
 MODIFY  infra/initdb/70-billing.sql              (− billing_pack seed, → bundles)
 
 # Phases E–J
 CREATE  orazaka-packs/{prospection,document-validation,wellbeing}/**
-CREATE  orazaka-apps/workers/orazaka-worker-docs/**
+CREATE  workers/orazaka-worker-docs/**
 CREATE  ADR-037 (internal)
 ```
 

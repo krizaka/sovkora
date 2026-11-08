@@ -6,7 +6,7 @@ order: 16
 ---
 # Glossary
 
-> Quick reference for Orazaka ecosystem terms, patterns, themes, and environment variables.
+> Quick reference for Sovkora ecosystem terms, patterns, themes, and environment variables.
 
 ---
 
@@ -30,7 +30,7 @@ order: 16
 
 ## 2. Environment Variables
 
-All variables are defined in the root `.env` file (loaded by `properties-maven-plugin` at the `initialize` phase). Frontend-specific variables are in `orazaka-apps/ui/orazaka-web-client/.env.local`.
+All variables are defined in the root `.env` file (loaded by `properties-maven-plugin` at the `initialize` phase). Frontend-specific variables are in `apps/web/.env.local`.
 
 ### Infrastructure & Database
 
@@ -97,7 +97,7 @@ All variables are defined in the root `.env` file (loaded by `properties-maven-p
 | `LOG_DIR` | `var/logs` | Application log output directory |
 | `GATEWAY_LOG` | `var/logs/gateway.log` | Gateway-specific log file path |
 
-### Frontend BFF (Next.js) — `orazaka-apps/ui/orazaka-web-client/.env.local`
+### Frontend BFF (Next.js) — `apps/web/.env.local`
 
 | Key | Default | Purpose |
 | :--- | :--- | :--- |
@@ -147,7 +147,7 @@ UI theme accents are resolved from the database (`theme` category in `orazaka_mo
 | :--- | :--- | :--- |
 | ERR-102 | Module Separation | Strict module boundary enforcement |
 | ERR-103 | Structuring | One top-level class per file, 1:1 test matching |
-| ERR-104 | Naming | Banned: prefixing classes with `Orazaka` or `orazaka-` |
+| ERR-104 | Naming | Banned: prefixing classes with `Sovkora` or `orazaka-` |
 | ERR-106 | Domain Contracts | Self-validating records, compact constructor validation |
 | ERR-107 | Mapper Isolation | Mapping logic in package-private static `*Mapper` files |
 | ERR-108 | Date Formatting | `date-fns` only. Banned: moment.js, dayjs, native Date methods |

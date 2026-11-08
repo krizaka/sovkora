@@ -8,9 +8,9 @@ import { test } from "node:test";
 const dockerfile = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
 const runServices = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
 
-test("the dev image copies the whole orazaka-packs repository (worker-common travels with the workers)", () => {
-  assert.match(dockerfile, /cp -r orazaka-packs \/out\/orazaka-packs/);
-  assert.doesNotMatch(dockerfile, /cp -r orazaka-packs\/[\w-]+\/worker /, "never copy a single pack's worker directory");
+test("the dev image copies the whole packs folder (worker-common travels with the workers)", () => {
+  assert.match(dockerfile, /cp -r packs \/out\/orazaka-packs/);
+  assert.doesNotMatch(dockerfile, /cp -r packs\/[\w-]+\/worker /, "never copy a single pack's worker directory");
 });
 
 test("a pack worker starts from <app>/orazaka-packs/<pack>/worker, two levels under the repository root", () => {

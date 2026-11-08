@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../build/sovkora-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-e2e</artifactId>
+    <name>sovkora-e2e</name>
+    <description>Hermetic E2E Testing Module — Java/Web Router API validation only.
+        Playwright Java, HTTPyac, CLI Validation (ADR-040).
+        Mobile client testing is explicitly OUT OF SCOPE for the JVM lifecycle —
+        mobile validation runs in the CI mobile-validation track (ESLint + tsc --noEmit).</description>
+    <packaging>jar</packaging>
+
+    <properties>
+        <!-- The compose file's own default for the Postgres host port; .env (read below by
+             read-project-properties) overrides it, exactly as `orazaka start` does. -->
+        <POSTGRES_PORT>5432</POSTGRES_PORT>
+    </properties>
+
+    <!-- ====================================================================
+         Reactor Dependency: forces orazaka-conversation-service to be compiled, packaged,
+         and its repackaged Spring Boot JAR to exist before this module enters
+         pre-integration-test.
+         ==================================================================== -->
+    <dependencies>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-conversation-service</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ArchUnit Monorepo Scan: pull all internal modules onto the test classpath -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-core</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-users-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-business</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-persistence</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-users-persistence</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ArchUnit — Architectural fitness functions -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Playwright Java — headless browser automation -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.49.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 5 — test engine for Playwright suites -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JDBC — live database assertions against provisioned Postgres -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Jackson — JSON parsing for actuator health component inspection -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Lettuce — live Redis assertions against provisioned container -->
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- AMQP — live RabbitMQ assertions against provisioned container -->
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${maven.multiModuleProjectDirectory}/${env.file}</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skip.e2e}</skipTests>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <!-- Disable the execution the PARENT binds (its id is `integration-tests`).
+                         This module binds failsafe itself, three times, inside the staging profile:
+                         tier-1 API contracts, tier-2 CLI, tier-3 Playwright. Inheriting a fourth
+                         binding made `orazaka test e2e` run every suite TWICE, and the second pass
+                         failed on state the first had created — a run left in flight turns
+                         `missingInputIsRefused` from 400 into 409. Same id, phase `none`: the
+                         parent keeps its binding for every other module, this one keeps its own. -->
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skipTests>${skip.e2e}</skipTests>
+                    <systemPropertyVariables>
+                        <ui.base.url>${NEXT_PUBLIC_UI_URL}</ui.base.url>
+                        <router.target.url>${ROUTER_URL}</router.target.url>
+                        <admin.email>${ADMIN_EMAIL}</admin.email>
+                        <admin.password>${ADMIN_PASSWORD}</admin.password>
+                        <!-- JDBC live infrastructure -->
+                        <db.url>jdbc:postgresql://localhost:${DB_LOCAL_PORT}/${DB_LOCAL_NAME}</db.url>
+                        <db.username>${DB_LOCAL_USERNAME}</db.username>
+                        <db.password>${DB_LOCAL_PASSWORD}</db.password>
+                        <identity.db.url>${IDENTITY_DB_URL}</identity.db.url>
+                        <identity.db.username>${IDENTITY_DB_USERNAME}</identity.db.username>
+                        <identity.db.password>${IDENTITY_DB_PASSWORD}</identity.db.password>
+                        <!-- Redis live infrastructure -->
+                        <redis.url>redis://localhost:6379</redis.url>
+                        <!-- AMQP live infrastructure -->
+                        <amqp.host>localhost</amqp.host>
+                        <amqp.port>5672</amqp.port>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- ====================================================================
+         ADR-040: Hermetic E2E Testing Profile — Full Lifecycle Orchestration
+         Activated via: ./mvnw clean verify -P e2e-tests
+         All infrastructure plugins encapsulated here. Default 'mvn compile'
+         skips every E2E plugin — zero overhead on fast compilations.
+         ==================================================================== -->
+    <profiles>
+        <profile>
+            <id>staging</id>
+            <properties>
+                <docker-maven-plugin.version>0.45.1</docker-maven-plugin.version>
+                <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+                <node.version>v24.11.1</node.version>
+                <!-- UI/media e2e tiers are opt-in: they need the web client (:3000)
+                     and local AI runtimes that depend on the host machine. By default
+                     the @Tag("ui") tests are excluded and the UI server is not started.
+                     Enable the full suite with -De2e.ui (activates the e2e-ui profile). -->
+                <!-- `voice` needs the native runtimes too (LocalAI: whisper-base and the Piper
+                     voices; Ollama: a chat model) — ADR-076. -De2e.voice runs it without the UI. -->
+                <e2e.excludedGroups>ui,voice</e2e.excludedGroups>
+                <e2e.ui.phase>none</e2e.ui.phase>
+            </properties>
+            <build>
+                <plugins>
+
+                    <!-- ─── 1. Docker Compose — boot db-local via native CLI ─── -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <!-- ── Every run starts from nothing, including after an interrupt ── -->
+                            <execution>
+                                <id>reset-stack-before-start</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Maven has no finally, and nothing survives a Ctrl-C, so the
+                                         only teardown that always happens is the one at the START.
+                                         A run interrupted or killed leaves eight JVMs holding the
+                                         ports and a volume holding an old schema — which is how M4
+                                         spent four of its eight passes discovering schema drift
+                                         that infra/initdb would have replayed on an empty volume.
+                                         `down -v` drops that volume, so `up` below re-applies every
+                                         seed: this is what makes AGENTS.md §9's word "hermetic"
+                                         true rather than claimed.
+                                         failonerror=false on purpose — there is usually nothing to
+                                         stop, and "nothing to clean" is not an error. -->
+                                    <executable>bash</executable>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                    <successCodes>
+                                        <successCode>0</successCode>
+                                        <successCode>1</successCode>
+                                    </successCodes>
+                                    <arguments>
+                                        <argument>-c</argument>
+                                        <argument>pkill -f 'services/.*\.jar' || true; pkill -f 'workers/media/' || true; sleep 2; docker compose -p orazaka --env-file .env -f infra/docker-compose.yml down -v || true</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>start-db-local</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                    <arguments>
+                                        <argument>compose</argument>
+                                        <!-- Same project name as `orazaka start` (-p orazaka).
+                                             Without it compose derives the project from the
+                                             file's directory ("infra"), and because the services
+                                             pin container_name, the two projects collide: after
+                                             an `orazaka start` the E2E gate cannot boot at all. -->
+                                        <argument>-p</argument>
+                                        <argument>orazaka</argument>
+                                        <argument>--env-file</argument>
+                                        <argument>${maven.multiModuleProjectDirectory}/.env</argument>
+                                        <argument>-f</argument>
+                                        <argument>infra/docker-compose.yml</argument>
+                                        <argument>up</argument>
+                                        <argument>-d</argument>
+                                        <argument>--build</argument>
+                                        <argument>--force-recreate</argument>
+                                        <argument>--renew-anon-volumes</argument>
+                                        <argument>--wait</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- ── An empty volume's roles have no password until this runs ── -->
+                            <execution>
+                                <id>apply-db-role-passwords</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- infra/initdb creates each context role with LOGIN and NO
+                                         password (psql 15 has no \getenv, ERR-125 bans a shell
+                                         script there, and a committed literal was audit #5). The
+                                         seeds say the password is applied afterwards by
+                                         `orazaka start` — which this harness does not run. On a
+                                         surviving volume the roles already had one, so the step was
+                                         invisible; the first run from a genuinely empty volume dies
+                                         with "password authentication failed for user
+                                         krizaka_users". That is what "not hermetic" was hiding.
+                                         The contexts are read out of the seeds rather than listed. -->
+                                    <executable>node</executable>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                    <arguments>
+                                        <argument>scripts/apply-db-role-passwords.mjs</argument>
+                                        <argument>${maven.multiModuleProjectDirectory}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- ── Tier 1: API contract tests, through the counting wrapper ── -->
+                            <execution>
+                                <id>e2e-tier1-api-contracts</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Not bare httpyac, and not the frontend plugin's npx goal.
+                                         An assertion form httpyac cannot parse produces no tick, no
+                                         cross and no error — the line is simply absent — so the
+                                         suite's own exit code cannot say an assertion stopped
+                                         running. The wrapper counts what the sources DECLARE
+                                         against what the run REPORTS and fails on a difference:
+                                         the third application of GOV-006's property, after Java's
+                                         empty-set guard and Python's defined-equals-collected one.
+                                         It also prints the honest request count — httpyac's "N
+                                         requests processed" counts ### REGIONS, and this suite uses
+                                         ### for banner rules too, so that number cannot go down
+                                         when a request is deleted. -->
+                                    <executable>node</executable>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                    <arguments>
+                                        <argument>scripts/run-api-contracts.mjs</argument>
+                                        <argument>${project.basedir}/src/test/resources/api-contracts</argument>
+                                        <argument>--all</argument>
+                                        <argument>--output</argument>
+                                        <argument>short</argument>
+                                        <argument>--bail</argument>
+                                    </arguments>
+                                    <environmentVariables>
+                                        <ADMIN_EMAIL>${ADMIN_EMAIL}</ADMIN_EMAIL>
+                                        <ADMIN_PASSWORD>${ADMIN_PASSWORD}</ADMIN_PASSWORD>
+                                    </environmentVariables>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>stop-db-local</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                                    <arguments>
+                                        <argument>compose</argument>
+                                        <!-- Same project name as `orazaka start` (-p orazaka).
+                                             Without it compose derives the project from the
+                                             file's directory ("infra"), and because the services
+                                             pin container_name, the two projects collide: after
+                                             an `orazaka start` the E2E gate cannot boot at all. -->
+                                        <argument>-p</argument>
+                                        <argument>orazaka</argument>
+                                        <argument>--env-file</argument>
+                                        <argument>${maven.multiModuleProjectDirectory}/.env</argument>
+                                        <argument>-f</argument>
+                                        <argument>infra/docker-compose.yml</argument>
+                                        <argument>down</argument>
+                                        <argument>-v</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- ─── 2. Process Exec — background router JAR launcher ─── -->
+                    <plugin>
+                        <groupId>com.bazaarvoice.maven.plugins</groupId>
+                        <artifactId>process-exec-maven-plugin</artifactId>
+                        <version>0.9</version>
+                        <executions>
+                            <!-- Opt-in: only starts when -De2e.ui flips e2e.ui.phase to
+                                 pre-integration-test (default 'none' disables it). -->
+                            <execution>
+                                <id>e2e-start-ui</id>
+                                <phase>${e2e.ui.phase}</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-ui</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}/apps/web</workingDir>
+                                    <healthcheckUrl>http://localhost:3000</healthcheckUrl>
+                                    <waitAfterLaunch>15</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/ui-e2e.log</processLogFile>
+                                    <!-- next dev reads env from this process only; the repo .env is
+                                         not auto-loaded. Export the auth/proxy vars so next-auth signs
+                                         and verifies the session JWE with a stable NEXTAUTH_SECRET
+                                         (otherwise getServerSession fails to decrypt → 401 on /api/v1). -->
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <argument>export NEXTAUTH_SECRET="${NEXTAUTH_SECRET}" NEXTAUTH_URL="${NEXTAUTH_URL}" ROUTER_URL="${ROUTER_URL}" NEXT_PUBLIC_UI_URL="${NEXT_PUBLIC_UI_URL}" &amp;&amp; npx next dev</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-router</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-conversation-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <!-- Internal port: ROUTER_URL now points at the edge facade. -->
+                                    <healthcheckUrl>http://localhost:8080/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/router-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Source the full repo .env so the router gets EVERY property it needs to
+                                             boot (Spring AI base-urls like spring.ai.ollama.base-url have no default and
+                                             fail context init if absent). Exporting only a handful of vars made the e2e
+                                             router crash on startup ("Could not resolve placeholder
+                                             'spring.ai.ollama.base-url'"). REDIS_URL + datasource + port are pinned AFTER
+                                             the source so the e2e infra (local containers) always wins over .env. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; export REDIS_URL=redis://localhost:6379 RATE_LIMIT_ENABLED=true &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/conversation/sovkora-conversation-service/target/sovkora-conversation-service-${project.version}.jar --spring.datasource.url=jdbc:postgresql://localhost:${POSTGRES_PORT}/${DB_NAME} --spring.datasource.username=${DB_USERNAME} --spring.datasource.password=${DB_PASSWORD} --server.port=${PORT}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-automation-service</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-automation-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8082/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/automation-service-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- The worker declares its own AMQP queue (orazaka.jobs.automation + DLQ)
+                                             at startup — the AmqpContractIT topology assertions need it in the
+                                             constellation. Same .env sourcing strategy as the router; the port is
+                                             pinned after the source. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/automation/sovkora-automation-service/target/sovkora-automation-service-${project.version}.jar --server.port=8082</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-notification-service</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>krizaka-notifications-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8097/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/notification-service-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Declares the identity notification queues
+                                             (orazaka.events.{user,password}.notifications) and
+                                             orazaka.notifications.requests, each with its DLQ — asserted by
+                                             AmqpContractIT. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-service-kit/krizaka-notifications-service/target/orazaka-notification-service-${project.version}.jar --server.port=8097</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-media-worker</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-media-worker</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}/workers/media</workingDir>
+                                    <healthcheckUrl>http://localhost:8188/</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/media-worker-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Phase 3b: the video worker owns orazaka.jobs.video — app.consumer
+                                             consumes the queue AND serves the :8188 HTTP pipeline in-process.
+                                             AmqpContractIT's video fixture job only leaves PENDING if this
+                                             consumer is up to report job.{id}.done|error. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; .venv/bin/python -u -m app.consumer</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-identity</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>krizaka-users-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8083/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>3</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/identity-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Dual-run window: the identity service boots in the constellation
+                                             (smoked by its healthcheck) while the router still serves the
+                                             identity routes; the Phase 2f cutover flips the edge route table. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-users/krizaka-users-service/target/krizaka-users-service-*.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-job-service</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-job-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8090/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/job-service-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Phase 5: the async executor moved out of the router. job-service
+                                             is the sole consumer of orazaka.jobs.media/text; it executes,
+                                             writes orazaka_jobs, and emits job.{id}.done|error which the
+                                             router's JobEventListener relays to SSE. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/job/sovkora-job-service/target/sovkora-job-service-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-knowledge</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-knowledge-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8084/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>3</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/knowledge-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- Phase 4: knowledge service owns orazaka.jobs.rag (AmqpContractIT
+                                             topology assertion) and serves the core's RAG retrieve/source-search
+                                             HTTP port. Same .env sourcing as the other JVM services. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/knowledge/sovkora-knowledge-service/target/sovkora-knowledge-service-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-billing-service</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>krizaka-billing-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8095/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>5</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/billing-service-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- The ninth service, and the harness started eight. Installing a pack
+                                             PUTs /internal/v1/billing/packs/{key}; with :8095 refused the install
+                                             rolled back, orazaka-media never installed, and the composer row the
+                                             run path is launched from came back EMPTY — which is what
+                                             JobLifecycleIT and AmqpContractIT were failing on. Entitlement was
+                                             equally absent: HttpEntitlementProvider logged "lookup failed —
+                                             allowing through" on every request, so the gate had never once
+                                             exercised the check it is supposed to protect. Started BEFORE the
+                                             studio service, which provisions into it during pack bootstrap. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/.krizaka-java/krizaka-billing/krizaka-billing-service/target/orazaka-billing-service-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-studio-service</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-studio-service</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <healthcheckUrl>http://localhost:8096/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>3</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/studio-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- ADR-034: the Studio marketplace owns orazaka_studio_db and the
+                                             /api/v1/studios surface the edge routes to. It must start BEFORE
+                                             the edge, like every other backend, or StudioLifecycleIT's first
+                                             call races the route table. Same .env sourcing as its siblings. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/studio/sovkora-studio-service/target/sovkora-studio-service-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-start-edge</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <name>orazaka-edge</name>
+                                    <workingDir>${maven.multiModuleProjectDirectory}</workingDir>
+                                    <!-- Edge actuator lives on the dedicated management port (:8089)
+                                         so the main port proxies /actuator/** to the backend. -->
+                                    <healthcheckUrl>http://localhost:8089/actuator/health</healthcheckUrl>
+                                    <waitAfterLaunch>3</waitAfterLaunch>
+                                    <processLogFile>${project.build.directory}/edge-e2e.log</processLogFile>
+                                    <arguments>
+                                        <argument>/bin/sh</argument>
+                                        <argument>-c</argument>
+                                        <!-- The strangler facade: the whole suite (httpyac + ITs) targets
+                                             ROUTER_URL, which the .env now points at the edge (:8088);
+                                             the edge proxies to the router (:8080). Rollback = revert
+                                             ROUTER_URL. -->
+                                        <argument>set -a &amp;&amp; . ${maven.multiModuleProjectDirectory}/.env &amp;&amp; set +a &amp;&amp; exec java -jar ${maven.multiModuleProjectDirectory}/services/edge/sovkora-edge-service/target/sovkora-edge-${project.version}.jar</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- `exec java -jar`, above, is what makes this work at all: the
+                                 services are launched through `/bin/sh -c`, so without exec the
+                                 plugin tracks the SHELL's pid, kills it, and leaves the JVM
+                                 orphaned holding the port. Measured: after a post-integration-test
+                                 that demonstrably ran — the containers were gone — eight service
+                                 JVMs were still listening. Teardown of the JVMs had never worked,
+                                 on red runs OR green ones, which is the real reason M4's first
+                                 e2e run left its stack up overnight. -->
+                            <execution>
+                                <id>e2e-stop-router</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop-all</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- ─── 3. Antrun — HTTP healthcheck gate ─── -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>wait-for-router-health</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <echo message="Polling ${ROUTER_URL}/actuator/health ..." />
+                                        <waitfor maxwait="120" maxwaitunit="second"
+                                                 checkevery="2" checkeveryunit="second">
+                                            <http url="${ROUTER_URL}/actuator/health" />
+                                        </waitfor>
+                                        <echo message="Router is UP — releasing to test runners." />
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <!-- ── The stack must be THIS build, checked before the first request ── -->
+                            <execution>
+                                <id>verify-stack-identity</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <!-- A failed run never reaches post-integration-test, so
+                                             its JVMs keep the ports. A stale one answers /health on
+                                             the right port with the wrong code, and every green
+                                             after that belongs to another build. Teardown stops the
+                                             waste; this stops the wrong answer. Here rather than
+                                             inside a runner, because the Java ITs run in the same
+                                             phase and the first of them would already have asked. -->
+                                        <exec executable="node" failonerror="true"
+                                              dir="${maven.multiModuleProjectDirectory}">
+                                            <arg value="scripts/verify-stack-identity.mjs" />
+                                            <arg value="services/conversation/sovkora-conversation-service=http://localhost:8080" />
+                                            <arg value="services/automation/sovkora-automation-service=http://localhost:8082" />
+                                            <arg value=".krizaka-java/krizaka-users/krizaka-users-service=http://localhost:8083" />
+                                            <arg value="services/knowledge/sovkora-knowledge-service=http://localhost:8084" />
+                                            <arg value=".krizaka-java/krizaka-billing/krizaka-billing-service=http://localhost:8095" />
+                                            <arg value="services/job/sovkora-job-service=http://localhost:8090" />
+                                            <arg value="services/studio/sovkora-studio-service=http://localhost:8096" />
+                                            <arg value="services/edge/sovkora-edge-service=http://localhost:8089" />
+                                            <arg value=".krizaka-java/krizaka-service-kit/krizaka-notifications-service=http://localhost:8097" />
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- ─── 4. Frontend Maven Plugin — sandboxed Node + httpyac ─── -->
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${frontend-maven-plugin.version}</version>
+                        <configuration>
+                            <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                            <installDirectory>${project.build.directory}/node</installDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install-node-for-e2e</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                </configuration>
+                            </execution>
+
+                            <!-- ── Pre-Contract: Flush Redis rate-limit state ── -->
+                            <execution>
+                                <id>e2e-flush-redis</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>npx</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>--yes -- node -e "const net=require('net');const c=new net.Socket();c.connect(6379,'localhost',()=>{c.write('FLUSHDB\r\n');c.on('data',d=>{console.log('Redis FLUSHDB:',d.toString().trim());c.end()})});c.on('error',e=>{console.error('Redis flush failed:',e.message);process.exit(1)})"</arguments>
+                                </configuration>
+                            </execution>
+
+                            <!-- ── Tier 2: CLI E2E (orazaka-cli npm test:e2e) ── -->
+                            <execution>
+                                <id>e2e-cli-install</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}/apps/cli</workingDirectory>
+                                    <arguments>rebuild</arguments>
+                                </configuration>
+                            </execution>
+
+                            <execution>
+                                <id>e2e-tier2-cli-validation</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <workingDirectory>${maven.multiModuleProjectDirectory}/apps/cli</workingDirectory>
+                                    <arguments>run test:e2e</arguments>
+                                    <skip>${skipCliE2E}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- ─── 5. Failsafe — Tier 3: Playwright Java + lifecycle verify ─── -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.3</version>
+                        <configuration>
+                            <!-- @Tag("ui") tests (web-UI/media dependent) are excluded by
+                                 default; the e2e-ui profile clears this to run them. -->
+                            <excludedGroups>${e2e.excludedGroups}</excludedGroups>
+                            <systemPropertyVariables>
+                                <ui.base.url>${NEXT_PUBLIC_UI_URL}</ui.base.url>
+                                <router.target.url>${ROUTER_URL}</router.target.url>
+                                <admin.email>${ADMIN_EMAIL}</admin.email>
+                                <admin.password>${ADMIN_PASSWORD}</admin.password>
+                                <!-- JDBC live infrastructure — targets the compose db-vector
+                                     published on localhost:${POSTGRES_PORT} (DB_LOCAL_* describes a
+                                     separate host DB that the compose does not provision). The
+                                     port follows POSTGRES_PORT, as the compose file does: on a
+                                     host whose 5432 is another product's Postgres, a literal 5432
+                                     points the gate at the wrong database. -->
+                                <db.url>jdbc:postgresql://localhost:${POSTGRES_PORT}/orazaka_db</db.url>
+                                <db.username>orazaka_app</db.username>
+                                <db.password>orazaka_pass</db.password>
+                                <identity.db.url>jdbc:postgresql://localhost:${POSTGRES_PORT}/krizaka_users_db</identity.db.url>
+                                <identity.db.username>krizaka_users</identity.db.username>
+                                <identity.db.password>krizaka_users_pass</identity.db.password>
+                                <!-- Redis live infrastructure -->
+                                <redis.url>redis://localhost:6379</redis.url>
+                                <!-- AMQP live infrastructure -->
+                                <amqp.host>localhost</amqp.host>
+                                <amqp.port>5672</amqp.port>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <!-- Phase 1: All tests EXCEPT heavy PlaygroundMediaIT -->
+                            <execution>
+                                <id>e2e-tier3-playwright</id>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/*IT.java</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>**/PlaygroundMediaIT.java</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                            <!-- Phase 2: Heavy multi-modal — runs LAST -->
+                            <execution>
+                                <id>e2e-tier3-playground-media</id>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/PlaygroundMediaIT.java</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>e2e-verify</id>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Opt-in overlay: `-De2e.ui` (with -Pstaging) runs the @Tag("ui") web-UI/media
+             tiers and starts the Next.js dev server. Requires a configured machine
+             (web client + local AI runtimes). Verify availability first with `orazaka doctor`. -->
+        <profile>
+            <id>e2e-ui</id>
+            <activation>
+                <property>
+                    <name>e2e.ui</name>
+                </property>
+            </activation>
+            <properties>
+                <e2e.excludedGroups></e2e.excludedGroups>
+                <e2e.ui.phase>pre-integration-test</e2e.ui.phase>
+            </properties>
+        </profile>
+        <!-- The voice turn's scenarios (ADR-076): -De2e.voice includes @Tag("voice"), and only it,
+             beside the default gate. Needs LocalAI and Ollama running natively. -->
+        <profile>
+            <id>e2e-voice</id>
+            <activation>
+                <property>
+                    <name>e2e.voice</name>
+                </property>
+            </activation>
+            <properties>
+                <e2e.excludedGroups>ui</e2e.excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

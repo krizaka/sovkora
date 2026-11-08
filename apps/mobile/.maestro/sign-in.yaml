@@ -1,0 +1,36 @@
+# The first screen, with no backend: a fresh install opens on sign-in, and « Se connecter » stays off until both fields are
+# filled. Runs in CI (mobile-e2e.yml, the emulator in fr-CA); locally: maestro test .maestro/sign-in.yaml
+appId: com.krizaka.orazaka
+tags:
+  - ci
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+# A slow emulator paints a blank screen first: the field is awaited, not asserted at once.
+- extendedWaitUntil:
+    visible:
+      id: "login-email"
+    timeout: 60000
+- assertVisible:
+    id: "login-password"
+- assertVisible:
+    id: "login-submit"
+    enabled: false
+- takeScreenshot: sign-in
+- tapOn:
+    id: "login-email"
+- inputText: "eric@demo.orazaka.test"
+- hideKeyboard
+# An address alone is not enough.
+- assertVisible:
+    id: "login-submit"
+    enabled: false
+- tapOn:
+    id: "login-password"
+- inputText: "not-a-real-password"
+- hideKeyboard
+- assertVisible:
+    id: "login-submit"
+    enabled: true
+- takeScreenshot: sign-in-filled

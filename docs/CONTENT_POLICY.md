@@ -1,10 +1,10 @@
 # Content policy: you decide
 
-Orazaka is open source and does not censor. It ships a policy engine that **the operator configures**. A fresh install is permissive: nothing is refused because of what a prompt is about. You decide what your installation refuses, and you can protect your provider accounts from terms you accepted.
+Sovkora is open source and does not censor. It ships a policy engine that **the operator configures**. A fresh install is permissive: nothing is refused because of what a prompt is about. You decide what your installation refuses, and you can protect your provider accounts from terms you accepted.
 
 ## What happens on every Studio run
 
-Before any credit is held, run written or provider reached, Orazaka:
+Before any credit is held, run written or provider reached, Sovkora:
 
 1. Classifies the prompt locally. It never leaves the service. Labels: `SEXUAL_EXPLICIT`, `SEXUAL_SUGGESTIVE`, `MINORS_RISK`, `VIOLENCE_GRAPHIC`, `REAL_PERSON_LIKENESS`, `NONE`.
 2. Applies your configuration.

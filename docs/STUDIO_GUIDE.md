@@ -6,7 +6,7 @@ order: 3
 ---
 # Run a Studio
 
-A Studio is a ready-made workflow behind one form. You fill the form, Orazaka runs the steps, and you get a result and a run record.
+A Studio is a ready-made workflow behind one form. You fill the form, Sovkora runs the steps, and you get a result and a run record.
 
 ## From the web app
 

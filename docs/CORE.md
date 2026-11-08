@@ -1,10 +1,10 @@
 ---
-title: 'Orazaka Core Engine: Architecture & Pipeline'
-description: 'Documentation for Orazaka Core Engine: Architecture & Pipeline'
+title: 'Sovkora Core Engine: Architecture & Pipeline'
+description: 'Documentation for Sovkora Core Engine: Architecture & Pipeline'
 category: Architecture
 order: 3
 ---
-# Orazaka Core Engine: Architecture & Pipeline
+# Sovkora Core Engine: Architecture & Pipeline
 
 > Deep-dive into the `orazaka-core` module — the stateless, Spring AI-powered orchestration library.
 

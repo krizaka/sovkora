@@ -12,7 +12,7 @@ Sovkora on your Mac, or connect to a hosted one, and give Sovkora **access to th
 | | |
 |---|---|
 | **Control panel** | Status of the local stack (`orazaka status --json`), **Start** / **Stop**, **Run doctor**, logs (live output + `orazaka logs --service …`), CLI and app version, **Open workspace** (the web UI in an app window). |
-| **Connect mode** | Point the app at a hosted Sovkora (default `https://www.orazaka.com`, https only) and sign in **on the Sovkora page itself** — the app never sees or stores a password. |
+| **Connect mode** | Point the app at a hosted Sovkora (default `https://www.sovkora.com`, https only) and sign in **on the Sovkora page itself** — the app never sees or stores a password. |
 | **File access** | Choose folders with the native picker; list and preview their files (text, images, PDF); **drag & drop** files into the workspace page or onto the panel; **watch a folder** for new files; **revoke** any folder or all of them. |
 | **Menu bar** | An icon showing the stack's state (outline = stopped, filled = running/partial), with Open panel · Open workspace · Start · Stop · Quit. Closing the window keeps the app in the menu bar. |
 | **Automations** | Scheduled work on a shared folder with a model served on this Mac — v0.2: *Summarise new PDFs every morning* (a note next to each new PDF). The filesystem MCP server is limited to that folder, every write waits for your approval (or a permission you gave: *always for this folder*), dry-run, **Stop all agents**, budgets, run history with a step-by-step trace, a hash-chained audit log. See [docs/AUTOMATION.md](../../docs/AUTOMATION.md) and ADR-079. Needs Node.js 22+ (the MCP server) and a local model (Ollama: `ollama pull qwen2.5:7b`). |

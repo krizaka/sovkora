@@ -1,0 +1,28 @@
+# The clients of Sovkora, one pnpm workspace (ADR-029). Each app keeps its own lockfile, so a dependency bump in one
+# app never moves another app's pins; `pnpm -r` and `pnpm --filter` run them together or one by one.
+packages:
+  - apps/web
+  - apps/mobile
+  - apps/cli
+  - apps/desktop
+
+sharedWorkspaceLockfile: false
+
+# A flat node_modules per app, as npm lays it out: React Native's Metro and the jest-expo preset resolve and transform
+# packages by their node_modules path, which pnpm's isolated layout (.pnpm/...) defeats.
+nodeLinker: hoisted
+
+# The dependencies allowed to run their install scripts. Recent pnpm refuses unlisted build scripts
+# (ERR_PNPM_IGNORED_BUILDS), which broke the DigitalOcean build of the web app on 2026-10-24.
+allowBuilds:
+  "@ast-grep/cli": true
+  "@parcel/watcher": true
+  unrs-resolver: true
+onlyBuiltDependencies:
+  - "@ast-grep/cli"
+  - "@parcel/watcher"
+  - unrs-resolver
+
+# Krizaka's own packages are installed as soon as they are published (the release-age rule is for third parties).
+minimumReleaseAgeExclude:
+  - "@krizaka/*"

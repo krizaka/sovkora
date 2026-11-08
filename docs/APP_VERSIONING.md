@@ -6,7 +6,7 @@ Krizaka app (krizaka/.github#75), built from three shared pieces:
 
 | Piece | Where | What |
 | :--- | :--- | :--- |
-| `krizaka-app-config` | `krizaka/krizaka-build/krizaka-platform-kit` (Java building block, `krizaka-spring-boot-starter-app-config`) | the endpoint, the `426` filter, the tables, the admin API |
+| `krizaka-app-config` | krizaka-java `krizaka-service-kit` (Java building block, `krizaka-spring-boot-starter-app-config`) | the endpoint, the `426` filter, the tables, the admin API |
 | `@krizaka/app-config` | `krizaka/krizaka-ui` `packages/app-config` | the same contract for Next.js backends and the clients (`/client`, `/react`) |
 | `UpdatePrompt`, `ForceUpdateScreen`, `MaintenanceScreen` | `@krizaka/ui` (web) and `@krizaka/ui/native` | the three screens |
 

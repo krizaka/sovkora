@@ -1,0 +1,266 @@
+# Sovkora dev — dev.sovkora.com (DigitalOcean App Platform). docs/DEPLOY_DEV.md. Its infrastructure as code is krizaka-infra
+# stacks/dev/sovkora; the two stay in step. Apply with `node scripts/dev-deploy.mjs apply sovkora-dev`: every double-underscored placeholder is filled from the local
+# secrets file (never committed) and sent as a SECRET. Databases: the shared cluster `krizaka-dev-pg`
+# (trusted source: this app), one database and one role per context.
+name: sovkora-dev
+region: tor
+# Alerts as krizaka-com's (observability minimum, krizaka-internal#2631): DigitalOcean mails the team owners.
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+domains:
+  # The public address (epic krizaka/.github#119): www is primary and indexed; the apex answers 308 with www (ingress below).
+  - domain: www.orazaka.com
+    type: PRIMARY
+  - domain: orazaka.com
+    type: ALIAS
+  # dev.orazaka.com was removed on 2026-11-05 (krizaka-internal#2600): every caller uses www.
+  # The operator console is served by this same `web` component on `admin.orazaka.com` (krizaka/orazaka-web-admin#31: the
+  # proxy of orazaka-web-client reads the Host): an ALIAS domain of this app, cut over on 2026-10-21 (docs/DEPLOY_DEV.md § Admin console).
+  - domain: admin.orazaka.com
+    type: ALIAS
+features:
+  - buildpack-stack=ubuntu-22
+# The tor1 VPC: core reaches the broker Droplet (broker-dev.orazaka.com → its private IP) over it.
+vpc:
+  id: 60296b32-efad-49be-bb41-321b1b6cc328
+ingress:
+  rules:
+    # The apex leads to www (308).
+    - match:
+        authority:
+          exact: orazaka.com
+      redirect:
+        authority: www.orazaka.com
+        redirect_code: 308
+    # The edge, public for the admin console and the mobile client: /edge/api/v1/... → edge /api/v1/...
+    - component:
+        name: core
+      match:
+        path:
+          prefix: /edge
+    # The GPU relay (docs/DEPLOY_DEV.md § GPU): the GPU droplet or the Mac's worker dials OUT here, over
+    # TLS, with a 256-bit credential, and may open only the remotes of its allow-list.
+    - component:
+        name: gpu-relay
+      match:
+        path:
+          prefix: /gpu-relay
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /
+services:
+  # The web client and its BFF (Next.js). It reaches the edge inside the app: http://core:8088.
+  - name: web
+    github:
+      repo: krizaka/sovkora
+      branch: main
+      deploy_on_push: true
+    # The web app is one folder of the one repository (ADR-029): built on its own, with its own lockfile.
+    source_dir: apps/web
+    environment_slug: node-js
+    # The web client is a pnpm project: the buildpack installs it with pnpm, then this builds it. `npm install` on a
+    # pnpm tree crashes (« Cannot read properties of null (reading 'matches') »), orazaka-web-client#282.
+    build_command: pnpm run build
+    run_command: npm start
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    alerts:
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+    envs:
+      # www is indexed (krizaka-com AGENTS 2.4): robots allows, sitemap, no noindex; dev. and admin. are closed by host (orazaka-web-client src/core/config/indexing.ts). The live spec drifted to "off" once because this file said so.
+      - { key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on" }
+      - { key: AUTH_LOGIN_ENABLED, scope: RUN_AND_BUILD_TIME, value: "true" }
+      - { key: AUTH_SIGNUP_ENABLED, scope: RUN_AND_BUILD_TIME, value: "false" }
+      - { key: APP_COMMIT, scope: BUILD_TIME, value: "${_self.COMMIT_HASH}" }
+      - { key: NODE_ENV, scope: RUN_TIME, value: production }
+      - { key: ROUTER_URL, scope: RUN_TIME, value: "http://core:8088" }
+      - { key: NEXTAUTH_URL, scope: RUN_TIME, value: "https://www.orazaka.com" }
+      - { key: APP_PUBLIC_URL, scope: RUN_TIME, value: "https://www.orazaka.com" }
+      # Universal links / App Links (orazaka-web-client app-links.json): served only when set, empty = 404, never a placeholder.
+      - { key: APP_IOS_TEAM_ID, scope: RUN_TIME, value: "__APP_IOS_TEAM_ID__" }
+      - { key: APP_ANDROID_CERT_SHA256, scope: RUN_TIME, value: "__APP_ANDROID_CERT_SHA256__" }
+      - { key: NEXTAUTH_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_WEB__" }
+      # The operator console on Host admin.orazaka.com (src/console of orazaka-web-client). Its own session, its own flag:
+      # nothing of the public site's (cookie, signing key, sign-in flag) is shared. NEXTAUTH_URL stays the public site's;
+      # AUTH_TRUST_HOST lets next-auth build the console's callbacks from the Host it was asked on.
+      - { key: AUTH_TRUST_HOST, scope: RUN_TIME, value: "true" }
+      - { key: AUTH_CONSOLE_LOGIN_ENABLED, scope: RUN_TIME, value: "true" }
+      - { key: AUTH_CONSOLE_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_ADMIN__" }
+      # Only these client addresses (do-connecting-ip) reach admin.orazaka.com, sign-in page included; empty = nobody.
+      - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "142.122.41.109" }
+
+  # The JVM services in one container (infra/deploy/Dockerfile + run-services.sh): edge :8088 (the
+  # only port App Platform routes), users :8083, billing :8095, conversation :8080, studio :8096, job :8090,
+  # knowledge :8084 (the recommender, ADR-078), automation :8091 (webhooks and schedules, ADR-084).
+  - name: core
+    github:
+      repo: krizaka/sovkora
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: infra/deploy/Dockerfile
+    source_dir: /
+    http_port: 8088
+    # The job service, for the GPU relay only (worker registry, output hand-over); never routed.
+    internal_ports: [8090]
+    instance_count: 1
+    instance_size_slug: basic-s
+    alerts:
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+    health_check:
+      http_path: /actuator/health
+      initial_delay_seconds: 240
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 9
+    envs:
+      # Databases (krizaka-dev-pg). orazaka_db holds conversation, jobs and governance.
+      - { key: CORE_REBUILD, scope: BUILD_TIME, value: "__CORE_REBUILD__" }
+      - { key: SPRING_DATASOURCE_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-orazaka?sslmode=require&prepareThreshold=0" }
+      # Connection budget (docs/DEV_DATABASE.md, "Connection budget"): the cluster allows 22 usable connections for
+      # every dev service. Every JVM of this container goes through its PgBouncer pool (port 25061, transaction mode:
+      # pgjdbc needs prepareThreshold=0) — the pool size is the cap on the server, whatever the services' Hikari size.
+      # Flyway runs in every service at startup (krizaka-internal#2255, V1 = the baseline) and takes a session advisory lock: it never
+      # goes through the pooler. Each service gets DATABASE_<SERVICE>_MIGRATOR_URL on the direct port (25060, the real database), as its
+      # owner role; the runtime URL stays on the pool. A migration over the transaction pooler stalled and was cut (2026-11-04).
+      - { key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE, scope: RUN_TIME, value: "3" }
+      - { key: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE, scope: RUN_TIME, value: "0" }
+      - { key: SPRING_DATASOURCE_USERNAME, scope: RUN_TIME, value: orazaka_db }
+      - { key: SPRING_DATASOURCE_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_DB__" }
+      - { key: IDENTITY_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-users?sslmode=require&prepareThreshold=0" }
+      - { key: IDENTITY_DB_USERNAME, scope: RUN_TIME, value: krizaka_users_db }
+      - { key: IDENTITY_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_KRIZAKA_USERS_DB__" }
+      - { key: STUDIO_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-studio?sslmode=require&prepareThreshold=0" }
+      - { key: STUDIO_DB_USER, scope: RUN_TIME, value: orazaka_studio_db }
+      - { key: STUDIO_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_STUDIO_DB__" }
+      - { key: DATABASE_STUDIO_MIGRATOR_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25060/orazaka_studio_db?sslmode=require" }
+      # The knowledge service: the recommender's store (ADR-078, pgvector).
+      - { key: KNOWLEDGE_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-knowledge?sslmode=require&prepareThreshold=0" }
+      - { key: KNOWLEDGE_DB_USERNAME, scope: RUN_TIME, value: orazaka_knowledge_db }
+      - { key: KNOWLEDGE_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_KNOWLEDGE_DB__" }
+      - { key: DATABASE_KNOWLEDGE_MIGRATOR_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25060/orazaka_knowledge_db?sslmode=require" }
+      # The automation service (ADR-084), the eighth JVM: signed webhooks and schedules that start Studio runs. Its own
+      # database through a pool of ONE connection (budget 22 of 22, docs/DEV_DATABASE.md): the code holds no connection while
+      # it calls another service. Routed by the edge at /api/v1/automations and /hooks/ (AUTOMATION_INTERNAL_URL).
+      - { key: AUTOMATION_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-automation?sslmode=require&prepareThreshold=0" }
+      - { key: AUTOMATION_DB_USERNAME, scope: RUN_TIME, value: orazaka_automation_db }
+      - { key: AUTOMATION_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_AUTOMATION_DB__" }
+      - { key: DATABASE_AUTOMATION_MIGRATOR_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25060/orazaka_automation_db?sslmode=require" }
+      - { key: AUTOMATION_DB_MAX_POOL_SIZE, scope: RUN_TIME, value: "1" }
+      - { key: AUTOMATION_PORT, scope: RUN_TIME, value: "8091" }
+      - { key: AUTOMATION_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8091" }
+      - { key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8096" }
+      # The address a sender is shown for a webhook trigger: the edge as the Internet reaches it.
+      - { key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https://www.orazaka.com/edge" }
+      # Broker: RabbitMQ on the orazaka-broker-dev Droplet, TLS only, VPC only (`dev-deploy.mjs broker`).
+      # The GPU workers reach the same broker over the VPC with their own, narrower user.
+      - { key: RABBITMQ_HOST, scope: RUN_TIME, value: broker-dev.orazaka.com }
+      - { key: RABBITMQ_PORT, scope: RUN_TIME, value: "5671" }
+      - { key: RABBITMQ_USER, scope: RUN_TIME, value: orazaka }
+      - { key: RABBITMQ_PASS, scope: RUN_TIME, type: SECRET, value: "__RABBITMQ_PASS__" }
+      - { key: RABBITMQ_CA_CERT_BASE64, scope: RUN_TIME, value: "__RABBITMQ_CA_CERT_BASE64__" }
+      - { key: SPRING_RABBITMQ_SSL_ENABLED, scope: RUN_TIME, value: "true" }
+      - { key: SPRING_RABBITMQ_SSL_BUNDLE, scope: RUN_TIME, value: broker }
+      - { key: SPRING_SSL_BUNDLE_PEM_BROKER_TRUSTSTORE_CERTIFICATE, scope: RUN_TIME, value: "file:/app/var/broker-ca.pem" }
+      # Identity: one HS256 secret every service validates with; users' column encryption.
+      # ADR-083 slice 2: the products' service accounts are on the `service` tier (infra/migrations/2026-10-20-service-rate-tier.sql), so the per-key limit leaves observe.
+      - { key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce }
+      - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__IDENTITY_JWT_SECRET__" }
+      - { key: CRYPTO_KEY, scope: RUN_TIME, type: SECRET, value: "__CRYPTO_KEY__" }
+      - { key: CRYPTO_SALT, scope: RUN_TIME, type: SECRET, value: "__CRYPTO_SALT__" }
+      - { key: MEDIA_ENCRYPTION_KEY, scope: RUN_TIME, type: SECRET, value: "__MEDIA_ENCRYPTION_KEY__" }
+      # Generated media. The container disk is wiped by every deploy, so the sealed envelopes are also kept in a
+      # private Bunny Storage zone (no pull zone; docs/DEPLOY_DEV.md § Media). Ordinary jobs and their files are
+      # purged after MEDIA_RETENTION_DAYS (0 = keep).
+      - { key: MEDIA_STORAGE_PROVIDER, scope: RUN_TIME, value: bunny }
+      - { key: MEDIA_STORAGE_ZONE, scope: RUN_TIME, value: orazaka-media-dev }
+      - { key: MEDIA_STORAGE_API_KEY, scope: RUN_TIME, type: SECRET, value: "__MEDIA_STORAGE_API_KEY__" }
+      # The zone is in New York: a regional zone answers 401 on the default (Falkenstein) host.
+      - { key: MEDIA_STORAGE_ENDPOINT, scope: RUN_TIME, value: ny.storage.bunnycdn.com }
+      - { key: MEDIA_STORAGE_TENANT, scope: RUN_TIME, value: orazaka }
+      - { key: MEDIA_RETENTION_DAYS, scope: RUN_TIME, value: "30" }
+      # Sign-in open, sign-up closed — the backend refuses a registration too (403).
+      - { key: AUTH_SIGNUP_ENABLED, scope: RUN_TIME, value: "false" }
+      - { key: EMAIL_VERIFICATION_ENABLED, scope: RUN_TIME, value: "false" }
+      - { key: CORS_ALLOWED_ORIGINS, scope: RUN_TIME, value: "https://www.orazaka.com,https://admin.orazaka.com" }
+      - { key: ORAZAKA_PACKS_SOURCES, scope: RUN_TIME, value: /app/orazaka-packs }
+      # Billing runs as the sixth JVM of this container (billing :8095, reached through the edge at /api/v1/billing).
+      # Enforcement stays DRY_RUN (a billing_runtime_config row): it meters, it never blocks chat.
+      - { key: BILLING_ENABLED, scope: RUN_TIME, value: "true" }
+      - { key: BILLING_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8095" }
+      - { key: BILLING_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-billing?sslmode=require&prepareThreshold=0" }
+      - { key: BILLING_DB_USERNAME, scope: RUN_TIME, value: krizaka_billing_db }
+      - { key: BILLING_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_KRIZAKA_BILLING_DB__" }
+      # Identity events on the Orazaka exchanges (as locally), Orazaka's reserved preference prefix.
+      - { key: EVENTS_EXCHANGE, scope: RUN_TIME, value: orazaka.events }
+      - { key: DLX_EXCHANGE, scope: RUN_TIME, value: orazaka.dlx }
+      - { key: USERS_RESERVED_PREFERENCE_PREFIXES, scope: RUN_TIME, value: "orazaka." }
+      # Ollama = the GPU droplet's, through the relay (chat and vision of the Studios while it runs; serverless
+      # inference stays the chat default once its key is set). Its chat model is declared, never the first one listed.
+      # The pipeline's provider when a turn names none: serverless inference. With `ollama` here the
+      # pipeline pins Ollama's active model and never reaches the catalogue default (mistral-3-14B).
+      - { key: ORAZAKA_CORE_DEFAULT_PROVIDER, scope: RUN_TIME, value: do-inference }
+      # The serverless-inference model access key (`sovkora-dev`). Routing reads it from ai_providers
+      # (dev-data.sql); kept here as the deployment's copy of record.
+      - { key: AI_INFERENCE_KEY, scope: RUN_TIME, type: SECRET, value: "__AI_INFERENCE_KEY__" }
+      # The all-models key (it lists the hosted Wan): read by the hosted-video worker of this container (run-services.sh).
+      - { key: AI_INFERENCE_KEY_ALL, scope: RUN_TIME, type: SECRET, value: "__AI_INFERENCE_KEY_ALL__" }
+      # Spend guards (tokens must not burn): a daily budget for paid providers (chat, embeddings, video), clips per day, requests per service key per day.
+      - { key: AI_SPEND_DAILY_BUDGET_USD, scope: RUN_TIME, value: "5" }
+      - { key: AI_VIDEO_DAILY_RUNS, scope: RUN_TIME, value: "5" }
+      - { key: AUTH_API_KEY_DAILY_REQUESTS, scope: RUN_TIME, value: "2000" }
+      - { key: SPRING_AI_OLLAMA_BASE_URL, scope: RUN_TIME, value: "http://gpu-relay:11434" }
+      - { key: ORAZAKA_OLLAMA_MODEL, scope: RUN_TIME, value: "qwen2.5:7b" }
+      # Image and video engines = the hourly GPU droplet, reached through the relay (gpu-relay:8086 is its
+      # sd-server, :8188 its video pipeline); nothing listens there while it is off, which greys them out.
+      - { key: ORAZAKA_CORE_IMAGE_GENERATION_BASE_URL, scope: RUN_TIME, value: "http://gpu-relay:8086/v1" }
+      - { key: ORAZAKA_CORE_VIDEO_GENERATION_BASE_URL, scope: RUN_TIME, value: "http://gpu-relay:8188" }
+      # No collector in dev: no trace export, logs on stdout.
+      - { key: MANAGEMENT_TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
+      - { key: TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
+      - { key: LOGGING_LEVEL_ORAZAKA, scope: RUN_TIME, value: INFO }
+
+  # The GPU relay (infra/deploy/gpu-relay): a chisel server. Forwards the broker (broker-dev.orazaka.com:5671, TLS
+  # end to end) and core:8090 to the GPU host, and exposes the GPU host's sd-server, video pipeline and Ollama
+  # inside the app as gpu-relay:8086/:8188/:11434.
+  - name: gpu-relay
+    github:
+      repo: krizaka/sovkora
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: infra/deploy/gpu-relay/Dockerfile
+    source_dir: infra/deploy/gpu-relay
+    http_port: 8080
+    internal_ports: [8085, 8086, 8188, 11434]
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    alerts:
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+    health_check:
+      http_path: /health
+    envs:
+      - { key: AI_GPU_RELAY_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__AI_GPU_RELAY_PASSWORD__" }

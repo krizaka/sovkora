@@ -1,0 +1,7 @@
+{
+  "token": "recorded-token",
+  "username": "qa_user",
+  "email": "qa+user@orazaka.com",
+  "authorities": ["ROLE_USER"],
+  "activeInterceptions": []
+}

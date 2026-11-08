@@ -1,0 +1,243 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# document-validation — the flagship Tier-W pack (phase H, ADR-052).
+#
+# It declares `regulatoryClass: SENSITIVE` and receives the four run-time controls
+# of ADR-051 — data class, shortened retention, append-only audit, scope guard —
+# without one line of engine code naming this pack, its Studio, or its subject.
+#
+# What it adds over `echo-toolkit`: the shape of a real product. Rulesets versioned
+# like blueprints, jurisdiction as a first-class input, deterministic evaluation in
+# the pack's own worker, and the model asked only where judgement is genuinely
+# required. The findings are records — (ruleId, severity, verdict, evidenceSpan,
+# explanation) — never prose, because the user forwards them to their counterparty.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: orazaka.dev/v1
+key: document-validation
+version: 1.12.0
+tier: WORKER
+distribution: CLOUD
+regulatoryClass: SENSITIVE
+
+# The fourth control of SENSITIVE. A compliance pack that also gave legal advice would be the
+# exact product this refuses to be: it reports what a ruleset says about a document, and it does
+# not tell anyone what to do about it.
+scopeGuard:
+  refusedTerms:
+    - conseil juridique
+    - consultation juridique
+    - avocat
+    - plaidoirie
+    - action en justice
+  refusal: >-
+    Je contrôle des documents contre un corpus de règles et je cite mes sources. Je ne donne pas
+    de conseil juridique et je ne dis pas quelle action engager — pour cela, adressez-vous à un
+    professionnel du droit.
+
+requires:
+  capabilities:
+    - key: orazaka.validation.document.screen
+      routingKey: job.validation.screen
+      handlerKey: validation.screen
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          document: { type: string, description: "Le document à contrôler, tel que l'étape amont l'a publié." }
+          jurisdiction: { type: string, description: "Le ruleset applicable." }
+          asOf: { type: string, description: "La date à laquelle les règles sont évaluées." }
+          ruleset: { type: string, description: "Le corpus nommé, quand la juridiction en porte plusieurs (une facture, par exemple). Par défaut : le bail de la juridiction." }
+          resolved: { type: string, description: "compliance-check 2.0 : la sortie de l'étape resolve (JSON). Le corpus est celui qu'elle a résolu pour le type du document ; juridiction et corpus nommé ne sont alors pas lus." }
+        required: [document]
+      outputSchema:
+        type: object
+        properties:
+          rulesetId: { type: string }
+          rulesetVersion: { type: string }
+          rulesetRevision: { type: integer }
+          jurisdiction: { type: string }
+          asOf: { type: string }
+          source: { type: string }
+          deterministicFindings: { type: array, items: { type: object } }
+          screenedJson: { type: string, description: "La structure ci-dessus en JSON : un pas de blueprint adresse des CHAMPS, pas une valeur entière (ADR-052 §6)." }
+          judgmentPrompt: { type: string }
+          judgmentCount: { type: integer }
+          needsJudgment: { type: boolean, description: "Vrai quand une règle de jugement attend le modèle. 2.0 n'appelle le modèle que dans ce cas." }
+          resultCacheable: { type: boolean, description: "Faux quand l'appel 1.x ne donne pas asOf (le jour vient de l'horloge) : ce run n'est jamais repris du cache." }
+        required: [rulesetId, rulesetVersion, jurisdiction, asOf, source, screenedJson, judgmentPrompt, needsJudgment]
+    - key: orazaka.validation.document.identify
+      routingKey: job.validation.identify
+      handlerKey: validation.identify
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          document: { type: string, description: "Le document dont on veut savoir ce qu'il est, tel que l'étape amont l'a publié." }
+          declaredKind: { type: string, enum: [LEASE, NOTICE, CONDITION_REPORT, INVOICE, SERVICE_CONTRACT, OTHER], description: "Ce que l'utilisateur dit que c'est. Comparé au type détecté, jamais cru sur parole." }
+          jurisdiction: { type: string, description: "La juridiction déclarée, quand elle l'est. Sinon elle est détectée." }
+          asOf: { type: string, description: "La date à laquelle les règles sont évaluées. Sinon : la date du document, sinon aujourd'hui." }
+          ruleset: { type: string, description: "Le corpus nommé (appel 1.x) : il l'emporte sur tout, et la réponse le dit (RULESET_INPUT)." }
+        required: [document]
+      outputSchema:
+        type: object
+        properties:
+          declaredKind: { type: [string, "null"] }
+          detectedKind: { type: [string, "null"] }
+          kindUsed: { type: [string, "null"] }
+          kindLabel: { type: [object, "null"] }
+          kindStatus: { type: [string, "null"] }
+          kindSource: { type: [string, "null"], description: "DETECTED | DECLARED | CLASSIFIED | RULESET_INPUT" }
+          kindEvidence: { type: array, items: { type: object }, description: "Les passages du document qui ont fait reconnaître le type (vérifiés dans le texte)." }
+          kindMismatch: { type: boolean, description: "Vrai quand le document est d'un autre type que celui déclaré. Toujours montré." }
+          ruleset: { type: [string, "null"] }
+          jurisdiction: { type: [string, "null"] }
+          jurisdictionSource: { type: [string, "null"] }
+          documentDate: { type: [string, "null"] }
+          dateEvidence: { type: [object, "null"] }
+          asOf: { type: string }
+          asOfSource: { type: string, description: "INPUT | DOCUMENT | TODAY" }
+          languages: { type: array, items: { type: string } }
+          outcome: { type: string, description: "CHECK | UNSUPPORTED_KIND | KIND_UNKNOWN" }
+          candidates: { type: array, items: { type: object } }
+          classifyAmong: { type: array, items: { type: string }, description: "Les types à égalité parmi lesquels le modèle peut choisir (plus OTHER). Vide : rien à demander." }
+          classification: { type: [object, "null"], description: "Le choix du modèle et s'il a été retenu (type proposé, citation trouvée dans le document)." }
+          identificationJson: { type: string, description: "La même identification, en JSON : un pas de blueprint adresse des CHAMPS, pas une valeur imbriquée." }
+          needsClassify: { type: boolean, description: "Vrai quand deux types sont à égalité : l'étape classify pose alors la question au modèle." }
+          classifyPrompt: { type: string, description: "La question de l'étape classify ; vide quand il n'y a rien à demander." }
+        required: [kindMismatch, asOf, asOfSource, languages, outcome, classifyAmong, identificationJson, needsClassify, classifyPrompt]
+    - key: orazaka.validation.document.resolve
+      routingKey: job.validation.resolve
+      handlerKey: validation.resolve
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          identification: { type: string, description: "La sortie de l'étape identify (JSON)." }
+          classification: { type: string, description: "La réponse du modèle à l'étape classify, quand elle a eu lieu : gardée seulement si elle nomme un type à égalité et cite le document." }
+          document: { type: string, description: "Le document, pour vérifier la citation du modèle." }
+          lecture: { type: boolean, description: "Vrai quand l'appelant demande la lecture d'un document sans corpus promu (ADR-089 §6) ; sans effet tant que l'interrupteur AI_LAW_LECTURE_ENABLED n'est pas actif." }
+        required: [identification, document]
+      outputSchema:
+        type: object
+        properties:
+          outcome: { type: string, description: "CHECK | UNSUPPORTED_KIND | KIND_UNKNOWN" }
+          resolvedJson: { type: string, description: "L'identification retenue et le corpus en vigueur à asOf pour le type utilisé {id, version, revision, reviewStatus}, en JSON." }
+          needsLecture: { type: boolean, description: "Vrai quand le document n'a pas de corpus promu, que l'appelant veut la lecture et que l'interrupteur est actif : l'étape lecture pose alors sa question à la recherche sourcée." }
+          lectureSources: { type: string, description: "Les sources de la recherche sourcée de la lecture (le corpus de lois) ; vide sans lecture." }
+          lectureJurisdiction: { type: string, description: "La juridiction de la question de la lecture ; vide sans lecture." }
+          lectureAsOf: { type: string, description: "Le jour auquel la loi est lue pour la lecture ; vide sans lecture." }
+          lectureLanguage: { type: string, description: "La langue de la question de la lecture (fr ou en) ; vide sans lecture." }
+          lectureQuestion: { type: string, description: "La question de la lecture, sans aucun verdict demandé ; vide sans lecture." }
+          lectureTargets: { type: string, description: "Les instruments et articles du type, en JSON ; vide sans lecture." }
+        required: [outcome, resolvedJson, needsLecture, lectureSources, lectureJurisdiction, lectureAsOf, lectureLanguage, lectureQuestion, lectureTargets]
+    - key: orazaka.validation.document.report
+      routingKey: job.validation.report
+      handlerKey: validation.report
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          resolved: { type: string, description: "La sortie de l'étape resolve (JSON)." }
+          screened: { type: string, description: "La sortie de l'étape screen (JSON) ; vide quand aucun corpus ne s'applique." }
+          judgment: { type: string, description: "La réponse du modèle aux règles de jugement ; vide quand il n'a pas été appelé." }
+          document: { type: string, description: "Le document, pour vérifier les passages de la lecture." }
+          lecture: { type: boolean, description: "Vrai quand l'appelant a demandé la lecture (ADR-089 §6)." }
+          claims: { type: string, description: "Les affirmations de la recherche sourcée de la lecture (JSON) ; vide quand elle n'a pas eu lieu. Chacune est revérifiée sur ses deux citations : jamais un verdict." }
+        required: [resolved]
+      outputSchema:
+        type: object
+        properties:
+          report: { type: object, description: "Le rapport 2.0 : identification, outcome, ruleset, constats dont les deux citations sont vérifiées." }
+          reportJson: { type: string, description: "Le même rapport en JSON, pour un pas aval." }
+          outcome: { type: string, description: "CHECKED | UNSUPPORTED_KIND | KIND_UNKNOWN" }
+          resultCacheable: { type: boolean, description: "Faux quand le jour du contrôle vient de l'horloge (asOfSource TODAY) : la plateforme ne reprend jamais ce run de son cache (orazaka-studio#80)." }
+        required: [report, reportJson, outcome, resultCacheable]
+    - key: orazaka.validation.document.signals
+      routingKey: job.validation.signals
+      handlerKey: validation.signals
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          documentBase64: { type: string, description: "Le document encodé — PDF, image (JPEG, PNG, WebP, TIFF, HEIC) ou fichier bureautique, reconnu à ses octets. Aucun `format` : une barre de chat ne peut pas remplir cette entrée (ADR-068 §3)." }
+          expectedIssuer: { type: string, description: "L'émetteur attendu, quand le demandeur le connaît." }
+          documentType: { type: string, enum: [pay-stub, bank-statement, employment-letter], description: "Le profil facultatif du document. Sans profil, les constats actuels restent inchangés." }
+        required: [documentBase64]
+      outputSchema:
+        type: object
+        properties:
+          report: { type: object, description: "Le rapport d'authenticité, signaux et sources." }
+          reportText: { type: string, description: "Le même rapport, rendu pour lecture." }
+          reportJson: { type: string, description: "Le même rapport, en JSON : un pas de blueprint adresse des CHAMPS, pas une valeur imbriquée." }
+          signalCount: { type: integer }
+          actionableCount: { type: integer }
+        required: [report, reportText, reportJson, signalCount, actionableCount]
+    - key: orazaka.validation.document.assemble
+      routingKey: job.validation.assemble
+      handlerKey: validation.assemble
+      billableCapability: CHAT
+      billableUnit: KILOTOKEN
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          screened: { type: object, description: "Le verdict par règle de l'étape de contrôle." }
+          judgment: { type: string, description: "La lecture rédigée du verdict." }
+        required: [screened, judgment]
+      outputSchema:
+        type: object
+        properties:
+          report: { type: object, description: "Le rapport de conformité assemblé." }
+          reportJson: { type: string, description: "Le même rapport en JSON, pour un pas aval." }
+        required: [report, reportJson]
+  workers:
+    - name: orazaka-worker-validation
+      bindings:
+        - "job.validation.*"
+      concurrency: 2
+
+catalog:
+  categoryKey: business-compliance
+  iconKey: shield-check
+  status: PUBLISHED
+  sortWeight: 20
+  # Open the shelf if this bundle is the first on it: nothing seeds pack_category, so a
+  # catalogued pack that named one without declaring it could only install into a database
+  # where another bundle had already opened it (ADR-068, #45). Idempotent — an existing
+  # shelf is left exactly as it is, never restyled by a later pack.
+  category:
+    iconKey: briefcase
+    sortWeight: 100
+
+pricing:
+  priceCents: 7900   # 79 $ CA — in billing.currency (CAD); was 49 EUR
+  includedCredits: 500
+
+studios:
+  - key: document-authenticity
+    profession: legal
+    iconKey: search
+    pricing: PAID
+    entitlementKey: studio.document-authenticity
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 20
+    blueprint: studios/document-authenticity/blueprint.json
+  - key: compliance-check
+    profession: legal
+    iconKey: shield-check
+    pricing: PAID
+    entitlementKey: studio.compliance-check
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 10
+    blueprint: studios/compliance-check/blueprint.json

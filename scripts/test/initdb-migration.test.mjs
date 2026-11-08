@@ -1,6 +1,6 @@
 // node --test scripts/test — a fresh database (the components' infra/initdb) equals a migrated one
 // (infra/migrations): every column, constraint, index and table a migration adds is in the initdb DDL.
-// The initdb files live in the component repositories (orazaka.workspace.json `initdb`), cloned next to this one.
+// The initdb files live in the modules that own them (modules.json `initdb`).
 import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const manifest = JSON.parse(readFileSync(join(root, "orazaka.workspace.json"), "utf8"));
+const manifest = { repositories: JSON.parse(readFileSync(join(root, "modules.json"), "utf8")).modules };
 
 /** The database of each part of a migration (`\c db`) -> the objects it adds. */
 export function objectsAdded(sql) {
@@ -102,16 +102,12 @@ CREATE TABLE IF NOT EXISTS n (
 });
 
 for (const file of ["2026-10-26-knowledge-access.sql"]) {
-  test(`${file}: the initdb DDL carries everything the migration adds`, (t) => {
+  test(`${file}: the initdb DDL carries everything the migration adds`, () => {
     const sql = readFileSync(join(root, "infra", "migrations", file), "utf8");
     const initdb = initdbText();
     const added = Object.values(objectsAdded(sql)).flat();
     assert.ok(added.length >= 8, "the migration was not parsed");
-    // Not cloned (a run outside the workspace): nothing to compare. In CI the components are cloned from main.
-    if (initdb.trim() === "") {
-      t.skip("the components' initdb is not cloned");
-      return;
-    }
+    assert.notEqual(initdb.trim(), "", "the components' initdb was not found: one repository, it is always here");
     const missing = [];
     for (const o of added) {
       const re = o.kind === "table" || o.kind === "index" || o.kind === "constraint"
@@ -122,16 +118,13 @@ for (const file of ["2026-10-26-knowledge-access.sql"]) {
   });
 }
 
-test("2026-10-27-capability-billable-none.sql: the CHECK list is the one of the job service's initdb (NONE included)", (t) => {
+test("2026-10-27-capability-billable-none.sql: the CHECK list is the one of the job service's initdb (NONE included)", () => {
   const listOf = (sql) => [...sql.replace(/--[^\n]*/g, "").matchAll(/CHECK \(billable_capability IN \(([^)]*)\)\)/g)].map((m) => m[1].replace(/\s/g, ""));
   const migration = listOf(readFileSync(join(root, "infra", "migrations", "2026-10-27-capability-billable-none.sql"), "utf8"));
   assert.equal(migration.length, 1, "the migration widens the check once");
   assert.match(migration[0], /'NONE'/);
   const initdb = initdbText();
-  if (initdb.trim() === "") {
-    t.skip("the components' initdb is not cloned");
-    return;
-  }
+  assert.notEqual(initdb.trim(), "", "the components' initdb was not found: one repository, it is always here");
   // The same constraint is declared twice in a fresh database (the column, then the external checks block): both equal.
   assert.deepEqual([...new Set(listOf(initdb))], migration);
 });

@@ -1,19 +1,19 @@
-# 📱 Mobile — the Orazaka app for iOS and Android
+# 📱 Mobile — the Sovkora app for iOS and Android
 
-The app is [`krizaka/orazaka-mobile-client`](https://github.com/krizaka/orazaka-mobile-client): Expo SDK 53, React
-Native 0.79, React Navigation, cloned in the workspace at `orazaka-apps/ui/orazaka-mobile-client`. It talks to the
+The app is [`krizaka/orazaka-mobile-client`](https://github.com/krizaka/sovkora/tree/main/apps/mobile): Expo SDK 53, React
+Native 0.79, React Navigation, cloned in the workspace at `apps/mobile`. It talks to the
 **edge** (`:8088`) with `Authorization: Bearer` — the same services, the same interceptor pipeline and the same
 entitlements as the web client.
 
 What this page describes was **run on 2026-10-12** on the iOS 27 simulator (iPhone 17, Xcode 27) and the Android 16
-emulator (Pixel 8 image) against the local Orazaka stack, signed in as the demo persona (Eric, `orazaka demo seed`). Where a screen shows something that does not
+emulator (Pixel 8 image) against the local Sovkora stack, signed in as the demo persona (Eric, `orazaka demo seed`). Where a screen shows something that does not
 come from the server, it says so.
 
 | Platform | State |
 | :--- | :--- |
 | iOS simulator (iOS 27) | ✅ builds and runs against the local stack — sign-in, Studios, chat, jobs, connectors, profile |
 | Android emulator (Android 16) | ✅ development build runs against the local stack — sign-in, Studios, jobs, profile |
-| iPhone / store builds | ✅ EAS project `orazaka-mobile` (EAS-managed credentials); iOS builds ship to an internal TestFlight group (App Store Connect record `com.krizaka.orazaka`), never submitted for review; Android: a preview APK (internal distribution). Every profile of `eas.json` points at `https://www.orazaka.com/edge` |
+| iPhone / store builds | ✅ EAS project `orazaka-mobile` (EAS-managed credentials); iOS builds ship to an internal TestFlight group (App Store Connect record `com.krizaka.orazaka`), never submitted for review; Android: a preview APK (internal distribution). Every profile of `eas.json` points at `https://www.sovkora.com/edge` |
 | Expo SDK | ⚠️ 53 — the move to SDK 57 (the other Krizaka apps) is planned; two stopgaps below keep 53 building and launching on Xcode 27 / iOS 27 |
 
 ---
@@ -96,7 +96,7 @@ A short recording of the smoke run (sign in → a Studio → jobs → profile �
 ## 2. Run it on a simulator
 
 Requirements: macOS with **Xcode 27** and an iOS simulator runtime, CocoaPods, Node 22, JDK 21 for the stack, and the
-workspace cloned (`node scripts/workspace.mjs clone`, then `npm install` in `orazaka-apps/ui`).
+workspace cloned (`pnpm install` at the repository root).
 
 ```bash
 # 1. The stack: infrastructure, then the services the app calls
@@ -105,7 +105,7 @@ orazaka dev --only edge,identity,studio,job,billing,router
 orazaka demo seed                      # the demo persona (local only)
 
 # 2. The app
-cd orazaka-apps/ui/orazaka-mobile-client
+cd apps/mobile
 npx expo run:ios                       # prebuild, pods, build, install, Metro
 ```
 
@@ -120,7 +120,7 @@ Two stopgaps keep SDK 53 working with today's tools, both to delete with the mov
   is stopped at launch).
 - **React** — React Native renders with its own copy of React's renderer, which must match React exactly: 0.79 ships
   19.0.0 while the web apps of the workspace run 19.2.x. The workspace installs React 19.0.0 for this package only
-  (`overrides` in `orazaka-apps/ui/package.json`) and `metro.config.js` resolves every `react` import to it.
+  (`overrides` in `apps/package.json`) and `metro.config.js` resolves every `react` import to it.
 
 ---
 

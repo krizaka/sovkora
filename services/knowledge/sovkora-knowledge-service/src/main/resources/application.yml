@@ -1,0 +1,111 @@
+# ==============================================================================
+# Sovkora Knowledge Service — application configuration
+# ------------------------------------------------------------------------------
+# Internal-only service (no security starter): RAG retrieval + tool source lookup
+# over its OWN database (orazaka_knowledge_db) and async job.rag.* indexing.
+# NO spring.datasource here — the connection is built by DataSourceConfig from the
+# orazaka.knowledge-service.datasource block below, so the shared .env's
+# SPRING_DATASOURCE_* (app database) can never hijack this service's pool.
+# ==============================================================================
+
+spring:
+  application:
+    name: sovkora-knowledge-service
+  threads:
+    virtual:
+      enabled: true
+
+  flyway:
+    # The schema is db/migration (V1 = the baseline), applied at startup as the database's owner role, never by hand
+    # (krizaka-internal#2255). A database created before Flyway (dev until its reset) is adopted at version 1:
+    # baseline-on-migrate only until that reset, then it goes.
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    out-of-order: false
+    # The migrator is the owner role on the direct port, distinct from the runtime role once the deploy splits them
+    # (ADR-023); locally it defaults to the datasource.
+    url: ${DATABASE_KNOWLEDGE_MIGRATOR_URL:${orazaka.knowledge-service.datasource.url}}
+    user: ${DATABASE_KNOWLEDGE_MIGRATOR_USER:${orazaka.knowledge-service.datasource.username}}
+    password: ${DATABASE_KNOWLEDGE_MIGRATOR_PASSWORD:${orazaka.knowledge-service.datasource.password}}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:${SPRING_RABBITMQ_HOST:localhost}}
+    port: ${RABBITMQ_PORT:${SPRING_RABBITMQ_PORT:5672}}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        # Exponential backoff (AGENTS.md §6); exhausted retries dead-letter to <queue>.dlq.
+        retry:
+          enabled: true
+          max-attempts: ${RABBITMQ_RETRY_MAX_ATTEMPTS:3}
+          initial-interval: ${RABBITMQ_RETRY_INITIAL_INTERVAL:1s}
+          multiplier: 2.0
+          max-interval: 10s
+
+server:
+  port: ${KNOWLEDGE_PORT:8084}
+
+# Distributed tracing (Phase 0): OTLP/HTTP export to the local Jaeger container.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+
+logging:
+  file:
+    name: ${KNOWLEDGE_LOG:var/logs/knowledge-service.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB
+      total-size-cap: 10MB
+      max-history: 7
+  level:
+    com.krizaka.sovkora.knowledge: DEBUG
+    org.springframework.amqp: INFO
+
+# ── Sovkora — service-owned wiring ────────────────────────────────────────────
+orazaka:
+  knowledge-service:
+    datasource:
+      url: ${KNOWLEDGE_DB_URL:jdbc:postgresql://localhost:5432/orazaka_knowledge_db}
+      username: ${KNOWLEDGE_DB_USERNAME:orazaka_knowledge}
+      password: ${KNOWLEDGE_DB_PASSWORD}
+    # Recommendations (ADR-078): item texts are embedded by the platform's embedding endpoint on
+    # the conversation service, on behalf of the calling tenant. Its parameters are data
+    # (reco_settings), never here.
+    recommendation:
+      embeddings-base-url: ${ROUTER_INTERNAL_URL:http://localhost:8080}
+      embeddings-timeout: 20s
+
+# ── Krizaka platform kit ──────────────────────────────────────────────────────
+krizaka:
+  messaging:
+    dedup:
+      # Claims are rows in this context's processed_messages table: durable, shared by every
+      # instance, arbitrated by its primary key.
+      store: jdbc
+  security:
+    jwt:
+      # The shared HS256 secret the identity service signs session and service tokens with.
+      # krizaka-security validates every request locally with it and refuses to start when it is
+      # shorter than 32 characters (256 bits).
+      secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}

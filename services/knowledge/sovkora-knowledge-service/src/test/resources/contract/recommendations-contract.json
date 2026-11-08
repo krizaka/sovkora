@@ -1,0 +1,176 @@
+{
+  "$comment": "The recommendations contract (ADR-078 \u00a76) \u2014 kept IDENTICAL in krizaka/sovkora-knowledge-service (src/test/resources/contract/) and in each product that reads it. Sovkora's flow test sends every request and checks each live answer has exactly the shape of the response here; the products' tests build the same requests and parse these responses.",
+  "version": 1,
+  "events": {
+    "request": {
+      "events": [
+        {
+          "id": "evt-0f6c9a8e-like",
+          "user": "3f1d2a9c8b7e6d5c4b3a29181716151413121110f0e0d0c0b0a090807060504",
+          "item": "5b0c7e1a-3d2f-4c8b-9e6a-1f2d3c4b5a69",
+          "creator": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+          "kind": "LIKE",
+          "watchedPct": null,
+          "at": "2026-10-15T12:00:00Z"
+        },
+        {
+          "id": "evt-0f6c9a8e-view",
+          "user": "3f1d2a9c8b7e6d5c4b3a29181716151413121110f0e0d0c0b0a090807060504",
+          "item": "5b0c7e1a-3d2f-4c8b-9e6a-1f2d3c4b5a69",
+          "creator": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+          "kind": "VIEW",
+          "watchedPct": 80,
+          "at": "2026-10-15T11:59:00Z"
+        },
+        {
+          "id": "evt-0f6c9a8e-follow",
+          "user": "3f1d2a9c8b7e6d5c4b3a29181716151413121110f0e0d0c0b0a090807060504",
+          "item": null,
+          "creator": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+          "kind": "FOLLOW",
+          "watchedPct": null,
+          "at": "2026-10-15T12:01:00Z"
+        }
+      ]
+    },
+    "response": {
+      "accepted": 3,
+      "duplicates": 0
+    }
+  },
+  "items": {
+    "request": {
+      "items": [
+        {
+          "id": "5b0c7e1a-3d2f-4c8b-9e6a-1f2d3c4b5a69",
+          "creator": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+          "title": "Late-night jazz trio",
+          "description": "A double bass, a brushed snare and a piano in a small club.",
+          "tags": [
+            "jazz",
+            "live"
+          ],
+          "language": "en",
+          "durationSeconds": 42,
+          "publishedAt": "2026-10-14T20:00:00Z"
+        },
+        {
+          "id": "8e4f2a6b-1c3d-4e5f-8a9b-0c1d2e3f4a5b",
+          "creator": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+          "title": "Tilt-shift harbour",
+          "description": "A harbour that looks like a model.",
+          "tags": [
+            "miniature",
+            "city"
+          ],
+          "language": "en",
+          "durationSeconds": 15,
+          "publishedAt": "2026-10-13T09:00:00Z"
+        }
+      ]
+    },
+    "response": {
+      "upserted": 2,
+      "embedded": 2,
+      "model": "gte-large-en-v1.5",
+      "runId": "6f2b1c3a-9d8e-4f7a-b6c5-d4e3f2a1b0c9"
+    }
+  },
+  "forYou": {
+    "query": {
+      "user": "3f1d2a9c8b7e6d5c4b3a29181716151413121110f0e0d0c0b0a090807060504",
+      "limit": 12,
+      "exclude": ""
+    },
+    "response": {
+      "requestId": "0d9c8b7a-6f5e-4d3c-2b1a-0f9e8d7c6b5a",
+      "strategy": "personal",
+      "candidates": 2,
+      "items": [
+        {
+          "id": "8e4f2a6b-1c3d-4e5f-8a9b-0c1d2e3f4a5b",
+          "score": 0.2333,
+          "reasons": [
+            "fresh",
+            "popular"
+          ]
+        }
+      ]
+    }
+  },
+  "similar": {
+    "query": {
+      "item": "5b0c7e1a-3d2f-4c8b-9e6a-1f2d3c4b5a69",
+      "limit": 6
+    },
+    "response": {
+      "requestId": "1e0d9c8b-7a6f-4e5d-3c2b-1a0f9e8d7c6b",
+      "strategy": "similar",
+      "candidates": 1,
+      "items": [
+        {
+          "id": "8e4f2a6b-1c3d-4e5f-8a9b-0c1d2e3f4a5b",
+          "score": 0.5,
+          "reasons": [
+            "similar"
+          ]
+        }
+      ]
+    }
+  },
+  "insights": {
+    "query": {
+      "creator": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+    },
+    "response": {
+      "creatorId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "minAudience": 3,
+      "items": [
+        {
+          "itemId": "5b0c7e1a-3d2f-4c8b-9e6a-1f2d3c4b5a69",
+          "views": 1,
+          "engagements": 1,
+          "skips": 0,
+          "engagementRate": 1.0,
+          "avgWatchedPct": 80.0
+        }
+      ],
+      "tags": [
+        {
+          "tag": "jazz",
+          "items": 1,
+          "views": 1,
+          "engagements": 1,
+          "engagementRate": 1.0
+        }
+      ],
+      "bestHours": [
+        {
+          "isoDayOfWeek": 4,
+          "hour": 12,
+          "engagements": 3
+        }
+      ],
+      "alsoWatched": [
+        {
+          "creatorId": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+          "sharedAudience": 3
+        }
+      ]
+    }
+  },
+  "erasures": {
+    "request": {
+      "users": [
+        "3f1d2a9c8b7e6d5c4b3a29181716151413121110f0e0d0c0b0a090807060504"
+      ],
+      "items": [
+        "8e4f2a6b-1c3d-4e5f-8a9b-0c1d2e3f4a5b"
+      ]
+    },
+    "response": {
+      "events": 3,
+      "items": 1
+    }
+  }
+}

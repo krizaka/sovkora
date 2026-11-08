@@ -8,7 +8,7 @@ generated: true
 
 # Business Layer
 
-`orazaka-business` (repository `orazaka-ai-engine`) is the **App Factory** of the engine: the layer that decides
+`orazaka-business` (repository `engine`) is the **App Factory** of the engine: the layer that decides
 *what* a request is for, never *how* a model answers it. Every request a client sends becomes one immutable
 `Intention`; the `UseCaseDispatcher` resolves it to the `UseCase` that serves its capability, checks the
 use-case's RBAC policy against the actor's authorities and runs it. A use-case coordinates the core's inbound
@@ -38,34 +38,34 @@ discovered by Spring — adding one changes neither the core nor the router.
 
 | Package | Type | Kind | Role |
 |:---|:---|:---|:---|
-| `com/krizaka/sovkora/business/api` | `AgentPayload` | record | Payload for a `Capability#AGENT` intention — a goal the core's agent loop will plan and execute (plan→act→observe). |
-| `com/krizaka/sovkora/business/api` | `Capability` | enum | The high-level capability an `Intention` targets. |
-| `com/krizaka/sovkora/business/api` | `ChatPayload` | record | Payload for a `Capability#CHAT` intention. |
-| `com/krizaka/sovkora/business/api` | `ExecutionMode` | enum | Execution mode of an `Intention`: `SYNC` for low-latency interactive responses (including token streaming), `ASYNC` for heavy/deferred work dispatched to a worker. |
-| `com/krizaka/sovkora/business/api` | `ImagePayload` | record | Payload for a `Capability#IMAGE` intention. |
-| `com/krizaka/sovkora/business/api` | `Intention` | record | The immutable entry unit of the platform — the single thing the router translates transport into and hands to the `UseCaseDispatcher`. |
-| `com/krizaka/sovkora/business/api` | `IntentionContext` | record | Ambient context of an `Intention`: the conversation session, the acting principal (opaque `actorId` — no cross-context identity coupling), the actor's resolved authorities (for RBAC), and resolved preferences / environment signals. |
-| `com/krizaka/sovkora/business/api` | `IntentionType` | enum | CQRS pivot of an `Intention`: `COMMAND` mutates state, `QUERY` only reads. |
-| `com/krizaka/sovkora/business/api` | `Payload` | interface | Sealed hierarchy of the typed payloads an `Intention` can carry. |
-| `com/krizaka/sovkora/business/api` | `PlanningMode` | enum | How a use-case resolves its execution plan: `DETERMINISTIC` runs a fixed workflow (DAG), `AGENTIC` delegates planning to the core's agent loop (plan→act→observe). |
-| `com/krizaka/sovkora/business/api` | `RbacPolicy` | record | RBAC requirement a `UseCaseDescriptor` declares: the authorities an actor must hold to run the use-case. |
-| `com/krizaka/sovkora/business/api` | `StudioPayload` | record | Payload for a `Capability#STUDIO` intention — one run of an installed Studio (ADR-034). |
-| `com/krizaka/sovkora/business/api` | `UseCase` | interface | SPI extension point — adding a product capability means implementing a `UseCase` and declaring its `UseCaseDescriptor`. |
-| `com/krizaka/sovkora/business/api` | `UseCaseContext` | record | Execution context handed to a `UseCase`, derived by the dispatcher from the `Intention` and the resolved security context. |
-| `com/krizaka/sovkora/business/api` | `UseCaseDescriptor` | record | Metadata describing a `UseCase` — the metadata-driven contract the `UseCaseRegistry` matches intentions against and the auto-docs surface. |
-| `com/krizaka/sovkora/business/api` | `UseCaseDispatcher` | interface | Inbound port — the single entry the router calls after translating transport into an `Intention`. |
-| `com/krizaka/sovkora/business/api` | `UseCasePayload` | interface | Marker for a typed input accepted by a `UseCase`. |
-| `com/krizaka/sovkora/business/api` | `UseCaseRegistry` | interface | Inbound port — the auto-discovered catalogue of registered `UseCase`s. |
-| `com/krizaka/sovkora/business/api` | `UseCaseResolutionException` | class | Thrown by the `UseCaseDispatcher` when an `Intention` cannot be served — no registered `UseCase` matches it (ERR-410) or RBAC denies the actor (ERR-403). |
-| `com/krizaka/sovkora/business/application` | `SpringUseCaseRegistry` | class | Auto-discovering `UseCaseRegistry`: it is handed every `UseCase` bean registered in the context and resolves an `Intention` to the first use-case whose descriptor serves the intention's capability. |
-| `com/krizaka/sovkora/business/application` | `UseCaseDispatcherImpl` | class | App-Factory dispatcher: resolves an `Intention` to its `UseCase` via the `UseCaseRegistry`, enforces the descriptor's RBAC against the actor's authorities, then executes the use-case with a context derived from the intention. |
-| `com/krizaka/sovkora/business/domain/model` | `WorkflowContext` | record | Rich, self-validating domain context for Workflow orchestration. |
-| `com/krizaka/sovkora/business/domain/port` | `WorkflowOrchestrator` | interface | Business-owned port interface for sovereign workflow orchestration. |
-| `com/krizaka/sovkora/business/prompt` | `MarkdownPromptResolver` | class | Thread-safe, cached resolver for Git-tracked Markdown prompt templates. |
-| `com/krizaka/sovkora/business/prompt` | `PromptTextSource` | interface | Outbound port of the prompt resolver: reads the text behind a resource location. |
-| `com/krizaka/sovkora/business/usecases/chat` | `ChatAssistantUseCase` | class | Reference use-case — a synchronous chat assistant. |
-| `com/krizaka/sovkora/business/usecases/image` | `ImageGenerationUseCase` | class | Second reference use-case — image generation. |
-| `com/krizaka/sovkora/business/usecases/studio` | `StudioRunUseCase` | class | Runs an installed Studio as a first-class `Intention` (ADR-034 §9.2). |
+| `com/krizaka/sovkora/engine/business/api` | `AgentPayload` | record | Payload for a `Capability#AGENT` intention — a goal the core's agent loop will plan and execute (plan→act→observe). |
+| `com/krizaka/sovkora/engine/business/api` | `Capability` | enum | The high-level capability an `Intention` targets. |
+| `com/krizaka/sovkora/engine/business/api` | `ChatPayload` | record | Payload for a `Capability#CHAT` intention. |
+| `com/krizaka/sovkora/engine/business/api` | `ExecutionMode` | enum | Execution mode of an `Intention`: `SYNC` for low-latency interactive responses (including token streaming), `ASYNC` for heavy/deferred work dispatched to a worker. |
+| `com/krizaka/sovkora/engine/business/api` | `ImagePayload` | record | Payload for a `Capability#IMAGE` intention. |
+| `com/krizaka/sovkora/engine/business/api` | `Intention` | record | The immutable entry unit of the platform — the single thing the router translates transport into and hands to the `UseCaseDispatcher`. |
+| `com/krizaka/sovkora/engine/business/api` | `IntentionContext` | record | Ambient context of an `Intention`: the conversation session, the acting principal (opaque `actorId` — no cross-context identity coupling), the actor's resolved authorities (for RBAC), and resolved preferences / environment signals. |
+| `com/krizaka/sovkora/engine/business/api` | `IntentionType` | enum | CQRS pivot of an `Intention`: `COMMAND` mutates state, `QUERY` only reads. |
+| `com/krizaka/sovkora/engine/business/api` | `Payload` | interface | Sealed hierarchy of the typed payloads an `Intention` can carry. |
+| `com/krizaka/sovkora/engine/business/api` | `PlanningMode` | enum | How a use-case resolves its execution plan: `DETERMINISTIC` runs a fixed workflow (DAG), `AGENTIC` delegates planning to the core's agent loop (plan→act→observe). |
+| `com/krizaka/sovkora/engine/business/api` | `RbacPolicy` | record | RBAC requirement a `UseCaseDescriptor` declares: the authorities an actor must hold to run the use-case. |
+| `com/krizaka/sovkora/engine/business/api` | `StudioPayload` | record | Payload for a `Capability#STUDIO` intention — one run of an installed Studio (ADR-034). |
+| `com/krizaka/sovkora/engine/business/api` | `UseCase` | interface | SPI extension point — adding a product capability means implementing a `UseCase` and declaring its `UseCaseDescriptor`. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCaseContext` | record | Execution context handed to a `UseCase`, derived by the dispatcher from the `Intention` and the resolved security context. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCaseDescriptor` | record | Metadata describing a `UseCase` — the metadata-driven contract the `UseCaseRegistry` matches intentions against and the auto-docs surface. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCaseDispatcher` | interface | Inbound port — the single entry the router calls after translating transport into an `Intention`. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCasePayload` | interface | Marker for a typed input accepted by a `UseCase`. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCaseRegistry` | interface | Inbound port — the auto-discovered catalogue of registered `UseCase`s. |
+| `com/krizaka/sovkora/engine/business/api` | `UseCaseResolutionException` | class | Thrown by the `UseCaseDispatcher` when an `Intention` cannot be served — no registered `UseCase` matches it (ERR-410) or RBAC denies the actor (ERR-403). |
+| `com/krizaka/sovkora/engine/business/application` | `SpringUseCaseRegistry` | class | Auto-discovering `UseCaseRegistry`: it is handed every `UseCase` bean registered in the context and resolves an `Intention` to the first use-case whose descriptor serves the intention's capability. |
+| `com/krizaka/sovkora/engine/business/application` | `UseCaseDispatcherImpl` | class | App-Factory dispatcher: resolves an `Intention` to its `UseCase` via the `UseCaseRegistry`, enforces the descriptor's RBAC against the actor's authorities, then executes the use-case with a context derived from the intention. |
+| `com/krizaka/sovkora/engine/business/domain/model` | `WorkflowContext` | record | Rich, self-validating domain context for Workflow orchestration. |
+| `com/krizaka/sovkora/engine/business/domain/port` | `WorkflowOrchestrator` | interface | Business-owned port interface for sovereign workflow orchestration. |
+| `com/krizaka/sovkora/engine/business/prompt` | `MarkdownPromptResolver` | class | Thread-safe, cached resolver for Git-tracked Markdown prompt templates. |
+| `com/krizaka/sovkora/engine/business/prompt` | `PromptTextSource` | interface | Outbound port of the prompt resolver: reads the text behind a resource location. |
+| `com/krizaka/sovkora/engine/business/usecases/chat` | `ChatAssistantUseCase` | class | Reference use-case — a synchronous chat assistant. |
+| `com/krizaka/sovkora/engine/business/usecases/image` | `ImageGenerationUseCase` | class | Second reference use-case — image generation. |
+| `com/krizaka/sovkora/engine/business/usecases/studio` | `StudioRunUseCase` | class | Runs an installed Studio as a first-class `Intention` (ADR-034 §9.2). |
 
 ## The contract
 
@@ -157,8 +157,8 @@ The adapters that hand work to the business layer:
 
 | Adapter | Repository | Role |
 |:---|:---|:---|
-| `IntentController` | `orazaka-conversation-service` | REST controller for the `intent` resource. |
-| `WorkflowAdapter` | `orazaka-conversation-service` | Router adapter translating the Business layer's `WorkflowContext` into the Core infrastructure's `Context` and `ChatRequest`. |
+| `IntentController` | `conversation` | REST controller for the `intent` resource. |
+| `WorkflowAdapter` | `conversation` | Router adapter translating the Business layer's `WorkflowContext` into the Core infrastructure's `Context` and `ChatRequest`. |
 
 Call it over HTTP through the edge with a session token (see the [API reference](API_REFERENCE.md)):
 
@@ -176,7 +176,7 @@ discovers it. Personas are Markdown prompts read from `classpath:prompts/<name>.
 `MarkdownPromptResolver`. The reference implementation, verbatim:
 
 ```java
-package com.krizaka.sovkora.business.usecases.chat;
+package com.krizaka.sovkora.engine.business.usecases.chat;
 
 /**
  * Reference use-case — a synchronous chat assistant. Demonstrates the App Factory contract: it

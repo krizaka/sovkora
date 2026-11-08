@@ -7,7 +7,7 @@ import { test } from "node:test";
 
 const migration = readFileSync(new URL("../../infra/migrations/2026-10-17-model-picker-facts.sql", import.meta.url), "utf8");
 // The job service's catalogue moved from infra/initdb to its Flyway V1 baseline (krizaka-internal#2255).
-const initdbUrl = new URL("../../orazaka-apps/services/orazaka-job-service/src/main/resources/db/migration/V1__job_baseline.sql", import.meta.url);
+const initdbUrl = new URL("../../services/job/sovkora-job-service/src/main/resources/db/migration/V1__job_baseline.sql", import.meta.url);
 const initdb = existsSync(initdbUrl) ? readFileSync(initdbUrl, "utf8") : null;
 
 const facts = (sql) =>
@@ -22,7 +22,8 @@ test("the migration states a typical time for the models the media Studios offer
   }
 });
 
-test("a fresh database and an existing one carry the same facts", { skip: initdb === null && "job-service not checked out" }, () => {
+test("a fresh database and an existing one carry the same facts", () => {
+  assert.ok(initdb !== null, "the job service's initdb moved: one repository, it is always here");
   assert.deepEqual(facts(initdb).sort(), facts(migration).sort());
 });
 

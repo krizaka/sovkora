@@ -1,0 +1,163 @@
+{
+  "version": "1.3.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 210,
+  "changelog": "1.3.0 — les descriptions se lisent par leur champ ({{steps.photoDescriptions.analysis}}, comme image-analysis) : le résultat entier rendait aussi ses métadonnées — orazaka-packs#5, possible sur un fan-out depuis orazaka-studio#60. 1.2.0 — libellés des sorties en anglais et français (x-i18n). 1.1.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). Vitrine initiale : description des réalisations, légende rédigée et visuel de marque.",
+  "createdBy": "system",
+  "definition": {
+    "studioKey": "trade-showcase",
+    "version": "1.3.0",
+    "steps": [
+      {
+        "id": "describe",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.vision",
+        "dependsOn": [],
+        "forEach": "{{inputs.photos}}",
+        "maxParallel": 3,
+        "inputs": {
+          "assetId": "{{item}}",
+          "prompt": "Décris cette réalisation pour la vitrine d'un artisan {{inputs.trade}}. Ton: {{config.tone}}."
+        },
+        "out": "photoDescriptions",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT2M"
+      },
+      {
+        "id": "caption",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": ["describe"],
+        "inputs": {
+          "prompt": "Rédige la légende de vitrine d'un artisan {{inputs.trade}} pour {{config.brandName}}. Réalisations: {{steps.photoDescriptions.analysis}}. Ton: {{config.tone}}. {{config.signature:}}"
+        },
+        "out": "caption",
+        "onError": "RETRY",
+        "maxAttempts": 2,
+        "timeout": "PT3M"
+      },
+      {
+        "id": "showcase",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.image",
+        "dependsOn": ["describe"],
+        "maxParallel": 0,
+        "inputs": {
+          "prompt": "Visuel de vitrine pour {{config.brandName}}, artisan {{inputs.trade}}. Réalisations: {{steps.photoDescriptions.analysis}}. Ton: {{config.tone}}.",
+          "size": "{{config.imageSize:1024x1024}}"
+        },
+        "out": "showcaseImage",
+        "onError": "RETRY",
+        "maxAttempts": 2,
+        "timeout": "PT5M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "showcase",
+        "label": "Votre visuel de vitrine",
+        "from": "{{steps.showcaseImage.url}}",
+        "type": "IMAGE",
+        "x-i18n": {
+          "en": {
+            "label": "Your showcase visual"
+          },
+          "fr": {
+            "label": "Votre visuel de vitrine"
+          }
+        }
+      },
+      {
+        "key": "caption",
+        "label": "Votre légende",
+        "from": "{{steps.caption.content}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Your caption"
+          },
+          "fr": {
+            "label": "Votre légende"
+          }
+        }
+      },
+      {
+        "key": "descriptions",
+        "label": "Descriptions de vos réalisations",
+        "from": "{{steps.photoDescriptions.analysis}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Descriptions of your work"
+          },
+          "fr": {
+            "label": "Descriptions de vos réalisations"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["photos", "trade"],
+    "properties": {
+      "photos": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "maxItems": 6,
+        "title": "Photos de vos réalisations",
+        "x-i18n": {
+          "en": {
+            "title": "Photos of your work",
+            "description": "One to six photos of finished jobs.",
+            "placeholder": "photo1, photo2, photo3"
+          },
+          "fr": {
+            "title": "Photos de vos réalisations",
+            "description": "De une à six photos de travaux terminés.",
+            "placeholder": "photo1, photo2, photo3"
+          }
+        }
+      },
+      "trade": {
+        "type": "string",
+        "maxLength": 60,
+        "title": "Votre métier",
+        "x-i18n": {
+          "en": {
+            "title": "Your trade",
+            "description": "What you do, in a word or two.",
+            "placeholder": "Plumber"
+          },
+          "fr": {
+            "title": "Votre métier",
+            "description": "Ce que vous faites, en un ou deux mots.",
+            "placeholder": "Plombier"
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "brandName": {
+      "type": "string",
+      "title": "Nom de l'entreprise"
+    },
+    "tone": {
+      "enum": ["premium", "chaleureux", "direct"],
+      "default": "chaleureux"
+    },
+    "imageSize": {
+      "type": "string",
+      "default": "1024x1024"
+    },
+    "signature": {
+      "type": "string",
+      "title": "Signature"
+    }
+  }
+}

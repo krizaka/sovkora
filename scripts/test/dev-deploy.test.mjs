@@ -18,7 +18,7 @@ test("render fills every placeholder and names the missing ones without values",
   assert.throws(() => render('a: "__X__"', { X: 'b"' }), /cannot quote/);
 });
 
-for (const name of ["orazaka-dev"]) {
+for (const name of ["sovkora-dev"]) {
   test(`${name}: every secret is a SECRET placeholder and sign-up stays closed`, () => {
     const text = spec(name);
     for (const line of text.split("\n").filter((l) => /type: SECRET/.test(l))) {
@@ -33,8 +33,8 @@ for (const name of ["orazaka-dev"]) {
   });
 }
 
-test("orazaka-dev: only the edge, the web and the GPU relay are routed; the broker is reached over TLS in the VPC", () => {
-  const text = spec("orazaka-dev");
+test("sovkora-dev: only the edge, the web and the GPU relay are routed; the broker is reached over TLS in the VPC", () => {
+  const text = spec("sovkora-dev");
   const routed = [...text.matchAll(/- component:\n\s+name: (\S+)/g)].map((m) => m[1]);
   assert.deepEqual(routed.sort(), ["core", "gpu-relay", "web"]);
   assert.match(text, /^vpc:\n  id: \S+/m);
@@ -42,8 +42,8 @@ test("orazaka-dev: only the edge, the web and the GPU relay are routed; the brok
   assert.match(text, /SPRING_RABBITMQ_SSL_ENABLED, scope: RUN_TIME, value: "true"/);
 });
 
-test("orazaka-dev serves the operator console on admin.orazaka.com: alias domain, its own session and flag, IP allow-list", () => {
-  const text = spec("orazaka-dev");
+test("sovkora-dev serves the operator console on admin.orazaka.com: alias domain, its own session and flag, IP allow-list", () => {
+  const text = spec("sovkora-dev");
   assert.match(text, /- domain: www\.orazaka\.com\n    type: PRIMARY/);
   // The alias is in the spec since the cut-over of 2026-10-21 (the domain left `orazaka-admin-dev` first: a domain belongs to one app).
   assert.match(text, /- domain: admin\.orazaka\.com\n    type: ALIAS/);
@@ -81,12 +81,12 @@ test("the GPU relay allows exactly the broker, the job service and the reverse p
 });
 
 test("the relay exposes LocalAI's port to the app as well as allowing it", () => {
-  const spec = readFileSync(new URL("../../infra/deploy/orazaka-dev.app.yaml", import.meta.url), "utf8");
+  const spec = readFileSync(new URL("../../infra/deploy/sovkora-dev.app.yaml", import.meta.url), "utf8");
   assert.match(spec, /internal_ports: \[8085, 8086, 8188, 11434\]/);
 });
 
 test("www.orazaka.com is the public address; www serves /edge and the BFF; the apex answers 308 with www (epic krizaka/.github#119)", () => {
-  const spec = readFileSync(new URL("../../infra/deploy/orazaka-dev.app.yaml", import.meta.url), "utf8").replace(/^\s*#.*$/gm, "");
+  const spec = readFileSync(new URL("../../infra/deploy/sovkora-dev.app.yaml", import.meta.url), "utf8").replace(/^\s*#.*$/gm, "");
   assert.match(spec, /- domain: www\.orazaka\.com\n\s+type: PRIMARY/);
   assert.match(spec, /- domain: orazaka\.com\n\s+type: ALIAS/);
   assert.doesNotMatch(spec, /domain: dev\.orazaka\.com/, "dev.orazaka.com was removed on 2026-11-05 (krizaka-internal#2600)");
@@ -196,7 +196,7 @@ test("parseScopes: area:action only, none = unscoped", () => {
 });
 
 test("the core image build cache is busted at every apply: CORE_REBUILD is filled, and the Dockerfile reads it", () => {
-  const core = spec("orazaka-dev");
+  const core = spec("sovkora-dev");
   assert.match(core, /key: CORE_REBUILD, scope: BUILD_TIME, value: "__CORE_REBUILD__"/);
   const filled = render('X: "__CORE_REBUILD__"', {});
   assert.match(filled, /X: "\d{4}-\d{2}-\d{2}T[\d-]+Z"/);
@@ -204,11 +204,11 @@ test("the core image build cache is busted at every apply: CORE_REBUILD is fille
 });
 
 test("the recommender (ADR-078): knowledge runs in core with its own database, its migration is idempotent", () => {
-  const dev = spec("orazaka-dev");
+  const dev = spec("sovkora-dev");
   assert.match(dev, /key: KNOWLEDGE_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql:\/\/__DATABASE_HOST__:25061\/pool-knowledge\?sslmode=require&prepareThreshold=0"/);
   assert.match(dev, /key: KNOWLEDGE_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_KNOWLEDGE_DB__"/);
   const docker = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
-  assert.match(docker, /orazaka-apps\/services\/orazaka-knowledge-service[ ,]/);
+  assert.match(docker, /services\/knowledge\/sovkora-knowledge-service[ ,]/);
   assert.match(docker, /\/out\/knowledge\.jar/);
   const runner = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
   assert.match(runner, /knowledge:knowledge\.jar:\d+ [\w:. ]*edge:edge\.jar/, "knowledge starts before the edge");
@@ -229,8 +229,8 @@ test("the analytics migration (ADR-081) is idempotent, seeds kinds and settings 
   assert.match(script, /command === "analytics"\) analytics\(\)/);
 });
 
-test("orazaka-dev: outputs go to the private Bunny zone, the key is a SECRET, dev keeps them 30 days", () => {
-  const text = spec("orazaka-dev");
+test("sovkora-dev: outputs go to the private Bunny zone, the key is a SECRET, dev keeps them 30 days", () => {
+  const text = spec("sovkora-dev");
   assert.match(text, /MEDIA_STORAGE_PROVIDER, scope: RUN_TIME, value: bunny/);
   assert.match(text, /MEDIA_STORAGE_ZONE, scope: RUN_TIME, value: orazaka-media-dev/);
   assert.match(text, /MEDIA_STORAGE_API_KEY, scope: RUN_TIME, type: SECRET, value: "__MEDIA_STORAGE_API_KEY__"/);
@@ -239,7 +239,7 @@ test("orazaka-dev: outputs go to the private Bunny zone, the key is a SECRET, de
 });
 
 test("connection budget: every JVM of the core goes through its PgBouncer pool (25061, prepareThreshold=0); only Flyway's migrator URLs are direct", () => {
-  const dev = spec("orazaka-dev");
+  const dev = spec("sovkora-dev");
   const urls = [...dev.matchAll(/key: ((?:(?!MIGRATOR)\w)+_URL|SPRING_DATASOURCE_URL), scope: RUN_TIME, value: "(jdbc:postgresql:[^"]+)"/g)];
   assert.equal(urls.length, 6, "orazaka_db, users, studio, knowledge, billing, automation");
   for (const [, key, url] of urls) {
@@ -248,8 +248,8 @@ test("connection budget: every JVM of the core goes through its PgBouncer pool (
   assert.doesNotMatch(dev, /__DATABASE_PORT__/, "no direct (25060) datasource left in the core");
 });
 
-test("orazaka-dev: Flyway never migrates through the transaction pooler (2026-11-04: studio, knowledge and automation V1 stalled and were cut)", () => {
-  const dev = spec("orazaka-dev");
+test("sovkora-dev: Flyway never migrates through the transaction pooler (2026-11-04: studio, knowledge and automation V1 stalled and were cut)", () => {
+  const dev = spec("sovkora-dev");
   for (const [svc, db] of [["STUDIO", "orazaka_studio_db"], ["KNOWLEDGE", "orazaka_knowledge_db"], ["AUTOMATION", "orazaka_automation_db"]]) {
     assert.match(dev, new RegExp(`key: DATABASE_${svc}_MIGRATOR_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25060/${db}\\?sslmode=require"`), `${svc} migrates on the direct port`);
   }
@@ -264,8 +264,8 @@ test("service accounts sit on the `service` rate-limit tier, whose migration is 
   assert.match(readFileSync(new URL("../dev-deploy.mjs", import.meta.url), "utf8"), /command === "service-tier"\) serviceTier\(\)/);
 });
 
-test("orazaka-dev: the universal-links settings are declared and empty by default (the web app then serves no AASA / assetlinks)", () => {
-  const text = spec("orazaka-dev");
+test("sovkora-dev: the universal-links settings are declared and empty by default (the web app then serves no AASA / assetlinks)", () => {
+  const text = spec("sovkora-dev");
   assert.match(text, /key: APP_IOS_TEAM_ID, scope: RUN_TIME, value: "__APP_IOS_TEAM_ID__"/);
   assert.match(text, /key: APP_ANDROID_CERT_SHA256, scope: RUN_TIME, value: "__APP_ANDROID_CERT_SHA256__"/);
   assert.equal(render('X: "__APP_IOS_TEAM_ID__"', {}), 'X: ""');
@@ -368,7 +368,7 @@ test("the research tables (ADR-087 slice 1) are additive, idempotent, off by def
   assert.ok(sql.includes("final_url      TEXT        NOT NULL"));
   assert.ok(sql.includes("('research.max-calls', '16', 'int'"));
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   // (Checked when the workspace holds a job-service checkout that already carries the block — orazaka-job-service#65.)
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- GROUNDED RESEARCH \(ADR-087[\s\S]*?ON CONFLICT \(source_key\) DO NOTHING;/)
@@ -406,7 +406,7 @@ test("the law corpus (ADR-089 cut 2) is additive, idempotent, every switch off, 
   assert.match(sql, /IF NOT EXISTS \(SELECT 1 FROM information_schema\.columns\s+WHERE table_name = 'law_retrieval' AND column_name = 'language'\) THEN\s+ALTER TABLE law_retrieval ADD COLUMN language VARCHAR\(2\) NOT NULL CHECK \(language IN \('fr','en'\)\);/);
   assert.match(sql, /ALTER TABLE law_retrieval ADD PRIMARY KEY \(jurisdiction, kind_id, language, as_of_bucket\);/);
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- LAW CORPUS \(ADR-089[\s\S]*?ON CONFLICT \(source_key\) DO NOTHING;/)
     : null;
@@ -448,7 +448,7 @@ test("the external checks (orazaka-packs#138) are additive, idempotent, fail clo
   // Nothing is deleted or rewritten; the only DROPs are the IF EXISTS of a constraint or trigger replaced by name.
   assert.doesNotMatch(code.replace(/DROP (CONSTRAINT|TRIGGER) IF EXISTS/g, "").replace("BEFORE UPDATE ON", ""), /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   // The same block as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   // (Checked when the workspace holds a job-service checkout that already carries the block — orazaka-job-service#74.)
   const block = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/-- =+\n-- EXTERNAL CHECKS \(orazaka-packs#138[\s\S]*?ON CONFLICT \(feature_key\) DO NOTHING;/)
@@ -471,7 +471,7 @@ test("the price book rows of the external checks and of research (krizaka-billin
   assert.match(code, /ON CONFLICT DO NOTHING;/);
   assert.doesNotMatch(code, /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   // The same file as krizaka-billing's own migration (checked when the workspace holds a billing checkout that has it).
-  const billing = new URL("../../krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-25-pricebook-external-check-research.sql", import.meta.url);
+  const billing = new URL("../../.krizaka-java/krizaka-billing/infra/migrations/2026-10-25-pricebook-external-check-research.sql", import.meta.url);
   if (existsSync(billing)) {
     assert.equal(sql, readFileSync(billing, "utf8"), "the migration is billing's, unchanged");
   }
@@ -480,16 +480,16 @@ test("the price book rows of the external checks and of research (krizaka-billin
   assert.match(deploy, /function pricebookExternalCheckResearch\(\) \{[^}]*"krizaka_billing_db", "krizaka_billing_db", "DATABASE_PASSWORD_KRIZAKA_BILLING_DB"/);
 });
 
-test("orazaka-dev is indexed: APP_SEARCH_INDEXING is on (krizaka-com AGENTS 2.4; it drifted to off twice and hid the site from Google)", () => {
-  assert.match(spec("orazaka-dev"), /key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on"/);
+test("sovkora-dev is indexed: APP_SEARCH_INDEXING is on (krizaka-com AGENTS 2.4; it drifted to off twice and hid the site from Google)", () => {
+  assert.match(spec("sovkora-dev"), /key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on"/);
 });
 
-test("orazaka-dev enforces the per-key rate limit (ADR-083 slice 2: service accounts are on the `service` tier, 1000 a minute)", () => {
-  assert.match(spec("orazaka-dev"), /key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce/);
+test("sovkora-dev enforces the per-key rate limit (ADR-083 slice 2: service accounts are on the `service` tier, 1000 a minute)", () => {
+  assert.match(spec("sovkora-dev"), /key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce/);
 });
 
 test("automations (ADR-084): the service is the eighth JVM of the core, with its own database through a pool of ONE", () => {
-  const dev = spec("orazaka-dev");
+  const dev = spec("sovkora-dev");
   assert.match(dev, /key: AUTOMATION_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql:\/\/__DATABASE_HOST__:25061\/pool-automation\?sslmode=require&prepareThreshold=0"/);
   assert.match(dev, /key: AUTOMATION_DB_USERNAME, scope: RUN_TIME, value: orazaka_automation_db/);
   assert.match(dev, /key: AUTOMATION_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_ORAZAKA_AUTOMATION_DB__"/);
@@ -499,7 +499,7 @@ test("automations (ADR-084): the service is the eighth JVM of the core, with its
   assert.match(dev, /key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http:\/\/localhost:8096"/, "it starts Studio runs over the Studio service's REST surface");
   assert.match(dev, /key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https:\/\/www\.orazaka\.com\/edge"/, "the address a sender is shown");
   const docker = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
-  assert.match(docker, /orazaka-apps\/services\/orazaka-automation-service \\/);
+  assert.match(docker, /services\/automation\/sovkora-automation-service \\/);
   assert.match(docker, /\/out\/automation\.jar/);
   const runner = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
   assert.match(runner, /automation:automation\.jar:\d+ edge:edge\.jar/, "automation starts before the edge");
@@ -517,9 +517,9 @@ test("the automation migration is idempotent, extends the rule set without repla
   assert.match(script, /command === "automations"\) automations\(\)/);
 });
 
-test("the automations migration is the model part of the service's Flyway V1 baseline (no drift) — judged when the service is cloned", (t) => {
-  const initdb = new URL("../../orazaka-apps/services/orazaka-automation-service/src/main/resources/db/migration/V1__automation_baseline.sql", import.meta.url);
-  if (!existsSync(initdb)) return t.skip("orazaka-automation-service is not cloned here");
+test("the automations migration is the model part of the service's Flyway V1 baseline (no drift)", () => {
+  const initdb = new URL("../../services/automation/sovkora-automation-service/src/main/resources/db/migration/V1__automation_baseline.sql", import.meta.url);
+  assert.ok(existsSync(initdb), "the automation service's V1 baseline moved: one repository, it is always here");
   const marker = "-- ─────────────────────────────────────────────────────────────────────────────\n-- THE AUTOMATION MODEL";
   const bootstrap = readFileSync(initdb, "utf8");
   const migration = readFileSync(new URL("../../infra/migrations/2026-10-20-automations.sql", import.meta.url), "utf8");
@@ -608,7 +608,7 @@ test("the semantic cache (orazaka-ai-engine#40) is additive, idempotent, OFF on 
   assert.doesNotMatch(code, /\b(DROP|DELETE|UPDATE|TRUNCATE)\b/);
   assert.doesNotMatch(code, /^\\c /m, "the command connects to orazaka_db itself");
   // The same table as orazaka-job-service's initdb, so a fresh volume and a migrated database agree.
-  const jobService = new URL("../../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
+  const jobService = new URL("../../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql", import.meta.url);
   const table = existsSync(jobService)
     ? readFileSync(jobService, "utf8").match(/CREATE TABLE IF NOT EXISTS semantic_cache_entry \([\s\S]*?USING hnsw \(embedding vector_cosine_ops\);/)
     : null;
@@ -655,8 +655,8 @@ test("seedSql without a hash leaves the stored password alone (update and confli
   assert.match(seedSql([{ ...personaAccount(), hash: "$2y$10$h" }]), /UPDATE users SET password_hash = '\$2y\$10\$h'/);
 });
 
-test("orazaka-dev: DigitalOcean alerts the team on a failed deployment or domain, memory and restarts (the same as krizaka-com)", () => {
-  const text = spec("orazaka-dev");
+test("sovkora-dev: DigitalOcean alerts the team on a failed deployment or domain, memory and restarts (the same as krizaka-com)", () => {
+  const text = spec("sovkora-dev");
   assert.match(text, /^alerts:\n  - rule: DEPLOYMENT_FAILED\n  - rule: DOMAIN_FAILED\n/m);
   const services = text.split(/^services:\n/m)[1].split(/^ {2}- name: /m).slice(1);
   assert.deepEqual(services.map((s) => s.split("\n")[0]).sort(), ["core", "gpu-relay", "web"]);

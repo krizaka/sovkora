@@ -1,0 +1,312 @@
+{
+  "version": "1.7.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 200,
+  "changelog": "1.7.0 — `references` : jusqu'à 4 images de référence (des assets : vos envois ou les sorties de vos runs) que l'image doit suivre, pour garder le même personnage, le même objet et le même lieu d'un plan à l'autre (krizaka-internal#158) ; `referenceWeight` (0 à 1) est gardé dans la recette — FLUX.2 [klein] suit les références pleinement et le dit quand une autre force est demandée. Un modèle qui ne prend pas de références (le catalogue n'en déclare pas) refuse par son nom, jamais en silence. 1.6.0 — le champ Modèle dit ce que chaque modèle sait faire (`aspectField: size`, `aspects`) : Stable Diffusion 3.5 (nuage) fait 1024×1024 et 512×512, Stable Diffusion 1.5 fait 512×512. Un format que le modèle ne sait pas faire est refusé avant toute retenue de crédits, au lieu d'échouer après (orazaka#307). 1.5.0 — libellés des sorties en anglais et français (x-i18n). 1.4.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.3.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. 1.3.0 — les choix fermés ne se tapent plus : le modèle vient de la liste que le catalogue publie (étiquette, local ou infonuagique, vitesse, prix), la graine est un nombre avec « au hasard », le reste est rangé sous « Plus d'options ». 1.2.0 — la taille demandée est enfin respectée (le moteur l'ignorait et rendait du 512x512), et l'image peut se refaire : une graine (seed) facultative, toujours rapportée avec l'image, comme le modèle et le temps de génération. Formats 4:5 (réseaux) et 16:9 (bannière). Un prompt négatif, pris en compte par les modèles à guidage. Délai de l'étape porté à 15 minutes : un 1024x1280 demande ~105 s à FLUX.2 [klein] sur un M1 Max, plusieurs minutes à Z-Image Turbo. 1.1.0 — l'entrée que la barre du chat remplit déclare ce qu'elle porte (`format: prose`) : une phrase, un id d'asset et un document encodé sont tous `type: string`, et un composer qui devinerait collerait le prompt dans un champ que le serveur résout autrement. Une entrée qui ne déclare rien n'est pas remplie — le Studio garde sa page et perd son bouton (ADR-068 §3). Génération d'image — une étape, la capacité que la barre du chat appelait. Le schéma porte ce que portait payload_template : `size` par défaut 1024x1024, `model` résolu par le catalogue quand il n'est pas nommé (ADR-066).",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "image-generation",
+    "version": "1.7.0",
+    "steps": [
+      {
+        "id": "image",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.image",
+        "dependsOn": [],
+        "inputs": {
+          "prompt": "{{inputs.prompt}}",
+          "size": "{{inputs.size}}",
+          "negativePrompt": "{{inputs.negativePrompt:}}",
+          "seed": "{{inputs.seed:}}",
+          "model": "{{inputs.model:}}",
+          "references": "{{inputs.references:}}",
+          "referenceWeight": "{{inputs.referenceWeight:}}"
+        },
+        "out": "image",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT15M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "image",
+        "label": "Votre image",
+        "from": "{{steps.image.url}}",
+        "type": "IMAGE",
+        "x-i18n": {
+          "en": {
+            "label": "Your image"
+          },
+          "fr": {
+            "label": "Votre image"
+          }
+        }
+      },
+      {
+        "key": "seed",
+        "label": "Graine (pour refaire cette image)",
+        "from": "{{steps.image.seed}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Seed (to make this image again)"
+          },
+          "fr": {
+            "label": "Graine (pour refaire cette image)"
+          }
+        }
+      },
+      {
+        "key": "model",
+        "label": "Modèle",
+        "from": "{{steps.image.model}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Model"
+          },
+          "fr": {
+            "label": "Modèle"
+          }
+        }
+      },
+      {
+        "key": "generationMs",
+        "label": "Temps de génération (ms)",
+        "from": "{{steps.image.generationMs}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Generation time (ms)"
+          },
+          "fr": {
+            "label": "Temps de génération (ms)"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["prompt"],
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "format": "prose",
+        "minLength": 3,
+        "maxLength": 2000,
+        "title": "Ce que vous voulez voir",
+        "description": "Décrivez l'image en une ou deux phrases : le sujet, le cadrage, la lumière.",
+        "x-i18n": {
+          "en": {
+            "title": "What you want to see",
+            "description": "Describe the image in a sentence or two: subject, framing, light.",
+            "placeholder": "A red kayak on a still lake at sunrise, mist on the water"
+          },
+          "fr": {
+            "title": "Ce que vous voulez voir",
+            "description": "Décrivez l'image en une ou deux phrases : le sujet, le cadrage, la lumière.",
+            "placeholder": "Un kayak rouge sur un lac calme au lever du soleil, de la brume sur l'eau"
+          }
+        }
+      },
+      "size": {
+        "type": "string",
+        "enum": ["1024x1024", "1024x1280", "1360x768", "768x1360", "512x512"],
+        "default": "1024x1024",
+        "title": "Format",
+        "description": "La forme de l'image : 4:5 pour les réseaux, 16:9 pour une bannière.",
+        "x-i18n": {
+          "en": {
+            "title": "Format",
+            "description": "The shape of the image: 4:5 suits social posts, 16:9 a banner.",
+            "options": {
+              "1024x1024": "Square · 1024×1024",
+              "1024x1280": "Portrait 4:5 · 1024×1280",
+              "1360x768": "Landscape 16:9 · 1360×768",
+              "768x1360": "Vertical 9:16 · 768×1360",
+              "512x512": "Quick preview · 512×512"
+            }
+          },
+          "fr": {
+            "title": "Format",
+            "description": "La forme de l'image : 4:5 pour les réseaux, 16:9 pour une bannière.",
+            "options": {
+              "1024x1024": "Carré · 1024×1024",
+              "1024x1280": "Portrait 4:5 · 1024×1280",
+              "1360x768": "Paysage 16:9 · 1360×768",
+              "768x1360": "Vertical 9:16 · 768×1360",
+              "512x512": "Aperçu rapide · 512×512"
+            }
+          }
+        }
+      },
+      "negativePrompt": {
+        "type": "string",
+        "maxLength": 2000,
+        "title": "À éviter (facultatif)",
+        "description": "Ce que l'image ne doit pas montrer : « texte, logo, flou ». Pris en compte par les modèles à guidage (Stable Diffusion) ; FLUX.2 [klein] l'ignore — dites-le plutôt dans la description.",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "To avoid (optional)",
+            "description": "What the image should not show. Used by guided models (Stable Diffusion); FLUX.2 [klein] ignores it.",
+            "placeholder": "text, logo, blur"
+          },
+          "fr": {
+            "title": "À éviter (facultatif)",
+            "description": "Ce que l'image ne doit pas montrer. Pris en compte par les modèles à guidage ; FLUX.2 [klein] l'ignore.",
+            "placeholder": "texte, logo, flou"
+          }
+        }
+      },
+      "seed": {
+        "type": "string",
+        "pattern": "^[0-9]{0,10}$",
+        "maxLength": 10,
+        "title": "Graine (facultatif)",
+        "description": "Laissez vide pour une image nouvelle. Reprenez la graine d'une image avec la même description, le même format et le même modèle : vous obtenez la même image.",
+        "x-control": "seed",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Seed (optional)",
+            "description": "Leave empty for a new image. Reuse an image's seed with the same prompt, format and model to get the same image.",
+            "placeholder": "e.g. 123456"
+          },
+          "fr": {
+            "title": "Graine (facultatif)",
+            "description": "Laissez vide pour une image nouvelle. Même description, même format, même modèle et même graine : la même image.",
+            "placeholder": "ex. 123456"
+          }
+        }
+      },
+      "model": {
+        "type": "string",
+        "maxLength": 120,
+        "title": "Modèle",
+        "description": "Auto choisit le meilleur modèle disponible. « Comparer les modèles » détaille chacun.",
+        "x-options": {
+          "source": "models",
+          "category": "image",
+          "facts": {
+            "flux-2-klein-4b": ["1024²"],
+            "z-image-turbo": ["1024²"],
+            "stable-diffusion-3.5-large": ["1024²"],
+            "v1-5-pruned-emaonly": ["512²"],
+            "argmaxinc/mlx-FLUX.1-schnell-4bit-quantized": []
+          },
+          "aspectField": "size",
+          "aspects": {
+            "stable-diffusion-3.5-large": ["1024x1024", "512x512"],
+            "v1-5-pruned-emaonly": ["512x512"]
+          }
+        },
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Model",
+            "description": "Auto picks the best model that is running. Open « Compare models » to see each one.",
+            "options": {
+              "flux-2-klein-4b": {
+                "label": "FLUX.2 klein · editorial",
+                "hint": "Clean, editorial images. Ignores the negative prompt."
+              },
+              "z-image-turbo": {
+                "label": "Z-Image Turbo · detail",
+                "hint": "Rich detail and text in the image."
+              },
+              "stable-diffusion-3.5-large": {
+                "label": "Stable Diffusion 3.5 · cloud",
+                "hint": "Hosted and fast. Follows the negative prompt."
+              },
+              "v1-5-pruned-emaonly": {
+                "label": "Stable Diffusion 1.5 · light",
+                "hint": "Light and quick, for drafts."
+              },
+              "argmaxinc/mlx-FLUX.1-schnell-4bit-quantized": {
+                "label": "FLUX.1 schnell · Mac",
+                "hint": "Four-step FLUX on the Mac."
+              }
+            }
+          },
+          "fr": {
+            "title": "Modèle",
+            "description": "Auto choisit le meilleur modèle disponible. « Comparer les modèles » détaille chacun.",
+            "options": {
+              "flux-2-klein-4b": {
+                "label": "FLUX.2 klein · éditorial",
+                "hint": "Images nettes et éditoriales. Ignore le prompt négatif."
+              },
+              "z-image-turbo": {
+                "label": "Z-Image Turbo · détail",
+                "hint": "Beaucoup de détails, du texte dans l'image."
+              },
+              "stable-diffusion-3.5-large": {
+                "label": "Stable Diffusion 3.5 · infonuagique",
+                "hint": "Hébergé et rapide. Suit le prompt négatif."
+              },
+              "v1-5-pruned-emaonly": {
+                "label": "Stable Diffusion 1.5 · léger",
+                "hint": "Léger et rapide, pour les brouillons."
+              },
+              "argmaxinc/mlx-FLUX.1-schnell-4bit-quantized": {
+                "label": "FLUX.1 schnell · Mac",
+                "hint": "FLUX en quatre pas sur le Mac."
+              }
+            }
+          }
+        }
+      },
+      "references": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "format": "asset:image",
+          "contentMediaType": "image/*",
+          "maxLength": 64
+        },
+        "maxItems": 4,
+        "title": "Images de référence (facultatif)",
+        "description": "Jusqu'à 4 images à suivre : le même personnage, objet ou lieu d'un plan à l'autre. Un modèle qui ne les prend pas refuse.",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Reference images (optional)",
+            "description": "Up to 4 pictures the result must follow: the same character, prop or place from shot to shot. Models that cannot take them refuse.",
+            "placeholder": "owl-sheet, cahier-sheet"
+          },
+          "fr": {
+            "title": "Images de référence (facultatif)",
+            "description": "Jusqu'à 4 images à suivre : le même personnage, objet ou lieu d'un plan à l'autre. Un modèle qui ne les prend pas refuse.",
+            "placeholder": "fiche-hibou, fiche-cahier"
+          }
+        }
+      },
+      "referenceWeight": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "default": 1,
+        "title": "Force des références",
+        "description": "1 = suivre les références pleinement. FLUX.2 [klein] les suit toujours pleinement : une autre valeur est notée avec l'image, pas appliquée.",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Reference strength",
+            "description": "1 = follow the references fully. FLUX.2 [klein] always follows them fully: another value is recorded with the image, not applied."
+          },
+          "fr": {
+            "title": "Force des références",
+            "description": "1 = suivre les références pleinement. FLUX.2 [klein] les suit toujours pleinement : une autre valeur est notée avec l'image, pas appliquée."
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

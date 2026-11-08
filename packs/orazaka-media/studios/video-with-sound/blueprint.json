@@ -1,0 +1,363 @@
+{
+  "version": "1.5.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 4500,
+  "changelog": "1.5.0 — Stable Video Diffusion déclare ses formats (16:9). 1.4.0 — libellés des sorties en anglais et français (x-i18n). 1.3.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.2.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. 1.2.0 — les choix fermés ne se tapent plus : le modèle vient de la liste que le catalogue publie (étiquette, local ou infonuagique, vitesse, prix), la graine est un nombre avec « au hasard », le reste est rangé sous « Plus d'options ». 1.1.0 — `image` déclare `format: asset:image` et `contentMediaType: image/*` : les clients (web, mobile) affichent un sélecteur de photo au lieu d'un champ de texte. 1.0.0 — Génération vidéo avec son : la vidéo de Génération vidéo (mêmes entrées, même modèle), puis l'étape Du son pour une vidéo (nappe musicale ACE-Step 1.5, bruitages MMAudio non commercial sur demande), mixée à -14 LUFS en AAC. La version sans son est livrée aussi, pour les boucles muettes.",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "video-with-sound",
+    "version": "1.5.0",
+    "steps": [
+      {
+        "id": "video",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.media.video",
+        "dependsOn": [],
+        "inputs": {
+          "prompt": "{{inputs.prompt}}",
+          "durationSeconds": "{{inputs.durationSeconds}}",
+          "aspect": "{{inputs.aspect:}}",
+          "seed": "{{inputs.seed:}}",
+          "image": "{{inputs.image:}}",
+          "model": "{{inputs.model:}}"
+        },
+        "out": "video",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT20M"
+      },
+      {
+        "id": "sound",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.studio.media.sound",
+        "dependsOn": ["video"],
+        "inputs": {
+          "video": "{{steps.video.url}}",
+          "music": "{{inputs.music:}}",
+          "foley": "{{inputs.foley:}}",
+          "foleyModel": "{{inputs.foleyModel:}}",
+          "seed": "{{inputs.seed:}}"
+        },
+        "out": "sound",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT30M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "video",
+        "label": "Votre vidéo avec son",
+        "from": "{{steps.sound.url}}",
+        "type": "VIDEO",
+        "x-i18n": {
+          "en": {
+            "label": "Your video with sound"
+          },
+          "fr": {
+            "label": "Votre vidéo avec son"
+          }
+        }
+      },
+      {
+        "key": "silent",
+        "label": "La version sans son",
+        "from": "{{steps.sound.silentUrl}}",
+        "type": "VIDEO",
+        "x-i18n": {
+          "en": {
+            "label": "The version without sound"
+          },
+          "fr": {
+            "label": "La version sans son"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["prompt", "music"],
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "format": "prose",
+        "minLength": 3,
+        "maxLength": 2000,
+        "title": "Ce qui doit se passer à l'écran",
+        "description": "Décrivez le plan : le sujet, le mouvement, l'ambiance.",
+        "x-i18n": {
+          "en": {
+            "title": "What should happen on screen",
+            "description": "Describe the shot: subject, motion, mood.",
+            "placeholder": "Slow push-in on a cabin by a lake, mist drifting across the water"
+          },
+          "fr": {
+            "title": "Ce qui doit se passer à l'écran",
+            "description": "Décrivez le plan : le sujet, le mouvement, l'ambiance.",
+            "placeholder": "Travelling avant lent sur une cabane au bord d'un lac, la brume dérive sur l'eau"
+          }
+        }
+      },
+      "durationSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 5,
+        "title": "Durée (secondes)",
+        "description": "La vidéo est facturée à la seconde produite : une durée est une dépense, pas un réglage.",
+        "x-i18n": {
+          "en": {
+            "title": "Duration (seconds)",
+            "description": "Billed per second produced: a duration is a spend, not a setting."
+          },
+          "fr": {
+            "title": "Durée (secondes)",
+            "description": "La vidéo est facturée à la seconde produite : une durée est une dépense, pas un réglage."
+          }
+        }
+      },
+      "aspect": {
+        "type": "string",
+        "enum": ["9:16", "16:9", "1:1"],
+        "default": "9:16",
+        "title": "Format",
+        "description": "9:16 : la vidéo verticale (TikTok, Reels, Shorts).",
+        "x-i18n": {
+          "en": {
+            "title": "Format",
+            "description": "9:16 is vertical video for TikTok, Reels and Shorts.",
+            "options": {
+              "9:16": "Vertical 9:16 · TikTok, Reels",
+              "16:9": "Wide 16:9 · YouTube",
+              "1:1": "Square 1:1"
+            }
+          },
+          "fr": {
+            "title": "Format",
+            "description": "9:16 : la vidéo verticale (TikTok, Reels, Shorts).",
+            "options": {
+              "9:16": "Vertical 9:16 · TikTok, Reels",
+              "16:9": "Large 16:9 · YouTube",
+              "1:1": "Carré 1:1"
+            }
+          }
+        }
+      },
+      "image": {
+        "type": "string",
+        "format": "asset:image",
+        "contentMediaType": "image/*",
+        "maxLength": 120,
+        "title": "Image d'amorce (facultatif)",
+        "description": "Choisissez une photo parmi vos fichiers ou depuis votre appareil pour amorcer la vidéo.",
+        "x-i18n": {
+          "en": {
+            "title": "Starting image (optional)",
+            "description": "Pick a photo from your files or your device to start the video."
+          },
+          "fr": {
+            "title": "Image d'amorce (facultatif)",
+            "description": "Choisissez une photo parmi vos fichiers ou depuis votre appareil pour amorcer la vidéo."
+          }
+        }
+      },
+      "model": {
+        "type": "string",
+        "maxLength": 120,
+        "title": "Modèle",
+        "description": "Auto choisit le meilleur modèle disponible. « Comparer les modèles » détaille chacun.",
+        "x-options": {
+          "source": "models",
+          "category": "video",
+          "facts": {
+            "ltx-video-0.9.8-13b-distilled": ["1216×704", "704×1216", "5 s"],
+            "wan2.2-i2v-a14b-hq": ["720p", "5 s", "40 steps"],
+            "wan2.2-i2v-a14b": ["720p", "5 s", "16 fps"],
+            "wan2.2-t2v-a14b": ["1280×720", "5 s", "16 fps"],
+            "wan2-2-t2v-a14b": ["832×480", "5 s", "16 fps"],
+            "wan2.2-ti2v-5b": ["704×1280", "5 s", "24 fps"],
+            "wan2.1-t2v-1.3b": ["480×832", "5 s", "16 fps"],
+            "animatediff-lightning-mps": []
+          },
+          "aspectField": "aspect",
+          "aspects": {
+            "wan2-2-t2v-a14b": ["16:9"],
+            "wan2.2-t2v-a14b": ["16:9", "9:16", "1:1"],
+            "wan2.2-i2v-a14b": ["16:9", "9:16", "1:1"],
+            "wan2.2-i2v-a14b-hq": ["16:9", "9:16", "1:1"],
+            "ltx-video-0.9.8-13b-distilled": ["16:9", "9:16", "1:1"],
+            "wan2.2-ti2v-5b": ["9:16", "16:9", "1:1"],
+            "wan2.1-t2v-1.3b": ["9:16", "16:9", "1:1"],
+            "animatediff-lightning-mps": ["9:16", "16:9", "1:1"],
+            "stable-video-diffusion-img2vid-xt": ["16:9"]
+          }
+        },
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Model",
+            "description": "Auto picks the best model that is running. Open « Compare models » to see each one.",
+            "options": {
+              "ltx-video-0.9.8-13b-distilled": {
+                "label": "LTX-Video · fast",
+                "hint": "Image or text to video in about 15 s, 24 fps."
+              },
+              "wan2.2-i2v-a14b-hq": {
+                "label": "Wan 2.2 HQ · people",
+                "hint": "Starts from your image. Best for people and animals, 9:16. Slow."
+              },
+              "wan2.2-i2v-a14b": {
+                "label": "Wan 2.2 · image to video",
+                "hint": "Starts from your image (required). 4 distilled steps: the shots of a short film."
+              },
+              "wan2.2-t2v-a14b": {
+                "label": "Wan 2.2 · 720p",
+                "hint": "Text to video on our GPU, 16:9 or 9:16. The presentation shot."
+              },
+              "wan2-2-t2v-a14b": {
+                "label": "Wan 2.2 · cloud",
+                "hint": "Text to video, hosted by a provider. Wide 16:9 only."
+              },
+              "wan2.2-ti2v-5b": {
+                "label": "Wan 2.2 5B · vertical",
+                "hint": "Vertical shorts on the GPU host, from text or an image."
+              },
+              "wan2.1-t2v-1.3b": {
+                "label": "Wan 2.1 · draft",
+                "hint": "Quick vertical drafts on the small GPU host."
+              },
+              "animatediff-lightning-mps": {
+                "label": "AnimateDiff · Mac",
+                "hint": "Runs on the Mac. Short, light clips."
+              }
+            }
+          },
+          "fr": {
+            "title": "Modèle",
+            "description": "Auto choisit le meilleur modèle disponible. « Comparer les modèles » détaille chacun.",
+            "options": {
+              "ltx-video-0.9.8-13b-distilled": {
+                "label": "LTX-Video · rapide",
+                "hint": "Image ou texte vers vidéo en 15 s environ, 24 i/s."
+              },
+              "wan2.2-i2v-a14b-hq": {
+                "label": "Wan 2.2 HQ · personnes",
+                "hint": "Part de votre image. Le meilleur pour personnes et animaux, 9:16. Lent."
+              },
+              "wan2.2-i2v-a14b": {
+                "label": "Wan 2.2 · image vers vidéo",
+                "hint": "Part de votre image (obligatoire). 4 pas distillés : les plans d'un court métrage."
+              },
+              "wan2.2-t2v-a14b": {
+                "label": "Wan 2.2 · 720p",
+                "hint": "Texte vers vidéo sur notre GPU, 16:9 ou 9:16. Le plan de présentation."
+              },
+              "wan2-2-t2v-a14b": {
+                "label": "Wan 2.2 · infonuagique",
+                "hint": "Texte vers vidéo, hébergé par un fournisseur. 16:9 seulement."
+              },
+              "wan2.2-ti2v-5b": {
+                "label": "Wan 2.2 5B · vertical",
+                "hint": "Courts verticaux sur l'hôte GPU, depuis un texte ou une image."
+              },
+              "wan2.1-t2v-1.3b": {
+                "label": "Wan 2.1 · brouillon",
+                "hint": "Brouillons verticaux rapides sur le petit hôte GPU."
+              },
+              "animatediff-lightning-mps": {
+                "label": "AnimateDiff · Mac",
+                "hint": "Tourne sur le Mac. Clips courts et légers."
+              }
+            }
+          }
+        }
+      },
+      "seed": {
+        "type": "string",
+        "maxLength": 20,
+        "title": "Graine (facultatif)",
+        "description": "Les mêmes textes, les mêmes modèles et la même graine refont le même son.",
+        "x-control": "seed",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Seed (optional)",
+            "description": "The same texts, models and seed make the same sound again.",
+            "placeholder": "e.g. 123456"
+          },
+          "fr": {
+            "title": "Graine (facultatif)",
+            "description": "Les mêmes textes, les mêmes modèles et la même graine refont le même son.",
+            "placeholder": "ex. 123456"
+          }
+        }
+      },
+      "music": {
+        "type": "string",
+        "format": "prose",
+        "maxLength": 500,
+        "title": "La musique",
+        "description": "Une nappe musicale décrite : genre, ambiance, instruments. Sans paroles. Modèle par défaut : ACE-Step 1.5 (MIT, usage commercial).",
+        "x-i18n": {
+          "en": {
+            "title": "The music",
+            "description": "A described music bed: genre, mood, instruments. No lyrics. Default model: ACE-Step 1.5 (MIT, commercial use).",
+            "placeholder": "Warm lo-fi piano, soft drums, a rainy evening"
+          },
+          "fr": {
+            "title": "La musique",
+            "description": "Une nappe musicale décrite : genre, ambiance, instruments. Sans paroles. Modèle par défaut : ACE-Step 1.5 (MIT).",
+            "placeholder": "Piano lo-fi chaleureux, batterie douce, soirée pluvieuse"
+          }
+        }
+      },
+      "foley": {
+        "type": "string",
+        "format": "prose",
+        "maxLength": 500,
+        "title": "Les bruitages (facultatif)",
+        "description": "Les sons de l'image : une tasse qu'on remplit, la pluie, la foule. Demande un modèle de bruitage : le seul disponible (MMAudio) est non commercial.",
+        "x-i18n": {
+          "en": {
+            "title": "Sound effects (optional)",
+            "description": "The sounds in the picture: a cup being filled, rain, a crowd. Needs a foley model: the only one (MMAudio) is non-commercial.",
+            "placeholder": "Pouring tea, light rain"
+          },
+          "fr": {
+            "title": "Les bruitages (facultatif)",
+            "description": "Les sons de l'image : une tasse qu'on remplit, la pluie, la foule. Demande un modèle de bruitage (MMAudio : non commercial).",
+            "placeholder": "Du thé qu'on verse, une pluie fine"
+          }
+        }
+      },
+      "foleyModel": {
+        "type": "string",
+        "enum": ["mmaudio-large-44k-v2"],
+        "title": "Modèle de bruitage (facultatif)",
+        "description": "Ajoute des bruitages (licence non commerciale). Vide : pas de bruitage.",
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Sound-effects model (optional)",
+            "description": "Adds sound effects (non-commercial licence). Empty: no sound effects.",
+            "options": {
+              "mmaudio-large-44k-v2": "MMAudio large · non-commercial"
+            }
+          },
+          "fr": {
+            "title": "Modèle de bruitage (facultatif)",
+            "description": "Ajoute des bruitages (licence non commerciale). Vide : pas de bruitage.",
+            "options": {
+              "mmaudio-large-44k-v2": "MMAudio large · non commercial"
+            }
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

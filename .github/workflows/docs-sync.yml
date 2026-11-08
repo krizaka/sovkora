@@ -37,8 +37,12 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Clone the workspace repositories at their default branches
-        run: node scripts/workspace.mjs clone --depth 1
+      # The generated docs read krizaka-java at the release sovkora-parent imports (scripts/generate-docs.mjs).
+      - name: krizaka-java at the release sovkora-parent imports (a tag of a public repository, no credential)
+        run: |
+          version=$(sed -n 's:.*<krizaka.version>\(.*\)</krizaka.version>.*:\1:p' build/sovkora-parent/pom.xml)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::krizaka.version is not a release: $version"; exit 1; }
+          git -c advice.detachedHead=false clone -q --depth 1 --branch "v$version" https://github.com/krizaka/krizaka-java.git .krizaka-java
 
       - name: Regenerate the docs
         run: node scripts/generate-docs.mjs

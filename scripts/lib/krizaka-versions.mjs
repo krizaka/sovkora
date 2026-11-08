@@ -1,10 +1,9 @@
 /**
- * Guard: every `com.krizaka` version the workspace imports must be provided — by the reactor (the repository cloned
- * under `krizaka/`, built from source) or by Maven Central. The BOM of krizaka-build names one release per repository
- * (`krizaka-<repository>.version`) and orazaka-parent imports the BOM (`krizaka.version`); a version that neither the
- * reactor nor Central carries makes `./mvnw install` fail late, in the first module that needs it (orazaka#434: the
- * kit's starters exist from 0.3.0, the BOM still said 0.2.0, Central had no 0.3.0). Pure functions + one fetcher, so
- * the rule is unit-tested (scripts/test/krizaka-versions.test.mjs).
+ * Guard: every `com.krizaka` version Sovkora imports must be on Maven Central, where krizaka-java releases (krizaka-java#235:
+ * GitHub Packages is abandoned for Maven). sovkora-parent names its parent (`krizaka-parent`) and imports the BOM
+ * (`krizaka.version`); the BOM names one release per artifact. A version Central does not carry makes `./mvnw install` fail
+ * late, in the first module that needs it (orazaka#434: the kit's starters exist from 0.3.0, the BOM still said 0.2.0).
+ * Pure functions + one fetcher, so the rule is unit-tested (scripts/test/krizaka-versions.test.mjs).
  */
 
 const MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
@@ -58,13 +57,35 @@ export function managed(bom) {
  * @param {{ bom: string, parent: string, built: Map<string,string> }} input
  *   bom / parent: pom texts of krizaka-bom and orazaka-parent; built: artifactId -> version the reactor builds it at.
  */
-export function claims({ bom, parent, built }) {
-  const out = managed(bom).map((d) => ({ what: "krizaka-bom manages", ...d, reactor: built.get(d.artifactId) ?? null }));
+export function claims({ bom, parent, built = new Map() }) {
+  const out = bom ? managed(bom).map((d) => ({ what: "krizaka-bom manages", ...d, reactor: built.get(d.artifactId) ?? null })) : [];
   const bomVersion = properties(parent)["krizaka.version"];
   if (bomVersion) {
-    out.push({ what: "orazaka-parent krizaka.version imports", group: "com.krizaka", artifactId: "krizaka-bom", version: bomVersion, reactor: built.get("krizaka-bom") ?? null });
+    out.push({ what: "sovkora-parent krizaka.version imports", group: "com.krizaka", artifactId: "krizaka-bom", version: bomVersion, reactor: built.get("krizaka-bom") ?? null });
+  }
+  const parentVersion = parentOf(parent);
+  if (parentVersion) {
+    out.push({ what: "sovkora-parent inherits", group: "com.krizaka", artifactId: "krizaka-parent", version: parentVersion, reactor: null });
   }
   return out;
+}
+
+/** The version of `com.krizaka:krizaka-parent` a pom inherits, or null when it inherits something else. */
+export function parentOf(pom) {
+  const block = /<parent>([\s\S]*?)<\/parent>/.exec(stripComments(pom))?.[1] ?? "";
+  if (!/<artifactId>\s*krizaka-parent\s*<\/artifactId>/.test(block)) return null;
+  return /<version>\s*([^<\s]+)\s*<\/version>/.exec(block)?.[1] ?? null;
+}
+
+/** The text of a pom on Maven Central, or null when it is absent or Central cannot be reached. */
+export async function centralPom({ group, artifactId, version }, fetchImpl = fetch) {
+  const url = `${MAVEN_CENTRAL}/${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
+  try {
+    const res = await fetchImpl(url);
+    return res.status === 200 ? await res.text() : null;
+  } catch {
+    return null;
+  }
 }
 
 /** True when the pom of `group:artifactId:version` is on Maven Central; null when Central cannot be reached (never a failure). */
@@ -79,38 +100,6 @@ export async function onCentral({ group, artifactId, version }, fetchImpl = fetc
   }
 }
 
-/** GitHub Packages repositories that hold the Krizaka blocks (ADR-019: published there first, Central last; ADR-021: krizaka-build). */
-export const PACKAGE_REPOSITORIES = ["krizaka-build", "krizaka-platform-kit"];
-
-/**
- * True when the pom is on GitHub Packages (maven.pkg.github.com/krizaka/<repository>), false when no repository has it,
- * null without a credential or when GitHub cannot be reached (never a failure).
- */
-export async function onGitHubPackages({ group, artifactId, version }, { credential, actor = "krizaka", repositories = PACKAGE_REPOSITORIES } = {}, fetchImpl = fetch) {
-  if (!credential) return null;
-  const path = `${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
-  const basic = Buffer.from(actor + ":" + credential).toString("base64");
-  const headers = { Authorization: `Basic ${basic}` };
-  let unknown = false;
-  for (const repository of repositories) {
-    try {
-      const res = await fetchImpl(`https://maven.pkg.github.com/krizaka/${repository}/${path}`, { method: "HEAD", headers });
-      if (res.status === 200) return true;
-      if (res.status !== 404) unknown = true;
-    } catch {
-      unknown = true;
-    }
-  }
-  return unknown ? null : false;
-}
-
-/** Provided by a registry: true on Central or GitHub Packages, false only when both say no, null when one could not tell. */
-export async function onRegistry(claim, credentials = {}, { central = onCentral, packages = onGitHubPackages } = {}) {
-  const answers = [await central(claim), await packages(claim, credentials)];
-  const seen = new Set(answers);
-  if (seen.has(true)) return true;
-  return seen.has(null) ? null : false;
-}
 
 /** The claims nobody provides: the reactor builds another version and no registry carries the one named. */
 export async function unprovided(list, check = onCentral) {
@@ -123,6 +112,5 @@ export async function unprovided(list, check = onCentral) {
 }
 
 export function explain(c) {
-  const built = c.reactor ? `the workspace builds it at ${c.reactor}` : "no repository of the workspace builds it";
-  return `${c.what} ${c.group}:${c.artifactId}:${c.version}, which is on neither Maven Central nor GitHub Packages and ${built}. Set the version in the BOM (krizaka-build) to the one the repository carries on main.`;
+  return `${c.what} ${c.group}:${c.artifactId}:${c.version}, which is not on Maven Central. Name a krizaka-java release Central carries (build/sovkora-parent/pom.xml).`;
 }

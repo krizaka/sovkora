@@ -1,5 +1,5 @@
 // Sovkora's containers, current and target (ADR-027). Sources: docs/DEPLOY_DEV.md (what runs in dev), docs/VISION_ARCHITECTURE.md,
-// docs/_generated/architecture.json (routes and message flows), apps/desktop/README.md, the repositories' manifests, and the ADRs
+// docs/_generated/architecture.json (routes and message flows), apps/desktop/README.md, modules.json, and the ADRs
 // cited on each planned element. The system itself, the views and the facts (versions, tags, dependencies) are generated.
 model {
   extend sovkora {
@@ -9,14 +9,16 @@ model {
       description 'The customer site (chat, Studios) and the operator console on the admin host, with its server routes (BFF).'
       technology 'Next.js 16, TypeScript'
       metadata {
-        repo 'sovkora-web'
+        repo 'sovkora'
+        path 'apps/web'
       }
     }
     mobile = mobile 'Mobile app' {
       description 'Chat and Studios on the phone.'
       technology 'Expo 57, React Native'
       metadata {
-        repo 'sovkora-mobile'
+        repo 'sovkora'
+        path 'apps/mobile'
       }
     }
     desktop = mobile 'Sovkora for Mac' {
@@ -32,7 +34,8 @@ model {
       description 'Clone, install, start and develop the platform from a terminal, with an offline queue.'
       technology 'Node, commander, SQLite'
       metadata {
-        repo 'sovkora-cli'
+        repo 'sovkora'
+        path 'apps/cli'
       }
     }
 
@@ -41,21 +44,24 @@ model {
       description 'The only public port: routes chat, sign-in, billing, Studios, automations and recommendations to the services.'
       technology 'Java 21, Spring Boot 4, Spring MVC on virtual threads'
       metadata {
-        repo 'sovkora-edge-service'
+        repo 'sovkora'
+        path 'services/edge'
       }
     }
     conversation = container 'Conversation service' {
       description 'Chat with token streaming (SSE), models, bootstrap features; runs the turn pipeline in-process.'
       technology 'Java 21, Spring Boot 4, Spring AI 2'
       metadata {
-        repo 'sovkora-conversation-service'
+        repo 'sovkora'
+        path 'services/conversation'
       }
     }
     job = container 'Job service' {
       description 'Capability registry, the job lanes and the run saga; settles runs and hands work to the workers.'
       technology 'Java 21, Spring Boot 4'
       metadata {
-        repo 'sovkora-job-service'
+        repo 'sovkora'
+        path 'services/job'
         adr 'sovkora ADR-068'
       }
     }
@@ -63,21 +69,24 @@ model {
       description 'Studios, packs installed at boot, and runs.'
       technology 'Java 21, Spring Boot 4'
       metadata {
-        repo 'sovkora-studio-service'
+        repo 'sovkora'
+        path 'services/studio'
       }
     }
     knowledge = container 'Knowledge service' {
       description 'The products recommender, on vectors.'
       technology 'Java 21, Spring Boot 4, pgvector'
       metadata {
-        repo 'sovkora-knowledge-service'
+        repo 'sovkora'
+        path 'services/knowledge'
       }
     }
     automation = container 'Automation service' {
       description 'Cloud automations: signed webhooks and schedules that start Studio runs, and their history.'
       technology 'Java 21, Spring Boot 4'
       metadata {
-        repo 'sovkora-automation-service'
+        repo 'sovkora'
+        path 'services/automation'
         adr 'sovkora ADR-084'
       }
     }
@@ -95,14 +104,16 @@ model {
       description 'The reference packs and their manifest schema; the document-validation worker runs beside the services.'
       technology 'Pack manifests, Python workers'
       metadata {
-        repo 'sovkora-packs'
+        repo 'sovkora'
+        path 'packs'
       }
     }
     media = container 'Media worker' {
       description 'Image and video generation and media composition; on the GPU host, and as the hosted-video consumer in the core.'
       technology 'Python, Metal or CUDA'
       metadata {
-        repo 'sovkora-worker-media'
+        repo 'sovkora'
+        path 'workers/media'
       }
     }
     relay = container 'GPU relay' {
@@ -136,37 +147,40 @@ model {
       description 'The engine core: the turn pipeline, interceptors, business layer, tools and their adapters.'
       technology 'Java 21, Spring AI 2'
       metadata {
-        repo 'sovkora-engine'
+        repo 'sovkora'
+        path 'engine'
       }
     }
     contracts = library 'Contracts' {
       description 'The job and persistence contracts and the asset cryptography shared by the services.'
       technology 'Java 21'
       metadata {
-        repo 'sovkora-contracts'
+        repo 'sovkora'
+        path 'contracts'
       }
     }
     build = library 'Build and test support' {
       description 'The parent POM, the rewrite style and the test support of every Sovkora JVM repository.'
       technology 'Maven'
       metadata {
-        repo 'sovkora-build'
+        repo 'sovkora'
+        path 'build'
       }
     }
-    workspace = container 'Workspace and delivery' {
-      description 'The list of repositories, the full-workspace CI, the dev image and deployment spec, and the end-to-end tests.'
-      technology 'Maven, Docker, App Platform spec'
+    workspace = container 'Repository and delivery' {
+      description 'The one repository (ADR-029): the module catalogue, the one CI, the dev image and deployment spec, and the end-to-end tests.'
+      technology 'Maven, pnpm, uv, Docker, App Platform spec'
       metadata {
         repo 'sovkora'
       }
     }
     uikit = library 'UI kit' {
       #retiring
-      description 'The design system and shared code of the three apps; folds into Krizaka UI, then the repository is archived.'
+      description 'The design system and shared code of the three apps (@krizaka/orazaka-design-system, @krizaka/orazaka-shared, on npm); folds into Krizaka UI (ADR-029), then its repository is deleted.'
       technology 'TypeScript, React'
-      link https://github.com/krizaka/.github/blob/main/docs/standards/repositories.md 'Registry: fold into krizaka-ui, then archive'
       metadata {
-        repo 'sovkora-ui-kit'
+        repo 'krizaka-ui'
+        adr '.github ADR-029'
       }
     }
 

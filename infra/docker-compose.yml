@@ -37,16 +37,16 @@ services:
       # on these scripts for DDL. Each context's file lives in the repository that
       # owns the context (<repo>/infra/initdb/NN-*.sql, AGENTS.md §5); the workspace
       # only owns the reset (dev data comes from `tools/seed-dev.sh`, krizaka-internal#2255). Every repository must be cloned
-      # (`node scripts/workspace.mjs clone`) before the first `orazaka start`.
+      # (a krizaka-java checkout at the imported release in `.krizaka-java/`) before the first `orazaka start`.
       - ./initdb/00-reset.sql:/docker-entrypoint-initdb.d/00-reset.sql:ro
-      - ../krizaka/krizaka-build/krizaka-users/infra/initdb/10-identity.sql:/docker-entrypoint-initdb.d/10-identity.sql:ro
-      - ../orazaka-apps/services/orazaka-conversation-service/infra/initdb/20-conversation.sql:/docker-entrypoint-initdb.d/20-conversation.sql:ro
-      - ../orazaka-apps/services/orazaka-job-service/infra/initdb/30-jobs-config.sql:/docker-entrypoint-initdb.d/30-jobs-config.sql:ro
-      - ../orazaka-apps/services/orazaka-knowledge-service/infra/initdb/40-knowledge.sql:/docker-entrypoint-initdb.d/40-knowledge.sql:ro
-      - ../orazaka-apps/services/orazaka-automation-service/infra/initdb/50-automation.sql:/docker-entrypoint-initdb.d/50-automation.sql:ro
-      - ../sovkora-libs/sovkora-engine/infra/initdb/60-governance.sql:/docker-entrypoint-initdb.d/60-governance.sql:ro
-      - ../krizaka/krizaka-build/krizaka-billing/infra/initdb/70-billing.sql:/docker-entrypoint-initdb.d/70-billing.sql:ro
-      - ../orazaka-apps/services/orazaka-studio/infra/initdb/80-studio.sql:/docker-entrypoint-initdb.d/80-studio.sql:ro
+      - ../.krizaka-java/krizaka-users/infra/initdb/10-identity.sql:/docker-entrypoint-initdb.d/10-identity.sql:ro
+      - ../services/conversation/sovkora-conversation-service/infra/initdb/20-conversation.sql:/docker-entrypoint-initdb.d/20-conversation.sql:ro
+      - ../services/job/sovkora-job-service/infra/initdb/30-jobs-config.sql:/docker-entrypoint-initdb.d/30-jobs-config.sql:ro
+      - ../services/knowledge/sovkora-knowledge-service/infra/initdb/40-knowledge.sql:/docker-entrypoint-initdb.d/40-knowledge.sql:ro
+      - ../services/automation/sovkora-automation-service/infra/initdb/50-automation.sql:/docker-entrypoint-initdb.d/50-automation.sql:ro
+      - ../engine/infra/initdb/60-governance.sql:/docker-entrypoint-initdb.d/60-governance.sql:ro
+      - ../.krizaka-java/krizaka-billing/infra/initdb/70-billing.sql:/docker-entrypoint-initdb.d/70-billing.sql:ro
+      - ../services/studio/infra/initdb/80-studio.sql:/docker-entrypoint-initdb.d/80-studio.sql:ro
     security_opt:
       - no-new-privileges:true
     healthcheck:

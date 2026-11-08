@@ -1,12 +1,12 @@
-# Orazaka — information architecture
+# Sovkora — information architecture
 
-> How Orazaka's menus are organised on every surface, who each one serves, and why. One structure, the same words on
+> How Sovkora's menus are organised on every surface, who each one serves, and why. One structure, the same words on
 > the public site, the signed-in web app, the phone and the Mac. Feedback:
 > [Discussion #182](https://github.com/krizaka/orazaka/discussions/182).
 >
 > The public bar follows the **product-site navigation standard** every Krizaka product shares (decided 2026-10-15):
 > logo · **Product ▾** · **Platforms ▾** · **Docs** · (Pricing when it exists), the tools on the right, the same groups
-> in the phone panel and the footer. This document applies it to Orazaka and adds the signed-in app.
+> in the phone panel and the footer. This document applies it to Sovkora and adds the signed-in app.
 
 ## 1. Who comes, and what for
 
@@ -14,18 +14,18 @@
 | :--- | :--- | :--- | :--- |
 | **Evaluator** — a developer or an ops lead at a firm judging a self-hosted, sovereign AI engine | the public site, from a referral, LinkedIn or GitHub | *What does it do? Does it run on our hardware? Which models? Is it real?* | Product ▾ (How it works, Models, Demo) · Platforms ▾ (Self-host) · Docs |
 | **Business user** — a firm that runs Studios and packs (contract review, Loi 25, image and video) | the public site, then the app | *What can it do for my trade? What does a run cost?* then *run it, follow it, get the result* | Product ▾ (Studios, Packs) → the app: Studios, Jobs, Usage & credits |
-| **Krizaka's own products** — Yomizaka and Akinaza using Orazaka as a service | the docs (API, packs, CLI) | *How do I call it, with which pack, under which limits?* | Docs |
+| **Krizaka's own products** — Yomizaka and Akinaza using Sovkora as a service | the docs (API, packs, CLI) | *How do I call it, with which pack, under which limits?* | Docs |
 | **Signed-in user** (today: QA accounts only, sign-up closed) | the app | chat, run a Studio, follow jobs, install packs, watch usage and credits, change settings | the rail: Home · Studios · Chat · Jobs · Packs · Usage & credits · Settings |
 
 Sources: the landing and docs issues of `orazaka-web-client` (#72, #74, #75, #85, #88, #89, #90), the pack catalogue work
-(`orazaka-packs#16`), the locomotive decision (Orazaka for Québec firms and SMEs, Yomizaka as the showcase).
+(`orazaka-packs#16`), the locomotive decision (Sovkora for Québec firms and SMEs, Yomizaka as the showcase).
 
-## 2. The public site — www.orazaka.com
+## 2. The public site — dev.sovkora.com
 
 ### Before (2026-10-16)
 
 ```
-Orazaka  [dev · v1.0.0+49d214f]  Product ▾  Demo  Mobile  Documentation      GitHub  EN FR  theme  Sign in  [Talk to us]
+Sovkora  [dev · v1.0.0+49d214f]  Product ▾  Demo  Mobile  Documentation      GitHub  EN FR  theme  Sign in  [Talk to us]
                                  ├ How it works
                                  ├ Studios
                                  ├ Packs
@@ -40,7 +40,7 @@ long sentences over the hero; the light of « Documentation » stayed on while t
 ### After
 
 ```
-Orazaka   Product ▾   Platforms ▾   Docs                    GitHub  EN FR  theme  Sign in  [Talk to us]
+Sovkora   Product ▾   Platforms ▾   Docs                    GitHub  EN FR  theme  Sign in  [Talk to us]
           │           ├ Web          → the workspace in the browser (#platform)
           │           ├ Mobile       → /docs/mobile
           │           ├ Mac          → /desktop
@@ -56,7 +56,7 @@ footer: Product · Platforms · Docs · Legal — and « A Krizaka product », D
 - **Grouped by the visitor's question, not by our nouns**: *what does it do?* (Product), *where does it run?*
   (Platforms), *how do I use it?* (Docs). Pricing joins as a fourth entry when there are prices; until then, Packs
   (with their price before every run) answers it.
-- **Models stay in Product**: a model is part of what Orazaka does for you (the standard lists it there); *where it
+- **Models stay in Product**: a model is part of what Sovkora does for you (the standard lists it there); *where it
   runs* is the hardware, which is Platforms › Self-host.
 - **Demo is in Product**: it is the proof of the product story, not a destination of its own.
 - **The version is in the footer** (`DEV · vX.Y.Z`), never in the bar.
@@ -78,7 +78,7 @@ test: `LandingNav.test.tsx` (structure snapshot, one item lit per route, axe on 
 
 ```
 rail:   [mark] Dashboard · Chat Sessions · Studios · Packs · Task History · Credits · (Admin Panel) … Log out
-header: [mark] Orazaka  [sovereign]                    EN▾  theme  bell  [name + avatar → /profile]
+header: [mark] Sovkora  [sovereign]                    EN▾  theme  bell  [name + avatar → /profile]
 palette (⌘K): the same list again, in its own words
 phone tabs: Studios · Chat · Jobs · Profile
 ```
@@ -94,7 +94,7 @@ rail (desktop) / drawer (phone web):
   Home · Studios · Chat · Jobs · Plan · Usage & credits
   ───
   Settings · (Admin, admins only)
-header: [≡ phone] [mark] Orazaka  [sovereign]                 theme  bell  [avatar ▾]
+header: [≡ phone] [mark] Sovkora  [sovereign]                 theme  bell  [avatar ▾]
                                                                            ├ avatar · name · e-mail
                                                                            ├ Language: English / Français
                                                                            └ Sign out
@@ -155,8 +155,8 @@ The story is now the order of a visitor's questions, one section each, one prima
 | :- | :--- | :--- | :--- | :--- |
 | 1 | What is it? | Hero (`LandingHero`) | a real chat answer, local | Sign in / Docs |
 | 2 | What can I do with it? | `#made` (`GalleryFeatured` + `LandingOutcomes`) | the prompt → image → video showcase; four Studio outcomes (`#studios`); one line for the packs (`#packs`) | See everything it made |
-| 3 | Where does it run? | `#how` (`LandingRuns`) | tabs Web · Mobile · Mac, the real app recorded in its frame (`StepShowcase`, @krizaka/ui) | the phone guide, Orazaka for Mac |
-| 4 | Why own it? | `#why` (`LandingCompare`) | `ComparisonTable`: four questions, aligned rows, Orazaka's band | — |
+| 3 | Where does it run? | `#how` (`LandingRuns`) | tabs Web · Mobile · Mac, the real app recorded in its frame (`StepShowcase`, @krizaka/ui) | the phone guide, Sovkora for Mac |
+| 4 | Why own it? | `#why` (`LandingCompare`) | `ComparisonTable`: four questions, aligned rows, Sovkora's band | — |
 | 5 | Can I trust it? | `#trust` (`LandingTrust`) | code (Apache-2.0), measured runs, docs — one row | each card |
 | 6 | How do I start? | `LandingClosing` | — | Talk to us / Get started |
 
@@ -166,11 +166,11 @@ them), the Mac band (the Mac tab and /desktop). Rationale: progressive disclosur
 once, briefly, and links to the page that goes deeper (Nielsen Norman Group, *Progressive Disclosure*, 2006);
 a story arc in the visitor's order beats a catalogue (Krug, *Don't Make Me Think*, 2014).
 
-Honest media: the Web steps are recorded on www.orazaka.com with the QA account (`scripts/record-web-steps.mjs`), the
+Honest media: the Web steps are recorded on dev.sovkora.com with the QA account (`scripts/record-web-steps.mjs`), the
 phone steps are the existing simulator recordings; the **Mac** shows its one real capture until a recording exists
 (recording the app needs macOS Screen Recording permission on the machine that films it).
 
-## 5. /desktop — Orazaka for Mac
+## 5. /desktop — Sovkora for Mac
 
 One sentence (run it here, or connect it to your workspace) and the app in a macOS window; **one** Download with its
 facts quiet and the SHA-256 in « Verify the download »; « First launch » in three steps (the build is not yet signed

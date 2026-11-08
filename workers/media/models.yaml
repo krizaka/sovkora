@@ -1,0 +1,387 @@
+# What this worker knows how to run, and how (ADR-075 for images, ADR-077 for 9:16 video).
+#
+# The CATALOGUE — which model a capability uses by default, which ones a Studio offers, which provider
+# serves them — is data in the platform's database (orazaka_models, ai_providers). This file is the
+# other half, the worker's own: for each model name the catalogue may send, where its weights come
+# from (pinned), how big they are, and how it is run. A model the catalogue names and this file does
+# not is refused by name, never replaced by another one.
+#
+# Weights whose licence allows commercial use are the defaults. A model that does not (`commercial: false`,
+# e.g. CC-BY-NC) may be listed so it can be tried, is never a default, and says so in its row.
+
+video:
+  # Wan 2.2 TI2V 5B — the 9:16 model of the GPU droplet `big`. 720p class (704x1280 vertical) at
+  # 24 fps, 5 s per clip, one GPU of 48 GB without offloading anything but the text encoder.
+  wan2.2-ti2v-5b:
+    label: "Wan 2.2 TI2V 5B"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers
+    pipeline: wan
+    repo: Wan-AI/Wan2.2-TI2V-5B-Diffusers
+    revision: b8fff7315c768468a5333511427288870b2e9635
+    fps: 24
+    maxFrames: 121          # Wan wants 4k+1 frames: 121 = 5 s at 24 fps
+    steps: 40
+    guidance: 5.0
+    multiple: 32            # the 5B's VAE compresses 16x16 and its transformer patches 2x2
+    # Text and image to video (diffusers WanImageToVideoPipeline with expand_timesteps, the checkpoint's own
+    # config): a starting photo is cut to the aspect around its subject, never letterboxed.
+    imageToVideo: true
+    expandTimesteps: true   # the 5B conditions its first latent frame on the photo (the checkpoint's own config)
+    sizes:
+      "9:16": [704, 1280]
+      "16:9": [1280, 704]
+      "1:1": [960, 960]
+    # A 20 GB card (profile small) runs the model with CPU offload; if 1280x704 does not fit it, the
+    # next size is tried and the run says which one it made.
+    fallbackSizes:
+      "9:16": [[544, 960], [480, 832]]
+      "16:9": [[960, 544], [832, 480]]
+      "1:1": [[768, 768]]
+    vramGb: 30              # bf16 transformer 10 GB + activations at 704x1280x121; text encoder offloaded
+    ramGb: 24
+    downloadGb: 34.2
+    hardware: [cuda]
+
+  # Wan 2.2 T2V A14B run HERE (profile `hero`, an 80 GB card: RunPod H100/A100) — the 720p showcase model. Two 14B experts
+  # (high-noise then low-noise, `boundary_ratio` 0.875 in the checkpoint) loaded in bf16 and swapped through the card by
+  # CPU offload: ~57 GB of weights, ~64 GB of host RAM. 1280x720 (and 720x1280), 81 frames = 5 s at 16 fps. The provider-served
+  # `wan2-2-t2v-a14b` below is the same model at 832x480 on DigitalOcean's serverless inference; this one is ours, at 720p.
+  wan2.2-t2v-a14b:
+    label: "Wan 2.2 T2V A14B (720p, GPU)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B-Diffusers
+    pipeline: wan
+    repo: Wan-AI/Wan2.2-T2V-A14B-Diffusers
+    revision: 5be7df9619b54f4e2667b2755bc6a756675b5cd7
+    fps: 16
+    maxFrames: 81           # 4k+1: 81 = 5 s at 16 fps
+    steps: 40
+    guidance: 4.0           # the high-noise expert; the low-noise one takes `guidanceTwo`
+    guidanceTwo: 3.0
+    multiple: 16
+    sizes:
+      "16:9": [1280, 720]
+      "9:16": [720, 1280]
+      "1:1": [960, 960]
+    vramGb: 70
+    ramGb: 64
+    downloadGb: 126         # the checkpoint's fp32 shards (two experts x 57 GB + the umt5 text encoder 11 GB)
+    hardware: [cuda]
+
+  # Wan 2.2 I2V A14B — the shots of a cinematic short (ADR-080, krizaka/orazaka): every shot starts from its keyframe
+  # (a FLUX still of the shot list), so a character and a look carry from shot to shot. Two 14B experts like the T2V,
+  # driven in FOUR steps by lightx2v's distilled LoRAs (Apache-2.0): ~1.5 min a 720p clip on an 80 GB card instead of
+  # ~18 min at 40 steps. It starts from a photo or not at all. Its weights (115 GB of fp32 shards) live on the pod's
+  # container disk (`cache: scratch`), fetched at the pod's start, not on the shared models volume: the volume is full
+  # with the T2V experts and a bigger one is a monthly cost. The text encoder is the 5B's bf16 umt5-xxl.
+  wan2.2-i2v-a14b:
+    label: "Wan 2.2 I2V A14B (720p, 4-step distill)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers
+    pipeline: wan
+    repo: Wan-AI/Wan2.2-I2V-A14B-Diffusers
+    revision: 596658fd9ca6b7b71d5057529bbf319ecbc61d74
+    textEncoderFrom: wan2.2-ti2v-5b
+    cache: scratch
+    imageToVideo: true
+    requiresImage: true
+    fps: 16
+    maxFrames: 81           # 4k+1: 81 = 5 s at 16 fps
+    steps: 4
+    guidance: 1.0           # a distilled model takes no classifier-free guidance (one pass per step)
+    guidanceTwo: 1.0
+    multiple: 16
+    sizes:
+      "16:9": [1280, 720]
+      "9:16": [720, 1280]
+      "1:1": [960, 960]
+    lora:
+      repo: lightx2v/Wan2.2-Distill-Loras
+      revision: 57adea585d1d21085e2dfc91ce3c7b646cdd9345
+      licence: Apache-2.0
+      high: wan2.2_i2v_A14b_high_noise_lora_rank64_lightx2v_4step_1022.safetensors
+      low: wan2.2_i2v_A14b_low_noise_lora_rank64_lightx2v_4step_1022.safetensors
+    vramGb: 70
+    ramGb: 64
+    downloadGb: 116
+    hardware: [cuda]
+
+  # Wan 2.2 I2V A14B at its full schedule — the bake-off's winner for people and animals in 9:16 (docs/_generated/MEASURED_RUNS.md): the same
+  # checkpoint as the distilled model above (one fetch serves both), undistilled: 40 steps, guidance 3.5 on both experts, 81 frames at 16 fps.
+  # About 18 minutes a 720p clip on an H100 (peak 35 GB with model offload): the finish of a hero clip, not the iteration.
+  wan2.2-i2v-a14b-hq:
+    label: "Wan 2.2 I2V A14B (720p, 40 steps)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers
+    pipeline: wan
+    repo: Wan-AI/Wan2.2-I2V-A14B-Diffusers
+    revision: 596658fd9ca6b7b71d5057529bbf319ecbc61d74
+    textEncoderFrom: wan2.2-ti2v-5b
+    cache: scratch
+    imageToVideo: true
+    requiresImage: true
+    fps: 16
+    maxFrames: 81
+    steps: 40
+    guidance: 3.5
+    guidanceTwo: 3.5
+    multiple: 16
+    sizes:
+      "16:9": [1280, 720]
+      "9:16": [720, 1280]
+      "1:1": [960, 960]
+    vramGb: 70
+    ramGb: 64
+    downloadGb: 116
+    hardware: [cuda]
+
+  # LTX-Video 0.9.8 13B distilled (Lightricks) — the fast model of the bake-off (docs/_generated/MEASURED_RUNS.md): a 5 s clip at
+  # 1216x704 (or 704x1216) and 24 fps in 8 steps without guidance, about 14 s on an H100 and 39 GB of VRAM, from a still or from text.
+  # Licence: the LTX-Video Open Weights License 0.X (grant, no revenue clause — unlike LTX-2's community licence, which is not used).
+  # Frames are counted 8k+1; sizes are multiples of 32.
+  ltx-video-0.9.8-13b-distilled:
+    label: "LTX-Video 0.9.8 13B distilled"
+    licence: LTX-Video-Open-Weights-0.X
+    licenceUrl: https://huggingface.co/Lightricks/LTX-Video-0.9.8-13B-distilled/blob/main/LTX-Video-Open-Weights-License-0.X.txt
+    pipeline: ltx
+    cache: scratch          # the models volume has 35 GB free: ~45 GB of weights go to the host's own disk, fetched at the pod's start
+    repo: Lightricks/LTX-Video-0.9.8-13B-distilled
+    revision: 7c64400e1861cc0d7b98d570a1926d5408ec60cd
+    imageToVideo: true
+    fps: 24
+    maxFrames: 121          # 8k+1: 121 = 5 s at 24 fps
+    steps: 8
+    guidance: 1.0           # distilled: no classifier-free guidance
+    multiple: 32
+    sizes:
+      "16:9": [1216, 704]
+      "9:16": [704, 1216]
+      "1:1": [768, 768]
+    vramGb: 39
+    ramGb: 32
+    downloadGb: 45
+    hardware: [cuda]
+
+  # Wan 2.1 T2V 1.3B — the dev video model of the GPU droplet `small` (RTX 4000 Ada, 20 GB). 480p
+  # class (480x832 vertical) at 16 fps. Its text encoder is the same umt5-xxl as Wan 2.2's, read in
+  # bf16 from the 5B's repository: 11.4 GB instead of the 22.7 GB float32 copy its own repository holds.
+  wan2.1-t2v-1.3b:
+    label: "Wan 2.1 T2V 1.3B"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+    pipeline: wan
+    repo: Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+    revision: 0fad780a534b6463e45facd96134c9f345acfa5b
+    textEncoderFrom: wan2.2-ti2v-5b
+    fps: 16
+    maxFrames: 81           # 5 s at 16 fps
+    steps: 30
+    guidance: 5.0
+    multiple: 16
+    sizes:
+      "9:16": [480, 832]
+      "16:9": [832, 480]
+      "1:1": [624, 624]
+    vramGb: 10
+    ramGb: 16
+    downloadGb: 6.2
+    hardware: [cuda]
+
+  # Wan 2.2 T2V A14B — served by DigitalOcean serverless inference, routed by Orazaka (app/remote_video.py):
+  # the catalogue row points at the provider `do-inference`, the clip is made there, and the run, its seed, its
+  # metering and its sealed asset are Orazaka's. Nothing is downloaded or run on this host. 5 s per clip.
+  wan2-2-t2v-a14b:
+    label: "Wan 2.2 T2V A14B (DigitalOcean serverless)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B
+    pipeline: remote
+    provider: do-inference
+    remoteModel: wan2-2-t2v-a14b
+    costUsd: 0.60            # per video, docs.digitalocean.com/products/inference/details/pricing
+    fps: 16
+    maxFrames: 81
+    steps: 0                 # the provider's own
+    multiple: 16
+    # Measured 2026-10-15 through the gateway: whatever `size` is asked (720x1280, 480x832, 1280x720) and with or
+    # without aspect_ratio/resolution, the clip is 832x480, 81 frames, 5.06 s @ 16 fps — so that is the only
+    # shape declared. A 9:16 request is refused by name rather than answered with a landscape clip. Seeds are
+    # honoured: the same prompt and seed gave byte-identical frames across four calls.
+    sizes:
+      "16:9": [832, 480]
+    hardware: [remote]
+
+  # The Mac's model (Metal), served by app/mlx_generator.py. Listed so the aspect of a Studio reaches
+  # it too: SD 1.5 sizes, multiples of 8.
+  animatediff-lightning-mps:
+    label: "AnimateDiff Lightning (MPS)"
+    licence: CreativeML OpenRAIL-M
+    pipeline: animatediff
+    fps: 12
+    maxFrames: 16
+    steps: 8
+    multiple: 8
+    sizes:
+      "9:16": [432, 768]
+      "16:9": [768, 432]
+      "1:1": [512, 512]
+    hardware: [mps]
+
+# The image engine is stable-diffusion.cpp's sd-server, the same backend as the Mac (ADR-075); on the
+# GPU droplet it is built for CUDA. Files and checksums are the CLI's recipe
+# (orazaka-cli/src/services/image-model-recipes.json) — test_models.py fails when they drift apart.
+image:
+  flux-2-klein-4b:
+    label: "FLUX.2 [klein] 4B"
+    licence: Apache-2.0
+    files:
+      - role: diffusion-model
+        path: flux2-klein-4b/flux-2-klein-4b-Q8_0.gguf
+        url: https://huggingface.co/leejet/FLUX.2-klein-4B-GGUF/resolve/main/flux-2-klein-4b-Q8_0.gguf
+        bytes: 4300629440
+        sha256: 0bba6951258ec8f92d51114a8fa13e66828297bfff58a738f52729b3ef66fa28
+      - role: llm
+        path: flux2-klein-4b/Qwen3-4B-Q8_0.gguf
+        url: https://huggingface.co/unsloth/Qwen3-4B-GGUF/resolve/main/Qwen3-4B-Q8_0.gguf
+        bytes: 4280405792
+        sha256: eed555233267a33c7e8ee31682762cc7751b3f6d224039086e0e846f05fffa5d
+      - role: vae
+        path: flux2-klein-4b/flux2-vae.safetensors
+        url: https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/resolve/main/vae/diffusion_pytorch_model.safetensors
+        bytes: 168120878
+        sha256: ca70d2202afe6415bdbcb8793ba8cd99fd159cfe6192381504d6c4d3036e0f04
+    launch: { steps: 4, cfgScale: 1.0, width: 1024, height: 1024, flags: ["--diffusion-fa"] }
+
+  # FLUX.1 [schnell] (Black Forest Labs) — the still for the public sites' renders (orazaka#508). Apache-2.0 weights,
+  # commercial use allowed, 4 steps without guidance. Chosen over FLUX.1 [dev] on purpose: the [dev] weights are under the
+  # FLUX.1 [dev] Non-Commercial License, and our renders end up on krizaka.com and the products' sites, so [dev] is neither
+  # listed nor fetched here (model card: huggingface.co/black-forest-labs/FLUX.1-schnell). Q8_0 GGUF of city96 (Apache-2.0)
+  # for the diffusion model, the checkpoint's own VAE, the Apache-2.0 CLIP-L and T5-XXL (fp16) of comfyanonymous. The VAE is read
+  # from the ungated mirror (same sha256 as the gated black-forest-labs/FLUX.1-schnell/ae.safetensors: the file is checked, not the host).
+  # ~23 GB on disk, ~16 GB of VRAM: a 24 GB card (RTX 4090 / A5000) runs it without offload.
+  flux-1-schnell:
+    label: "FLUX.1 [schnell] (Q8_0)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/black-forest-labs/FLUX.1-schnell
+    commercial: true
+    workerOnly: true        # not in the Mac CLI's recipe list (the Mac runs FLUX.2 klein); the CLI-recipe test skips it
+    vramGb: 16
+    downloadGb: 23.2
+    files:
+      - role: diffusion-model
+        path: flux1-schnell/flux1-schnell-Q8_0.gguf
+        url: https://huggingface.co/city96/FLUX.1-schnell-gguf/resolve/f495746ed9c5efcf4661f53ef05401dceadc17d2/flux1-schnell-Q8_0.gguf
+        bytes: 12687821728
+        sha256: f6694941193b10148dbf1f0f498d4ccd3e9875c127fc53946213b68580c66f10
+      - role: clip_l
+        path: flux1-schnell/clip_l.safetensors
+        url: https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors
+        bytes: 246144152
+        sha256: 660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd
+      - role: t5xxl
+        path: flux1-schnell/t5xxl_fp16.safetensors
+        url: https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors
+        bytes: 9787841024
+        sha256: 6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635
+      - role: vae
+        path: flux1-schnell/ae.safetensors
+        url: https://huggingface.co/camenduru/FLUX.1-dev-ungated/resolve/main/ae.safetensors
+        bytes: 335304388
+        sha256: afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38
+    launch: { steps: 4, cfgScale: 1.0, width: 1024, height: 1024, flags: ["--diffusion-fa", "--sampling-method", "euler"] }
+
+# Sound for a video (orazaka-packs#25, app/sound.py + app/sound_generators.py). Two kinds of model make the
+# tracks; the mix, the -14 LUFS pass and the AAC mux are ffmpeg and need none. The voice-over is a speech
+# asset (the Piper voices of the catalogue), never a model of this file.
+#
+# `commercial` is the licence of the WEIGHTS: the default of a kind must be commercial. Checked in
+# test_sound_models.py.
+sound:
+  # Music bed from a prompt. ACE-Step 1.5 XL turbo, in the Diffusers layout: 8 steps, 48 kHz stereo.
+  acestep-v15-xl-turbo:
+    kind: music
+    label: "ACE-Step 1.5 XL turbo (music bed)"
+    licence: MIT
+    licenceUrl: https://huggingface.co/ACE-Step/acestep-v15-xl-turbo-diffusers
+    commercial: true
+    default: true
+    repo: ACE-Step/acestep-v15-xl-turbo-diffusers
+    revision: 200ba991ae448051e14b0183157e35c2d27c9fb0
+    steps: 8
+    guidance: 7.0
+    minSeconds: 10          # the model's shortest piece: a shorter clip gets the bed cut to it
+    maxSeconds: 120
+    sampleRate: 48000
+    downloadGb: 15.5
+    ramGb: 24
+    hardware: [mps, cuda]
+
+  # Video-to-audio foley, synchronised to the picture. MMAudio's code is MIT but its WEIGHTS are CC-BY-NC 4.0:
+  # evaluation and non-commercial use only. Never a default; a job must ask for it by name.
+  # Refused unless the deployment sets MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS=true (a developer machine); off in production.
+  mmaudio-large-44k-v2:
+    kind: foley
+    label: "MMAudio large 44k v2 (video-to-audio foley) — non-commercial"
+    licence: CC-BY-NC-4.0
+    licenceUrl: https://github.com/hkchengrex/MMAudio#licenses
+    commercial: false
+    default: false
+    variant: large_44k_v2
+    maxSeconds: 8           # trained on 8 s: the runner asks for the clip's own length, never more than this
+    sampleRate: 44100
+    hardware: [mps, cuda]
+
+# The narrator of a cinematic short (orazaka#289, ADR-080 addendum v2): an expressive voice, directed per line by
+# app/voice_direction.py and said by app/zonos_runner.py in its own interpreter (SPEECH_PYTHON). Chosen over Kokoro (flat),
+# Chatterbox (French misses) in a blind A/B; F5-TTS (CC-BY-NC weights) and XTTS-v2 (CPML) refused for their licences.
+narrators:
+  zonos-v0.1-transformer:
+    label: "Zonos v0.1 transformer (expressive narrator: emotion, rate, pitch)"
+    licence: Apache-2.0
+    licenceUrl: https://huggingface.co/Zyphra/Zonos-v0.1-transformer
+    commercial: true
+    repo: Zyphra/Zonos-v0.1-transformer
+    revision: 9fe3dbdc3c703a8cf7141b2d0f550f6d55f67260
+    code: https://github.com/Zyphra/Zonos
+    codeRevision: bc40d98e1e1ab54fc65c483be127a90e3c7c0645
+    # The speaker is a reference recording of a synthetic voice (Kokoro-82M, Apache-2.0), never a real person's.
+    reference: kokoro-82m
+    languages: [en-us, fr-fr]
+    hardware: [cpu, cuda]
+
+# What a GPU host of each size serves. `scripts/gpu-dev.sh start big|small` (krizaka/orazaka) passes
+# the profile; `python -m app.fetch_models <profile>` puts its weights on the models volume once.
+profiles:
+  big:
+    video: [wan2.2-ti2v-5b, wan2.1-t2v-1.3b]
+    defaultVideo: wan2.2-ti2v-5b
+    image: flux-2-klein-4b
+  # An 80 GB card for the 720p showcase: the A14B experts and the 5B, no image engine (an 80 GB pod runs one thing at a time).
+  hero:
+    video: [wan2.2-t2v-a14b, wan2.2-ti2v-5b]
+    defaultVideo: wan2.2-ti2v-5b
+  # A cinematic short (ADR-080): FLUX keyframes (sd-server) and the 4-step I2V A14B shots on one 80 GB card, and the
+  # music bed. The image engine holds ~10 GB; the offloaded A14B keeps one expert (~29 GB) on the card at a time.
+  cinema:
+    video: [wan2.2-i2v-a14b, wan2.2-i2v-a14b-hq]
+    defaultVideo: wan2.2-i2v-a14b
+    image: flux-2-klein-4b
+    sound: [acestep-v15-xl-turbo]
+    # The voice-over (app/speech_server.py): Kokoro-82M, Apache-2.0, pinned there; served on the image engine's port.
+    speech: kokoro-82m
+  # The Krizaka cinematic kit: FLUX stills at the video's own aspect, then the model the bake-off picks per use — LTX-Video 0.9.8 for
+  # landscape and iteration (14 s a clip), Wan 2.2 I2V A14B at 40 steps for people in 9:16 (18 min), the 4-step distill between them.
+  kit:
+    video: [ltx-video-0.9.8-13b-distilled, wan2.2-i2v-a14b-hq, wan2.2-i2v-a14b]
+    defaultVideo: ltx-video-0.9.8-13b-distilled
+    image: flux-2-klein-4b
+    sound: [acestep-v15-xl-turbo]
+  small:
+    video: [wan2.2-ti2v-5b, wan2.1-t2v-1.3b]
+    defaultVideo: wan2.1-t2v-1.3b
+    image: flux-2-klein-4b
+  # Stills for the public sites (orazaka#508): FLUX.1 [schnell], Apache-2.0, on one 24 GB card, no video model.
+  render:
+    video: [wan2.1-t2v-1.3b]
+    defaultVideo: wan2.1-t2v-1.3b
+    image: flux-1-schnell

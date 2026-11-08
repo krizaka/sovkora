@@ -1,0 +1,40 @@
+# Node (pack tests)
+node_modules/
+
+# Python (pack workers)
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Node (manifest tests)
+node_modules/
+
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/
+!.vscode/extensions.json
+.history/
+.codegraph/
+.claude/
+.sonarlint/
+.scannerwork/
+
+# Secrets — never committed
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+!**/src/test/resources/**/*.key
+*.p12
+*.jks
+
+# Logs & local state
+*.log
+var/
+scratch/
+.coverage
+coverage.xml

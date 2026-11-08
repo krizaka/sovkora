@@ -1,0 +1,44 @@
+[
+  {
+    "studioKey": "trade-showcase",
+    "label": "Vitrine Artisan",
+    "tagline": "Vos chantiers deviennent une vitrine qui vend.",
+    "profession": "trades",
+    "iconKey": "studio",
+    "heroAssetId": null,
+    "pricing": "FREE",
+    "kind": "VERTICAL",
+    "latestVersion": "1.0.0",
+    "locked": false,
+    "lockedReason": "NONE",
+    "packKey": null
+  },
+  {
+    "studioKey": "image-generation",
+    "label": "Génération d'image",
+    "tagline": "Une phrase, une image.",
+    "profession": "general",
+    "iconKey": "image",
+    "heroAssetId": null,
+    "pricing": "INCLUDED",
+    "kind": "TOOLKIT",
+    "latestVersion": "1.2.0",
+    "locked": false,
+    "lockedReason": "NONE",
+    "packKey": null
+  },
+  {
+    "studioKey": "realestate-reels",
+    "label": "Reels Immobilier",
+    "tagline": "Cinq photos deviennent un Reel prêt à publier.",
+    "profession": "real-estate",
+    "iconKey": "studio",
+    "heroAssetId": null,
+    "pricing": "PAID",
+    "kind": "VERTICAL",
+    "latestVersion": "1.0.0",
+    "locked": true,
+    "lockedReason": "REQUIRES_PURCHASE",
+    "packKey": "realestate-studio"
+  }
+]

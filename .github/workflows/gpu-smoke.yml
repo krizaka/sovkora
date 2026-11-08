@@ -95,6 +95,7 @@ jobs:
         if: always() && steps.configured.outputs.ok == 'true'
         run: |
           ids=$(doctl compute droplet list --tag-name orazaka-gpu-dev --format ID --no-header | tr '\n' ' ')
+          # shellcheck disable=SC2086 # one ID per word, split on purpose
           [ -z "$ids" ] || doctl compute droplet delete $ids --force
           fp=$(ssh-keygen -E md5 -lf "$GPU_LOCAL_DIR/id_ed25519.pub" 2>/dev/null | awk '{print $2}' | sed 's/^MD5://')
           [ -z "$fp" ] || doctl compute ssh-key delete "$fp" --force || true

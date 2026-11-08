@@ -1,31 +1,31 @@
-# Orazaka in dev — www.orazaka.com and admin.orazaka.com
+# Sovkora in dev — dev.sovkora.com and admin.sovkora.com
 
 The development environment runs on DigitalOcean App Platform, project `orazaka`, Toronto, as cheaply as the platform
-allows (decision 2026-10-14: everything Orazaka in dev ≤ $80/month; a GPU never stays on). Sign-in is open; sign-up is
+allows (decision 2026-10-14: everything Sovkora in dev ≤ $80/month; a GPU never stays on). Sign-in is open; sign-up is
 closed everywhere — the fronts hide it and the users service answers **403** (`AUTH_SIGNUP_ENABLED=false`).
 
 ## What runs
 
 | App (DO) | Component | What | Size | $/month |
 |---|---|---|---|---|
-| `orazaka-dev` | `web` | `krizaka/orazaka-web-client` (Next.js + BFF), `www.orazaka.com/` | `apps-s-1vcpu-0.5gb` | 5 |
-| `orazaka-dev` | `core` | one image, seven JVMs and the document-validation worker (below), public only as `www.orazaka.com/edge` | `basic-s` (2 GB) | 20 |
+| `sovkora-dev` | `web` | `krizaka/orazaka-web-client` (Next.js + BFF), `dev.sovkora.com/` | `apps-s-1vcpu-0.5gb` | 5 |
+| `sovkora-dev` | `core` | one image, seven JVMs and the document-validation worker (below), public only as `dev.sovkora.com/edge` | `basic-s` (2 GB) | 20 |
 | Droplet | `orazaka-broker-dev` | RabbitMQ 4.2, **TLS only** (5671), bound to its private IP, cloud firewall: VPC `10.118.0.0/20` only | `s-1vcpu-512mb-10gb` | 4 |
-| `orazaka-dev` | `web` (same component) | the operator console, `admin.orazaka.com` = an alias of `www.orazaka.com`, served by host routing (§ Admin console), BFF → `http://core:8088` | — | 0 |
+| `sovkora-dev` | `web` (same component) | the operator console, `admin.sovkora.com` = an alias of `dev.sovkora.com`, served by host routing (§ Admin console), BFF → `http://core:8088` | — | 0 |
 | — | databases | the shared cluster `krizaka-dev-pg` (PostgreSQL 18, project `krizaka`, docs/DEV_DATABASE.md) | — | (15, shared) |
 | — | chat | DigitalOcean serverless inference, `mistral-3-14B`, per token | — | ≈ 0 at test volume |
-| `orazaka-dev` | `gpu-relay` | chisel server, `www.orazaka.com/gpu-relay` — the GPU host dials out to it (§ GPU) | `apps-s-1vcpu-0.5gb` | 5 |
+| `sovkora-dev` | `gpu-relay` | chisel server, `dev.sovkora.com/gpu-relay` — the GPU host dials out to it (§ GPU) | `apps-s-1vcpu-0.5gb` | 5 |
 | — | images, 9:16 video | an hourly GPU droplet, only while started (`scripts/gpu-dev.sh`) | `small` / `big` | 0.76 / 1.57 **per hour** |
 | — | model weights | Volume `orazaka-gpu-models-<region>`, 80 GB, kept between droplets | — | 8 |
 
-**Total: $47/month** for Orazaka's own resources (+ its share of the $15 cluster, + tokens).
+**Total: $47/month** for Sovkora's own resources (+ its share of the $15 cluster, + tokens).
 
-**Organisation total, measured 2026-10-21 (`doctl`, recurring cloud, GPU apart): about $97/month** — ten web services at $5, the Orazaka core $20, `gpu-relay` $5, the fourth static site $3, the shared PostgreSQL $15, the broker droplet $4 — under the $100 ceiling; about **$87** once `orazaka-admin-dev` (rollback until 2026-10-23) is deleted. There is no RunPod network volume on the account (the earlier « ≈ $14 volume » line was wrong); the GPU is billed by the hour, on use. Dev services run on the smallest instance that fits (`apps-s-1vcpu-0.5gb`; the JVM core cannot go below `basic-s`). Upgrading `core` to
+**Organisation total, measured 2026-10-21 (`doctl`, recurring cloud, GPU apart): about $97/month** — ten web services at $5, the Sovkora core $20, `gpu-relay` $5, the fourth static site $3, the shared PostgreSQL $15, the broker droplet $4 — under the $100 ceiling; about **$87** once `orazaka-admin-dev` (rollback until 2026-10-23) is deleted. There is no RunPod network volume on the account (the earlier « ≈ $14 volume » line was wrong); the GPU is billed by the hour, on use. Dev services run on the smallest instance that fits (`apps-s-1vcpu-0.5gb`; the JVM core cannot go below `basic-s`). Upgrading `core` to
 `basic-m` (4 GB, 2 vCPU, $40) is the first lever if it restarts under load: still $54.
 
 ### The `core` container
 
-`infra/deploy/Dockerfile` clones every repository of `orazaka.workspace.json` (as CI does), builds the seven services
+`infra/deploy/Dockerfile` builds from this tree (and krizaka-java at the imported release for users and billing), builds the seven services
 without tests, and `infra/deploy/run-services.sh` starts them side by side; the first JVM to exit takes the container
 down so App Platform restarts the set.
 
@@ -120,9 +120,9 @@ node scripts/dev-deploy.mjs semantic-cache   # orazaka_db: semantic_cache_entry 
 - `infra/migrations/2026-10-22-semantic-cache.sql` carries orazaka-job-service's `semantic_cache_entry` table verbatim;
   `scripts/test/dev-deploy.test.mjs` pins it against the checkout.
 
-## Service accounts — a Krizaka product calling Orazaka
+## Service accounts — a Krizaka product calling Sovkora
 
-Krizaka's products consume AI **only through Orazaka**: Yomizaka runs the document Studios with its own account, never a
+Krizaka's products consume AI **only through Sovkora**: Yomizaka runs the document Studios with its own account, never a
 model called directly. One command makes the account, its API key and its Studio grants:
 
 ```bash
@@ -137,7 +137,7 @@ node scripts/dev-deploy.mjs service-account yomizaka \
 - the operator's grants in `orazaka_studio_db` (`studio_entitlement_grant`, krizaka/orazaka-studio#9; incremental script
   `infra/migrations/2026-10-14-studio-entitlement-grant.sql`): the PAID Studios open for that account only, with a reason;
 - `AI_PROVIDER=orazaka`, `AI_API_URL`, `AI_API_KEY` written to `--out` (mode 600) — never printed. The product stores the
-  key as a DO **SECRET** and calls `https://www.orazaka.com/edge` with `Authorization: Bearer oz_…`; the edge exchanges
+  key as a DO **SECRET** and calls `https://www.sovkora.com/edge` with `Authorization: Bearer oz_…`; the edge exchanges
   it for a JWT (`ApiKeyExchangeFilter`). Re-running rotates the key.
 
 A key can be **scoped**: `--scopes ai:embed` makes the key usable for `POST /api/v1/embeddings` and nothing else (the
@@ -150,13 +150,13 @@ node scripts/dev-deploy.mjs service-account product-explorer --scopes ai:embed -
 ```
 
 Embeddings: `POST /api/v1/embeddings` `{ "input": ["…"], "model"?: "gte-large-en-v1.5" }` → `{ runId, model, dimensions, data:[{index, embedding}],
-usage }` (and the header `X-Orazaka-Run-Id`). The model is data (`orazaka_models`, category `embedding`, GTE Large (en) v1.5 on the
+usage }` (and the header `X-Sovkora-Run-Id`). The model is data (`orazaka_models`, category `embedding`, GTE Large (en) v1.5 on the
 `do-inference` provider; BGE-M3 is planned until the inference key may call it — `infra/deploy/dev-model-registry.sql`, run after `dev-data.sql`); the `runId` is the line `embedding.run
 runId=…` in the core's logs (user, model, counts — never a text or a vector). No model configured or the provider down →
 503, so a caller falls back to its own non-AI path. Existing databases need
 `infra/migrations/2026-10-15-embeddings-and-key-scopes.sql` on `krizaka_users_db`.
 
-## Recommendations — a product's feed, served by Orazaka (ADR-078)
+## Recommendations — a product's feed, served by Sovkora (ADR-078)
 
 The knowledge service serves the products' recommender (ADR-078); decision:
 ADR-078). A product feeds it
@@ -174,27 +174,27 @@ node scripts/dev-deploy.mjs service-account product-explorer --scopes ai:embed,r
 
 ## Admin console (host routing)
 
-`admin.orazaka.com` is not an app of its own any more: it is a domain **alias** of `orazaka-dev` and the `web` component
+`admin.sovkora.com` is not an app of its own any more: it is a domain **alias** of `sovkora-dev` and the `web` component
 answers it (krizaka/orazaka-web-admin#31, -5 $/month). The console's code lives in `orazaka-web-client`
 (`src/console/`, routes `src/app/console/`); `src/proxy.ts` reads the `Host`: on `admin.*` it applies the network gate
 (`AUTH_ALLOWED_IPS`, 403 for any other address, sign-in page included), then the console's sign-in gate, and rewrites the
 request under the internal `/console` prefix; on any other host `/console/**` is a 404. Nothing is shared with the public
 site: the session cookie (`orazaka-admin.session-token`), its signing key (`AUTH_CONSOLE_SECRET`, filled from
 `NEXTAUTH_SECRET_ADMIN`) and the sign-in flag (`AUTH_CONSOLE_LOGIN_ENABLED`). `AUTH_TRUST_HOST=true` makes next-auth build
-the console's callback URLs from the Host it was asked on (`NEXTAUTH_URL` stays `https://www.orazaka.com`).
+the console's callback URLs from the Host it was asked on (`NEXTAUTH_URL` stays `https://www.sovkora.com`).
 `/api/healthz` answers on both hosts, before any gate.
 
 Cut-over (the old app serves the live console until step 3):
 
-1. `node scripts/dev-deploy.mjs apply orazaka-dev --dry-run`, then check the new variables in the rendered spec
+1. `node scripts/dev-deploy.mjs apply sovkora-dev --dry-run`, then check the new variables in the rendered spec
    (`AUTH_TRUST_HOST`, `AUTH_CONSOLE_LOGIN_ENABLED`, `AUTH_CONSOLE_SECRET`, `AUTH_ALLOWED_IPS`). The `web` component must be
    on the `main` of `orazaka-web-client` that holds the console.
-2. A domain belongs to one app: take `admin.orazaka.com` off `orazaka-admin-dev` (control panel → Settings → Domains), then
-   `node scripts/dev-deploy.mjs apply orazaka-dev`. Brief downtime of the console only.
-3. DNS: `admin.orazaka.com` CNAME → the `orazaka-dev` default ingress (`doctl apps get <id> --format DefaultIngress`),
+2. A domain belongs to one app: take `admin.sovkora.com` off `orazaka-admin-dev` (control panel → Settings → Domains), then
+   `node scripts/dev-deploy.mjs apply sovkora-dev`. Brief downtime of the console only.
+3. DNS: `admin.sovkora.com` CNAME → the `sovkora-dev` default ingress (`doctl apps get <id> --format DefaultIngress`),
    unchanged if it already points there.
-4. Check from an allowed address: `/login` signs a `ROLE_ADMIN` in; from any other address `https://admin.orazaka.com/`
-   answers 403; `https://www.orazaka.com/console` answers 404; `https://www.orazaka.com/api/healthz` 200.
+4. Check from an allowed address: `/login` signs a `ROLE_ADMIN` in; from any other address `https://admin.sovkora.com/`
+   answers 403; `https://www.sovkora.com/console` answers 404; `https://www.sovkora.com/api/healthz` 200.
 
 ## Deploy
 
@@ -205,8 +205,8 @@ passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDE
 panel: Agent Platform → Serverless Inference → Model Access Keys — the API no longer creates them).
 
 ```bash
-node scripts/dev-deploy.mjs apply orazaka-dev --dry-run   # render + validate, nothing sent
-node scripts/dev-deploy.mjs apply orazaka-dev             # SECRET values are stored encrypted by App Platform
+node scripts/dev-deploy.mjs apply sovkora-dev --dry-run   # render + validate, nothing sent
+node scripts/dev-deploy.mjs apply sovkora-dev             # SECRET values are stored encrypted by App Platform
 node scripts/dev-deploy.mjs data                          # infra/deploy/dev-data.sql: providers + chat default
 node scripts/dev-deploy.mjs seed                          # test accounts → the QA store (@dev: ORAZAKA_USER_*, ORAZAKA_ADMIN_*), never printed
 node scripts/dev-deploy.mjs persona                       # Eric, the demo persona for recordings → @dev APP_QA_ORAZAKA_PERSONA_*, never printed
@@ -216,7 +216,7 @@ node scripts/dev-deploy.mjs status
 `web` and the admin redeploy on every push to their `main`. `core` does not (it is built from many repositories):
 
 ```bash
-doctl apps create-deployment <orazaka-dev id> --force-rebuild   # --force-rebuild, or the clone layer is cached
+doctl apps create-deployment <sovkora-dev id> --force-rebuild   # --force-rebuild, or the clone layer is cached
 ```
 
 Why: `core` clones every component's `main` while building, so a merge in a component (or in this workspace) changes
@@ -244,7 +244,7 @@ Droplet in the `default-tor1` VPC (`node scripts/dev-deploy.mjs broker`, idempot
   `~/Documents/krizaka/orazaka-broker/` (the CA key never leaves it). Clients verify the host name; the services trust
   the CA through Spring's SSL bundle `broker` (`RABBITMQ_CA_CERT_BASE64` → `/app/var/broker-ca.pem`).
 - **Private**: bound to the Droplet's private IP; `broker-dev.orazaka.com` resolves to it; the cloud firewall admits 5671
-  from the VPC range only (SSH from the maintainer's IP). `orazaka-dev` joins the VPC (`vpc.id` in its spec).
+  from the VPC range only (SSH from the maintainer's IP). `sovkora-dev` joins the VPC (`vpc.id` in its spec).
 - **Two users**, strong random passwords in the secrets file: `orazaka` (the platform, everything on `/`) and
   `gpu-worker` (`RABBITMQ_PASS_GPU`: configure/write/read on `orazaka.*` names only). A GPU droplet must be created in
   the same VPC (`--vpc-uuid` of `default-tor1`; another region needs VPC peering).
@@ -283,7 +283,7 @@ console or in that file — never in a service's configuration.
 
 - The other hosted models (DeepSeek V4 Pro, Llama 4 Maverick, Gemma 4) and every model's registry metadata come
   from `infra/deploy/dev-model-registry.sql` (ORA-MODELS), run after `dev-data.sql`; selectable, never the default.
-- The key reaches the call through `ai_providers.api_key` (krizaka/orazaka-ai-engine#10); `orazaka-dev` also holds it
+- The key reaches the call through `ai_providers.api_key` (krizaka/orazaka-ai-engine#10); `sovkora-dev` also holds it
   as the SECRET `AI_INFERENCE_KEY`, the deployment's copy of record. `node scripts/dev-deploy.mjs data` reads it from
   the secrets file and sends it on psql's stdin, never on a command line.
 - `ORAZAKA_CORE_DEFAULT_PROVIDER=do-inference`: with the historical `ollama` default the pipeline pins Ollama's active
@@ -294,7 +294,7 @@ console or in that file — never in a service's configuration.
 ## GPU — images and 9:16 video, by the hour
 
 Generation runs on a GPU droplet that exists only while it works (ADR-077). It runs the CUDA image of
-`krizaka/orazaka-worker-media` (`ghcr.io/krizaka/orazaka-worker-media:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
+`krizaka/orazaka-worker-media` (`ghcr.io/krizaka/sovkora-media-worker:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
 for images, and the **media worker** draining `job.video.*` / `job.compose.*` with Wan for 9:16 video.
 
 | Size | Droplet | $/hour | Video model (default) | 9:16 clip |
@@ -312,7 +312,7 @@ scripts/gpu-dev.sh cost                  # every session (ledger in ~/Documents/
 ```
 
 **How it connects — nothing is exposed.** The droplet opens no port (SSH from the caller's IP only). A chisel client
-on it dials **out** to `https://www.orazaka.com/gpu-relay` (App Platform's TLS, a 256-bit credential
+on it dials **out** to `https://www.sovkora.com/gpu-relay` (App Platform's TLS, a 256-bit credential
 `AI_GPU_RELAY_PASSWORD`) and may open exactly five remotes — the relay's allow-list: `broker-dev.orazaka.com:5671` (the TLS broker of the VPC, as the narrow `gpu-worker` user, verified end to end against the dev CA),
 `core:8090` (the job service: worker registry and output hand-over), and back inside the app `gpu-relay:8085` (LocalAI: Whisper and Piper, the `localai` provider), `gpu-relay:8086`
 (sd-server), `gpu-relay:8188` (the video pipeline) and `gpu-relay:11434` (Ollama: `qwen2.5:7b` for the Studios'
@@ -348,7 +348,7 @@ panel — else the doctl token. Containers cannot read the droplet's metadata (a
 
 ### The sovereign smoke — do our own engines still generate?
 
-`scripts/gpu-dev.sh smoke` starts the `small` GPU, runs `scripts/gpu-smoke.mjs` against www.orazaka.com as the test user
+`scripts/gpu-dev.sh smoke` starts the `small` GPU, runs `scripts/gpu-smoke.mjs` against dev.sovkora.com as the test user
 — a chat Studio on Ollama, an image on sd-server (FLUX.2 [klein]), a 1 s 9:16 clip on the media worker (Wan 2.1 1.3B) —
 asserts each (run SUCCEEDED, output non-empty, latency, the model our job reported) and **destroys the droplet whatever
 happens** (trap on exit, interrupt and error). TTS, transcription and RAG are reported `SKIPPED` with their reason until
@@ -359,7 +359,7 @@ warm Volume costs ≈ $0.20 (the first one also builds the image and fetches the
 
 ### Brand-level clips: Wan 2.2 A14B from an image, then SeedVR2 to 1080p/4K
 
-For a clip that is shown on our sites (the "Prompt → Image → Video" strip of www.orazaka.com): the `hero` profile (80 GB card), the
+For a clip that is shown on our sites (the "Prompt → Image → Video" strip of dev.sovkora.com): the `hero` profile (80 GB card), the
 Studio `video-generation` with `model: wan2.2-t2v-a14b` **and an `image`** — the worker then loads the family's image-to-video
 checkpoint (`Wan-AI/Wan2.2-I2V-A14B-Diffusers`, 106 GB, pinned in the worker's `models.yaml`), 1280×720, 81 frames at 16 fps, about 20 minutes
 a clip on an H100. The checkpoint is **not** on the network volume (35 GB free): fetch it to the pod's container disk
@@ -387,9 +387,9 @@ vision steps run on the Mac while it is connected. The worker hands its outputs 
 the rest from sd-server; the dev provider `localai` points at `gpu-relay:8086` (`infra/deploy/dev-data.sql`). Run one host at a time: two workers on one queue
 share the jobs, and a Wan job reaching the Mac runs on Metal (slowly) or fails by name.
 
-### Wan 2.2 A14B — a provider's model, run by Orazaka
+### Wan 2.2 A14B — a provider's model, run by Sovkora
 
-`wan2-2-t2v-a14b` (catalogue row, provider `do-inference`) is made by DigitalOcean serverless inference; Orazaka is
+`wan2-2-t2v-a14b` (catalogue row, provider `do-inference`) is made by DigitalOcean serverless inference; Sovkora is
 the run: the Studio run id, the seed, the metering and the sealed asset are its own, and the clip says where it came from
 (`metrics.provider`). The media worker routes it (`app/remote_video.py`: `POST /v1/videos`, poll `GET /v1/videos/{id}`,
 `GET /v1/videos/{id}/content`); **text-to-video, 832×480 (16:9 only — measured: any other size is answered at 832×480, so
@@ -412,7 +412,7 @@ env by `scripts/gpu-dev.sh mac` — never printed, never in a repository. Select
 
 ## The core journey on dev (Dev preview `journey.core`, `journey.ai-via-orazaka`)
 
-`node scripts/journey-dev.mjs --out <dir>` replays what Orazaka is for, on https://www.orazaka.com/edge as the demo persona
+`node scripts/journey-dev.mjs --out <dir>` replays what Sovkora is for, on https://www.sovkora.com/edge as the demo persona
 Eric (credentials from the environment, read with `secret.sh`, never printed): sign in → ask the chat → make an image with
 the `image-generation` Studio → have the picture read by `image-analysis` →
 make a hosted clip with `video-generation`. Every step goes through the public API (no SQL, no direct model call) and records

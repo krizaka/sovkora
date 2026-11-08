@@ -1,0 +1,101 @@
+# The story recorded for the Sovkora site (home "On your phone", /gallery "A day of work", /docs/orazaka/mobile): the
+# real app on an iOS simulator, signed in as the demo persona (Mira), against the dev platform the app points at. Run it through
+# scripts/record-story.mjs, which records the screen and receives the marks below (typing is sped up and waits are cut
+# afterwards, labelled — never faked).
+#   node scripts/record-story.mjs --appearance dark
+# Needs -e ORAZAKA_EMAIL / ORAZAKA_PASSWORD (read from the QA file by the script, never printed).
+appId: com.krizaka.orazaka
+# manual: needs the dev platform and the demo persona, so mobile-e2e.yml (CI) does not run it.
+tags:
+  - manual
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible: "Sign in to your account"
+    timeout: 60000
+
+# 1. Sign in
+- runScript: { file: lib/mark.js, env: { NAME: "clip:sign-in:start" } }
+- tapOn:
+    id: "login-email"
+- runScript: { file: lib/mark.js, env: { NAME: "type:start" } }
+- inputText: ${ORAZAKA_EMAIL}
+- tapOn:
+    id: "login-password"
+- inputText: ${ORAZAKA_PASSWORD}
+- runScript: { file: lib/mark.js, env: { NAME: "type:end" } }
+- pressKey: Enter
+- tapOn:
+    text: "Not Now"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "studio-image-generation"
+    timeout: 30000
+- runScript: { file: lib/mark.js, env: { NAME: "shown" } }
+- waitForAnimationToEnd
+- runScript: { file: lib/mark.js, env: { NAME: "clip:sign-in:end" } }
+
+# 2. Run a Studio: a picture, from the phone
+- runScript: { file: lib/mark.js, env: { NAME: "clip:studio-run:start" } }
+- tapOn:
+    id: "studio-image-generation"
+- tapOn:
+    id: "studio-open"
+- tapOn:
+    id: "field-prompt"
+- runScript: { file: lib/mark.js, env: { NAME: "type:start" } }
+- inputText: ${IMAGE_PROMPT}
+- runScript: { file: lib/mark.js, env: { NAME: "type:end" } }
+- pressKey: Enter
+# The model is on Automatic: the hosted image model, so the run is certain to finish on dev.
+- hideKeyboard
+- tapOn:
+    id: "run-launch"
+- runScript: { file: lib/mark.js, env: { NAME: "wait:start", LABEL: "The image is rendering" } }
+- extendedWaitUntil:
+    visible: "Generated image"
+    timeout: 300000
+- runScript: { file: lib/mark.js, env: { NAME: "wait:end" } }
+- waitForAnimationToEnd:
+    timeout: 4000
+- scroll
+- waitForAnimationToEnd:
+    timeout: 3000
+- runScript: { file: lib/mark.js, env: { NAME: "clip:studio-run:end" } }
+- runFlow:
+    file: story-video.yaml
+    when:
+      true: ${WITH_VIDEO == 'true'}
+- tapOn: "Back"
+- tapOn: "Back"
+
+# 3. Ask: one real chat, streamed
+- tapOn: "Chat"
+- runScript: { file: lib/mark.js, env: { NAME: "clip:ask:start" } }
+- tapOn: "Message Sovkora"
+- runScript: { file: lib/mark.js, env: { NAME: "type:start" } }
+- inputText: ${CHAT_PROMPT}
+- runScript: { file: lib/mark.js, env: { NAME: "type:end" } }
+- tapOn: "Send"
+- extendedWaitUntil:
+    visible:
+      id: "answer-complete"
+    timeout: 120000
+- waitForAnimationToEnd:
+    timeout: 3000
+- runScript: { file: lib/mark.js, env: { NAME: "clip:ask:end" } }
+
+# 4. Follow the jobs (the profile is not shown: its credits line is wrong on dev, see the issue on the credits)
+- tapOn: "Jobs"
+- runScript: { file: lib/mark.js, env: { NAME: "clip:jobs:start" } }
+- extendedWaitUntil:
+    visible: "Jobs per day"
+    timeout: 30000
+# A steady look at the chart, then a scroll down to the list and a pause on it.
+- extendedWaitUntil: { visible: "never-on-screen", timeout: 2500, optional: true }
+- scroll
+- extendedWaitUntil: { visible: "never-on-screen", timeout: 3000, optional: true }
+- runScript: { file: lib/mark.js, env: { NAME: "clip:jobs:end" } }

@@ -10,20 +10,20 @@ function workspace() {
   const root = mkdtempSync(join(tmpdir(), "devmig-"));
   for (const [dir, name] of [
     ["infra/migrations", "2026-09-03-a.sql"],
-    ["krizaka/krizaka-build/krizaka-billing/infra/migrations", "2026-10-26-price-catalogue.sql"],
-    ["krizaka/krizaka-build/krizaka-billing/infra/migrations", "README.md"],
+    [".krizaka-java/krizaka-billing/infra/migrations", "2026-10-26-price-catalogue.sql"],
+    [".krizaka-java/krizaka-billing/infra/migrations", "README.md"],
   ]) {
     mkdirSync(join(root, dir), { recursive: true });
     writeFileSync(join(root, dir, name), "-- x");
   }
-  writeFileSync(join(root, "orazaka.workspace.json"), JSON.stringify({ repositories: [{ path: "not/cloned" }] }));
+  writeFileSync(join(root, "modules.json"), JSON.stringify({ modules: [{ path: "not/cloned" }] }));
   return root;
 }
 
 test("migration files: the workspace's and each cloned component's .sql, keyed from the root", () => {
   assert.deepEqual(migrationFiles(workspace()), [
+    ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql",
     "infra/migrations/2026-09-03-a.sql",
-    "krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql",
   ]);
 });
 
@@ -85,7 +85,7 @@ test("probes: an inserted row is keyed by its ON CONFLICT columns, else by its s
 test("sections: \\c cuts the file, a renamed database keeps its new name, the default comes from the note, the config, the repository", () => {
   assert.deepEqual(sections("SELECT 1;\n\\c orazaka_billing_db\nSELECT 2;").map((s) => s.db), [null, "krizaka_billing_db"]);
   assert.equal(defaultDatabase("infra/migrations/x.sql", "-- Runs in orazaka_knowledge_db."), "orazaka_knowledge_db");
-  assert.equal(defaultDatabase("krizaka/krizaka-build/krizaka-billing/infra/migrations/x.sql", "SELECT 1"), "krizaka_billing_db");
+  assert.equal(defaultDatabase(".krizaka-java/krizaka-billing/infra/migrations/x.sql", "SELECT 1"), "krizaka_billing_db");
   assert.equal(defaultDatabase("infra/migrations/x.sql", "SELECT 1", { "infra/migrations/x.sql": "krizaka_users_db" }), "krizaka_users_db");
   assert.equal(defaultDatabase("infra/migrations/x.sql", "SELECT 1"), "orazaka_db");
 });
@@ -112,8 +112,13 @@ test("every migration of this repository has a probe: verify cannot be blind to 
   assert.deepEqual(blind, [], "add a probe to scripts/dev-migration-probes.json");
 });
 
-test("a ledger row written under the archived krizaka-billing path counts for the same file in krizaka-build", () => {
-  const moved = "krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql";
+test("a ledger row written under a former path counts for the same file today (billing, then the components of ADR-029)", () => {
+  const moved = ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql";
   assert.deepEqual(pending([moved], ["krizaka/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql"]), []);
+  assert.deepEqual(pending([moved], ["krizaka/krizaka-build/krizaka-billing/infra/migrations/2026-10-26-price-catalogue.sql"]), []);
+  const studio = "services/studio/infra/migrations/2026-11-01-x.sql";
+  assert.deepEqual(pending([studio], ["orazaka-apps/services/orazaka-studio/infra/migrations/2026-11-01-x.sql"]), []);
+  const conversation = "services/conversation/sovkora-conversation-service/infra/migrations/2026-11-01-y.sql";
+  assert.deepEqual(pending([conversation], ["orazaka-apps/services/orazaka-conversation-service/infra/migrations/2026-11-01-y.sql"]), []);
   assert.deepEqual(pending([moved], []), [moved]);
 });

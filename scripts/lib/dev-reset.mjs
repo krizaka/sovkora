@@ -25,7 +25,7 @@ export const TARGETS = Object.freeze(["local", "dev"]);
 export const EXCLUDED_DATABASES = Object.freeze(["krizaka_newsletter", "krizaka_accounts", "defaultdb", "_dodb", "tofu_state", "postgres"]);
 
 /** The DigitalOcean App Platform app each product redeploys after its databases are cleared (its migrations run there). */
-export const DEV_APPS = Object.freeze({ orazaka: "orazaka-dev", yomizaka: "yomizaka-dev", akinaza: "akinaza-dev" });
+export const DEV_APPS = Object.freeze({ orazaka: "sovkora-dev", yomizaka: "yomizaka-dev", akinaza: "akinaza-dev" });
 
 /** The dev cluster `krizaka-dev-pg` (stacks/dev/orazaka in krizaka-infra), public or private host. */
 export const DEV_HOST = /^(private-)?krizaka-dev-pg-do-user-\d+-0\.[a-z]\.db\.ondigitalocean\.com$/;

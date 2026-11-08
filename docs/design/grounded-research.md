@@ -102,7 +102,7 @@ dev-deploy migration in the workspace.
 | `research.quote.max-chars` | `300` | longest quoted passage |
 | `research.verify.mode` | `MARK` | `MARK` keeps unverified claims as `TO_VALIDATE`; `STRICT` drops them |
 | `research.cache.default-freshness-seconds` | `86400` | when a source sets none |
-| `research.user-agent` | `OrazakaResearch/{version} (+https://www.orazaka.com)` | honest, never a browser string |
+| `research.user-agent` | `OrazakaResearch/{version} (+https://www.sovkora.com)` | honest, never a browser string |
 
 These defaults are first values, not measurements. Slice 5 measures latency and cost before any default changes.
 robots.txt is always honoured, so it has no setting.
@@ -205,7 +205,7 @@ Nothing beyond one of these two:
 The product renders `claims` with their citations, and shows `TO_VALIDATE` as such, never as a fact. A Krizaka UI
 component for that is a follow-up in krizaka-ui (not in this ADR's slices).
 
-## Console (admin.orazaka.com, `orazaka-web-client` `src/app/console`)
+## Console (admin.sovkora.com, `orazaka-web-client` `src/app/console`)
 
 - **Sources**: a table (key, kind, provider, scope, enabled, freshness, rate, last status), an edit form with allow and
   deny patterns, the « test » button, and the credential set-only field. LégisQuébec and Registraire are shown disabled

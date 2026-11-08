@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Articles 1931 to 1933 of the Civil Code of Québec (CCQ-1991_FR.xml, Données Québec, « Lois et règlements codifiés du Québec », snapshot of 2026-10-21), the public text of the law, kept verbatim for the derivation tests (ADR-089 §3). -->
+<LegislativeDocument xml:lang="fr" date-eev="20260611" DocumentType="cs"><Statute><Identification Code="id"><Id>CCQ-1991</Id></Identification><Body>
+<Section Code="se:1931" full-id="161931" date-eev="19990401">
+									<Label style="P">1931</Label>
+									<Subsection Code="se:1931-ss:1">
+										<Text>Le locateur est tenu, à moins d’une urgence, de donner au locataire un préavis de 24 heures de son intention de vérifier l’état du logement, d’y effectuer des travaux ou de le faire visiter par un acquéreur éventuel.</Text>
+									</Subsection>
+									<HistoricalNote>
+										<Ref>
+											<RefFreeForm>1991, c. 64, a. 1931</RefFreeForm>
+										</Ref>
+									</HistoricalNote>
+								</Section>
+<Section Code="se:1932" full-id="161932" date-eev="19990401">
+									<Label style="P">1932</Label>
+									<Subsection Code="se:1932-ss:1">
+										<Text>Le locataire peut, à moins d’une urgence, refuser que le logement soit visité par un locataire ou un acquéreur éventuel, si la visite doit avoir lieu avant 9 heures et après 21 heures; il en est de même dans le cas où le locateur désire en vérifier l’état.</Text>
+									</Subsection>
+									<Subsection Code="se:1932-ss:2">
+										<Text>Il peut, dans tous les cas, refuser la visite si le locateur ne peut être présent.</Text>
+									</Subsection>
+									<HistoricalNote>
+										<Ref>
+											<RefFreeForm>1991, c. 64, a. 1932</RefFreeForm>
+										</Ref>
+									</HistoricalNote>
+								</Section>
+<Section Code="se:1933" full-id="161933" date-eev="19990401">
+									<Label style="P">1933</Label>
+									<Subsection Code="se:1933-ss:1">
+										<Text>Le locataire ne peut refuser l’accès du logement au locateur, lorsque celui-ci doit y effectuer des travaux.</Text>
+									</Subsection>
+									<Subsection Code="se:1933-ss:2">
+										<Text>Il peut, néanmoins, en refuser l’accès avant 7 heures et après 19 heures, à moins que le locateur ne doive y effectuer des travaux urgents.</Text>
+									</Subsection>
+									<HistoricalNote>
+										<Ref>
+											<RefFreeForm>1991, c. 64, a. 1933</RefFreeForm>
+										</Ref>
+									</HistoricalNote>
+								</Section>
+</Body></Statute></LegislativeDocument>

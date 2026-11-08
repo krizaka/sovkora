@@ -1,0 +1,9 @@
+-- ============================================================================
+-- SOVKORA — Local DB bootstrap · 60 — INTERCEPTOR POLICY GOVERNANCE
+-- ----------------------------------------------------------------------------
+-- Nothing to create here: the governance tables live in the shared orazaka_db, whose role
+-- and database come from the workspace infra/initdb/00-reset.sql, and no extension is needed.
+-- The schema is Flyway: sovkora-engine-persistence/src/main/resources/db/governance/V1__governance_baseline.sql,
+-- applied at startup by the host service (history table flyway_history_governance) when it sets
+-- orazaka.governance.migrations.enabled=true (krizaka-internal#2255).
+-- ============================================================================

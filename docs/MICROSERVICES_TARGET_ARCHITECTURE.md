@@ -1,11 +1,11 @@
 ---
-title: "Orazaka — Microservices Target Architecture (Strangler Fig)"
-description: "Phased decomposition plan of the Orazaka modular monolith into decoupled microservices: roadmap, DDD boundaries, trade-off analysis. Bilingual EN/FR."
+title: "Sovkora — Microservices Target Architecture (Strangler Fig)"
+description: "Phased decomposition plan of the Sovkora modular monolith into decoupled microservices: roadmap, DDD boundaries, trade-off analysis. Bilingual EN/FR."
 category: Architecture
 order: 3
 ---
 
-# Orazaka — Microservices Target Architecture
+# Sovkora — Microservices Target Architecture
 
 > **Status**: proposal (not yet an ADR). Grounded in `AGENTS.md`, `VISION_ARCHITECTURE.md`, `INTERFACES.md`, `init.sql`, and the actual module tree.
 > **Version française : voir seconde moitié du document (§ Version Française).**
@@ -14,7 +14,7 @@ order: 3
 
 ## Architect's honest preamble — when to pull the trigger
 
-Orazaka is today a **well-factored modular monolith**: hexagonal rings enforced by ArchUnit, frozen port contracts (`INTERFACES.md`), CQRS persistence split with a transactional outbox, and **already three process boundaries** (router :8080, worker-integrations :8082, worker-media :8188) joined by RabbitMQ. This is the *ideal* starting position for a Strangler Fig migration — the seams are real, not aspirational.
+Sovkora is today a **well-factored modular monolith**: hexagonal rings enforced by ArchUnit, frozen port contracts (`INTERFACES.md`), CQRS persistence split with a transactional outbox, and **already three process boundaries** (router :8080, worker-integrations :8082, worker-media :8188) joined by RabbitMQ. This is the *ideal* starting position for a Strangler Fig migration — the seams are real, not aspirational.
 
 Two cautions before Phase 1:
 
@@ -236,7 +236,7 @@ Key design choice: **claims-enriched JWT** keeps authorization local to each ser
 
 ## Préambule honnête d'architecte — quand déclencher
 
-Orazaka est aujourd'hui un **monolithe modulaire bien factorisé** : anneaux hexagonaux imposés par ArchUnit, contrats de ports gelés (`INTERFACES.md`), persistance CQRS avec outbox transactionnel, et **déjà trois frontières de processus** (router :8080, worker-integrations :8082, worker-media :8188) reliées par RabbitMQ. C'est la position de départ *idéale* pour une migration Strangler Fig — les coutures sont réelles.
+Sovkora est aujourd'hui un **monolithe modulaire bien factorisé** : anneaux hexagonaux imposés par ArchUnit, contrats de ports gelés (`INTERFACES.md`), persistance CQRS avec outbox transactionnel, et **déjà trois frontières de processus** (router :8080, worker-integrations :8082, worker-media :8188) reliées par RabbitMQ. C'est la position de départ *idéale* pour une migration Strangler Fig — les coutures sont réelles.
 
 Deux avertissements avant la Phase 1 :
 

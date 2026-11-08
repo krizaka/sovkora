@@ -7,9 +7,9 @@ import { test } from "node:test";
 import { SECRET_TOOL, devSecrets, envFileFromArgs } from "../lib/dev-secrets.mjs";
 
 test("--env-file is taken out of the arguments and wins over ORAZAKA_DEV_ENV_FILE", () => {
-  assert.deepEqual(envFileFromArgs(["apply", "orazaka-dev", "--env-file", "/x/dev.env", "--dry-run"], { ORAZAKA_DEV_ENV_FILE: "/y" }), {
+  assert.deepEqual(envFileFromArgs(["apply", "sovkora-dev", "--env-file", "/x/dev.env", "--dry-run"], { ORAZAKA_DEV_ENV_FILE: "/y" }), {
     envFile: "/x/dev.env",
-    args: ["apply", "orazaka-dev", "--dry-run"],
+    args: ["apply", "sovkora-dev", "--dry-run"],
   });
   assert.deepEqual(envFileFromArgs(["data"], { ORAZAKA_DEV_ENV_FILE: "/y" }), { envFile: "/y", args: ["data"] });
   assert.deepEqual(envFileFromArgs(["data"], {}), { envFile: null, args: ["data"] });

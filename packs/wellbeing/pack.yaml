@@ -1,0 +1,319 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# bien-etre — the REGULATED reference pack (phase J, ADR-055).
+#
+# THE NAME IS THE FIRST CONTROL. This pack is never called "thérapie". A system
+# intended for a MEDICAL PURPOSE — diagnosing, treating, alleviating a condition
+# — is a medical device under the EU MDR, with conformity assessment attached,
+# and a product marketed as therapy invites a duty-of-care argument the first
+# time a user is harmed. The same underlying product, named and scoped as guided
+# journaling, session preparation and mood tracking, makes no medical claim.
+#
+# The positioning follows from that, and the Studios say what they DO and never
+# what they treat: this is what a user brings TO their therapist, not instead of
+# one. Which is also the more defensible product.
+#
+# regulatoryClass: REGULATED adds two controls to SENSITIVE's four — versioned
+# consent that blocks installation, and a non-bypassable crisis interceptor.
+# Both are declared here; neither is implemented by this pack.
+#
+# ADR-076 (the voice turn) adds the pack's system prompt, inside the safety declaration it belongs
+# to: what a CONVERSATIONAL turn of this pack is told first, before anything a caller adds. It says
+# what the assistant is and is not, and the engine puts a caller's context after it, never before.
+# ─────────────────────────────────────────────────────────────────────────────
+apiVersion: orazaka.dev/v1
+key: bien-etre
+version: 1.6.0
+tier: DATA
+distribution: CLOUD
+regulatoryClass: REGULATED
+
+# The domain this pack refuses. Same mechanism as the validation pack; the engine
+# holds the interceptor and never the subject.
+scopeGuard:
+  refusedTerms:
+    - diagnostic
+    - diagnostiquer
+    - est-ce que j'ai
+    - ordonnance
+    - posologie
+    - dosage
+    - antidépresseur
+    - antidepresseur
+    - anxiolytique
+    - médicament
+    - medicament
+    - arrêter mon traitement
+    - arreter mon traitement
+  refusal: >-
+    Je ne pose pas de diagnostic et je ne parle pas de médicaments ou de posologie — ce sont des
+    questions pour un professionnel de santé, qui vous connaît et qui peut vous examiner. Ce que je
+    peux faire, c'est vous aider à mettre par écrit ce que vous vivez, pour que vous puissiez le lui
+    apporter.
+
+# GDPR Art. 9 / Loi 25: health data is a special category, so the lawful basis must exist BEFORE
+# the processing does. Bumping this version stops every existing installation until its owner
+# agrees again — and that cost is the point.
+consent:
+  # 2.1 (orazaka#301): what is encrypted, where, and for how long backups keep a deletion — each claim
+  # checked against the system (ADR-055 section 8). The statement is served by the server in the
+  # caller's language: `statement` is French (the default), `statements.en` the English one. Both are
+  # reviewed text and must say the same thing.
+  version: "2.1"
+  statement: >-
+    Ce Studio enregistre ce que vous y écrivez ou dites sur votre humeur et votre vécu — le texte, pas
+    le son — et le texte qu'il vous renvoie. Ce sont des données de santé au sens du RGPD (art. 9) et
+    de la Loi 25. Les échanges entre votre appareil, le service et sa base de données sont chiffrés
+    (TLS) ; les fichiers de travail sont chiffrés par Orazaka, une clé par fichier ; vos textes sont
+    conservés dans une base de données gérée dont les disques sont chiffrés par l'hébergeur
+    (DigitalOcean), sans chiffrement supplémentaire champ par champ. Ils sont conservés 30 jours au
+    plus après chaque entrée ou échange, jamais utilisés pour entraîner un modèle et jamais inclus
+    dans une statistique. Des sauvegardes techniques chiffrées de la base sont conservées 7 jours : ce
+    que vous supprimez, ou qui expire, en disparaît au plus tard 7 jours plus tard. Ce Studio n'est
+    pas un soin : il ne pose aucun diagnostic, ne remplace aucun professionnel, et n'est pas un
+    service d'urgence. Vous pouvez tout supprimer à tout moment : « Supprimer toutes mes données de
+    bien-être » efface définitivement vos entrées, vos échanges écrits ou parlés, leurs résultats, les
+    fichiers associés et le consentement que vous donnez ici ; vous pouvez aussi supprimer une seule
+    entrée. Il ne reste alors qu'une trace sans aucun contenu — la date de la suppression et le Studio
+    concerné — qui prouve que vous l'avez demandée. Vous pouvez retirer votre consentement à tout
+    moment en désinstallant le Studio : il ne traite plus rien et ce qu'il avait enregistré disparaît
+    au plus tard après 30 jours, ou tout de suite si vous choisissez de tout supprimer. En installant
+    ce Studio, vous consentez explicitement à ce traitement.
+  statements:
+    en: >-
+      This Studio records what you write or say in it about your mood and what you are going
+      through — the text, not the sound — and the text it sends back. This is health data under the
+      GDPR (art. 9) and Québec's Law 25. Exchanges between your device, the service and its database
+      are encrypted (TLS); working files are encrypted by Orazaka, one key per file; your texts are
+      kept in a managed database whose disks are encrypted by the host (DigitalOcean), without any
+      further field-by-field encryption. They are kept for 30 days at most after each entry or
+      exchange, never used to train a model and never included in any statistic. Encrypted technical
+      backups of the database are kept for 7 days: whatever you delete, or whatever expires,
+      disappears from them within 7 days at most. This Studio is not care: it makes no diagnosis,
+      does not replace any professional, and is not an emergency service. You can delete everything
+      at any time: "Delete all my wellbeing data" permanently erases your entries, your written or
+      spoken exchanges, their results, the files tied to them and the consent you give here; you can
+      also delete a single entry. All that remains is a record with no content whatsoever — the date
+      of the deletion and the Studio concerned — proving that you asked for it. You can withdraw
+      your consent at any time by uninstalling the Studio: it processes nothing more and whatever it
+      had recorded disappears after 30 days at most, or immediately if you choose to delete
+      everything. By installing this Studio, you explicitly consent to this processing.
+
+# The crisis declaration. The response is FIXED and reviewed by a person: a model asked to compose
+# one will produce a number that looks like a crisis line, and someone will dial it.
+safety:
+  safetyReviewRef: "safety-review/2026-09-10 — texte rédigé et relu à la main, ressources vérifiées à la source le 2026-09-10 (ADR-055 §5), revérifiées une à une à leur source officielle le 2026-10-20 (orazaka#301) ; CA-QC ajoutée et vérifiée à la source le 2026-10-11 (ADR-076) ; réponse et prompt rendus bilingues FR/EN au 2026-10-18 (traduction anglaise à relire par une personne) ; crisisTerms étendus au 2026-10-17 pour la voix (variantes parlées FR et EN) — termes seulement, texte de réponse et lignes inchangés ; à relire par une personne avant toute personne extérieure"
+  crisisTerms:
+    - suicide
+    - me suicider
+    - suicider
+    - en finir
+    - mettre fin à mes jours
+    - mettre fin a mes jours
+    - plus envie de vivre
+    - plus vivre
+    - me faire du mal
+    - me tuer
+    - disparaître pour toujours
+    - disparaitre pour toujours
+    # The listening moment is spoken, so the cues are the ways a person says it aloud, in
+    # both languages the presences speak. The guard folds accents and case and then looks for the
+    # term inside the turn (SafetyInterceptor.fold), so each term is a phrase, never a lone word
+    # that also lives in "mourir de rire". An apostrophe is written both ways: a keyboard types
+    # ' and a phone types the typographic one, and the fold does not unify them.
+    - envie de mourir
+    - veux mourir
+    - voudrais mourir
+    - veux plus vivre
+    - veux pas vivre
+    - plus la force de vivre
+    - m'enlever la vie
+    - m’enlever la vie
+    - j'en peux plus de vivre
+    - j’en peux plus de vivre
+    - me pendre
+    - kill myself
+    - end my life
+    - take my own life
+    - want to die
+    - wanna die
+    - hurt myself
+    - harm myself
+    - better off dead
+    - no reason to live
+    - don't want to live
+    - don’t want to live
+    - don't want to be alive
+    - don’t want to be alive
+  response: >-
+    Je m'arrête là, parce que ce que vous venez d'écrire compte plus que l'exercice en cours. Je ne
+    suis pas en mesure de vous accompagner là-dessus, et je ne veux pas vous laisser seul·e avec ça.
+    Des personnes formées écoutent, gratuitement et tout de suite :
+
+    I'm stopping here, because what you just wrote matters more than the exercise we were doing. I
+    can't support you with this, and I don't want to leave you alone with it. Trained people listen,
+    for free and right away:
+  # Verified at the source on 2026-09-10. A region absent here is a region this pack does not
+  # install in — an approximate number is not a smaller version of a correct one.
+  resources:
+    FR:
+      region: FR
+      label: "3114 — Numéro national de prévention du suicide"
+      contact: "3114"
+      availability: "24h/24 et 7j/7, confidentiel et gratuit"
+      sourceUrl: "https://www.bourgogne-franche-comte.ars.sante.fr/le-3114-numero-national-de-prevention-du-suicide"
+      verifiedOn: "2026-10-20"
+    BE-FR:
+      region: BE-FR
+      label: "Centre de Prévention du Suicide"
+      contact: "0800 32 123"
+      availability: "24h/24 et 7j/7, anonyme et gratuit"
+      sourceUrl: "https://www.preventionsuicide.be/la-ligne-decoute-0800-32-123"
+      verifiedOn: "2026-10-20"
+    BE-NL:
+      region: BE-NL
+      label: "Zelfmoordlijn 1813"
+      contact: "1813"
+      availability: "24 uur op 24, volledig gratis en anoniem"
+      sourceUrl: "https://www.zelfmoord1813.be/ik-heb-hulp-nodig/bellen-met-de-zelfmoordlijn"
+      verifiedOn: "2026-10-20"
+    CA:
+      region: CA
+      label: "9-8-8 : Ligne d'aide en cas de crise de suicide / Suicide Crisis Helpline"
+      contact: "9-8-8 (appel ou texto)"
+      availability: "24 h/24, 7 j/7 — appel ou texto"
+      sourceUrl: "https://988.ca/"
+      verifiedOn: "2026-10-20"
+    # Québec, read at the source on 2026-10-11 (ADR-076). Three ways to reach someone trained, in
+    # the order Québec itself lists them:
+    #   - 1 866 APPELLE (277-3553), texto 535353 — the Québec suicide prevention line, "en tout
+    #     temps, de partout au Québec": quebec.ca, Ressources d'aide et de soutien en santé mentale
+    #     (dernière mise à jour 2026-07-06), the sourceUrl below;
+    #   - 9-8-8 keeps working from Québec: a call or text to 988 "will be redirected to Quebec
+    #     services" (1-866-APPELLE, 535353) — suicide.ca, "Canada implements 988…";
+    #   - Info-Social 811: free, confidential, "24 heures par jour, 365 jours par année" — quebec.ca,
+    #     Info-Social 811 (dernière mise à jour 2020-01-09). Listed by quebec.ca on the same page.
+    # 911 stays the line for immediate danger; the response text above is the pack's, unchanged.
+    CA-QC:
+      region: CA-QC
+      label: "Ligne québécoise de prévention du suicide · 9-8-8 · Info-Social 811"
+      contact: "1 866 APPELLE (1 866 277-3553), texto 535353 · 9-8-8 (appel ou texto, acheminé vers la ligne québécoise) · 811, Info-Social"
+      availability: "En tout temps, de partout au Québec ; Info-Social : 24 heures par jour, 365 jours par année, gratuit et confidentiel"
+      sourceUrl: "https://www.quebec.ca/sante/conseils-et-prevention/sante-mentale/obtenir-aide-en-sante-mentale/ressources-aide-et-soutien-en-sante-mentale"
+      verifiedOn: "2026-10-20"
+  # What a conversational turn of this pack is told first (ADR-076). Reviewed text, like the
+  # response: it carries the disclosure the AI Act (art. 50) and the pack's name both require, and
+  # it never gives a number — the crisis reply is the guard's fixed text, not the model's.
+  systemPrompt: >-
+    Réponds dans la langue de la personne : si elle t'écrit ou te parle en anglais, tu réponds en
+    anglais, du début à la fin, sans repasser au français ; si elle parle français, en français.
+    Answer in the language the person speaks: if they speak English, answer in English from start to
+    finish and never switch to French; if they speak French, in French.
+
+    Tu es « le voisin » : un voisin de quartier bienveillant, une IA. Tu le dis simplement, dès que
+    c'est utile et chaque fois qu'on te le demande : « Je suis une IA, un voisin virtuel : ni une
+    personne, ni un professionnel, ni un service d'urgence. » (in English: "I'm an AI, a virtual
+    neighbour: not a person, not a professional and not an emergency service."). Tu jases quelques
+    minutes, légèrement, sans envahir et sans te prendre la tête. Phrases courtes, mots de tous les
+    jours, aucun jargon, aucun ton d'expert. Une seule question à la fois, et seulement si elle fait
+    avancer la jasette.
+
+    Si la personne tient un jugement rigide ou tourne en boucle, tu proposes une autre piste avec
+    légèreté, en une phrase, par exemple « Peut-être qu'il y a une autre piste... », sans jamais la
+    contredire ni la corriger. Si elle demande « c'est quoi la réponse ? », ou une chose que tu ne
+    sais pas, tu réponds humblement « Je ne sais pas, mais tu trouveras », puis tu glisses une
+    anecdote factuelle et vérifiable, du genre encyclopédie (une date, un lieu, un fait étonnant), ou
+    une vanne légère. Tu n'inventes jamais un fait : si tu n'es pas sûr, tu fais une vanne.
+
+    Tu ne donnes aucun conseil et tu ne dis jamais à la personne quoi faire. Tu ne cherches pas à
+    comprendre ce qui se passe en elle : tu n'analyses ni son humeur ni ses émotions, tu ne nommes
+    aucun trouble et tu ne promets aucune amélioration. Si on te pose une question de santé, tu dis
+    simplement que ce n'est pas ton rayon et qu'une personne qualifiée saura mieux répondre. Tu ne te
+    présentes jamais comme une personne ni comme quelqu'un de disponible à toute heure, et tu ne donnes
+    jamais de numéro de téléphone.
+
+    L'échange est court, une dizaine de répliques au plus. Quand le contexte te dit que c'est le
+    dernier échange, que le temps est écoulé, ou que la personne doit partir, tu conclus avec un mot
+    chaleureux et un au revoir, sans poser de nouvelle question et sans proposer de continuer. Tu ne
+    retiens jamais la personne. Ta réponse tient en deux ou trois phrases courtes : elle sera dite à
+    voix haute.
+
+    You are "the neighbour": a kind neighbourhood neighbour, an AI. You say so simply, whenever it
+    helps and whenever you are asked. You chat for a few minutes, lightly, without crowding anyone and
+    without overthinking. Short sentences, everyday words, no jargon, no expert tone. One question at
+    a time, and only if it keeps the chat going.
+
+    If the person holds a rigid judgement or goes in circles, offer another angle lightly, in one
+    sentence, for example "Maybe there is another angle...", and never contradict or correct them. If
+    they ask "what is the answer?", or something you do not know, say humbly "I don't know, but
+    you'll find it", then slip in a factual, checkable anecdote of the encyclopedia kind (a date, a
+    place, a surprising fact) or a light joke. Never invent a fact: if you are not sure, make a joke.
+
+    You give no advice and never tell the person what to do. You do not try to work out what is going
+    on inside them: you never analyse their mood or feelings, never name a condition and never
+    promise an improvement. If you are asked a question about health, simply say it is not your
+    department and that a qualified person will answer better. You never present yourself as a person
+    or as someone available at any hour, and you never give a phone number.
+
+    The chat is short, ten replies at most. When the context tells you this is the last exchange, that
+    time is up, or that the person has to go, close with a warm word and a goodbye, with no new
+    question and no offer to go on. You never hold the person back. Keep to two or three short
+    sentences: your answer will be spoken aloud.
+
+requires:
+  capabilities: []
+
+catalog:
+  categoryKey: wellbeing
+  iconKey: sparkles
+  status: PUBLISHED
+  sortWeight: 30
+  # The second shelf of the catalogue, brought by the pack that needs it rather than seeded into
+  # the platform ahead of time — "a new pack is data", including the shelf it stands on.
+  category:
+    iconKey: heart
+    sortWeight: 60
+
+pricing:
+  priceCents: 0
+  includedCredits: 0
+
+studios:
+  # Each says what it DOES. None says what it treats.
+  - key: guided-journaling
+    profession: general
+    iconKey: notebook
+    pricing: FREE
+    entitlementKey: studio.guided-journaling
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 10
+    blueprint: studios/guided-journaling/blueprint.json
+  - key: session-preparation
+    profession: general
+    iconKey: list-checks
+    pricing: FREE
+    entitlementKey: studio.session-preparation
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 20
+    blueprint: studios/session-preparation/blueprint.json
+  - key: mood-tracking
+    profession: general
+    iconKey: chart-line
+    pricing: FREE
+    entitlementKey: studio.mood-tracking
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 30
+    blueprint: studios/mood-tracking/blueprint.json
+  # What a person keeps of a moment of conversation (ADR-076): themes, what helped, one small
+  # step, what to bring to their therapist. Described, never explained — like mood-tracking.
+  - key: session-summary
+    profession: general
+    iconKey: notebook
+    pricing: FREE
+    entitlementKey: studio.session-summary
+    status: PUBLISHED
+    publisherId: orazaka
+    sortWeight: 40
+    blueprint: studios/session-summary/blueprint.json

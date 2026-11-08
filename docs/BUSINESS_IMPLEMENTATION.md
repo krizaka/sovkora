@@ -1,12 +1,12 @@
 ---
-title: 'Orazaka: Business Implementation Playbook'
-description: 'Documentation for Orazaka: Business Implementation Playbook'
+title: 'Sovkora: Business Implementation Playbook'
+description: 'Documentation for Sovkora: Business Implementation Playbook'
 category: Core Features
 order: 9
 ---
-# Orazaka: Business Implementation Playbook
+# Sovkora: Business Implementation Playbook
 
-> Developer playbook demonstrating how to build a product (CinePulse) on Orazaka.
+> Developer playbook demonstrating how to build a product (CinePulse) on Sovkora.
 
 ---
 
@@ -17,7 +17,7 @@ CinePulse is a multi-modal entertainment discovery platform:
 - **Audio Recognition**: Identifies movie soundtracks using audio fingerprints.
 - **Visual Recognition**: Identifies movie screenshots, posters, or scenes.
 
-| Screen | Purpose | Orazaka Pipeline |
+| Screen | Purpose | Sovkora Pipeline |
 | :--- | :--- | :--- |
 | **Dashboard** | Recommendation feed | `UserContextResolver` + `RagInterceptor` |
 | **Recognition** | Visual/Audio media matching | `Vision` + `Audio` pre-processor pipeline |
@@ -138,16 +138,16 @@ public class CinePulseController {
 ### Build Sequence
 ```bash
 # 1. Build identity logic
-mvn clean install -pl krizaka/krizaka-build/krizaka-users/krizaka-users-core
+mvn clean install -pl krizaka-users/krizaka-users-core   # in krizaka-java
 
 # 2. Compile gateway API with dependencies
-mvn clean compile -pl orazaka-apps/services/orazaka-conversation-service -am
+mvn clean compile -pl services/conversation/sovkora-conversation-service -am
 
 # 3. Build CLI executable
-npm run build --prefix orazaka-apps/ui/orazaka-cli
+npm run build --prefix apps/cli
 
 # 4. Install UI workspace dependencies
-npm install --prefix orazaka-apps/ui
+pnpm install
 ```
 
 ### Start Services

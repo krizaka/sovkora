@@ -1,0 +1,99 @@
+# Orazaka mobile builds, from CI, on Expo's servers (EAS): the iOS build goes to TestFlight, the Android APK to a GitHub release.
+# Credentials are the org's secrets and variable (Expo token, Apple team, App Store Connect key). Never printed.
+name: Mobile release
+
+on:
+  push:
+    tags: ["mobile-v*"]
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: "iOS: the EAS build to submit to TestFlight (free). No cloud build is started from here."
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: apps/mobile
+
+concurrency:
+  group: mobile-release
+  cancel-in-progress: false
+
+jobs:
+  ios:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 22, package-manager-cache: false }
+      - run: npx --yes pnpm@12.10.1 install --frozen-lockfile --ignore-scripts --filter .
+      - name: App Store Connect access for EAS
+        env:
+          ASC_KEY_BODY: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY: ${{ vars.ASC_KEY_ID }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          umask 077
+          printf '%s' "$ASC_KEY_BODY" > "$RUNNER_TEMP/asc-key.txt"
+          node -e '
+            const fs = require("fs"), crypto = require("crypto");
+            const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+            const now = Math.floor(Date.now() / 1000);
+            const head = b64({ alg: "ES256", kid: process.env.ASC_KEY, typ: "JWT" });
+            const body = b64({ iss: process.env.ASC_ISSUER, iat: now, exp: now + 600, aud: "appstoreconnect-v1" });
+            const sig = crypto.sign("sha256", Buffer.from(head + "." + body), { key: fs.readFileSync(process.env.RUNNER_TEMP + "/asc-key.txt"), dsaEncoding: "ieee-p1363" }).toString("base64url");
+            fetch("https://api.appstoreconnect.apple.com/v1/apps?filter[bundleId]=com.krizaka.orazaka", { headers: { Authorization: "Bearer " + head + "." + body + "." + sig } })
+              .then((r) => r.json())
+              .then((j) => {
+                const id = j.data && j.data[0] && j.data[0].id;
+                if (!id) { console.error("No App Store Connect app with bundle id com.krizaka.orazaka: create the app record once (App Store Connect, Apps, +)."); process.exit(1); }
+                const eas = JSON.parse(fs.readFileSync("eas.json", "utf8"));
+                eas.submit = { testflight: { ios: { ascAppId: id, ascApiKeyPath: process.env.RUNNER_TEMP + "/asc-key.txt", ascApiKeyIssuerId: process.env.ASC_ISSUER, ascApiKeyId: process.env.ASC_KEY, appleTeamId: process.env.TEAM } } };
+                fs.writeFileSync("eas.json", JSON.stringify(eas, null, 2));
+              });'
+      - name: Install EAS CLI (pinned, no lifecycle scripts)
+        run: npm install --global --ignore-scripts eas-cli@25.3.0
+      - name: Submit the build to TestFlight (free)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          BUILD_ID: ${{ inputs.build_id }}
+        run: eas submit --platform ios --id "$BUILD_ID" --profile testflight --non-interactive
+
+  android:
+    # Expo's free plan has 15 cloud iOS builds a month: a cloud build only on a release tag, and only after asking.
+    if: startsWith(github.ref, 'refs/tags/mobile-v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 22, package-manager-cache: false }
+      - run: npx --yes pnpm@12.10.1 install --frozen-lockfile --ignore-scripts --filter .
+      - name: Install EAS CLI (pinned, no lifecycle scripts)
+        run: npm install --global --ignore-scripts eas-cli@25.3.0
+      - name: Build the APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas build --platform android --profile preview --non-interactive --wait --json > build.json
+          node -e 'const b = JSON.parse(require("fs").readFileSync("build.json", "utf8"))[0]; if (!b.artifacts?.buildUrl) process.exit(1); console.log(b.artifacts.buildUrl)' > url.txt
+          curl -fsSL "$(cat url.txt)" -o orazaka-android.apk
+      - name: Publish on a GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="android-$(date -u +%Y%m%d-%H%M)"
+          gh release create "$tag" orazaka-android.apk --title "Orazaka for Android (dev build)" --notes "Installable APK of the dev build (not on Google Play: no account yet). Allow installs from this source, then open the file." --prerelease

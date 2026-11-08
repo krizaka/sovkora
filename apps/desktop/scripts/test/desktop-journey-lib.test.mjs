@@ -52,6 +52,6 @@ describe("the embedded WebDriver never reaches a release", () => {
     const journey = read("../desktop-journey.mjs");
     assert.match(journey, /KRIZAKA_FILM_DIR/);
     assert.doesNotMatch(journey.replace(/^\s*\/\/.*$/gm, ""), /screencapture/);
-    assert.match(read("../../../../.github/workflows/desktop-film.yml"), /krizaka-tauri-kit\/\.github\/actions\/film@/);
+    assert.match(read("../../../../.github/workflows/desktop-film.yml"), /krizaka-desktop\/\.github\/actions\/film@[0-9a-f]{40}/);
   });
 });

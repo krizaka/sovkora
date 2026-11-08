@@ -1,0 +1,211 @@
+{
+  "version": "1.4.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 40,
+  "changelog": "1.4.0 — libellés des sorties en anglais et français (x-i18n). 1.3.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). 1.2.0 — les listes sont de vraies listes : le catalogue alimente les modèles, et chaque libellé, chaque aide (140 caractères au plus) est écrit en français et en anglais (`x-i18n`) ; l'aide longue des modèles devient le comparateur du formulaire. 1.1.0 — Le kit cinématographique Krizaka : chaque plan est dirigé comme un long métrage (objectif en mm, mouvement de caméra, lumière principale et de contre, profondeur de champ, atmosphère, rythme, règle des 180°, ralenti et rampe de vitesse vers le moment fort) et la liste de plans porte `lens`, `lighting` et `atmosphere` pour chaque plan. 1.0.0 — Le script d'un court métrage cinématographique (ADR-080) : un brief devient un titre, une bible visuelle, des personnages décrits, une musique, une voix off et une liste de 8 à 12 plans (cadre, action, effets, image clé, mouvement, transition, ralenti). Personnages, logos et marques toujours originaux ; jamais une personne réelle ; un format « nouvelles » a un présentateur IA déclaré et un sujet général. C'est la première étape d'une production `orazaka cinema` : chaque plan devient ensuite une image clé (Génération d'image), un plan vidéo (Génération vidéo, Wan 2.2 I2V A14B) puis le montage (Montage cinématographique).",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "cinematic-script",
+    "version": "1.4.0",
+    "steps": [
+      {
+        "id": "script",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.core.chat.completion",
+        "dependsOn": [],
+        "inputs": {
+          "prompt": "You are the writer and director of a {{inputs.durationSeconds}}-second {{inputs.format}} short video, aspect {{inputs.aspect}}, cut from {{inputs.shots}} shots of about 5 seconds each. The brief: {{inputs.brief}}\n\nRULES (never break them): every character, team, city landmark sign, logo, costume and emblem is ORIGINAL — no character, name, logo or trademark of Marvel, DC or any other studio or brand, no real person's name or likeness, no celebrity, no real politician. A news format uses an original anchor persona who is clearly an AI presenter, speaks about a general or clearly fictional topic, and never states facts about real people or real recent events. Nothing sexual, nothing gory. No text, letters or logos inside the pictures (titles are added in the edit).\n\nAnswer with ONE JSON object and nothing else, in English, of this shape:\n{\"title\": short title, \"logline\": one sentence, \"grade\": one of none|teal-orange|neon-night|warm-film|clean-news|nordic, \"style\": the visual bible in one paragraph (palette, light, lens, texture, era) repeated in every picture, \"characters\": [{\"id\": short id, \"description\": face, age, build, hair, costume, colours — precise enough to draw the same person twice}], \"music\": a music prompt (genre, tempo, instruments, mood, no vocals), \"ambience\": the sound bed under the film, one of rain|storm|wind|city|room|nature|none, \"voiceover\": the narration read over the film (empty string when none; at most 2.3 words per second of film), \"titles\": [{\"text\", \"start\" seconds, \"end\" seconds, \"style\": hero|kicker|lower-third|end}], \"shots\": [{\"id\": 1.., \"seconds\": 3 to 5, \"characters\": [ids in the shot], \"camera\": framing and move, \"lens\": focal length in mm, \"lighting\": key, rim and practicals, \"atmosphere\": air and particles, \"action\": what happens, \"vfx\": the effects (energy, sparks, debris, light) or empty, \"keyframe\": a full still-image prompt of the FIRST frame (subject, pose, place, light; repeats the characters' looks), \"motion\": a video prompt of what moves during the shot (camera and subject), \"transition\": how this shot is entered: cut|dissolve|flash|whip|black|slide|fade, \"speed\": 1, or 0.5 for slow motion, \"rampAt\": seconds into the shot where it slows to 0.4, or null, \"caption\": on-screen caption for this shot or empty}]}.\nTHE KRIZAKA CINEMATIC KIT (direct every shot like a feature film, never a one-liner): name the LENS in mm (14 ultra-wide, 24 wide, 35 street, 50 normal, 85 portrait, 135 tele, 100 macro); the CAMERA MOVE (locked-off, slow dolly in, dolly out, crane up, crane down, orbit, tracking, handheld, whip pan, drone glide, push-in) and its speed; the LIGHTING (key and rim, practicals, neon, golden hour, blue hour, overcast soft light, volumetric god rays, lightning flashes); DEPTH OF FIELD (shallow f/1.4 bokeh or deep focus); ATMOSPHERE (rain, haze, mist, snow, dust, embers, particles, lens flare); the PACE (slow, measured, kinetic) and how the shot cuts to the next. Vary shot sizes (extreme wide, wide, medium, close-up, extreme close-up, insert), keep the 180-degree rule and screen direction, use slow motion for impact, a speed ramp into the hero moment, and end on a held hero image. Make it cinematic: vary shot sizes (wide, medium, close-up, insert), keep screen direction, build to a climax, end on a strong last image. Language of the captions, titles and voice-over: {{inputs.language}}.",
+          "model": "{{inputs.model:}}"
+        },
+        "out": "script",
+        "onError": "RETRY",
+        "maxAttempts": 2,
+        "timeout": "PT5M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "script",
+        "label": "Le script et la liste de plans (JSON)",
+        "from": "{{steps.script.content}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "The script and the shot list (JSON)"
+          },
+          "fr": {
+            "label": "Le script et la liste de plans (JSON)"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["brief"],
+    "properties": {
+      "brief": {
+        "type": "string",
+        "format": "prose",
+        "minLength": 10,
+        "maxLength": 2000,
+        "title": "Le brief",
+        "description": "L'histoire, le lieu, l'ambiance, ce qui doit marquer. Personnages originaux seulement.",
+        "x-i18n": {
+          "en": {
+            "title": "The brief",
+            "description": "The story, the place, the mood, what should stand out. Original characters only.",
+            "placeholder": "A night ferry crossing the St. Lawrence at dawn…"
+          },
+          "fr": {
+            "title": "Le brief",
+            "description": "L'histoire, le lieu, l'ambiance, ce qui doit marquer. Personnages originaux seulement.",
+            "placeholder": "Un traversier de nuit sur le Saint-Laurent, à l'aube…"
+          }
+        }
+      },
+      "format": {
+        "type": "string",
+        "enum": ["superhero-vfx", "social-reel", "news-explainer", "trailer", "custom"],
+        "default": "custom",
+        "title": "Le format",
+        "description": "La famille de film que suit le script. Libre : vous écrivez le brief.",
+        "x-i18n": {
+          "en": {
+            "title": "Kind of film",
+            "description": "The family of film the script follows. Custom: you write the brief.",
+            "options": {
+              "superhero-vfx": "Superhero · original action and effects",
+              "social-reel": "Social reel · seasons, street, music",
+              "news-explainer": "News explainer · a declared AI presenter",
+              "trailer": "Trailer",
+              "custom": "Custom · from your brief"
+            }
+          },
+          "fr": {
+            "title": "Le format",
+            "description": "La famille de film que suit le script. Libre : vous écrivez le brief.",
+            "options": {
+              "superhero-vfx": "Super-héros · action et effets originaux",
+              "social-reel": "Reel social · saisons, rue, musique",
+              "news-explainer": "Explicatif · un présentateur IA déclaré",
+              "trailer": "Bande-annonce",
+              "custom": "Libre · selon votre brief"
+            }
+          }
+        }
+      },
+      "aspect": {
+        "type": "string",
+        "enum": ["9:16", "16:9"],
+        "default": "9:16",
+        "title": "Format d'image",
+        "description": "9:16 : Reels, TikTok, Shorts. 16:9 : YouTube, un écran.",
+        "x-i18n": {
+          "en": {
+            "title": "Frame",
+            "description": "9:16 for Reels, TikTok and Shorts. 16:9 for YouTube and screens.",
+            "options": {
+              "9:16": "Vertical 9:16 · TikTok, Reels",
+              "16:9": "Wide 16:9 · YouTube"
+            }
+          },
+          "fr": {
+            "title": "Format d'image",
+            "description": "9:16 : Reels, TikTok, Shorts. 16:9 : YouTube, un écran.",
+            "options": {
+              "9:16": "Vertical 9:16 · TikTok, Reels",
+              "16:9": "Large 16:9 · YouTube"
+            }
+          }
+        }
+      },
+      "durationSeconds": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 60,
+        "default": 45,
+        "title": "Durée (secondes)",
+        "description": "La durée du film monté : de 30 secondes à une minute.",
+        "x-i18n": {
+          "en": {
+            "title": "Duration (seconds)",
+            "description": "The length of the edited film: from 30 seconds to a minute."
+          },
+          "fr": {
+            "title": "Durée (secondes)",
+            "description": "La durée du film monté : de 30 secondes à une minute."
+          }
+        }
+      },
+      "shots": {
+        "type": "integer",
+        "minimum": 8,
+        "maximum": 12,
+        "default": 10,
+        "title": "Nombre de plans",
+        "description": "Chaque plan est une image clé puis une vidéo de 5 secondes : le coût suit le nombre de plans.",
+        "x-i18n": {
+          "en": {
+            "title": "Number of shots",
+            "description": "Each shot is a key image then a 5-second video: the cost follows the number of shots."
+          },
+          "fr": {
+            "title": "Nombre de plans",
+            "description": "Chaque plan est une image clé puis une vidéo de 5 secondes : le coût suit le nombre de plans."
+          }
+        }
+      },
+      "language": {
+        "type": "string",
+        "enum": ["en", "fr"],
+        "default": "en",
+        "title": "Langue des textes",
+        "description": "La langue des titres, sous-titres et de la voix off.",
+        "x-i18n": {
+          "en": {
+            "title": "Text language",
+            "description": "The language of the titles, subtitles and voice-over.",
+            "options": {
+              "en": "English",
+              "fr": "French"
+            }
+          },
+          "fr": {
+            "title": "Langue des textes",
+            "description": "La langue des titres, sous-titres et de la voix off.",
+            "options": {
+              "en": "Anglais",
+              "fr": "Français"
+            }
+          }
+        }
+      },
+      "model": {
+        "type": "string",
+        "maxLength": 120,
+        "title": "Modèle de langage",
+        "description": "Le modèle de conversation qui répond. Auto prend celui de la plateforme.",
+        "x-options": {
+          "source": "models",
+          "category": "chat"
+        },
+        "x-advanced": true,
+        "x-i18n": {
+          "en": {
+            "title": "Language model",
+            "description": "The chat model that answers. Auto picks the platform default."
+          },
+          "fr": {
+            "title": "Modèle de langage",
+            "description": "Le modèle de conversation qui répond. Auto prend celui de la plateforme."
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

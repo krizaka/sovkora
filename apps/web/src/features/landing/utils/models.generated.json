@@ -1,0 +1,544 @@
+{
+  "models": [
+    {
+      "id": "whisper-base",
+      "name": "Whisper Base",
+      "vendor": "OpenAI",
+      "family": "Whisper",
+      "capabilities": ["speech-to-text"],
+      "runsOn": "local",
+      "runtime": "LocalAI · whisper.cpp",
+      "openWeights": true,
+      "licence": {
+        "name": "MIT",
+        "url": "https://github.com/openai/whisper/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "qwen2.5-coder:7b",
+      "name": "Qwen 2.5 Coder 7B",
+      "vendor": "Alibaba Cloud",
+      "family": "Qwen 2.5 Coder",
+      "capabilities": ["code"],
+      "runsOn": "local",
+      "runtime": "Ollama",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 32768,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "flux-2-klein-4b",
+      "name": "FLUX.2 [klein] 4B",
+      "vendor": "Black Forest Labs",
+      "family": "FLUX.2 klein",
+      "capabilities": ["image"],
+      "runsOn": "local",
+      "runtime": "stable-diffusion.cpp · Metal, CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": "2026-10-15"
+    },
+    {
+      "id": "acestep-v15-xl-turbo",
+      "name": "ACE-Step 1.5 XL turbo (music bed)",
+      "vendor": "ACE Studio · StepFun",
+      "family": "ACE-Step 1.5",
+      "capabilities": ["music"],
+      "runsOn": "local",
+      "runtime": "worker-media · Metal, CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "MIT",
+        "url": "https://huggingface.co/ACE-Step/acestep-v15-xl-turbo-diffusers"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-en-medium-ljspeech",
+      "name": "Piper LJSpeech (en)",
+      "vendor": "Rhasspy",
+      "family": "Piper (en-US, LJSpeech)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "Public domain",
+        "url": "https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/ljspeech/medium/MODEL_CARD"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "animatediff-lightning-mps",
+      "name": "AnimateDiff Lightning",
+      "vendor": "ByteDance",
+      "family": "AnimateDiff-Lightning",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "PyTorch MPS · Apple Metal",
+      "openWeights": true,
+      "licence": {
+        "name": "CreativeML OpenRAIL-M",
+        "url": "https://huggingface.co/ByteDance/AnimateDiff-Lightning/blob/main/README.md"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "llava:latest",
+      "name": "LLaVA (latest)",
+      "vendor": "LLaVA team",
+      "family": "LLaVA 1.6",
+      "capabilities": ["vision"],
+      "runsOn": "local",
+      "runtime": "Ollama",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://ollama.com/library/llava"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "default",
+      "lastVerified": null
+    },
+    {
+      "id": "whisper-tiny-en",
+      "name": "Whisper Tiny (en)",
+      "vendor": "OpenAI",
+      "family": "Whisper",
+      "capabilities": ["speech-to-text"],
+      "runsOn": "local",
+      "runtime": "LocalAI · whisper.cpp",
+      "openWeights": true,
+      "licence": {
+        "name": "MIT",
+        "url": "https://github.com/openai/whisper/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "qwen2.5:7b",
+      "name": "Qwen 2.5 7B Instruct",
+      "vendor": "Alibaba Cloud",
+      "family": "Qwen 2.5",
+      "capabilities": ["chat"],
+      "runsOn": "local",
+      "runtime": "Ollama",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 32768,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "codellama:7b",
+      "name": "CodeLlama 7B",
+      "vendor": "Meta",
+      "family": "Code Llama",
+      "capabilities": ["code"],
+      "runsOn": "local",
+      "runtime": "Ollama",
+      "openWeights": true,
+      "licence": {
+        "name": "Llama 2 Community Licence",
+        "url": "https://ai.meta.com/llama/license/"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": 16384,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "mmaudio-large-44k-v2",
+      "name": "MMAudio large 44k v2 (foley) — non-commercial",
+      "vendor": "Sony · Hkchengrex (UIUC)",
+      "family": "MMAudio",
+      "capabilities": ["video-to-audio"],
+      "runsOn": "local",
+      "runtime": "worker-media · Metal, CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "CC-BY-NC-4.0",
+        "url": "https://github.com/hkchengrex/MMAudio#licenses"
+      },
+      "commercialUse": "no",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "argmaxinc/mlx-FLUX.1-schnell-4bit-quantized",
+      "name": "FLUX.1 Schnell 4-bit (MLX)",
+      "vendor": "Black Forest Labs",
+      "family": "FLUX.1 schnell",
+      "capabilities": ["image"],
+      "runsOn": "local",
+      "runtime": "MLX · Apple Silicon",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/argmaxinc/mlx-FLUX.1-schnell-4bit-quantized/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "v1-5-pruned-emaonly",
+      "name": "Stable Diffusion 1.5",
+      "vendor": "Stability AI",
+      "family": "Stable Diffusion 1.5",
+      "capabilities": ["image"],
+      "runsOn": "local",
+      "runtime": "stable-diffusion.cpp · Metal, CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "CreativeML OpenRAIL-M",
+        "url": "https://huggingface.co/spaces/CompVis/stable-diffusion-license"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "vendor": "Tongyi Lab (Alibaba)",
+      "family": "Z-Image",
+      "capabilities": ["image"],
+      "runsOn": "local",
+      "runtime": "stable-diffusion.cpp · Metal, CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-en-low",
+      "name": "Piper Low (en)",
+      "vendor": "Rhasspy",
+      "family": "Piper (en-US, Lessac)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "Lessac Blizzard 2013 data licence",
+        "url": "https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html"
+      },
+      "commercialUse": "no",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-en-medium-ryan",
+      "name": "Piper Ryan (en)",
+      "vendor": "Rhasspy",
+      "family": "Piper (en-US, Ryan)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "CC BY-NC-SA 4.0",
+        "url": "https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/ryan/medium/MODEL_CARD"
+      },
+      "commercialUse": "no",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-fr-medium",
+      "name": "Piper Medium (fr)",
+      "vendor": "Rhasspy",
+      "family": "Piper (fr-FR, UPMC)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "CC BY-SA 4.0",
+        "url": "https://huggingface.co/rhasspy/piper-voices/blob/main/fr/fr_FR/upmc/medium/MODEL_CARD"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-fr-siwis-medium",
+      "name": "Piper Siwis (fr-FR, féminine)",
+      "vendor": "Rhasspy",
+      "family": "Piper (fr-FR, Siwis)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "CC BY 4.0",
+        "url": "https://huggingface.co/rhasspy/piper-voices/blob/main/fr/fr_FR/siwis/medium/MODEL_CARD"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "piper-fr-tom-medium",
+      "name": "Piper Tom (fr-FR, masculine)",
+      "vendor": "Rhasspy",
+      "family": "Piper (fr-FR, Tom)",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "LocalAI · Piper",
+      "openWeights": true,
+      "licence": {
+        "name": "AGPL-3.0",
+        "url": "https://huggingface.co/rhasspy/piper-voices/blob/main/fr/fr_FR/tom/medium/MODEL_CARD"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "stable-video-diffusion-img2vid-xt",
+      "name": "Stable Video Diffusion XT (heavy, >64GB)",
+      "vendor": "Stability AI",
+      "family": "Stable Video Diffusion",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "CUDA, more than 64 GB of memory",
+      "openWeights": true,
+      "licence": {
+        "name": "Stability AI Community Licence",
+        "url": "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/blob/main/LICENSE.md"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "wan2.1-t2v-1.3b",
+      "name": "Wan 2.1 T2V 1.3B",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.1",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "wan2.2-ti2v-5b",
+      "name": "Wan 2.2 TI2V 5B",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.2",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "vendor": "DeepSeek",
+      "family": "DeepSeek V4",
+      "capabilities": ["chat", "reasoning"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "MIT",
+        "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 1048576,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "gemma-4-31B-it",
+      "name": "Gemma 4 31B",
+      "vendor": "Google",
+      "family": "Gemma 4",
+      "capabilities": ["chat"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/google/gemma-4-31B-it/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 262144,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "llama-4-maverick",
+      "name": "Llama 4 Maverick",
+      "vendor": "Meta",
+      "family": "Llama 4",
+      "capabilities": ["chat"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Llama 4 Community Licence",
+        "url": "https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": 1048576,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "mistral-3-14B",
+      "name": "Mistral 3 14B",
+      "vendor": "Mistral AI",
+      "family": "Mistral 3",
+      "capabilities": ["chat"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 262144,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "gte-large-en-v1.5",
+      "name": "GTE Large (en) v1.5",
+      "vendor": "Alibaba-NLP",
+      "family": "GTE",
+      "capabilities": ["embeddings"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Alibaba-NLP/gte-large-en-v1.5/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 8192,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "stable-diffusion-3.5-large",
+      "name": "Stable Diffusion 3.5 Large (DigitalOcean)",
+      "vendor": "Stability AI",
+      "family": "Stable Diffusion 3.5",
+      "capabilities": ["image"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Stability AI Community Licence",
+        "url": "https://stability.ai/license"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "wan2-2-t2v-a14b",
+      "name": "Wan 2.2 T2V A14B (serverless)",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.2",
+      "capabilities": ["video"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "bge-m3",
+      "name": "BGE-M3",
+      "vendor": "BAAI",
+      "family": "BGE-M3",
+      "capabilities": ["embeddings"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "MIT",
+        "url": "https://huggingface.co/BAAI/bge-m3/blob/main/LICENSE"
+      },
+      "commercialUse": "yes",
+      "contextWindow": 8192,
+      "status": "planned",
+      "lastVerified": null
+    }
+  ]
+}

@@ -6,3 +6,8 @@ d49cb864160ecbe4db78fd5be4a2fdda7819374a:docs/_generated/PACKS.md:generic-api-ke
 d49cb864160ecbe4db78fd5be4a2fdda7819374a:docs/_generated/architecture.json:generic-api-key:4961
 # The same fixture, in the commit the scan flagged (2026-11-01): a test value, now built at runtime so no literal remains.
 34769ec91adcc800ca8691da21b191ac2379ce08:apps/desktop/src-tauri/src/code/tests.rs:aws-access-token:247
+# The Sovkora repositories, imported as one snapshot commit of their current state (ADR-029; founder, 2026-11-07): the two
+# fixtures of the four each repository had reviewed (2026-10-29) that the current state still carries. The org scan allows
+# them in krizaka/.github actions/security-tools/gitleaks.toml, scoped to this commit and these paths.
+ffc78892c048feb20bde660aaa806fc68ccc39a6:engine/sovkora-tools/src/test/java/com/krizaka/sovkora/tools/infrastructure/config/LawReviewConfigurationTest.java:private-key:64
+ffc78892c048feb20bde660aaa806fc68ccc39a6:packs/privacy-law25/pack.yaml:generic-api-key:19

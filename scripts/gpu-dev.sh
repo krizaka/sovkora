@@ -18,7 +18,7 @@
 #   big   = NVIDIA L40S 48 GB (or RTX 6000 Ada 48 GB), $1.57/h — Wan 2.2 TI2V 5B, 704x1280, 5 s @ 24 fps
 #   small = NVIDIA RTX 4000 Ada 20 GB, $0.76/h          — Wan 2.1 T2V 1.3B, 480x832, 5 s @ 16 fps
 #
-# The droplet runs ghcr.io/krizaka/orazaka-worker-media:cuda-latest (sd-server + the worker), its weights on
+# The droplet runs ghcr.io/krizaka/sovkora-media-worker:cuda-latest (sd-server + the worker), its weights on
 # a Volume that outlives it (orazaka-gpu-models-<region>, 80 GB, ≈ $8/month), and dials OUT to the relay of
 # www.orazaka.com (https://www.orazaka.com/gpu-relay): no public port, RabbitMQ never exposed. A watchdog on
 # the droplet destroys it after 30 min without a job (and after GPU_MAX_HOURS whatever it does).
@@ -36,7 +36,7 @@ TAG="orazaka-gpu-dev"
 PROJECT="orazaka"
 IMAGE="${GPU_IMAGE:-gpu-h100x1-base}"          # DigitalOcean's NVIDIA AI/ML-ready Ubuntu (drivers, Docker)
 REGIONS="${GPU_REGIONS:-tor1 nyc2 atl1 ams3}"   # tor1 first (the app and the cluster are in Toronto)
-WORKER_IMAGE="${GPU_WORKER_IMAGE:-ghcr.io/krizaka/orazaka-worker-media:cuda-latest}"
+WORKER_IMAGE="${GPU_WORKER_IMAGE:-ghcr.io/krizaka/sovkora-media-worker:cuda-latest}"
 CHISEL_IMAGE="${GPU_CHISEL_IMAGE:-jpillora/chisel:1.12.1}"
 OLLAMA_IMAGE="${GPU_OLLAMA_IMAGE:-ollama/ollama:0.40.4}"
 # Chat and vision for the Studios while the GPU runs (sovereign: Apache-2.0 models on our GPU, no third party).
@@ -136,7 +136,7 @@ relay_secret() {
   if [[ -n "$current" ]]; then say "AI_GPU_RELAY_PASSWORD already in $ENV_FILE"; return; fi
   python3 -c 'import secrets; print("AI_GPU_RELAY_PASSWORD=" + secrets.token_urlsafe(32))' >> "$ENV_FILE"
   chmod 600 "$ENV_FILE"
-  say "AI_GPU_RELAY_PASSWORD added to $ENV_FILE — apply it: node scripts/dev-deploy.mjs apply orazaka-dev"
+  say "AI_GPU_RELAY_PASSWORD added to $ENV_FILE — apply it: node scripts/dev-deploy.mjs apply sovkora-dev"
 }
 
 ledger_add() { mkdir -p "$(dirname "$LEDGER")"; [[ -f "$LEDGER" ]] || printf 'droplet\tsize\tregion\tusd_per_hour\tcreated_at\tdestroyed_at\tprofile\n' > "$LEDGER"; printf '%s\n' "$1" >> "$LEDGER"; }
@@ -394,7 +394,7 @@ PY
   # The same remotes as a droplet: the broker and the job service in, and the Mac's own engines back into the app
   # (LocalAI :8085 — Whisper and Piper —, sd-server :8086, the worker's pipeline :8188, Ollama :11434) — whichever of them runs on the Mac answers.
   echo "  set -a; . $out; set +a; chisel client --keepalive 25s $RELAY_URL 127.0.0.1:15671:broker-dev.orazaka.com:5671 127.0.0.1:18090:core:8090 R:0.0.0.0:8085:127.0.0.1:8085 R:0.0.0.0:8086:127.0.0.1:8086 R:0.0.0.0:8188:127.0.0.1:8188 R:0.0.0.0:11434:127.0.0.1:11434"
-  echo "  set -a; . $out; set +a; cd orazaka-apps/workers/orazaka-worker-media && .venv/bin/python -u -m app.consumer"
+  echo "  set -a; . $out; set +a; cd workers/media && .venv/bin/python -u -m app.consumer"
 }
 
 # RunPod: the same worker on a pod by the hour (scripts/lib/gpu-runpod.sh).

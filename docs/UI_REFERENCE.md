@@ -1,16 +1,16 @@
 ---
-title: Orazaka UI Reference
-description: Documentation for Orazaka UI Reference
+title: Sovkora UI Reference
+description: Documentation for Sovkora UI Reference
 category: UI Guidelines
 order: 13
 ---
-# Orazaka UI Reference
+# Sovkora UI Reference
 
-The Orazaka platform includes a comprehensive client tier housed under `orazaka-apps/ui/` as npm workspaces. The primary web client is a Next.js 16 application designed with cinematic dark-mode and glassmorphism. This document maps out the available interfaces, workflows, and their connections to the backend.
+The Sovkora platform includes a comprehensive client tier housed under `apps/` as npm workspaces. The primary web client is a Next.js 16 application designed with cinematic dark-mode and glassmorphism. This document maps out the available interfaces, workflows, and their connections to the backend.
 
 ## 1. Authentication & Identity
 
-The authentication pages provide a secure ingress to the Orazaka Gateway, issuing secure JWTs and HTTP-only cookies.
+The authentication pages provide a secure ingress to the Sovkora Gateway, issuing secure JWTs and HTTP-only cookies.
 
 *   **Login (`/login`)**: Secure entry point for returning users.
 *   **Register (`/register`)**: Account creation flow for new users. Includes password strength validation.
@@ -20,7 +20,7 @@ The authentication pages provide a secure ingress to the Orazaka Gateway, issuin
 
 ## 2. Playgrounds (The AI Engine)
 
-The Playgrounds are the interactive workspaces where you can directly interact with the Orazaka Unified Engine. They are located under `/playground/`.
+The Playgrounds are the interactive workspaces where you can directly interact with the Sovkora Unified Engine. They are located under `/playground/`.
 
 ### Text & Chat
 *   **Text Chat (`/playground/text/chat`)**: The main interface for interacting with LLMs. Supports multi-turn conversations, persona selection, and real-time streaming responses via Server-Sent Events (SSE). 
@@ -55,7 +55,7 @@ Administrative panels designed for platform operators to monitor the local infra
 
 ## 5. Marketing & Informational
 
-These pages serve to present the value of Orazaka to prospective users.
+These pages serve to present the value of Sovkora to prospective users.
 
 *   **Home (`/`)**: The main landing page showcasing the product's value proposition.
 *   **Unified Engine (`/features/unified-engine`)**: Detailed explanation of the multi-modal orchestration capabilities.
@@ -78,15 +78,15 @@ The UI interacts with the backend strictly through the Next.js API Routes (`src/
 
 ## Workspace Architecture
 
-All client packs are orchestrated by the workspace root at `orazaka-apps/ui/package.json`:
+All client packs are orchestrated by the workspace root at `apps/package.json`:
 
 | Package | Location | Purpose | Port |
 |:---|:---|:---|:---:|
-| `orazaka-web-client` | `orazaka-apps/ui/orazaka-web-client/` | Client-facing Next.js 16 App Router application | 3000 |
-| `orazaka-web-client` (console, `src/app/console`, host `admin.*`) | `orazaka-apps/ui/orazaka-web-client/` | Isolated SecOps Administration Console (the former `orazaka-web-admin`) | same app |
-| `orazaka-mobile-client` | `orazaka-apps/ui/orazaka-mobile-client/` | Expo SDK 53 cross-platform mobile app — 15 screens, wired to the **edge** (`:8088`) with a bearer JWT; auth, chat SSE, Studio, jobs, connectors, profile | 8081 |
-| `orazaka-cli` | `orazaka-apps/ui/orazaka-cli/` | Developer automation CLI with offline SQLite job queue | — |
-| `orazaka-shared` | `orazaka-apps/ui/orazaka-ui-kit/orazaka-shared/` | Shared TypeScript types + Zod validation schemas | — |
+| `orazaka-web-client` | `apps/web/` | Client-facing Next.js 16 App Router application | 3000 |
+| `orazaka-web-client` (console, `src/app/console`, host `admin.*`) | `apps/web/` | Isolated SecOps Administration Console (the former `orazaka-web-admin`) | same app |
+| `orazaka-mobile-client` | `apps/mobile/` | Expo SDK 53 cross-platform mobile app — 15 screens, wired to the **edge** (`:8088`) with a bearer JWT; auth, chat SSE, Studio, jobs, connectors, profile | 8081 |
+| `orazaka-cli` | `apps/cli/` | Developer automation CLI with offline SQLite job queue | — |
+| `orazaka-shared` | `sovkora-ui-kit (now krizaka-ui) orazaka-shared/` | Shared TypeScript types + Zod validation schemas | — |
 
 > All client packs import types from `orazaka-shared` exclusively. Type duplication across packs is banned.
 

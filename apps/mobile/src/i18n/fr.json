@@ -1,0 +1,345 @@
+{
+  "common": {
+    "retry": "Réessayer",
+    "loading": "Chargement",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "back": "Retour",
+    "unavailable": "Indisponible pour le moment",
+    "requestFailed": "La requête a échoué ({status})",
+    "unreachable": "La plateforme est injoignable.",
+    "sessionExpired": "Votre session a expiré. Reconnectez-vous.",
+    "streamInterrupted": "La réponse a été interrompue ({status}).",
+    "emptyJobs": "Aucune tâche pour l’instant."
+  },
+  "tabs": {
+    "studios": "Studios",
+    "chat": "Chat",
+    "jobs": "Tâches",
+    "settings": "Paramètres",
+    "label": "Sections principales"
+  },
+  "screens": {
+    "studio": "Studio",
+    "run": "Exécution",
+    "connectors": "Connecteurs",
+    "system": "Système"
+  },
+  "auth": {
+    "tagline": "Connectez-vous à votre compte",
+    "email": "Courriel",
+    "emailAddress": "Adresse courriel",
+    "password": "Mot de passe",
+    "username": "Nom d’utilisateur",
+    "development": "En développement : encore en test, pas prête pour le public.",
+    "signIn": "Se connecter",
+    "signInFailed": "La connexion a échoué",
+    "forgot": "Mot de passe oublié ?",
+    "create": "Créer un compte",
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Rejoignez Sovkora",
+      "submit": "Créer le compte",
+      "haveAccount": "Déjà un compte ? Se connecter",
+      "failed": "L’inscription a échoué",
+      "verify": "Vérifiez votre boîte de réception : un lien de vérification a été envoyé à {email}."
+    },
+    "forgotScreen": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Saisissez votre courriel, nous vous enverrons un lien de récupération.",
+      "submit": "Envoyer le lien",
+      "sent": "Si cette adresse a un compte, un lien de réinitialisation est en route.",
+      "failed": "La demande a échoué",
+      "back": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "subtitle": "Saisissez votre nouveau mot de passe ci-dessous.",
+      "newPassword": "Nouveau mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "mismatch": "Les deux mots de passe ne correspondent pas.",
+      "submit": "Réinitialiser le mot de passe",
+      "failed": "Le mot de passe n’a pas pu être réinitialisé",
+      "done": "Votre mot de passe a été réinitialisé. Vous pouvez vous connecter."
+    },
+    "invalidCredentials": "Courriel ou mot de passe invalide.",
+    "name": "Sovkora"
+  },
+  "studios": {
+    "empty": "Aucun Studio au catalogue pour l’instant.",
+    "locked": "Verrouillé",
+    "pricing": {
+      "FREE": "Gratuit",
+      "INCLUDED": "Inclus",
+      "PAID": "Payant"
+    },
+    "credits": "{count} crédits par exécution",
+    "notIncluded": "Ce Studio n’est pas inclus dans votre offre.",
+    "open": "Ouvrir",
+    "install": "Installer",
+    "notFound": "Studio introuvable",
+    "installFailed": "Le Studio n’a pas pu être installé",
+    "launch": "Lancer",
+    "listPlaceholder": "Une valeur par ligne",
+    "photoAdd": "Ajouter une photo",
+    "photoSource": "Ajouter depuis",
+    "photoLibrary": "Photothèque",
+    "photoCamera": "Prendre une photo",
+    "photoCancel": "Annuler",
+    "photoRemove": "Retirer la photo",
+    "photoUploading": "Envoi de la photo…",
+    "photoFailed": "La photo n'a pas pu être envoyée. Retirez-la et réessayez.",
+    "startFailed": "L’exécution n’a pas pu démarrer",
+    "followFailed": "Le suivi de l’exécution a été interrompu",
+    "results": "Résultats",
+    "progress": "Avancement",
+    "stepsDone": "{done} étapes sur {total}",
+    "run": {
+      "PENDING_APPROVAL": "En attente d’approbation",
+      "RUNNING": "En cours",
+      "AWAITING_INPUT": "En attente de votre réponse",
+      "SUCCEEDED": "Terminé",
+      "FAILED": "Échec",
+      "CANCELLED": "Annulé",
+      "COMPENSATING": "Annulation en cours"
+    },
+    "step": {
+      "PENDING": "En attente",
+      "RUNNING": "En cours",
+      "SUCCEEDED": "Terminé",
+      "FAILED": "Échec",
+      "SKIPPED": "Ignoré",
+      "CANCELLED": "Annulé"
+    },
+    "fields": {
+      "image-generation": {
+        "prompt": "Ce que vous voulez voir"
+      },
+      "video-generation": {
+        "prompt": "Ce qui doit se passer à l’écran"
+      },
+      "speech-synthesis": {
+        "text": "Le texte à lire"
+      },
+      "seed": "Graine",
+      "size": "Format",
+      "model": "Modèle",
+      "negativePrompt": "À éviter (facultatif)",
+      "image": "Image d’amorce (facultatif)",
+      "aspect": "Format",
+      "durationSeconds": "Durée (secondes)",
+      "voice": "Voix",
+      "prompt": "Description",
+      "text": "Texte"
+    },
+    "generating": "En cours…",
+    "runAgain": "Nouvelle exécution",
+    "moreOptions": "Plus d’options",
+    "fewerOptions": "Moins d’options",
+    "failedHint": "La plateforme n’a pas pu terminer cette exécution. Réessayez, ou choisissez un autre modèle dans Plus d’options.",
+    "form": {
+      "automatic": "Automatique · {name}",
+      "automaticPlain": "Automatique (recommandé)",
+      "automaticHint": "La plateforme choisit pour vous la meilleure option disponible.",
+      "seedRandom": "Au hasard",
+      "seedRandomHint": "Un nouveau résultat à chaque fois. Désactivez pour en refaire un avec sa graine.",
+      "seedPlaceholder": "Numéro de graine",
+      "searchOptions": "Chercher ou choisir",
+      "local": "Local",
+      "cloud": "Infonuagique",
+      "fast": "Rapide",
+      "balanced": "Équilibré",
+      "slow": "Lent",
+      "about": "environ {n} s",
+      "perRun": "{price} par essai",
+      "free": "Gratuit",
+      "choicesUnreachable": "La liste n’a pas pu être chargée ; la plateforme choisira pour vous."
+    },
+    "choices": {
+      "size": {
+        "1024x1024": "Carré · 1024×1024",
+        "1024x1280": "Portrait 4:5 · 1024×1280",
+        "1360x768": "Paysage 16:9 · 1360×768",
+        "768x1360": "Vertical 9:16 · 768×1360",
+        "512x512": "Aperçu rapide · 512×512"
+      },
+      "aspect": {
+        "9:16": "Vertical 9:16",
+        "16:9": "Large 16:9",
+        "1:1": "Carré 1:1"
+      }
+    },
+    "document": {
+      "choose": "Choisir un PDF",
+      "replace": "Choisir un autre PDF",
+      "remove": "Retirer le fichier",
+      "reading": "Vérification du fichier…",
+      "ready": "{name} est prêt",
+      "size": "{size} Mo",
+      "readFailed": "Le fichier n’a pas pu être lu. Essayez-en un autre.",
+      "refused": {
+        "EMPTY": "Ce fichier est vide.",
+        "TOO_LARGE": "Ce fichier est trop volumineux pour cette vérification ({max} Mo au plus).",
+        "UNSUPPORTED_TYPE": "Seul un PDF peut être vérifié ici.",
+        "TYPE_MISMATCH": "Ce fichier n’est pas ce que son nom annonce. Choisissez un vrai PDF.",
+        "EXECUTABLE": "Ce fichier est un programme, pas un document.",
+        "CORRUPT": "Ce PDF est abîmé et ne peut pas être lu.",
+        "TRUNCATED": "Ce PDF est incomplet : il a été coupé à l’enregistrement ou à l’envoi.",
+        "ENCRYPTED": "Ce PDF est protégé par un mot de passe. Retirez la protection et réessayez.",
+        "ACTIVE_CONTENT": "Ce PDF contient du contenu actif (un script ou une action lancée) et ne peut pas être vérifié."
+      }
+    }
+  },
+  "artefact": {
+    "image": "Image générée",
+    "video": "Vidéo générée",
+    "audio": "Audio généré",
+    "facts": {
+      "provider": "Fournisseur",
+      "model": "Modèle",
+      "durationMs": "Durée",
+      "seed": "Graine",
+      "runId": "Exécution",
+      "generationMs": "Temps de génération"
+    }
+  },
+  "jobs": {
+    "perDay": "Tâches par jour",
+    "succeeded": "Réussies",
+    "failed": "Échecs",
+    "byKind": "Par type",
+    "running": "{kind} en cours",
+    "kind": {
+      "image": "Images",
+      "video": "Vidéos",
+      "voice": "Voix",
+      "text": "Texte"
+    },
+    "status": {
+      "PENDING": "En attente",
+      "PROCESSING": "En cours",
+      "COMPLETED": "Terminé",
+      "CANCELLED": "Annulé",
+      "DELETED": "Supprimé",
+      "FAILED": "Échec"
+    },
+    "failedHint": "Cette tâche n’a pas abouti.",
+    "open": "Ouvrir : {kind}",
+    "nothing": "Rien à afficher pour ce travail."
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Écrire à Sovkora",
+    "send": "Envoyer",
+    "newChat": "Nouvelle conversation",
+    "emptyTitle": "Que puis-je faire pour vous ?",
+    "emptyDescription": "Posez une question, rédigez un texte ou confiez une tâche.",
+    "suggestionsLabel": "Essayez",
+    "suggestions": {
+      "contract": "Résumer un contrat et signaler les risques",
+      "reply": "Rédiger une réponse polie à un client",
+      "law25": "Expliquer la Loi 25 du Québec en cinq points"
+    },
+    "model": "Modèle",
+    "chooseModel": "Choisir un modèle",
+    "defaultModel": "Modèle par défaut",
+    "noEgress": "0 octet n’a quitté votre réseau",
+    "thinking": "Sovkora répond",
+    "steps": "{count} étapes du pipeline",
+    "you": "Vous",
+    "assistant": "Sovkora",
+    "noAnswer": "Aucune réponse n’est revenue. Réessayez ou choisissez un autre modèle."
+  },
+  "pipeline": {
+    "UserContextResolver": "Contexte utilisateur",
+    "SystemContextInjector": "Contexte système",
+    "RagInterceptor": "Connaissances",
+    "SafetyInterceptor": "Sécurité",
+    "ScopeGuardInterceptor": "Garde de périmètre",
+    "EntitlementInterceptor": "Droits",
+    "McpInterceptor": "Outils (MCP)",
+    "BrandContextInterceptor": "Contexte de marque",
+    "MemoryInterceptor": "Mémoire",
+    "RefinerInterceptor": "Raffineur",
+    "RouterInterceptor": "Routage",
+    "ToolInterceptor": "Outils",
+    "MediaInterceptor": "Médias",
+    "UserContextInterceptor": "Contexte utilisateur"
+  },
+  "provider": {
+    "ollama": "Sur votre serveur",
+    "localai": "Sur votre serveur",
+    "do-inference": "Inférence infonuagique",
+    "other": "Autre fournisseur"
+  },
+  "profile": {
+    "title": "Paramètres",
+    "loadFailed": "Profil indisponible",
+    "avatarOf": "Avatar de {name}",
+    "account": "Compte",
+    "credits": "Crédits",
+    "creditsValue": "{count} disponibles",
+    "workspace": "Espace de travail",
+    "connectors": "Connecteurs",
+    "connectorsHint": "Les services qu’Sovkora peut utiliser pour vous",
+    "system": "Système",
+    "systemHint": "Connexion et version",
+    "preferences": "Préférences",
+    "language": "Langue",
+    "theme": "Apparence",
+    "languageAuto": "Langue de l’appareil",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre",
+    "signOut": "Se déconnecter",
+    "roles": {
+      "USER": "Membre",
+      "ADMIN": "Administrateur",
+      "MODERATOR": "Modérateur",
+      "OPERATOR": "Opérateur"
+    }
+  },
+  "connectors": {
+    "empty": "Aucun connecteur configuré.",
+    "configured": "Configuré",
+    "notConfigured": "Non configuré"
+  },
+  "system": {
+    "server": "Serveur",
+    "status": "État",
+    "reachable": "Joignable · {ms} ms",
+    "unreachable": "Injoignable",
+    "version": "Version de l’app",
+    "account": "Connecté en tant que",
+    "interceptions": "Intercepteurs actifs",
+    "none": "Aucun",
+    "refresh": "Vérifier à nouveau",
+    "website": "Site web",
+    "source": "Adresses issues de",
+    "sources": {
+      "live": "Manifeste en direct",
+      "cache": "Manifeste en cache",
+      "default": "Valeur intégrée",
+      "legacy": "Adresse intégrée",
+      "override": "Surcharge locale"
+    }
+  },
+  "report": {
+    "verdict": {
+      "PASS": "Conforme",
+      "FAIL": "Non conforme",
+      "CONSISTENT": "Cohérent",
+      "INCONSISTENT": "Incohérent",
+      "INFO": "À titre informatif",
+      "NOT-EXAMINED": "Non examiné",
+      "NOT_EXAMINED": "Non examiné",
+      "INSUFFICIENT_EVIDENCE": "Preuves insuffisantes"
+    }
+  },
+  "update": {
+    "forceTitle": "Mettez Sovkora à jour pour continuer",
+    "version": "Version {version}",
+    "update": "Mettre à jour",
+    "maintenanceTitle": "Sovkora est en maintenance"
+  }
+}

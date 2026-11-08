@@ -1,0 +1,85 @@
+{
+  "expo": {
+    "name": "Sovkora",
+    "slug": "orazaka-mobile",
+    "owner": "oussamaabid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "orazaka",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.krizaka.orazaka",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "associatedDomains": ["applinks:www.orazaka.com"]
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#0d0d10"
+      },
+      "package": "com.krizaka.orazaka",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "www.orazaka.com",
+              "pathPrefix": "/chat"
+            },
+            {
+              "scheme": "https",
+              "host": "www.orazaka.com",
+              "pathPrefix": "/jobs"
+            },
+            {
+              "scheme": "https",
+              "host": "www.orazaka.com",
+              "pathPrefix": "/settings"
+            },
+            {
+              "scheme": "https",
+              "host": "www.orazaka.com",
+              "pathPrefix": "/studios"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "./plugins/with-scene-lifecycle",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Sovkora reads the photos you choose to start a creation from.",
+          "cameraPermission": "Sovkora uses the camera when you take a photo to start a creation from."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0d0d10",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "dark": {
+            "backgroundColor": "#0d0d10"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "27da30b2-57a8-4f97-a985-be044a5d2e09"
+      }
+    },
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#0d0d10"
+  }
+}

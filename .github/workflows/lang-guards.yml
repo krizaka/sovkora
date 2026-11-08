@@ -19,9 +19,27 @@ jobs:
   rust:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/rust-quality.yml@79f6ff6292edefebc59fc968dbc2c203da81c3ea # main
+    uses: krizaka/.github/.github/workflows/rust-quality.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
     with:
       working-directory: apps/desktop/src-tauri
       runs-on: macos-latest
       prepare: node ../scripts/build-sidecar.mjs
       timeout-minutes: 30
+
+  python-media:
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/python-quality.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    with:
+      working-directory: workers/media
+      paths: "."
+      timeout-minutes: 15
+
+  python-packs:
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/python-quality.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    with:
+      working-directory: packs
+      paths: "."
+      timeout-minutes: 15

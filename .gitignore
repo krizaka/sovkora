@@ -1,5 +1,5 @@
 # ====================================================================
-# ORAZAKA MONOREPO GLOBAL GITIGNORE
+# SOVKORA — ONE REPOSITORY (ADR-029)
 # ====================================================================
 
 # --------------------------------------------------------------------
@@ -33,7 +33,10 @@ target/
 # Expo local cache (auto-generated, per-device — never commit)
 **/.expo/
 # Production builds & tools
-**/build/
+# build output of the apps and workers (the Java build/ folder is source: never a bare **/build/)
+apps/*/build/
+apps/*/android/app/build/
+workers/*/build/
 **/dist/
 **/*.tsbuildinfo
 **/next-env.d.ts
@@ -96,7 +99,7 @@ out/
 # Audio and video files
 *.wav
 # The voice turn's e2e fixture is synthesised, not recorded (ADR-076).
-!orazaka-end2end/src/test/resources/voice/*.wav
+!e2e/sovkora-e2e/src/test/resources/voice/*.wav
 *.mp3
 *.aac
 *.m4a
@@ -126,7 +129,6 @@ ehthumbs.db
 # --------------------------------------------------------------------
 # AI IDE & TOOLS
 # --------------------------------------------------------------------
-.agent/**/node_modules/
 .awesome-skills/
 .gemini/
 *.sh
@@ -185,24 +187,5 @@ result/
 *.key
 !**/src/test/resources/**/*.key
 
-# ─────────────────────────────────────────────────────────────────────
-# Orazaka workspace — cloned repositories (each is its own git repository;
-# list in orazaka.workspace.json, cloned by: node scripts/workspace.mjs clone)
-# ─────────────────────────────────────────────────────────────────────
-/krizaka/
-/sovkora-libs/sovkora-build/
-/sovkora-libs/sovkora-contracts/
-/orazaka-apps/services/orazaka-studio/
-/sovkora-libs/sovkora-engine/
-/orazaka-apps/services/orazaka-conversation-service/
-/orazaka-apps/services/orazaka-job-service/
-/orazaka-apps/services/orazaka-knowledge-service/
-/orazaka-apps/services/orazaka-automation-service/
-/orazaka-apps/services/orazaka-edge/
-/orazaka-apps/workers/orazaka-worker-media/
-/orazaka-apps/ui/orazaka-ui-kit/
-/orazaka-apps/ui/orazaka-web-client/
-/orazaka-apps/ui/orazaka-mobile-client/
-/orazaka-apps/ui/orazaka-cli/
-/orazaka-packs/
-/orazaka-apps/ui/node_modules/
+# krizaka-java, checked out at the release sovkora-parent imports, read by scripts/generate-docs.mjs (CI checks it out here)
+/.krizaka-java

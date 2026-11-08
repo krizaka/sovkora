@@ -1,0 +1,97 @@
+{
+  "name": "@krizaka/orazaka-cli",
+  "version": "1.1.0",
+  "packageManager": "pnpm@12.10.1",
+  "description": "The orazaka CLI — clone, install, start and develop the Orazaka sovereign AI platform from your terminal.",
+  "bin": {
+    "orazaka": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krizaka/orazaka-cli.git"
+  },
+  "homepage": "https://www.krizaka.com/en/products/orazaka",
+  "bugs": {
+    "url": "https://github.com/krizaka/orazaka-cli/issues"
+  },
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "check": "ts-node src/index.ts install --check-only",
+    "setup": "ts-node src/index.ts install",
+    "status": "ts-node src/index.ts status",
+    "models:check": "ts-node src/index.ts models",
+    "infra": "ts-node src/index.ts start --mode dev",
+    "infra:start": "ts-node src/index.ts start --mode dev",
+    "infra:full": "ts-node src/index.ts start --mode full",
+    "infra:stop": "ts-node src/index.ts stop",
+    "infra:restart": "ts-node src/index.ts stop -y && ts-node src/index.ts start --mode dev",
+    "infra:purge": "ts-node src/index.ts stop -y --purge",
+    "infra:reset": "ts-node src/index.ts stop -y --purge && ts-node src/index.ts start --mode dev",
+    "dev": "ts-node src/index.ts dev",
+    "dev:web": "ts-node src/index.ts dev --only web",
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules jest --coverage --runInBand",
+    "sonar": "npx -y sonar-scanner -Dsonar.token=$SONAR_TOKEN -Dsonar.branch.name=$(git rev-parse --abbrev-ref HEAD)",
+    "lint": "eslint src && npm run format:check",
+    "depcheck": "depcruise src --config .dependency-cruiser.cjs",
+    "test:e2e": "npx vitest run --config vitest.config.ts",
+    "validate": "npm rebuild && npm run lint && npm run depcheck && npm run build && npm run test:coverage",
+    "prepack": "npm run build",
+    "test:pack": "node scripts/pack-smoke.mjs",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}\""
+  },
+  "keywords": [
+    "orazaka",
+    "krizaka",
+    "sovereign-ai",
+    "ai",
+    "cli"
+  ],
+  "author": "Krizaka (https://www.krizaka.com)",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "better-sqlite3": "^13.0.3",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^14.0.3",
+    "date-fns": "^4.3.0",
+    "ora": "^5.4.1",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@krizaka/config": "^0.18.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.8.0",
+    "dependency-cruiser": "^18.5.0",
+    "eslint": "^10.4.1",
+    "execa": "^10.1.0",
+    "jest": "^30.4.2",
+    "jest-environment-node": "^30.4.1",
+    "prettier": "^3.9.10",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^5.0.4"
+  }
+}

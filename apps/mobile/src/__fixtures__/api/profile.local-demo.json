@@ -1,0 +1,16 @@
+{
+  "id": "1c10ee07-1b3a-4140-923e-4923f959f8c7",
+  "username": "Eric",
+  "email": "eric.morel@example.com",
+  "authorities": ["ROLE_USER"],
+  "preferences": {
+    "primaryIndustry": "creative",
+    "voiceModel": "nova",
+    "image-aspect-ratio": "4:3",
+    "theme": "amber",
+    "aiBehavior": "Eric leads sales at Lumen Atelier, a small studio that designs ceramic lamps. Answer clearly, in short paragraphs, and end with the next step.",
+    "language": "en",
+    "tts-voice": "nova",
+    "chat-temperature": 0.6
+  }
+}

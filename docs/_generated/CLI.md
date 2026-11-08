@@ -18,7 +18,7 @@ Requirements: git, JDK 21, Node.js >=22, Docker (Python 3.11+ for the media work
 
 ```bash
 npx orazaka install   # no workspace here? clones the platform into ./orazaka, then configures it
-cd orazaka && ./mvnw install && (cd orazaka-apps/ui && npm install)
+cd sovkora && ./mvnw install && pnpm install
 npx orazaka start     # Docker infrastructure (PostgreSQL + pgvector, Redis, RabbitMQ)
 npx orazaka dev       # the whole stack: services, web, admin, mobile
 ```

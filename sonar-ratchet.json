@@ -1,13 +1,13 @@
 {
-  "project": "krizaka_orazaka",
+  "project": "krizaka_sovkora",
   "counts": {
-    "bugs": 7,
-    "vulnerabilities": 36,
+    "bugs": 15,
+    "vulnerabilities": 38,
     "hotspots": 0,
-    "smells_blocker": 0,
-    "smells_critical": 39,
-    "smells_major": 140,
-    "smells_minor": 119,
-    "smells_info": 0
+    "smells_blocker": 13,
+    "smells_critical": 208,
+    "smells_major": 522,
+    "smells_minor": 401,
+    "smells_info": 1
   }
 }

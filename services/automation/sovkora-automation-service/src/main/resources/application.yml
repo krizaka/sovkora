@@ -1,0 +1,151 @@
+spring:
+  application:
+    name: sovkora-automation-worker
+  # Loom: AGENTS.md §4. This host is AMQP-first, but its web surface and outbound calls are
+  # blocking all the same, and a service that opts out silently is how the setting drifted.
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orazaka_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      maximum-pool-size: 5
+      idle-timeout: 300000
+      max-lifetime: 600000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    # The schema is db/migration (V1 = the baseline), applied at startup as the database's owner role, never by hand
+    # (krizaka-internal#2255). A database created before Flyway (dev until its reset) is adopted at version 1:
+    # baseline-on-migrate only until that reset, then it goes.
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+    out-of-order: false
+    # The migrator is the owner role on the direct port, distinct from the runtime role once the deploy splits them
+    # (ADR-023); locally it defaults to the datasource.
+    url: ${DATABASE_AUTOMATION_MIGRATOR_URL:${orazaka.automation-service.datasource.url}}
+    user: ${DATABASE_AUTOMATION_MIGRATOR_USER:${orazaka.automation-service.datasource.username}}
+    password: ${DATABASE_AUTOMATION_MIGRATOR_PASSWORD:${orazaka.automation-service.datasource.password}}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+    # Propagate traceparent across the broker (producer + consumer observations).
+    template:
+      observation-enabled: true
+    listener:
+      simple:
+        observation-enabled: true
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+        # Exponential backoff (AGENTS.md §6); exhausted retries dead-letter to <queue>.dlq.
+        retry:
+          enabled: true
+          max-attempts: ${RABBITMQ_RETRY_MAX_ATTEMPTS:3}
+          initial-interval: ${RABBITMQ_RETRY_INITIAL_INTERVAL:1s}
+          multiplier: 2.0
+          max-interval: 10s
+
+# Standalone Spring Boot module exposed health check at /actuator/health (port 8082)
+server:
+  port: ${AUTOMATION_PORT:8091}
+
+# Distributed tracing (Phase 0): OTLP/HTTP export to the local Jaeger container.
+management:
+  endpoints:
+    web:
+      exposure:
+        # health for the harness's readiness gate, info for its identity check: a service that
+        # cannot say which build it is cannot be distinguished from a process left over by a
+        # previous e2e run answering on the same port (ADR-071 §2).
+        include: health, info
+  otlp:
+    tracing:
+      endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  tracing:
+    sampling:
+      probability: ${TRACING_SAMPLING_PROBABILITY:1.0}
+
+logging:
+  file:
+    name: ${ORAZAKA_AUTOMATION_WORKER_LOG:var/logs/automation-worker.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 1MB
+      total-size-cap: 10MB
+      max-history: 7
+  level:
+    com.krizaka.sovkora.automation: DEBUG
+    org.springframework.amqp: INFO
+
+# ── Sovkora — service-owned wiring ────────────────────────────────────────────
+orazaka:
+  # Asset encryption (ADR-054), as the job and studio services configure it: the sealed secrets of a trigger use the platform's
+  # master keyring (run-services.sh writes ~/.sovkora/master.key before the JVMs start). Without this the property default is the
+  # unresolved text « ${user.home}/.sovkora/master.key » and the service refuses to start (dev, 2026-10-20: container exit 1).
+  assets:
+    encryption:
+      enabled: ${ASSETS_ENCRYPTION_ENABLED:true}
+      master-key-file: ${ASSETS_MASTER_KEY_FILE:${user.home}/.sovkora/master.key}
+      block-size: ${ASSETS_BLOCK_SIZE:65536}
+      accept-plaintext: ${ASSETS_ACCEPT_PLAINTEXT:false}
+  automation-service:
+    datasource:
+      url: ${AUTOMATION_DB_URL:jdbc:postgresql://localhost:5432/orazaka_automation_db}
+      username: ${AUTOMATION_DB_USERNAME:orazaka_automation}
+      password: ${AUTOMATION_DB_PASSWORD}
+      # One connection on dev (docs/DEV_DATABASE.md: the cluster has 22): no transaction is held across a remote call.
+      max-pool-size: ${AUTOMATION_DB_MAX_POOL_SIZE:5}
+    studio:
+      # Where Studio runs are started, as the automation's owner (ADR-084).
+      base-url: ${STUDIO_INTERNAL_URL:http://localhost:8096}
+    scheduler:
+      # One sweep every interval: schedule slots, queued runs, lost events, retention. Wiring only.
+      enabled: true
+      interval: 15s
+    public:
+      # The address a sender is shown for a webhook trigger: the edge as the Internet reaches it (ADR-084).
+      base-url: ${APP_PUBLIC_EDGE_URL:http://localhost:8088}
+
+# ── Krizaka platform kit ──────────────────────────────────────────────────────
+krizaka:
+  security:
+    jwt:
+      # The shared HS256 secret the identity service signs session and service tokens with.
+      # krizaka-security validates every request locally with it and refuses to start when it is
+      # shorter than 32 characters (256 bits).
+      secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+  billing:
+    # Bootstrap switch only — the enforcement mode is a row owned by the billing
+    # service. Default OFF wires the no-op adapter, so this service behaves
+    # exactly as before until billing is deliberately turned on.
+    enabled: ${BILLING_ENABLED:false}
+    base-url: ${BILLING_INTERNAL_URL:http://localhost:8095}
+    # Mints the SERVICE token /internal/v1/billing requires (ADR-035). It was absent from
+    # every consumer, so BILLING_ENABLED=true crashed each of them at startup with "the
+    # shared identity secret is required" — billing had never been switched on anywhere.
+    service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+    connect-timeout: ${BILLING_CONNECT_TIMEOUT:500ms}
+    read-timeout: ${BILLING_READ_TIMEOUT:2s}
+  messaging:
+    exchanges:
+      # Sovkora's bus: the Krizaka building blocks this service embeds (billing-client) publish and
+      # listen on it.
+      events: orazaka.events
+      dead-letter: orazaka.dlx
+    dedup:
+      # Claims are rows in this context's processed_messages table: durable, shared by every
+      # instance, arbitrated by its primary key.
+      store: jdbc

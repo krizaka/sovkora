@@ -42,16 +42,10 @@ test("docs-sync starts CI on its branch itself (a GITHUB_TOKEN PR starts none) a
   assert.doesNotMatch(text.split("jobs:")[0], /^  [a-z-]+: write/m, "no write scope at the top level (Scorecard TokenPermissions)");
 });
 
-test("the reusable component workflow keeps packages/id-token write on the job, not at the top level", () => {
-  const text = readFileSync(new URL("component.yml", dir), "utf8");
-  assert.doesNotMatch(text.split("jobs:")[0], /^  [a-z-]+: write/m);
-});
-
-test("CI holds a pull request to the docs gate only when it touches what the docs are made from", () => {
+test("CI holds every change to the generated docs: they are made from this tree and krizaka-java at the imported release", () => {
   const text = readFileSync(new URL("ci.yml", dir), "utf8");
-  assert.match(text, /generate-docs\.mjs --check && exit 0/);
-  assert.match(text, /::warning::docs\/_generated drifted/);
-  assert.match(text, /docs\/\|scripts\/\|infra\//);
+  assert.match(text, /node scripts\/generate-docs\.mjs --check/);
+  assert.match(text, /clone -q --depth 1 --branch "v\$version" https:\/\/github\.com\/krizaka\/krizaka-java\.git \.krizaka-java/);
 });
 
 /** Duplicate keys inside one job (two `permissions:` after a merge) make GitHub refuse the whole file at startup. */
@@ -89,13 +83,15 @@ test("a workflow that mints the app token skips Dependabot pull requests (Depend
   assert.deepEqual(bad, []);
 });
 
-// A docs-only change skips `verify`; the required « SonarCloud Code Analysis » is posted by the app only when a scan runs, so
-// component.yml must scan lightly in that case (orazaka-ai-engine#219, orazaka-web-client#395: BLOCKED, check never ran).
-test("component.yml scans lightly when verify is skipped (the required Sonar check must report)", () => {
-  const text = readFileSync(new URL("component.yml", dir), "utf8");
-  const m = /^  sonar-light:\n([\s\S]*?)(?=^  \S)/m.exec(text);
-  assert.ok(m, "component.yml has no sonar-light job");
-  assert.match(m[1], /inputs\.sonar && !cancelled\(\) && needs\.changes\.outputs\.code == 'false'/);
-  assert.match(m[1], /actions\/sonar-scan@/);
-  assert.match(m[1], /qualitygate\.wait=true/);
+
+// --test-force-exit ends a test file's process as soon as the tests it knows of have finished. Under load, a file whose
+// tests are registered inside describe() blocks is cut short before the later blocks register, and the run reports the
+// tests it saw as passing: CI run 42410859306 (2026-11-07) ran the CI-COST guard on 13 of the 21 workflows, « fail 0 ».
+// Reproduced locally (1 of 6 parallel runs short by 17 tests; 8 of 8 complete without the flag). The step's
+// timeout-minutes and --test-timeout bound a hang; a silently partial run is worse than a hang.
+test("no workflow runs node --test with --test-force-exit (it drops tests silently)", () => {
+  const offenders = readdirSync(dir)
+    .filter((n) => /\.ya?ml$/.test(n))
+    .flatMap((n) => (/node --test\b[^\n]*(\\\n[^\n]*)*--test-force-exit/.test(readFileSync(new URL(n, dir), "utf8")) ? [n] : []));
+  assert.deepEqual(offenders, []);
 });

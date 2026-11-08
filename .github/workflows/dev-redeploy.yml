@@ -5,7 +5,7 @@
 # touches the spec and never applies a database migration (scripts/dev-migrations.mjs lists the pending ones).
 #
 # Needs the repository secret OPERATOR_DEPLOY_TOKEN (named by its context, not its vendor: krizaka/.github#46; its value is
-# a DigitalOcean API token able to create deployments on orazaka-dev). Add it under Settings > Secrets and variables >
+# a DigitalOcean API token able to create deployments on sovkora-dev). Add it under Settings > Secrets and variables >
 # Actions. Without it the job says so and stops.
 name: Dev redeploy
 

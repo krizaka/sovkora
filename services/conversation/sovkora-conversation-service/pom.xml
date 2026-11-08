@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.krizaka.sovkora</groupId>
+        <artifactId>sovkora-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../../build/sovkora-parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>sovkora-conversation-service</artifactId>
+    <name>sovkora-conversation-service</name>
+    <description>Sovkora Conversation Service — interactive host (ex-router): HTTP/SSE ingress, job submission and SSE relay</description>
+
+
+    <licenses>
+        <license>
+            <name>FSL-1.1-ALv2</name>
+            <url>https://fsl.software/FSL-1.1-ALv2.template.md</url>
+            <distribution>repo</distribution>
+            <comments>Functional Source License 1.1, Apache-2.0 future licence (ADR-011). Earlier commits: Apache-2.0.</comments>
+        </license>
+    </licenses>
+
+
+
+
+    <dependencies>
+        <!-- The Krizaka starters (krizaka-bom, imported by sovkora-parent): one dependency per
+             capability, no version. web = krizaka-web (Problem Details, X-Request-Id, Jackson 3
+             defaults, declared CORS) + Spring MVC + validation + actuator; security =
+             krizaka-security (session JWT, service tokens) + Spring Security + resource server;
+             rabbitmq = krizaka-messaging (outbox, dedup, JSON) + AMQP + JDBC; observability =
+             common meter tags, ECS logs, OTLP tracing, Prometheus. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-rabbitmq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-observability</artifactId>
+        </dependency>
+        <!-- App version compatibility: GET /api/v1/app-config, 426 Upgrade Required below the minimum,
+             N-1 contracts, and the audited admin API — every value a database parameter. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-app-config</artifactId>
+        </dependency>
+        <!-- The users service's internal API, typed (UserDirectoryClient). -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-users-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-assets</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-billing-client</artifactId>
+        </dependency>
+
+        <!-- Spring Boot 4 decoupled RestClient from spring-boot-starter-web: RestClientAutoConfiguration
+             (the RestClient.Builder bean injected by core/tools — WhisperTranscriptionClient,
+             OllamaModelCatalogProvider, VideoGeneratorClientImpl, DefaultMcpOrchestrator) now lives in
+             the spring-boot-restclient module, pulled by this starter. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Internal Dependencies -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-core</artifactId>
+        </dependency>
+        <!-- Phase 2 cutover: the identity LIBRARY left this process - only the principal
+             contract (User/UserProfile/RateLimitInfo + shared exceptions) remains; identity
+             data is reached over the service's internal API (HttpUserDirectoryAdapter). -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-users-api</artifactId>
+        </dependency>
+
+        <!-- Tier-1 job-plane contract: the JobCommand wire record this service publishes. One
+             definition, shared with the executor that deserialises it (ADR-037, audit #17). -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-jobs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-tools</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-business</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-persistence</artifactId>
+        </dependency>
+        <!-- Tier-1 Studio contract and client: a voice turn under an installation reads its pack's
+             declarations from the studio service (ADR-076). Named here rather than reached through
+             sovkora-engine-business, because this service calls it itself. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-studio-client</artifactId>
+        </dependency>
+        <!-- Bridge: core DB-backed outbound ports (CapabilityProvider, PipelineConfigProvider, …)
+             implemented against the persistence inbound ports. Shared with job-service so neither
+             re-implements the same DB adapters. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-persistence-bridge</artifactId>
+        </dependency>
+
+
+        <!-- ADR-030: Spring AI provider STARTERS removed. No autoconfigured Ollama/OpenAI
+             beans — model clients are built programmatically from the DB (ai_providers +
+             sovkora_models) by the Dynamic Model Router / Universal Proxy Client in
+             sovkora-engine-core. The `spring-ai-ollama` / `spring-ai-openai` model libraries
+             (the builder classes) are pulled transitively via sovkora-engine-core. -->
+
+
+        <!-- Rate Limiting Dependencies -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j_jdk17-lettuce</artifactId>
+            <version>8.21.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+        </dependency>
+
+        <!-- AOP -->
+        <!-- Spring Boot 4 removed spring-boot-starter-aop (GA); AspectJ weaver is BOM-managed
+             and AopAutoConfiguration (core) enables @Aspect proxying when it is present. -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
+        <!-- Flyway: the schema (db/migration) is applied at startup (krizaka-internal#2255) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-test-support</artifactId>
+        </dependency>
+        <!-- EventContractTest: the evt.turn.unmetered this service publishes conforms to
+             krizaka-billing-api's schema. -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-test-support</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Interceptor pipeline (single module — packages by concern: context, enrichment,
+             reformulation, tooling, translation, validation, governance). Registered via
+             @AutoConfiguration SPI from META-INF/spring imports; @ConditionalOnBean guards
+             ensure graceful degradation when upstream ports (ChatModel, ToolRegistry...) absent. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-engine-interceptors</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- "@project.version@" in application.yml (krizaka.observability.version), as
+             spring-boot-starter-parent does it; "${...}" placeholders are left to Spring. -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>application.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>application.yml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                    <useDefaultDelimiters>false</useDefaultDelimiters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

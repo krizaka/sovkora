@@ -1,8 +1,8 @@
-// node --test scripts/test — the guard of the com.krizaka versions (orazaka#434): the BOM may only name a release that
-// the reactor builds or Maven Central carries.
+// node --test scripts/test — the guard of the com.krizaka versions (orazaka#434): sovkora-parent and the BOM may only name
+// a release Maven Central carries.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { claims, explain, managed, onCentral, onGitHubPackages, onRegistry, projectCoordinates, properties, stripComments, unprovided } from "../lib/krizaka-versions.mjs";
+import { centralPom, claims, explain, managed, onCentral, parentOf, projectCoordinates, properties, stripComments, unprovided } from "../lib/krizaka-versions.mjs";
 
 const KIT_POM = `<project><parent><groupId>com.krizaka</groupId><artifactId>krizaka-parent</artifactId><version>0.2.0</version></parent>
   <artifactId>krizaka-platform-kit</artifactId><!-- <version>9.9.9</version> --><version>0.3.0</version>
@@ -40,16 +40,16 @@ test("orazaka#434: kit 0.2.0 is on Central but has no starter; the reactor build
   const list = claims({ built, bom: bom("0.2.0"), parent: parentPom("0.2.0") });
   const missing = await unprovided(list, central(["krizaka-security:0.2.0"]));
   assert.deepEqual(missing.map((c) => c.artifactId), ["krizaka-spring-boot-starter-app-config"]);
-  assert.match(explain(missing[0]), /0\.2\.0, which is on neither Maven Central nor GitHub Packages and the workspace builds it at 0\.3\.0/);
+  assert.match(explain(missing[0]), /krizaka-spring-boot-starter-app-config:0\.2\.0, which is not on Maven Central/);
 });
 
 test("a version nobody provides fails, even when no repository builds the artifact", async () => {
   const list = claims({ built: new Map(), bom: bom("0.4.0"), parent: parentPom("0.2.0") });
   assert.equal((await unprovided(list, central([]))).length, 4); // 3 managed + the imported BOM
-  assert.match(explain((await unprovided(list, central([])))[0]), /no repository of the workspace builds it/);
+  assert.match(explain((await unprovided(list, central([])))[0]), /build\/sovkora-parent\/pom\.xml/);
 });
 
-test("orazaka-parent's krizaka.version is held to the same rule", async () => {
+test("sovkora-parent's krizaka.version is held to the same rule", async () => {
   const list = claims({ built, bom: bom("0.3.0"), parent: parentPom("0.5.0") });
   assert.deepEqual((await unprovided(list, central([]))).map((c) => c.artifactId), ["krizaka-bom"]);
 });
@@ -68,23 +68,23 @@ test("comments are stripped, an unterminated one drops the rest", () => {
   assert.equal(stripComments("no comment"), "no comment");
 });
 
-test("GitHub Packages: a pom found there is provided; 404 everywhere is false; no credential or an outage is unknown", async () => {
-  const probe = { group: "com.krizaka", artifactId: "krizaka-security", version: "0.6.0" };
-  const seen = [];
-  const only = (repo) => async (url, init) => { seen.push([url, init.headers.Authorization]); return { status: url.includes(`/${repo}/`) ? 200 : 404 }; };
-  assert.equal(await onGitHubPackages(probe, { credential: "c", actor: "bot" }, only("krizaka-platform-kit")), true);
-  assert.equal(seen[0][0], "https://maven.pkg.github.com/krizaka/krizaka-build/com/krizaka/krizaka-security/0.6.0/krizaka-security-0.6.0.pom");
-  assert.equal(seen[0][1], `Basic ${Buffer.from("bot:c").toString("base64")}`);
-  assert.equal(await onGitHubPackages(probe, { credential: "c" }, async () => ({ status: 404 })), false);
-  assert.equal(await onGitHubPackages(probe, {}, async () => ({ status: 200 })), null);
-  assert.equal(await onGitHubPackages(probe, { credential: "c" }, async () => ({ status: 401 })), null);
+test("ADR-029: the krizaka-parent sovkora-parent inherits is a claim too, and only krizaka-parent counts", async () => {
+  const parent = `<project><parent><groupId>com.krizaka</groupId><artifactId>krizaka-parent</artifactId><version>0.9.0</version><relativePath/></parent>
+    <properties><krizaka.version>0.12.0</krizaka.version></properties></project>`;
+  assert.equal(parentOf(parent), "0.9.0");
+  assert.equal(parentOf(`<project><parent><artifactId>sovkora-parent</artifactId><version>1.0.0</version></parent></project>`), null);
+  const missing = await unprovided(claims({ parent }), central(["krizaka-bom:0.12.0"]));
+  assert.deepEqual(missing.map((c) => `${c.artifactId}:${c.version}`), ["krizaka-parent:0.9.0"]);
+  assert.match(explain(missing[0]), /not on Maven Central/);
 });
 
-test("ADR-019: a block published on GitHub Packages only is provided (the 8 orazaka-* repos red on the BOM)", async () => {
-  const list = claims({ built, bom: bom("0.6.0"), parent: parentPom("0.2.0") });
-  const packages = async (c) => c.version === "0.6.0";
-  const check = (c) => onRegistry(c, { credential: "c" }, { central: async () => false, packages });
-  assert.deepEqual(await unprovided(list, check), []);
-  assert.equal(await onRegistry({ version: "0.7.0" }, {}, { central: async () => false, packages }), false);
-  assert.equal(await onRegistry({ version: "0.7.0" }, {}, { central: async () => false, packages: async () => null }), null);
+test("the BOM is read from Central: its text when published, null when absent or unreachable", async () => {
+  const probe = { group: "com.krizaka", artifactId: "krizaka-bom", version: "0.12.0" };
+  const seen = [];
+  const ok = async (url) => { seen.push(url); return { status: 200, text: async () => "<project/>" }; };
+  assert.equal(await centralPom(probe, ok), "<project/>");
+  assert.equal(seen[0], "https://repo1.maven.org/maven2/com/krizaka/krizaka-bom/0.12.0/krizaka-bom-0.12.0.pom");
+  assert.equal(await centralPom(probe, async () => ({ status: 404 })), null);
+  assert.equal(await centralPom(probe, async () => Promise.reject(new Error("offline"))), null);
+  assert.deepEqual(claims({ bom: null, parent: parentPom("0.12.0") }).map((c) => c.artifactId), ["krizaka-bom"]);
 });

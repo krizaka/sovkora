@@ -1,0 +1,69 @@
+{
+  "version": "1.2.0",
+  "status": "PUBLISHED",
+  "estimatedCredits": 30,
+  "changelog": "1.2.0 — libellés des sorties en anglais et français (x-i18n). 1.1.0 — chaque champ parle anglais et français (x-i18n : titre, aide, exemple). Reference Tier-W pack.",
+  "createdBy": "orazaka",
+  "definition": {
+    "studioKey": "echo-reverse",
+    "version": "1.2.0",
+    "steps": [
+      {
+        "id": "reverse",
+        "kind": "CAPABILITY",
+        "featureKey": "orazaka.echo.text.reverse",
+        "dependsOn": [],
+        "inputs": {
+          "text": "{{inputs.text}}"
+        },
+        "out": "reversed",
+        "onError": "FAIL",
+        "maxAttempts": 1,
+        "timeout": "PT1M"
+      }
+    ],
+    "outputs": [
+      {
+        "key": "reversed",
+        "label": "Votre texte, à l'envers",
+        "from": "{{steps.reversed.text}}",
+        "type": "TEXT",
+        "x-i18n": {
+          "en": {
+            "label": "Your text, reversed"
+          },
+          "fr": {
+            "label": "Votre texte, à l'envers"
+          }
+        }
+      }
+    ]
+  },
+  "inputSchema": {
+    "type": "object",
+    "required": ["text"],
+    "properties": {
+      "text": {
+        "type": "string",
+        "maxLength": 500,
+        "title": "Texte",
+        "x-i18n": {
+          "en": {
+            "title": "Text",
+            "description": "The text to reverse.",
+            "placeholder": "Hello"
+          },
+          "fr": {
+            "title": "Texte",
+            "description": "Le texte à inverser.",
+            "placeholder": "Bonjour"
+          }
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

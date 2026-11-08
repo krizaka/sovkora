@@ -13,7 +13,7 @@ pub struct Settings {
     /// "local" (the stack started by the CLI) or "remote" (a hosted Sovkora).
     pub mode: String,
     pub remote_url: String,
-    /// The Sovkora workspace the CLI runs in (where `orazaka.workspace.json` lives).
+    /// The Sovkora workspace the CLI runs in (where `modules.json` lives).
     pub workspace_dir: Option<String>,
     pub watched: Vec<PathBuf>,
     pub locale: String,
