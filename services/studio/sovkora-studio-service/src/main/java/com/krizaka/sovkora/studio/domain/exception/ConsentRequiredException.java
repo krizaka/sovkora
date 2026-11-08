@@ -20,8 +20,8 @@ public class ConsentRequiredException extends RuntimeException {
   private final String studioKey;
   private final String requiredVersion;
   private final String statement;
-  private final Map<String, String> statements;
-  private final List<CrisisResource> regions;
+  private final transient Map<String, String> statements;
+  private final transient List<CrisisResource> regions;
 
   /**
    * @param studioKey the Studio being installed
