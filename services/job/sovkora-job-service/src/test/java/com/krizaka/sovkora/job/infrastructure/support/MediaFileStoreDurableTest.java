@@ -55,7 +55,9 @@ class MediaFileStoreDurableTest {
             return false;
           }
 
-          public void delete(String key) {}
+          public void delete(String key) {
+            // required by interface, not invoked in this test
+          }
         };
     MediaMissing.assertEmpty(
         new MediaFileStore(assets, broken, TENANT)
