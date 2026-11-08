@@ -12,6 +12,7 @@
 """
 
 import base64
+import contextlib
 import io
 import json
 import os
@@ -23,7 +24,6 @@ from threading import Thread
 from unittest.mock import MagicMock, patch
 
 from PIL import Image
-import contextlib
 
 # ---------------------------------------------------------------------------
 # Patch heavy ML dependencies before importing the module under test

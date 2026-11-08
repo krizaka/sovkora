@@ -24,6 +24,7 @@ so a new capability bound to ``job.compose.*`` works here with no change, and a
 capability this worker was never bound to never arrives.
 """
 
+import contextlib
 import functools
 import json
 import os
@@ -63,7 +64,6 @@ from app.telemetry import (
     send_job_error,
     send_progress_update,
 )
-import contextlib
 
 JOBS_EXCHANGE = "orazaka.jobs"
 DLX_EXCHANGE = "orazaka.dlx"

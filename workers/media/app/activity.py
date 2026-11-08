@@ -16,11 +16,11 @@ Unset (``MEDIA_ACTIVITY_FILE`` / ``MEDIA_HEARTBEAT_FILE`` empty, the Mac), nothi
 
 from __future__ import annotations
 
+import functools
 import os
 import threading
 from contextlib import contextmanager
 from pathlib import Path
-import functools
 from typing import Callable, Iterator, TypeVar
 
 _F = TypeVar("_F", bound=Callable)
