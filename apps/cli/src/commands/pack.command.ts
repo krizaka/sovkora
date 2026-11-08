@@ -194,6 +194,30 @@ function bundlesIn(directory: string): { directory: string; source: string }[] {
     .map((entry) => ({ directory: path.join(directory, entry.name), source: directory }));
 }
 
+/** Print pack sources to console. */
+function printSources(directory?: string): void {
+  if (directory) return;
+  for (const source of packSources()) {
+    const mark = source.unavailable ? chalk.yellow("⚠") : chalk.dim("•");
+    const note = source.unavailable ? chalk.dim(` — ${source.unavailable}`) : "";
+    console.log(`  ${mark} ${source.kind} ${source.location}${note}`);
+  }
+}
+
+/** Display bundle summary or error. */
+function displayBundle(found: ReturnType<typeof bundlesIn>[number]): void {
+  try {
+    const { bundle, problems } = loadBundle(found.directory);
+    if (problems.length > 0) {
+      console.log(`  ${chalk.red("✗")} ${found.directory} ${chalk.dim("(manifest invalid)")}`);
+      return;
+    }
+    summarise(bundle);
+  } catch {
+    console.log(`  ${chalk.red("✗")} ${found.directory} ${chalk.dim("(unreadable)")}`);
+  }
+}
+
 const listCommand = new Command("list")
   .description("List the bundles this deployment's pack sources offer")
   .argument("[directory]", "Look in this directory instead of the configured sources")
@@ -203,13 +227,7 @@ const listCommand = new Command("list")
     // still wins, because installing a bundle you are holding must not require configuration.
     const bundles = directory ? bundlesIn(directory) : discoverBundles();
 
-    if (!directory) {
-      for (const source of packSources()) {
-        const mark = source.unavailable ? chalk.yellow("⚠") : chalk.dim("•");
-        const note = source.unavailable ? chalk.dim(` — ${source.unavailable}`) : "";
-        console.log(`  ${mark} ${source.kind} ${source.location}${note}`);
-      }
-    }
+    printSources(directory);
 
     if (bundles.length === 0) {
       Logger.info("No bundles found (a bundle is a directory holding pack.yaml).");
@@ -217,16 +235,7 @@ const listCommand = new Command("list")
     }
     Logger.success(`${bundles.length} bundle(s)`);
     for (const found of bundles) {
-      try {
-        const { bundle, problems } = loadBundle(found.directory);
-        if (problems.length > 0) {
-          console.log(`  ${chalk.red("✗")} ${found.directory} ${chalk.dim("(manifest invalid)")}`);
-          continue;
-        }
-        summarise(bundle);
-      } catch {
-        console.log(`  ${chalk.red("✗")} ${found.directory} ${chalk.dim("(unreadable)")}`);
-      }
+      displayBundle(found);
     }
   });
 
