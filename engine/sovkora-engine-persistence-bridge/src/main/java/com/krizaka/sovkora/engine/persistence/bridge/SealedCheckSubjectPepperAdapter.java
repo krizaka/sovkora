@@ -82,7 +82,8 @@ class SealedCheckSubjectPepperAdapter implements CheckSubjectPepper {
           "{} does not open for its scope ({}){}",
           SETTING_KEY,
           unopened.getClass().getSimpleName(),
-          OFF);
+          OFF,
+          unopened);
       return Optional.empty();
     }
     if (pepper.length < MIN_BYTES) {

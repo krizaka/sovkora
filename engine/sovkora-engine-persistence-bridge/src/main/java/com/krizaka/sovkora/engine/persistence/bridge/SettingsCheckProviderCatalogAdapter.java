@@ -48,7 +48,7 @@ class SettingsCheckProviderCatalogAdapter implements CheckProviderCatalog {
       try {
         rows.add(row(name.toLowerCase(Locale.ROOT)));
       } catch (RuntimeException malformed) {
-        log.warn("check provider '{}' has a malformed row and is ignored", name);
+        log.warn("check provider '{}' has a malformed row and is ignored", name, malformed);
       }
     }
     return List.copyOf(rows);
