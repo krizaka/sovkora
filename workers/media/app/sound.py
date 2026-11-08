@@ -144,7 +144,12 @@ def mix_graph(tracks: Tracks, seconds: float) -> tuple[str, list[str]]:
     if has_foley:
         parts.append(_conform(f"{index['foley']}:a", "foley", seconds, FOLEY_DB, bed=False))
     if "music" in index:
-        db = MUSIC_DB_UNDER_FOLEY if has_foley else (MUSIC_DB_UNDER_VOICE if has_voice else MUSIC_DB_ALONE)
+        if has_foley:
+            db = MUSIC_DB_UNDER_FOLEY
+        elif has_voice:
+            db = MUSIC_DB_UNDER_VOICE
+        else:
+            db = MUSIC_DB_ALONE
         parts.append(_conform(f"{index['music']}:a", "music", seconds, db, bed=True))
     if has_voice:
         parts.append(_conform(f"{index['voice']}:a", "voice", seconds, VOICE_DB, bed=False))
