@@ -45,6 +45,34 @@ function isPublicPath(pathname: string): boolean {
   return pathname === "/" || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/** Handle dev host routing for robots and redirects. */
+function handleDevHost(request: NextRequest, pathname: string): NextResponse | null {
+  const closed = (r: NextResponse) => {
+    r.headers.set("x-robots-tag", NOINDEX_HEADER);
+    return r;
+  };
+  if (pathname === "/robots.txt") {
+    return closed(
+      new NextResponse(CLOSED_ROBOTS, { status: 200, headers: { "content-type": "text/plain; charset=utf-8" } }),
+    );
+  }
+  const to = devRedirect(request.method, pathname, request.nextUrl.search, process.env.APP_PUBLIC_URL ?? SITE_URL);
+  if (to) return closed(NextResponse.redirect(to, 308));
+  if (pathname !== HEALTH_PATH) return closed(route(request));
+  return closed(NextResponse.next());
+}
+
+/** Handle robots.txt for admin/dev addresses. */
+function handleRobotsRequest(host: string | null): NextResponse | null {
+  if (host && typeof host === "string" && (isAdminHost(host) || isDevAddress(host))) {
+    return new NextResponse("User-agent: *\nDisallow: /\n", {
+      status: 200,
+      headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": NOINDEX_HEADER },
+    });
+  }
+  return null;
+}
+
 function route(request: NextRequest) {
   // `/fr/…` and `/en/…` are the same pages with the language named by the address (Loi 96): they are gated and served as `/…`.
   const { locale, path: pathname } = splitLocalePrefix(request.nextUrl.pathname);
@@ -99,31 +127,16 @@ export function proxy(request: NextRequest) {
   // dev.orazaka.com (APP_DEV_HOST): robots.txt closes everything, a page goes to www (308); the BFF, auth and
   // /.well-known keep serving - all noindex (src/core/config/indexing.ts).
   if (isDevHost(host)) {
-    const closed = (r: NextResponse) => {
-      r.headers.set("x-robots-tag", NOINDEX_HEADER);
-      return r;
-    };
-    if (pathname === "/robots.txt")
-      return closed(
-        new NextResponse(CLOSED_ROBOTS, { status: 200, headers: { "content-type": "text/plain; charset=utf-8" } }),
-      );
-    const to = devRedirect(request.method, pathname, request.nextUrl.search, process.env.APP_PUBLIC_URL ?? SITE_URL);
-    if (to) return closed(NextResponse.redirect(to, 308));
-    if (pathname !== HEALTH_PATH) return closed(route(request));
-    return closed(NextResponse.next());
+    const devResponse = handleDevHost(request, pathname);
+    if (devResponse) return devResponse;
   }
   let response: NextResponse;
   if (pathname === HEALTH_PATH) {
     response = NextResponse.next();
   } else {
+    const robotsResponse = handleRobotsRequest(host);
+    if (robotsResponse) return robotsResponse;
     const hostRoute = routeFor(host, pathname);
-    if (pathname === "/robots.txt" && (isAdminHost(host) || isDevAddress(host))) {
-      // The console and any dev.* address are never indexed: said here, before the network gate (a crawler must read it).
-      return new NextResponse("User-agent: *\nDisallow: /\n", {
-        status: 200,
-        headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": NOINDEX_HEADER },
-      });
-    }
     switch (hostRoute.kind) {
       case "notFound":
         response = new NextResponse("Not found", { status: 404 });
