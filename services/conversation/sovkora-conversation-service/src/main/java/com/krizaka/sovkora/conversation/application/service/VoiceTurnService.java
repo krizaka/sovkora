@@ -174,6 +174,10 @@ public class VoiceTurnService {
           "plan " + plan.planKey() + " does not include speech (" + AUDIO_ENTITLEMENT + ")");
     }
 
+    String noVoiceMessage =
+        turn.voice() == null
+            ? "no voice speaks " + turn.locale() + " in the catalogue"
+            : "no catalogued voice named " + turn.voice();
     SpeechVoice voice =
         audioEntitled
             ? (turn.voice() == null
@@ -182,11 +186,7 @@ public class VoiceTurnService {
                 .orElseThrow(
                     () ->
                         new VoiceTurnRefusedException(
-                            HttpStatus.UNPROCESSABLE_CONTENT,
-                            "no-voice",
-                            turn.voice() == null
-                                ? ("no voice speaks " + turn.locale() + " in the catalogue")
-                                : ("no catalogued voice named " + turn.voice())))
+                            HttpStatus.UNPROCESSABLE_CONTENT, "no-voice", noVoiceMessage))
             : null;
 
     Context base = contextService.resolve(actor, turn.conversationId());
