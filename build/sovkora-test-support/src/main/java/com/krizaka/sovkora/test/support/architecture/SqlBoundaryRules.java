@@ -124,16 +124,10 @@ public final class SqlBoundaryRules {
   }
 
   private static List<Path> migrationFolders(Path repoRoot) {
-    try (Stream<Path> walk = Files.walk(repoRoot)) {
-      return walk.filter(Files::isDirectory)
-          .filter(d -> d.endsWith(Path.of("src", "main", "resources", "db", "migration")))
-          .filter(
-              d -> !d.toString().contains("/target/") && !d.toString().contains("/node_modules/"))
-          .sorted()
-          .toList();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    return RepositoryTree.directories(repoRoot).stream()
+        .filter(d -> d.endsWith(Path.of("src", "main", "resources", "db", "migration")))
+        .sorted()
+        .toList();
   }
 
   private static List<Path> sqlFiles(Path folder) {

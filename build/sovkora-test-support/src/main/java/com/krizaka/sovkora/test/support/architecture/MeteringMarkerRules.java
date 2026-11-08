@@ -11,7 +11,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Double-debit guard [BILL-001]: every producer of a {@code job.*} command declares whether it
@@ -186,26 +185,20 @@ public final class MeteringMarkerRules {
   /** Every production class under the repository that sends to the jobs exchange. */
   private static Map<String, Path> findJobProducers(Path repositoryRoot) {
     Map<String, Path> producers = new LinkedHashMap<>();
-    try (Stream<Path> files = Files.walk(repositoryRoot)) {
-      files
-          .filter(Files::isRegularFile)
-          .filter(path -> path.toString().endsWith(".java"))
-          .filter(path -> path.toString().contains("/src/main/java/"))
-          .filter(path -> !path.toString().contains("/target/"))
-          .forEach(
-              path -> {
-                if (path.toString().contains(TOPOLOGY_PACKAGE)
-                    || path.toString().contains(RULES_MODULE)) {
-                  return;
-                }
-                String name = path.getFileName().toString().replace(".java", "");
-                if (sendsToJobsExchange(readFile(path))) {
-                  producers.put(name, path);
-                }
-              });
-    } catch (IOException e) {
-      throw new UncheckedIOException("cannot scan " + repositoryRoot, e);
-    }
+    RepositoryTree.files(repositoryRoot).stream()
+        .filter(path -> path.toString().endsWith(".java"))
+        .filter(path -> path.toString().contains("/src/main/java/"))
+        .forEach(
+            path -> {
+              if (path.toString().contains(TOPOLOGY_PACKAGE)
+                  || path.toString().contains(RULES_MODULE)) {
+                return;
+              }
+              String name = path.getFileName().toString().replace(".java", "");
+              if (sendsToJobsExchange(readFile(path))) {
+                producers.put(name, path);
+              }
+            });
     return producers;
   }
 

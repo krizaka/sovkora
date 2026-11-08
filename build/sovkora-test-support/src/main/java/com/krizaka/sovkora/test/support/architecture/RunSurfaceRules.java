@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * The run surface is sealed [DOOR-001]: no inbound HTTP entry, in any module, dispatches a job.
@@ -418,15 +417,10 @@ public final class RunSurfaceRules {
   }
 
   private static List<Path> productionSources(Path repositoryRoot) {
-    try (Stream<Path> files = Files.walk(repositoryRoot)) {
-      return files
-          .filter(path -> path.toString().endsWith(".java"))
-          .filter(path -> path.toString().contains("/src/main/java/"))
-          .filter(path -> !path.toString().contains("/target/"))
-          .toList();
-    } catch (IOException unreadable) {
-      throw new UncheckedIOException(unreadable);
-    }
+    return RepositoryTree.files(repositoryRoot).stream()
+        .filter(path -> path.toString().endsWith(".java"))
+        .filter(path -> path.toString().contains("/src/main/java/"))
+        .toList();
   }
 
   private static String qualifiedName(Path source, String body) {

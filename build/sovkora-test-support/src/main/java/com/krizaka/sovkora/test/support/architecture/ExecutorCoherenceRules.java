@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Two-discriminant coherence [EXEC-001 / EXEC-002]: every enabled capability must have somewhere to
@@ -207,20 +206,15 @@ public final class ExecutorCoherenceRules {
    */
   private static Set<String> inProcessBindings(Path root) {
     Set<String> bindings = new LinkedHashSet<>();
-    try (Stream<Path> paths = Files.walk(root.resolve("services"))) {
-      for (Path file :
-          paths
-              .filter(p -> "worker.yaml".equals(p.getFileName().toString()))
-              .filter(p -> !p.toString().contains("/target/"))
-              .toList()) {
-        Matcher binding =
-            Pattern.compile("(?m)^\\s*-\\s*\"?(job\\.[^\"\\s]+)\"?").matcher(read(file));
-        while (binding.find()) {
-          bindings.add(binding.group(1));
-        }
+    for (Path file :
+        RepositoryTree.files(root.resolve("services")).stream()
+            .filter(p -> "worker.yaml".equals(p.getFileName().toString()))
+            .toList()) {
+      Matcher binding =
+          Pattern.compile("(?m)^\\s*-\\s*\"?(job\\.[^\"\\s]+)\"?").matcher(read(file));
+      while (binding.find()) {
+        bindings.add(binding.group(1));
       }
-    } catch (IOException e) {
-      throw new UncheckedIOException("Failed to walk services for worker.yaml", e);
     }
     return bindings;
   }
@@ -240,25 +234,20 @@ public final class ExecutorCoherenceRules {
   /** Every {@code worker.yaml}'s declared bindings, by worker name. */
   private static Map<String, List<String>> declaredBindings(Path root) {
     Map<String, List<String>> byWorker = new LinkedHashMap<>();
-    try (Stream<Path> paths = Files.walk(root)) {
-      for (Path file :
-          paths
-              .filter(p -> "worker.yaml".equals(p.getFileName().toString()))
-              .filter(p -> !p.toString().contains("/target/"))
-              .toList()) {
-        String yaml = read(file);
-        String name =
-            find(yaml, Pattern.compile("(?m)^name:\\s*(\\S+)"))
-                .orElse(file.getParent().getFileName().toString());
-        List<String> bindings = new ArrayList<>();
-        Matcher binding = Pattern.compile("(?m)^\\s*-\\s*\"?(job\\.[^\"\\s]+)\"?").matcher(yaml);
-        while (binding.find()) {
-          bindings.add(binding.group(1));
-        }
-        byWorker.put(name, bindings);
+    for (Path file :
+        RepositoryTree.files(root).stream()
+            .filter(p -> "worker.yaml".equals(p.getFileName().toString()))
+            .toList()) {
+      String yaml = read(file);
+      String name =
+          find(yaml, Pattern.compile("(?m)^name:\\s*(\\S+)"))
+              .orElse(file.getParent().getFileName().toString());
+      List<String> bindings = new ArrayList<>();
+      Matcher binding = Pattern.compile("(?m)^\\s*-\\s*\"?(job\\.[^\"\\s]+)\"?").matcher(yaml);
+      while (binding.find()) {
+        bindings.add(binding.group(1));
       }
-    } catch (IOException e) {
-      throw new UncheckedIOException("Failed to walk " + root, e);
+      byWorker.put(name, bindings);
     }
     if (byWorker.isEmpty()) {
       throw new AssertionError("found no worker.yaml — the rule would assert nothing");
@@ -278,15 +267,10 @@ public final class ExecutorCoherenceRules {
       if (!Files.isDirectory(dir)) {
         continue;
       }
-      try (Stream<Path> paths = Files.walk(dir)) {
-        paths
-            .filter(p -> p.toString().endsWith(".java"))
-            .filter(p -> p.toString().contains("/src/main/"))
-            .filter(p -> !p.toString().contains("/target/"))
-            .forEach(sources::add);
-      } catch (IOException e) {
-        throw new UncheckedIOException("Failed to walk " + dir, e);
-      }
+      RepositoryTree.files(dir).stream()
+          .filter(p -> p.toString().endsWith(".java"))
+          .filter(p -> p.toString().contains("/src/main/"))
+          .forEach(sources::add);
     }
     return sources;
   }
