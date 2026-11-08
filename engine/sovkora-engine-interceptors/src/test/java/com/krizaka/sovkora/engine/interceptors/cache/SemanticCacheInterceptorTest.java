@@ -216,10 +216,11 @@ class SemanticCacheInterceptorTest {
       var seeded = turn("hello there", "acme", "exact", Map.of());
       remember(seeded, "Pour en finir avec cela, voici...");
 
-      var answered = cache.beforeExecution(turn("hello there", "acme", "exact", crisis));
+      // The first lookup primes the scope hash with the crisis declaration; result is not used yet.
+      cache.beforeExecution(turn("hello there", "acme", "exact", crisis));
       // (the crisis declaration is part of the scope hash, so give both the same declaration)
       remember(turn("hello there", "acme", "exact", crisis), "Pour en finir avec cela, voici...");
-      answered = cache.beforeExecution(turn("hello there", "acme", "exact", crisis));
+      var answered = cache.beforeExecution(turn("hello there", "acme", "exact", crisis));
 
       assertThat(hit(answered)).isTrue();
       var served = answered.cachedResponse().orElseThrow().text();
