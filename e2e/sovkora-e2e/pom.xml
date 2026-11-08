@@ -127,6 +127,13 @@
             <artifactId>amqp-client</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Awaitility — async assertion helper (version managed by Spring Boot BOM) -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
