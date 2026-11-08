@@ -185,8 +185,8 @@ public class VoiceTurnService {
                             HttpStatus.UNPROCESSABLE_CONTENT,
                             "no-voice",
                             turn.voice() == null
-                                ? "no voice speaks " + turn.locale() + " in the catalogue"
-                                : "no catalogued voice named " + turn.voice()))
+                                ? ("no voice speaks " + turn.locale() + " in the catalogue")
+                                : ("no catalogued voice named " + turn.voice())))
             : null;
 
     Context base = contextService.resolve(actor, turn.conversationId());
@@ -449,7 +449,7 @@ public class VoiceTurnService {
         new VoiceTurnEvent.Usage(
             metering.sttSeconds == null ? null : metering.sttSeconds.doubleValue(),
             tokens.reported() ? tokens.totalTokens() : null,
-            metering.ttsMillis.get() == 0 ? null : metering.ttsMillis.get() / 1000.0,
+            metering.ttsMillis.get() == 0 ? null : (metering.ttsMillis.get() / 1000.0),
             metering.ttsCharacters.get()),
         new VoiceTurnEvent.Timings(
             metering.sttMs, metering.firstDeltaMs, metering.firstSentenceMs, millisSince(t0)));

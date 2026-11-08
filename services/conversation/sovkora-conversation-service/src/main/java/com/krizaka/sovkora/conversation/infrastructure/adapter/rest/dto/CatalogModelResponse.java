@@ -37,7 +37,7 @@ public record CatalogModelResponse(
     String reason =
         compatible
             ? null
-            : "Requires " + dto.supportedHardware() + " — this host supports " + host.describe();
+            : ("Requires " + dto.supportedHardware() + " — this host supports " + host.describe());
     return new CatalogModelResponse(
         dto.id(),
         dto.modelName(),

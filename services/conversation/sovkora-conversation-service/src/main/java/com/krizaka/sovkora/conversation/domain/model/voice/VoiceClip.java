@@ -57,7 +57,7 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
 
   /** Seconds of audio, as billing and the done event report them; {@code null} when unknown. */
   public Double seconds() {
-    return durationMs == null ? null : durationMs / 1000.0;
+    return durationMs == null ? null : (durationMs / 1000.0);
   }
 
   private static boolean isWav(byte[] audio) {
@@ -88,9 +88,9 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
       } else if ("data".equals(id)) {
         // A streamed WAV may declare 0 or 0xFFFFFFFF as its data size: then the rest of the file
         // is the data, which is what was actually returned.
-        long dataSize = size == 0 || size == 0xFFFFFFFFL ? audio.length - (offset + 8L) : size;
+        long dataSize = (size == 0 || size == 0xFFFFFFFFL) ? audio.length - (offset + 8L) : size;
         dataSize = Math.min(dataSize, audio.length - (offset + 8L));
-        return byteRate > 0 ? dataSize * 1000 / byteRate : null;
+        return byteRate > 0 ? (dataSize * 1000 / byteRate) : null;
       }
       offset += 8 + (int) Math.min(size + (size & 1), Integer.MAX_VALUE - offset - 8L);
     }
@@ -99,9 +99,9 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
 
   private static long le32(byte[] b, int at) {
     return (b[at] & 0xFFL)
-        | (b[at + 1] & 0xFFL) << 8
-        | (b[at + 2] & 0xFFL) << 16
-        | (b[at + 3] & 0xFFL) << 24;
+        | ((b[at + 1] & 0xFFL) << 8)
+        | ((b[at + 2] & 0xFFL) << 16)
+        | ((b[at + 3] & 0xFFL) << 24);
   }
 
   @Override
