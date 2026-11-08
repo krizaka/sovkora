@@ -53,13 +53,13 @@ test("it is an npm script and a step of its own post-deploy workflow (a failing 
   assert.ok(wf.includes("Wait for the deployed build"));
 });
 
-test("the post-deploy workflow also runs the SEO family contract against the deployed site, indexed (seo.family)", () => {
+test("the post-deploy workflow also runs the SEO family contract against the deployed site, closed to crawlers by design (seo.family)", () => {
   const wf = workflow();
   assert.match(
     wf,
     /node scripts\/check-seo-family\.mjs --base https:\/\/dev\.sovkora\.com --host https:\/\/dev\.sovkora\.com(\s|$)/,
   );
-  assert.ok(!/--index off/.test(wf), "the dev site is indexed (AGENTS.md)");
+  assert.ok(/--index off/.test(wf), "dev.* is closed by design (AGENTS.md)");
 });
 
 test("the console crawl covers every console screen in both themes and both viewports, and checks the DEV badge (admin.shell)", () => {

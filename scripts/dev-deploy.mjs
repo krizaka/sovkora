@@ -452,7 +452,7 @@ function seedPersona(name) {
 }
 
 // ── Service accounts: a Krizaka product calling Orazaka (products consume AI only through Orazaka) ──
-const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 
 /** The account a product calls Orazaka with: a plain ROLE_USER, never an admin, on the `service` rate-limit tier (ADR-083). */
 export function serviceAccount(product) {

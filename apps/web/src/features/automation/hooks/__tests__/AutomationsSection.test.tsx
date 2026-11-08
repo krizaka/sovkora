@@ -31,7 +31,7 @@ const webhookRead = {
   automationId: "a1",
   kind: "webhook" as const,
   enabled: true,
-  webhookUrl: "https://www.orazaka.com/edge/hooks/t1",
+  webhookUrl: "https://dev.sovkora.com/edge/hooks/t1",
   secretHint: "ab12",
   catchUp: "once" as const,
   createdAt: "2026-10-20T12:00:00Z",

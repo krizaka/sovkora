@@ -146,7 +146,7 @@ test("removedPublicRoutes reads src/core/config/redirects.ts; a doc linking one 
   const { removedPublicRoutes, removedLinks } = await import("./sync-docs.mjs");
   const routes = removedPublicRoutes();
   assert.ok(routes.includes("/gallery") && routes.includes("/features"));
-  assert.deepEqual(removedLinks("See [the demos](/gallery) and https://www.orazaka.com/features/privacy"), [
+  assert.deepEqual(removedLinks("See [the demos](/gallery) and https://dev.sovkora.com/features/privacy"), [
     "/gallery",
     "/features",
   ]);
@@ -160,7 +160,7 @@ test("sync fails when a synced doc links a removed public route", () => {
     fs.mkdirSync(path.dirname(path.join(src, d.source)), { recursive: true });
     fs.writeFileSync(
       path.join(src, d.source),
-      d.slug === "101" ? "# T\n[demos](https://www.orazaka.com/gallery)\n" : "# T\n",
+      d.slug === "101" ? "# T\n[demos](https://dev.sovkora.com/gallery)\n" : "# T\n",
     );
   }
   fs.mkdirSync(path.join(src, "docs", "_generated"), { recursive: true });

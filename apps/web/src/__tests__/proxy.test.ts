@@ -11,7 +11,7 @@ const call = (path: string, env: Record<string, string> = {}) => {
   const before = { ...process.env };
   Object.assign(process.env, env);
   try {
-    return proxy(new NextRequest(`https://www.orazaka.com${path}`));
+    return proxy(new NextRequest(`https://dev.sovkora.com${path}`));
   } finally {
     delete process.env.AUTH_LOGIN_ENABLED;
     delete process.env.AUTH_SIGNUP_ENABLED;
@@ -39,7 +39,7 @@ describe("proxy with the entry points closed (default)", () => {
   it("sends a protected page to /login (the closed notice)", () => {
     const res = call("/jobs");
     expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toBe("https://www.orazaka.com/login");
+    expect(res.headers.get("location")).toBe("https://dev.sovkora.com/login");
   });
 });
 
@@ -47,11 +47,11 @@ describe("Packs moved into the docs", () => {
   it("sends a visitor without a session from /packs to /docs/packs with a 308", () => {
     const res = call("/packs");
     expect(res.status).toBe(308);
-    expect(res.headers.get("location")).toBe("https://www.orazaka.com/docs/packs");
+    expect(res.headers.get("location")).toBe("https://dev.sovkora.com/docs/packs");
   });
 
   it("keeps /packs the signed-in Plan & packs for a session", () => {
-    const req = new NextRequest("https://www.orazaka.com/packs", { headers: { cookie: "next-auth.session-token=x" } });
+    const req = new NextRequest("https://dev.sovkora.com/packs", { headers: { cookie: "next-auth.session-token=x" } });
     expect(proxy(req).headers.get("x-middleware-next")).toBe("1");
   });
 });
@@ -67,11 +67,11 @@ describe("proxy with sign-in open", () => {
       const open = { AUTH_LOGIN_ENABLED: "true" };
       const res = call(path, open);
       expect(res.status).toBe(307);
-      expect(res.headers.get("location")).toBe("https://www.orazaka.com/login");
+      expect(res.headers.get("location")).toBe("https://dev.sovkora.com/login");
       const before = { ...process.env };
       Object.assign(process.env, open);
       try {
-        const req = new NextRequest(`https://www.orazaka.com${path}`, {
+        const req = new NextRequest(`https://dev.sovkora.com${path}`, {
           headers: { cookie: "next-auth.session-token=x" },
         });
         expect(proxy(req).headers.get("x-middleware-next")).toBe("1");
@@ -99,7 +99,7 @@ describe("an address that does not exist (krizaka/orazaka#443)", () => {
   it.each(["/jobs/42", "/studios/image-generation", "/settings/profile"])(
     "still sends a visitor of the app page %s to the login page",
     (path) => {
-      expect(call(path, { AUTH_LOGIN_ENABLED: "true" }).headers.get("location")).toBe("https://www.orazaka.com/login");
+      expect(call(path, { AUTH_LOGIN_ENABLED: "true" }).headers.get("location")).toBe("https://dev.sovkora.com/login");
     },
   );
 });
@@ -108,8 +108,8 @@ describe("an address that does not exist (krizaka/orazaka#443)", () => {
 describe("the bar's session hint follows the next-auth cookie (krizaka-ui#827)", () => {
   const ask = (path: string, cookie?: string) =>
     proxy(
-      new NextRequest(`https://www.orazaka.com${path}`, {
-        headers: { host: "www.orazaka.com", ...(cookie ? { cookie } : {}) },
+      new NextRequest(`https://dev.sovkora.com${path}`, {
+        headers: { host: "dev.sovkora.com", ...(cookie ? { cookie } : {}) },
       }),
     );
   const hintedWith = () => (sessionHint as jest.Mock).mock.calls.at(-1)?.[2];
@@ -134,7 +134,7 @@ describe("proxy with a language prefix (Loi 96)", () => {
   it.each(["/fr/login", "/en/login", "/fr", "/en/docs"])("serves %s as the page without its prefix", (path) => {
     const res = call(path);
     expect(res.status).toBe(200);
-    expect(res.headers.get("x-middleware-rewrite")).toMatch(/orazaka\.com(\/login|\/|\/docs)$/);
+    expect(res.headers.get("x-middleware-rewrite")).toMatch(/sovkora\.com(\/login|\/|\/docs)$/);
   });
 
   it("gates a prefixed protected page like the page itself", () => {
