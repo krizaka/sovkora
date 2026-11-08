@@ -18,7 +18,8 @@ with open(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "worker.yaml"), encoding="utf-8"
 ) as declaration_file:
     DECLARATION = yaml.safe_load(declaration_file)
-EXCHANGES = {"orazaka.jobs": "topic", "orazaka.events": "topic", "orazaka.dlx": "direct"}
+DLX_EXCHANGE = "orazaka.dlx"
+EXCHANGES = {"orazaka.jobs": "topic", "orazaka.events": "topic", DLX_EXCHANGE: "direct"}
 QUEUE = f"orazaka.jobs.{DECLARATION['family']}"
 #: What a refused payload is called (the one cause that bills) and what any other failure is called (refunded).
 CAUSES = {"refused": "INPUT_INVALID", "fault": "EXECUTOR_FAULT"}
@@ -77,10 +78,10 @@ def connect() -> "pika.adapters.blocking_connection.BlockingChannel":
     channel = pika.BlockingConnection(params).channel()
     for name, kind in EXCHANGES.items():
         channel.exchange_declare(exchange=name, exchange_type=kind, durable=True)
-    dead = {"x-dead-letter-exchange": "orazaka.dlx", "x-dead-letter-routing-key": QUEUE}
+    dead = {"x-dead-letter-exchange": DLX_EXCHANGE, "x-dead-letter-routing-key": QUEUE}
     channel.queue_declare(queue=QUEUE, durable=True, arguments=dead)
     channel.queue_declare(queue=f"{QUEUE}.dlq", durable=True)
-    channel.queue_bind(queue=f"{QUEUE}.dlq", exchange="orazaka.dlx", routing_key=QUEUE)
+    channel.queue_bind(queue=f"{QUEUE}.dlq", exchange=DLX_EXCHANGE, routing_key=QUEUE)
     for binding in DECLARATION["bindings"]:
         channel.queue_bind(queue=QUEUE, exchange="orazaka.jobs", routing_key=binding)
     channel.basic_qos(prefetch_count=DECLARATION.get("concurrency", 1))
