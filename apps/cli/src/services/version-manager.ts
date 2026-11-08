@@ -40,7 +40,7 @@ export class VersionManager {
   private readonly cacheDir: string;
   private readonly cachePath: string;
   private readonly currentVersion: string;
-  private cacheExpiry: number = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly cacheExpiry: number = 24 * 60 * 60 * 1000; // 24 hours
 
   constructor(currentVersion: string) {
     this.currentVersion = currentVersion;
