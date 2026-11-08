@@ -43,7 +43,7 @@ record ImageGenerationPayload(Integer width, Integer height, ImageDirection dire
   }
 
   private static void requireSide(int side, String name) {
-    if (side < MIN_SIDE || side > MAX_SIDE || side % GRID != 0) {
+    if (side < MIN_SIDE || side > MAX_SIDE || (side % GRID) != 0) {
       throw new IllegalArgumentException(
           name
               + " must be a multiple of "
