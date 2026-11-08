@@ -149,14 +149,14 @@ public class PinnedHttpClient implements SafeHttp {
       String lastModified) {
     @Override
     public boolean equals(Object other) {
-      return other instanceof HopAnswer that
-          && status == that.status
-          && Arrays.equals(body, that.body)
-          && Objects.equals(contentType, that.contentType)
-          && Objects.equals(charset, that.charset)
-          && Objects.equals(location, that.location)
-          && Objects.equals(etag, that.etag)
-          && Objects.equals(lastModified, that.lastModified);
+      return other instanceof HopAnswer(var st, var ct, var cs, var bd, var loc, var et, var lm)
+          && status == st
+          && Arrays.equals(body, bd)
+          && Objects.equals(contentType, ct)
+          && Objects.equals(charset, cs)
+          && Objects.equals(location, loc)
+          && Objects.equals(etag, et)
+          && Objects.equals(lastModified, lm);
     }
 
     @Override

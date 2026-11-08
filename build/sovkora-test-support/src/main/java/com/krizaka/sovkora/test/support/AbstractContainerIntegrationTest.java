@@ -43,6 +43,8 @@ import org.testcontainers.utility.DockerImageName;
  */
 public abstract class AbstractContainerIntegrationTest {
 
+  protected AbstractContainerIntegrationTest() {}
+
   // ── PostgreSQL + PGVector ─────────────────────────────────────────────────
 
   private static final PostgreSQLContainer<?> POSTGRES =
