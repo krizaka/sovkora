@@ -38,6 +38,8 @@ import tools.jackson.databind.json.JsonMapper;
 @Repository
 class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
 
+  private static final String FROM_ANALYTICS_EVENT_ALL_WHERE = " FROM analytics_event_all WHERE";
+
   /** The scope every read starts from: tenant, range, and the owner when one is given. */
   private static final String SCOPE =
       " tenant_id = ? AND occurred_at >= ? AND occurred_at < ?"
@@ -150,7 +152,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
   @Override
   public long[] totals(String tenant, Range range, String owner) {
     return jdbc.queryForObject(
-        "SELECT count(*), count(DISTINCT subject_id) FROM analytics_event_all WHERE" + SCOPE,
+        "SELECT count(*), count(DISTINCT subject_id)" + FROM_ANALYTICS_EVENT_ALL_WHERE + SCOPE,
         (rs, n) -> new long[] {rs.getLong(1), rs.getLong(2)},
         scope(tenant, range, owner));
   }
@@ -160,7 +162,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
     Map<String, KindTotals> out = new LinkedHashMap<>();
     jdbc.query(
         "SELECT kind, count(*), count(DISTINCT subject_id), sum(value), avg(value)"
-            + " FROM analytics_event_all WHERE"
+            + FROM_ANALYTICS_EVENT_ALL_WHERE
             + SCOPE
             + " GROUP BY kind ORDER BY 2 DESC, kind",
         rs -> {
@@ -181,7 +183,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
     Map<LocalDate, Long> active = new TreeMap<>();
     jdbc.query(
         "SELECT (occurred_at AT TIME ZONE 'UTC')::date, count(DISTINCT subject_id)"
-            + " FROM analytics_event_all WHERE"
+            + FROM_ANALYTICS_EVENT_ALL_WHERE
             + SCOPE
             + " GROUP BY 1",
         rs -> {
@@ -191,7 +193,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
     Map<LocalDate, Map<String, Long>> perKind = new TreeMap<>();
     jdbc.query(
         "SELECT (occurred_at AT TIME ZONE 'UTC')::date, kind, count(*)"
-            + " FROM analytics_event_all WHERE"
+            + FROM_ANALYTICS_EVENT_ALL_WHERE
             + SCOPE
             + " GROUP BY 1, 2 ORDER BY 1, 2",
         rs -> {
@@ -228,7 +230,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
             + " count(*) FILTER (WHERE kind = ANY(?::text[])),"
             + " count(*) FILTER (WHERE kind = 'view'),"
             + " avg(value) FILTER (WHERE kind = 'view' AND value IS NOT NULL)"
-            + " FROM analytics_event_all WHERE"
+            + FROM_ANALYTICS_EVENT_ALL_WHERE
             + SCOPE
             + " AND item_id IS NOT NULL GROUP BY item_id"
             + " HAVING count(DISTINCT subject_id) FILTER (WHERE kind = ANY(?::text[])) >= ?"
@@ -296,7 +298,7 @@ class JdbcAnalyticsRepositoryAdapter implements AnalyticsRepository {
   public List<Long> funnel(
       String tenant, Range range, String owner, List<String> kinds, int windowHours) {
     StringBuilder sql = new StringBuilder("WITH s1 AS (SELECT subject_id, min(occurred_at) AS t");
-    sql.append(" FROM analytics_event_all WHERE").append(SCOPE).append(" AND kind = ?");
+    sql.append(FROM_ANALYTICS_EVENT_ALL_WHERE).append(SCOPE).append(" AND kind = ?");
     sql.append(" GROUP BY subject_id)");
     List<Object> args = new ArrayList<>(Arrays.asList(scope(tenant, range, owner)));
     args.add(kinds.getFirst());
