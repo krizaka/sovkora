@@ -35,6 +35,27 @@ export function rootPackage(artifactId) {
   return `${GROUP}.${rest.replaceAll("-", ".")}`;
 }
 
+/** Check module naming violations. */
+function checkModuleNaming(out, c, where) {
+  if (c.groupId !== GROUP) out.push({ rule: "N1", module: where, message: `groupId ${c.groupId}, not ${GROUP}` });
+  if (!c.artifactId || !KEBAB.test(c.artifactId) || BANNED.test(c.artifactId)) {
+    out.push({ rule: "N2", module: where, message: `artifactId ${c.artifactId} is not sovkora-<module>[-<part>] (banned: -common, -util(s), -impl, -misc)` });
+  }
+}
+
+/** Check package violations. */
+function checkPackages(out, m, c, where, owners) {
+  const root = rootPackage(c.artifactId ?? "");
+  for (const p of new Set([...m.main, ...m.test])) {
+    if (p !== root && !p.startsWith(`${root}.`)) out.push({ rule: "N3", module: where, message: `package ${p} is outside the module root ${root}` });
+  }
+  for (const p of new Set(m.main)) {
+    const seen = owners.get(p);
+    if (seen && seen !== where) out.push({ rule: "N3", module: where, message: `package ${p} is split with ${seen}` });
+    owners.set(p, where);
+  }
+}
+
 /** Which rule each module breaks: [{ rule, module, message }]. `modules`: [{ dir, pom, main: string[], test: string[] }] (packages). */
 export function violations(modules) {
   const out = [];
@@ -42,25 +63,14 @@ export function violations(modules) {
   for (const m of modules) {
     const c = coordinates(m.pom);
     const where = m.dir || "(root)";
-    if (c.groupId !== GROUP) out.push({ rule: "N1", module: where, message: `groupId ${c.groupId}, not ${GROUP}` });
-    if (!c.artifactId || !KEBAB.test(c.artifactId) || BANNED.test(c.artifactId)) {
-      out.push({ rule: "N2", module: where, message: `artifactId ${c.artifactId} is not sovkora-<module>[-<part>] (banned: -common, -util(s), -impl, -misc)` });
-    }
+    checkModuleNaming(out, c, where);
     if (c.packaging === "pom") continue; // an aggregator groups modules by role: no code, no leaf rule
     const leaf = where.split("/").pop();
     if (leaf !== c.artifactId) out.push({ rule: "N4", module: where, message: `the folder is ${leaf}, the artifactId ${c.artifactId}` });
     if (!m.dir.split("/").slice(0, -1).every((p, i) => i > 0 || ROLES.has(p))) {
       out.push({ rule: "N4", module: where, message: `a module sits under a role folder (${[...ROLES].join(", ")})` });
     }
-    const root = rootPackage(c.artifactId ?? "");
-    for (const p of new Set([...m.main, ...m.test])) {
-      if (p !== root && !p.startsWith(`${root}.`)) out.push({ rule: "N3", module: where, message: `package ${p} is outside the module root ${root}` });
-    }
-    for (const p of new Set(m.main)) {
-      const seen = owners.get(p);
-      if (seen && seen !== where) out.push({ rule: "N3", module: where, message: `package ${p} is split with ${seen}` });
-      owners.set(p, where);
-    }
+    checkPackages(out, m, c, where, owners);
   }
   return out;
 }
