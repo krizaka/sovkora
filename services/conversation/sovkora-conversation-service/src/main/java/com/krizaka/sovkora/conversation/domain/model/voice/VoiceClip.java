@@ -88,7 +88,7 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
       } else if ("data".equals(id)) {
         // A streamed WAV may declare 0 or 0xFFFFFFFF as its data size: then the rest of the file
         // is the data, which is what was actually returned.
-        long dataSize = (size == 0 || size == 0xFFFFFFFFL) ? audio.length - (offset + 8L) : size;
+        long dataSize = ((size == 0) || (size == 0xFFFFFFFFL)) ? audio.length - (offset + 8L) : size;
         dataSize = Math.min(dataSize, audio.length - (offset + 8L));
         return byteRate > 0 ? (dataSize * 1000 / byteRate) : null;
       }
