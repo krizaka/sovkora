@@ -9,6 +9,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * One import of the law corpus, whoever starts it (the scheduled watcher or an administrator's
@@ -23,6 +25,8 @@ import java.util.*;
  * as a new dated row, in one transaction; a reverted text is a new dated row too.
  */
 public class LawImportService {
+
+  private static final Logger log = LoggerFactory.getLogger(LawImportService.class);
 
   private final LawCorpusStore store;
   private final LawSettings settings;
@@ -84,6 +88,7 @@ public class LawImportService {
         }
       }
     } catch (RuntimeException e) {
+      log.warn("Source import failed: {}", e.getMessage(), e);
       run.failures.add("source " + source.sourceKey() + ": " + failureOf(e));
     }
     store.finishImport(importId, result(run, snapshot));
@@ -130,6 +135,7 @@ public class LawImportService {
     try {
       plan = reconcile(run, target, snapshot);
     } catch (IllegalStateException e) {
+      log.warn("Target reconciliation failed: {}", e.getMessage(), e);
       run.failures.add("target " + target.instrument() + ": " + e.getMessage());
       return;
     }
@@ -142,6 +148,7 @@ public class LawImportService {
         run.stored++;
         run.articlesNew++;
       } catch (RuntimeException e) {
+        log.warn("Article operation failed: {}", e.getMessage(), e);
         run.failures.add(describe(LawChange.Kind.ADDED, article) + ": " + failureOf(e));
       }
     }
@@ -152,6 +159,7 @@ public class LawImportService {
         }
         apply(run, change);
       } catch (RuntimeException e) {
+        log.warn("Article operation failed: {}", e.getMessage(), e);
         run.failures.add(describe(change.kind(), change.subject()) + ": " + failureOf(e));
       }
     }

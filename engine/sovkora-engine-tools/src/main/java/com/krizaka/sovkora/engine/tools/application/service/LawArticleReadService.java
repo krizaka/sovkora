@@ -14,6 +14,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The law read API's use case (issue #89, ADR-089 §2 and §9): {@code GET /api/v1/law/articles}
@@ -38,6 +40,7 @@ import java.util.regex.Pattern;
  */
 public class LawArticleReadService {
 
+  private static final Logger log = LoggerFactory.getLogger(LawArticleReadService.class);
   private static final Pattern ISO_DAY = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
 
   private final LawStatuteLookupService lookups;
@@ -94,6 +97,7 @@ public class LawArticleReadService {
     try {
       hold = meter.hold(readId, actorId, LawCorpusResearchService.PROVIDER);
     } catch (ResearchMeter.BudgetExceededException refused) {
+      log.debug("Law article read budget exhausted for actor", refused);
       return LawArticleRead.without(Outcome.LAW_BUDGET_EXCEEDED, null);
     }
 

@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stage 2 of ADR-089: the law a kind of document is judged by, retrieved through grounded research
@@ -46,6 +48,8 @@ import java.util.Optional;
  * A claim that stays {@code TO_VALIDATE} is kept as such and is not used by the derivation stage.
  */
 public class LawRetrievalService {
+
+  private static final Logger log = LoggerFactory.getLogger(LawRetrievalService.class);
 
   private final LawSettings settings;
   private final ResearchStore research;
@@ -159,6 +163,7 @@ public class LawRetrievalService {
     try {
       hold = meter.hold(request.runId().toString(), request.actorId(), source.provider());
     } catch (ResearchMeter.BudgetExceededException refused) {
+      log.debug("Law retrieval budget exhausted", refused);
       return LawRetrievalResult.empty(Outcome.BUDGET_EXHAUSTED, read.unknown());
     }
     List<Claim> claims;

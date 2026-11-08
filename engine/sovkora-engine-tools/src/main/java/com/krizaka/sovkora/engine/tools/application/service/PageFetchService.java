@@ -16,6 +16,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PageFetchService implements PageFetcher {
 
+  private static final Logger log = LoggerFactory.getLogger(PageFetchService.class);
   private static final Duration ROBOTS_TTL = Duration.ofHours(24);
   private static final String OP_FETCH = "FETCH";
 
@@ -372,6 +375,7 @@ public class PageFetchService implements PageFetcher {
       URI uri = new URI(url.trim());
       return uri.isAbsolute() ? uri.normalize() : null;
     } catch (java.net.URISyntaxException bad) {
+      log.debug("URL is not a valid URI: {}", bad.getMessage(), bad);
       return null;
     }
   }

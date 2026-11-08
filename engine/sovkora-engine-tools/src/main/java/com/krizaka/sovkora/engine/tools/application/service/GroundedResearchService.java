@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The capability {@code orazaka.core.research.grounded} (handler {@code research.grounded}, ADR-087
@@ -53,6 +55,7 @@ import java.util.Optional;
  */
 public class GroundedResearchService {
 
+  private static final Logger log = LoggerFactory.getLogger(GroundedResearchService.class);
   private static final String DOCUMENT_URN = "urn:sovkora:document:";
   private static final String MARK_PREFIX = "[TO_VALIDATE] ";
 
@@ -156,6 +159,7 @@ public class GroundedResearchService {
     try {
       holds = hold(request, source);
     } catch (ResearchMeter.BudgetExceededException refused) {
+      log.debug("Research budget exhausted for actor", refused);
       return GroundedResearchResult.refused(Outcome.BUDGET_EXHAUSTED, read.unknown());
     }
     if (request.isLecture() && holds.estimatedCredits() > settings.lectureMaxCredits()) {
