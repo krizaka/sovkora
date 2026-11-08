@@ -104,7 +104,7 @@ public record TokenUsage(
     return new TokenUsage(
         prompt,
         completion,
-        totalTokens == null ? prompt + completion : totalTokens,
+        totalTokens == null ? (prompt + completion) : totalTokens,
         clamp(cachedReadTokens),
         clamp(cacheWriteTokens));
   }

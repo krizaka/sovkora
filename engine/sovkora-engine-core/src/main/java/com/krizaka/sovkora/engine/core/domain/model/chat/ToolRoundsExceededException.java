@@ -22,7 +22,7 @@ public class ToolRoundsExceededException extends IllegalStateException {
         "The model kept asking for tools after "
             + maxRounds
             + " tool rounds; the turn is stopped"
-            + (featureKey == null ? "" : " (feature " + featureKey + ")"));
+            + (featureKey == null ? "" : (" (feature " + featureKey + ")")));
     this.featureKey = featureKey;
     this.maxRounds = maxRounds;
   }
