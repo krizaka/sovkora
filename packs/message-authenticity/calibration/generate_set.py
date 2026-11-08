@@ -78,7 +78,7 @@ styles = [
 ]
 
 
-def prompt(lang, i):
+def prompt(lang, _i):
     n = random.choice([14, 20, 28, 40, 55])
     if lang == "en":
         base = f"Write a first message from someone to a person they just matched with on a dating app. They both like {random.choice(topics)}. Tone: {random.choice(tones)}. About {n} words. {random.choice(styles)} Reply with the message only, no quotes."
