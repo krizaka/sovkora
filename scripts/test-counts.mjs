@@ -10,6 +10,9 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
+/** Code-point order, the order `sort()` gives strings without a compare function, said explicitly. */
+const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 /** The totals of the JUnit XML reports in a directory: { tests, failures, errors, skipped }. */
 export function totals(xmls) {
   const sum = { tests: 0, failures: 0, errors: 0, skipped: 0 };
@@ -38,7 +41,7 @@ function modules(dir, out = []) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const rows = modules(ROOT).sort().map((m) => ({
+  const rows = modules(ROOT).sort(byCodePoint).map((m) => ({
     module: relative(ROOT, m),
     unit: totals(reports(join(m, "target/surefire-reports"))),
     it: totals(reports(join(m, "target/failsafe-reports"))),
