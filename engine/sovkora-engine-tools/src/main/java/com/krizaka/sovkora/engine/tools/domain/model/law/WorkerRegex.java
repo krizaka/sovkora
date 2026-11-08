@@ -3,6 +3,8 @@ package com.krizaka.sovkora.engine.tools.domain.model.law;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A rule's pattern as the pack's worker will run it. The worker is Python ({@code re}, Unicode by
@@ -11,6 +13,8 @@ import java.util.regex.PatternSyntaxException;
  * exponentially (the linter of sovkora-packs {@code test_regex_safety.py}, same shape).
  */
 final class WorkerRegex {
+
+  private static final Logger log = LoggerFactory.getLogger(WorkerRegex.class);
 
   /** Escapes Java reads and the worker does not, or reads otherwise. */
   private static final String NOT_PORTABLE_ESCAPES = "pPhHRXQEGzvV";
@@ -41,6 +45,7 @@ final class WorkerRegex {
     try {
       compile(pattern);
     } catch (PatternSyntaxException invalid) {
+      log.debug("Worker regex pattern syntax error: {}", invalid.getDescription(), invalid);
       return Optional.of("does not compile: " + invalid.getDescription());
     }
     Optional<String> construct = notPortable(pattern);

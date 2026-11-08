@@ -18,6 +18,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 import org.jsoup.select.NodeVisitor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,6 +41,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 class HtmlTextExtractor implements TextExtractor {
+
+  private static final Logger log = LoggerFactory.getLogger(HtmlTextExtractor.class);
 
   /**
    * What a browser does not show. The style selectors are regular expressions: CSS spacing varies.
@@ -142,6 +146,7 @@ class HtmlTextExtractor implements TextExtractor {
     try {
       return Charset.isSupported(charset.trim()) ? charset.trim() : null;
     } catch (IllegalCharsetNameException badName) {
+      log.debug("Charset name is illegal: {}", badName.getMessage(), badName);
       return null;
     }
   }
@@ -164,6 +169,7 @@ class HtmlTextExtractor implements TextExtractor {
     try {
       return new String(body, named == null ? StandardCharsets.UTF_8 : Charset.forName(named));
     } catch (UnsupportedCharsetException unsupported) {
+      log.debug("Charset not supported, using UTF-8 fallback: {}", unsupported.getMessage(), unsupported);
       return new String(body, StandardCharsets.UTF_8);
     }
   }
