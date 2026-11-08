@@ -5,6 +5,8 @@ import com.krizaka.sovkora.crypto.domain.port.MasterKeyProvider;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 class McpTokenSealer {
+
+  private static final Logger log = LoggerFactory.getLogger(McpTokenSealer.class);
 
   /** The one owner of every platform server's token. */
   static final UUID PLATFORM_SCOPE =
@@ -103,6 +107,8 @@ class McpTokenSealer {
     try {
       return UUID.fromString(owner);
     } catch (IllegalArgumentException notAUuid) {
+      // Not a UUID literal: derive a stable namespace UUID from the owner string.
+      log.debug("Owner '{}' is not a UUID literal; deriving a namespace UUID", owner, notAUuid);
       return UUID.nameUUIDFromBytes(("sovkora:user:" + owner).getBytes(StandardCharsets.UTF_8));
     }
   }

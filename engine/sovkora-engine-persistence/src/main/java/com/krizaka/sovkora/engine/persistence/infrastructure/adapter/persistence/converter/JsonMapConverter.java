@@ -41,9 +41,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
     try {
       return objectMapper.readValue(dbData, new TypeReference<Map<String, Object>>() {});
     } catch (JacksonException e) {
-      logger.warn(
-          "Failed to parse JSON string to Map - returning empty fallback. Cause: {}",
-          e.getMessage());
+      logger.warn("Failed to parse JSON string to Map - returning empty fallback", e);
       return new HashMap<>();
     }
   }
