@@ -204,6 +204,7 @@ public class RunSagaService {
     }
 
     RunStepStatus outcome = failure == null ? RunStepStatus.SUCCEEDED : RunStepStatus.FAILED;
+    FailureCause effectiveFailureCause = declared == null ? FailureCause.EXECUTOR_FAULT : declared;
     int applied =
         jdbcTemplate.update(
             "UPDATE studio_run_step SET status = ?, output = ?::jsonb, error_message = ?,"
@@ -214,9 +215,7 @@ public class RunSagaService {
             failure,
             // Stored beside the message, not derived from it later: by the time the DAG advances,
             // the executor that knew why is long gone (ADR-053).
-            failure == null
-                ? null
-                : (declared == null ? FailureCause.EXECUTOR_FAULT : declared).name(),
+            failure == null ? null : effectiveFailureCause.name(),
             // Written in the SAME statement that marks the step terminal, and guarded by the same
             // status predicate: a redelivery that loses the race applies neither, so a step can
             // never be counted twice in the run's total.
