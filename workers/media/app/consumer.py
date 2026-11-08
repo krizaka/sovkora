@@ -67,6 +67,11 @@ from app.telemetry import (
 JOBS_EXCHANGE = "orazaka.jobs"
 DLX_EXCHANGE = "orazaka.dlx"
 
+#: Default output filename for a video generation or composition job.
+VIDEO_FILENAME = "video.mp4"
+#: MIME type for all MP4 outputs this worker produces.
+VIDEO_CONTENT_TYPE = "video/mp4"
+
 
 def hosted_only(env: dict | None = None) -> bool:
     """This process runs only the models a provider serves (``MEDIA_WORKER_HOSTED_ONLY=true``): a cheap CPU consumer.
@@ -240,8 +245,8 @@ def _output_paths(user_id: str, job_id: str) -> tuple:
     """Absolute output file path + the public URL the router serves it under."""
     out_dir = os.path.join(_upload_root(), user_id, job_id, "output")
     os.makedirs(out_dir, exist_ok=True)
-    file_path = os.path.join(out_dir, "video.mp4")
-    public_url = f"/uploads/{user_id}/{job_id}/output/video.mp4"
+    file_path = os.path.join(out_dir, VIDEO_FILENAME)
+    public_url = f"/uploads/{user_id}/{job_id}/output/{VIDEO_FILENAME}"
     return file_path, public_url
 
 
@@ -358,7 +363,7 @@ def _generate_with(job: dict, scratch: str) -> tuple:
     # (ADR-054). In place and atomically, so a kill here leaves the plaintext or the envelope and
     # never a half-sealed file — or, on a host that does not share the store, hand it over.
     send_progress_update(job_id, 100, phase="uploading")
-    url = _store(output_path, job, "video.mp4", "video/mp4", public_url)
+    url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
     result = {"url": url, "format": "mp4"}
     metrics = body.get("metrics")
     if isinstance(metrics, dict) and metrics:
@@ -467,7 +472,7 @@ def _cut(job: dict) -> tuple:
             readable.append(_materialise(found, scratch))
         send_progress_update(job["jobId"], 10, phase="cutting")
         metrics = film.cut(readable, edit, output_path, provenance={"clips": len(readable)})
-    url = _store(output_path, job, "video.mp4", "video/mp4", public_url)
+    url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
     result = {"url": url, "assetId": url, "format": "mp4", "metrics": metrics}
     return result, extract_consumption(metrics)
 
@@ -509,7 +514,7 @@ def _compose(job: dict) -> tuple:
         readable_audio = _materialise(audio, scratch) if audio else None
         metrics = compose(readable, output_path, audio_path=readable_audio)
 
-    url = _store(output_path, job, "video.mp4", "video/mp4", public_url)
+    url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
     result = {"url": url, "assetId": url, "format": "mp4", "metrics": metrics}
     return result, extract_consumption(metrics)
 
@@ -683,9 +688,9 @@ def _sound(job: dict) -> tuple:
         stages["mix"] = {"wallSeconds": round(time.time() - started, 1)}
 
         silent_path = measured.pop("silentPath")
-        url = _store(output_path, job, "video.mp4", "video/mp4", public_url)
+        url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
         silent_url = _store(
-            silent_path, job, "video.silent.mp4", "video/mp4", public_url.replace("video.mp4", "video.silent.mp4")
+            silent_path, job, "video.silent.mp4", VIDEO_CONTENT_TYPE, public_url.replace(VIDEO_FILENAME, "video.silent.mp4")
         )
         metrics = {
             "durationSeconds": measured["durationSeconds"],
