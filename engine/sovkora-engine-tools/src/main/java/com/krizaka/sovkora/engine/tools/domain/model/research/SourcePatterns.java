@@ -41,7 +41,7 @@ public final class SourcePatterns {
     String h = host.toLowerCase(Locale.ROOT);
     boolean hostOk =
         hostPattern.startsWith("*.")
-            ? h.endsWith(hostPattern.substring(1)) && h.length() > hostPattern.length() - 1
+            ? (h.endsWith(hostPattern.substring(1)) && h.length() > (hostPattern.length() - 1))
             : h.equals(hostPattern);
     // Both sides in canonical form: %70rivate is private for the deny list too.
     return hostOk

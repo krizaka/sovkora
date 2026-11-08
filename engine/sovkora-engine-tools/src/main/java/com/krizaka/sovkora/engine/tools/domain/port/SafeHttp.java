@@ -64,7 +64,7 @@ public interface SafeHttp {
           + ", contentType="
           + contentType
           + ", body="
-          + (body == null ? "null" : body.length + " bytes")
+          + (body == null ? "null" : (body.length + " bytes"))
           + "]";
     }
   }

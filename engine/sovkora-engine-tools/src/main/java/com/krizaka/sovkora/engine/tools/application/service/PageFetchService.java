@@ -379,12 +379,12 @@ public class PageFetchService implements PageFetcher {
   private static String origin(URI uri) {
     String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
     String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
-    return scheme + "://" + host + (uri.getPort() < 0 ? "" : ":" + uri.getPort());
+    return scheme + "://" + host + (uri.getPort() < 0 ? "" : (":" + uri.getPort()));
   }
 
   private static String pathAndQuery(URI uri) {
     String path = uri.getRawPath() == null || uri.getRawPath().isEmpty() ? "/" : uri.getRawPath();
-    return uri.getRawQuery() == null ? path : path + "?" + uri.getRawQuery();
+    return uri.getRawQuery() == null ? path : (path + "?" + uri.getRawQuery());
   }
 
   static String sha256(String text) {

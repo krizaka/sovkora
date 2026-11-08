@@ -298,7 +298,7 @@ public class GroundedResearchService {
             : claims;
     List<String> lines = new ArrayList<>();
     for (Claim claim : kept) {
-      lines.add(claim.status() == ClaimStatus.VERIFIED ? claim.text() : MARK_PREFIX + claim.text());
+      lines.add(claim.status() == ClaimStatus.VERIFIED ? claim.text() : (MARK_PREFIX + claim.text()));
     }
     return new GroundedAnswer(String.join("\n", lines), kept, List.of());
   }

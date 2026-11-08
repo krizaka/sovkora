@@ -353,6 +353,6 @@ public final class RuleProposalVet {
   }
 
   private static String abbreviate(String text) {
-    return text.length() <= 72 ? text : text.substring(0, 72) + "…";
+    return text.length() <= 72 ? text : (text.substring(0, 72) + "…");
   }
 }

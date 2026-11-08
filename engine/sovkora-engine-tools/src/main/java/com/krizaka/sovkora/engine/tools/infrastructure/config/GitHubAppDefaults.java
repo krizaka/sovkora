@@ -34,7 +34,7 @@ final class GitHubAppDefaults {
       String name, Object flag, String appId, Long installationId, String repository) {
     return name
         + "["
-        + (flag == null ? "" : "enabled=" + flag + ", ")
+        + (flag == null ? "" : ("enabled=" + flag + ", "))
         + "appId="
         + appId
         + ", installationId="

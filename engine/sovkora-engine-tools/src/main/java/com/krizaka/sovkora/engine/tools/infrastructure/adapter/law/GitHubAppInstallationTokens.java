@@ -228,7 +228,7 @@ public final class GitHubAppInstallationTokens {
     if (length < 0x80) {
       return new byte[] {(byte) length};
     }
-    int bytes = length > 0xffffff ? 4 : length > 0xffff ? 3 : length > 0xff ? 2 : 1;
+    int bytes = length > 0xffffff ? 4 : (length > 0xffff ? 3 : (length > 0xff ? 2 : 1));
     byte[] out = new byte[1 + bytes];
     out[0] = (byte) (0x80 | bytes);
     for (int i = bytes; i >= 1; i--) {

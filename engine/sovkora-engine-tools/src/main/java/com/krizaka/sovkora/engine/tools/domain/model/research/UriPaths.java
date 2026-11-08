@@ -23,7 +23,7 @@ public final class UriPaths {
   public static String canonical(URI uri) {
     String path = uri.getRawPath() == null || uri.getRawPath().isEmpty() ? "/" : uri.getRawPath();
     String query = uri.getRawQuery();
-    return canonical(query == null ? path : path + "?" + query);
+    return canonical(query == null ? path : (path + "?" + query));
   }
 
   /**
