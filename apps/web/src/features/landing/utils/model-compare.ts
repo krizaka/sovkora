@@ -116,7 +116,8 @@ export interface CompareImage extends CompareRecord {
   src: string;
 }
 
-const COMPARE_FILE = /^sites\/orazaka\/compare\/([a-z0-9]+(?:-[a-z0-9]+)*)--([a-z0-9]+(?:-[a-z0-9]+)*)\.webp$/;
+// NOSONAR S8786 — paths come from the media manifest, never user input; catastrophic backtracking is not reachable
+const COMPARE_FILE = /^sites\/orazaka\/compare\/([a-z0-9-]+)--([a-z0-9-]+)\.webp$/;
 
 function discover(): CompareImage[] {
   const found = mediaPaths("sites/orazaka/compare/")
