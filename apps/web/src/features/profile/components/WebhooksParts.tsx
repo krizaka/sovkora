@@ -115,10 +115,7 @@ const STATUS_TONE: Record<WebhookDelivery["status"], "neutral" | "success" | "da
   DEAD: "danger",
 };
 
-function DeliveryStatusCell({
-  delivery,
-  label,
-}: Readonly<{ delivery: WebhookDelivery; label: string }>) {
+function DeliveryStatusCell({ delivery, label }: Readonly<{ delivery: WebhookDelivery; label: string }>) {
   return (
     <Badge tone={STATUS_TONE[delivery.status]} size="sm">
       {label}

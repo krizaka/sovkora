@@ -2,13 +2,11 @@
 
 import * as React from "react";
 import { enUS, fr } from "date-fns/locale";
-import { CheckIcon, CopyIcon, DownloadIcon, EyeIcon, TrashIcon } from "@krizaka/icons";
 import { Badge } from "@krizaka/ui/badge";
-import { IconButton } from "@krizaka/ui/button";
 import { DataTable, DataTableFilters, type DataTableColumn } from "@krizaka/ui/data-table";
 import { fill } from "@/core/context/fill";
 import { useTranslation } from "@/core/context/LocaleContext";
-import { jobLabel, jobMediaUrl } from "@/core/jobs/jobMedia";
+import { jobLabel } from "@/core/jobs/jobMedia";
 import { JOB_STATUS } from "@/core/constants/http.constants";
 import {
   formatDuration,
@@ -25,6 +23,7 @@ import { JobDetail } from "./JobDetail";
 import { MODEL_NAMES } from "./modelNames";
 import { JobThumb } from "./JobThumb";
 import { PAGE_SIZES, TONE, type JobsTableProps } from "./jobsTableShape";
+import { JobActionsCell, type ActionLabels } from "./JobActionsCell";
 
 export type { JobsTableProps } from "./jobsTableShape";
 
@@ -39,63 +38,6 @@ function JobStatusCell({ job, label }: Readonly<{ job: Job; label: string }>) {
   );
 }
 
-type ActionLabels = { open: string; payload: string; download: string; copied: string; copyId: string; delete: string };
-
-function JobActionsCell({
-  job,
-  labels,
-  copiedId,
-  onOpenModal,
-  onCopy,
-  onDelete,
-}: Readonly<{
-  job: Job;
-  labels: ActionLabels;
-  copiedId: string | null;
-  onOpenModal: JobsTableProps["onOpenModal"];
-  onCopy: JobsTableProps["onCopy"];
-  onDelete: JobsTableProps["onDelete"];
-}>) {
-  const url = jobMediaUrl(job);
-  return (
-    <span className="inline-flex items-center gap-0.5">
-      <IconButton
-        variant="ghost"
-        size="sm"
-        label={job.status === JOB_STATUS.COMPLETED ? labels.open : labels.payload}
-        onClick={() => onOpenModal(job, job.status === JOB_STATUS.COMPLETED ? "result" : "payload")}
-      >
-        <EyeIcon size={15} />
-      </IconButton>
-      {url && (
-        <IconButton variant="ghost" size="sm" label={labels.download} asChild>
-          <a href={url} download>
-            <DownloadIcon size={15} />
-          </a>
-        </IconButton>
-      )}
-      <IconButton
-        variant="ghost"
-        size="sm"
-        label={copiedId === job.id ? labels.copied : labels.copyId}
-        onClick={() => onCopy(job.id, job.id)}
-      >
-        {copiedId === job.id ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
-      </IconButton>
-      {onDelete && (
-        <IconButton variant="ghost" size="sm" label={labels.delete} onClick={() => onDelete(job)}>
-          <TrashIcon size={15} />
-        </IconButton>
-      )}
-    </span>
-  );
-}
-
-/**
- * The tasks, one line each, on the kit's responsive DataTable (cards on a phone): a preview, the task and its Studio, the
- * model (always a name), where it ran, the status, the real wall time, and what leaves the row as the table narrows goes to
- * its detail — grouped facts in words and units. Filters (search, status, model, where), sort, and the page the server sent.
- */
 export function JobsTable({
   jobs,
   loading,
