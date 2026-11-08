@@ -36,7 +36,12 @@ def main() -> None:
 
     config = all_model_cfg[args.variant]
     config.download_if_needed()
-    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
     dtype = torch.bfloat16
 
     net = get_my_mmaudio(config.model_name).to(device, dtype).eval()
