@@ -12,7 +12,7 @@ const canonical = (value) =>
     : value && typeof value === "object"
       ? Object.fromEntries(
           Object.keys(value)
-            .sort()
+            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)) // code-point order, as sort() without a comparator
             .map((key) => [key, canonical(value[key])]),
         )
       : value;
