@@ -22,7 +22,7 @@ export function developmentDeployment(env: Record<string, string | undefined> = 
   return env.APP_SEARCH_INDEXING?.trim().toLowerCase() === "off" || isDevAddress(hostOf(env.APP_PUBLIC_URL), env);
 }
 
-/** The products' code-name hosts (orazaka.com, yomizaka.com, akinaza.com): a product's public address is its commercial domain, so these are never indexed. */
+/** The products' code-name hosts: a product's public address is its commercial domain, so these are never indexed. */
 const CODE_NAME_HOST = /^(www\.)?(orazaka|yomizaka|akinaza)\.com$/;
 export const isCodeNameAddress = (host: string | null | undefined): boolean =>
   CODE_NAME_HOST.test((host ?? "").trim().toLowerCase().replace(/:\d+$/, ""));
