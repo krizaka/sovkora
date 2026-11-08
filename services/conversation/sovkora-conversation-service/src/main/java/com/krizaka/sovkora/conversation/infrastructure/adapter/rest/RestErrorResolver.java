@@ -46,6 +46,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class RestErrorResolver {
 
   private static final Logger logger = LoggerFactory.getLogger(RestErrorResolver.class);
+  private static final String STATUS_KEY = "status";
 
   private final ProblemDetailsAdvice problems;
 
@@ -128,7 +129,7 @@ public class RestErrorResolver {
     logger.warn("Engine turn refused: {}", ex.getMessage());
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .contentType(MediaType.APPLICATION_JSON)
-        .body(Map.of("status", "engine_disabled", "message", ex.getMessage()));
+        .body(Map.of(STATUS_KEY, "engine_disabled", "message", ex.getMessage()));
   }
 
   /**
@@ -155,7 +156,7 @@ public class RestErrorResolver {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
             Map.of(
-                "status", ex.reason(),
+                STATUS_KEY, ex.reason(),
                 "message", ex.getMessage() == null ? ex.reason() : ex.getMessage(),
                 "remedies", List.of("upgrade_plan")));
   }
@@ -173,7 +174,7 @@ public class RestErrorResolver {
       TurnConsentRequiredException ex) {
     logger.info("Turn refused: consent required to version {}", ex.requiredVersion());
     Map<String, Object> body = new HashMap<>();
-    body.put("status", "consent_required");
+    body.put(STATUS_KEY, "consent_required");
     body.put("consentVersion", ex.requiredVersion());
     body.put("statement", ex.statement());
     return ResponseEntity.status(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS)
@@ -204,7 +205,7 @@ public class RestErrorResolver {
 
   private static Map<String, Object> refusalBody(InsufficientCreditsException ex) {
     return Map.of(
-        "status", "insufficient_credits",
+        STATUS_KEY, "insufficient_credits",
         "capability", ex.capability().name(),
         "required", ex.required(),
         "balance", ex.available(),

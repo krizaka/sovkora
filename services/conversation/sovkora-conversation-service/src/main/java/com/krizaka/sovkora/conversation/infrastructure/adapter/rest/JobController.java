@@ -47,6 +47,7 @@ public class JobController {
   /** The Problem Details code of an unknown job id. */
   public static final String JOB_NOT_FOUND = "job-not-found";
 
+  private static final String ROLE_ADMIN = "ROLE_ADMIN";
   private static final Logger logger = LoggerFactory.getLogger(JobController.class);
 
   private final JobService jobService;
@@ -106,7 +107,7 @@ public class JobController {
     logger.debug("Fetching paginated jobs for user: {}, page: {}, size: {}", user.id(), page, size);
 
     PageResult<JobInfo> jobs;
-    if (user.authorities().contains("ROLE_ADMIN")) {
+    if (user.authorities().contains(ROLE_ADMIN)) {
       logger.debug("Principal is ADMIN. Bypassing user filter to query all platform jobs.");
       jobs = jobService.getAllJobs(page, size);
     } else {
@@ -132,7 +133,7 @@ public class JobController {
         .getJob(id)
         .filter(
             job ->
-                user.authorities().contains("ROLE_ADMIN")
+                user.authorities().contains(ROLE_ADMIN)
                     || user.id().toString().equals(job.userId()))
         .orElseThrow(() -> new NotFoundException(JOB_NOT_FOUND, "No job " + id + "."));
   }
@@ -144,7 +145,7 @@ public class JobController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteJob(
       @PathVariable String id, @AuthenticationPrincipal User user) {
-    jobDeletionService.delete(id, user.id().toString(), user.authorities().contains("ROLE_ADMIN"));
+    jobDeletionService.delete(id, user.id().toString(), user.authorities().contains(ROLE_ADMIN));
     return ResponseEntity.noContent().build();
   }
 

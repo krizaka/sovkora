@@ -30,8 +30,12 @@ public class ContextService {
   static final String USER_PROFILE_KEY = Context.PLATFORM_NAMESPACE + "user.profile";
 
   /** The onboarding answers that form the assistant profile, kept out of the free preferences. */
+  private static final String ATTR_VOICE_MODEL = "voiceModel";
+
+  private static final String ATTR_PRIMARY_INDUSTRY = "primaryIndustry";
+  private static final String ATTR_AI_BEHAVIOR = "aiBehavior";
   private static final Set<String> PROFILE_ATTRIBUTES =
-      Set.of("voiceModel", "primaryIndustry", "aiBehavior");
+      Set.of(ATTR_VOICE_MODEL, ATTR_PRIMARY_INDUSTRY, ATTR_AI_BEHAVIOR);
 
   private static final String DEFAULT_VOICE_MODEL = "alloy";
   private static final String DEFAULT_PRIMARY_INDUSTRY = "tech";
@@ -117,12 +121,12 @@ public class ContextService {
       Map<String, Object> attributes = new HashMap<>(profile.attributes());
       Map<String, Object> profileContext = new HashMap<>();
       profileContext.put("theme", profile.theme());
-      profileContext.put("voiceModel", attributes.getOrDefault("voiceModel", DEFAULT_VOICE_MODEL));
+      profileContext.put(ATTR_VOICE_MODEL, attributes.getOrDefault(ATTR_VOICE_MODEL, DEFAULT_VOICE_MODEL));
       profileContext.put(
-          "primaryIndustry", attributes.getOrDefault("primaryIndustry", DEFAULT_PRIMARY_INDUSTRY));
-      Object aiBehavior = attributes.get("aiBehavior");
+          ATTR_PRIMARY_INDUSTRY, attributes.getOrDefault(ATTR_PRIMARY_INDUSTRY, DEFAULT_PRIMARY_INDUSTRY));
+      Object aiBehavior = attributes.get(ATTR_AI_BEHAVIOR);
       if (aiBehavior != null) {
-        profileContext.put("aiBehavior", aiBehavior);
+        profileContext.put(ATTR_AI_BEHAVIOR, aiBehavior);
       }
       preferences.put(USER_PROFILE_KEY, Map.copyOf(profileContext));
       attributes.keySet().removeAll(PROFILE_ATTRIBUTES);

@@ -148,7 +148,8 @@ public final class FileMasterKeyProvider implements MasterKeyProvider {
       logger.warn(
           "Cannot check permissions on the master keyring at {}: this filesystem has no POSIX"
               + " permissions, so its confidentiality is whatever the platform gives it.",
-          keyFile);
+          keyFile,
+          noPosix);
     } catch (IOException e) {
       throw new UncheckedIOException("could not stat the master keyring at " + keyFile, e);
     }
@@ -247,7 +248,7 @@ public final class FileMasterKeyProvider implements MasterKeyProvider {
       Files.setPosixFilePermissions(
           keyFile, Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
     } catch (UnsupportedOperationException noPosix) {
-      logger.warn("Could not restrict permissions on {}: no POSIX support here.", keyFile);
+      logger.warn("Could not restrict permissions on {}: no POSIX support here.", keyFile, noPosix);
     }
   }
 }
