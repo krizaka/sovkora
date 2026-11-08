@@ -24,5 +24,7 @@ public record SecurityProperties(boolean disableAi) {
    *
    * <p>The default (off) is the boolean default; the binding lives in the Spring adapter.
    */
-  public SecurityProperties {}
+  public SecurityProperties {
+    // no-op: intentional default
+  }
 }
