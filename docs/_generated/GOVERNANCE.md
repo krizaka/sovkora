@@ -117,4 +117,4 @@ build fails when it is violated. Treat an empty cell as a defect, not as a gap.
 | Rule | Enforced by | Summary |
 |:---|:---|:---|
 | `assertNoCrossContextForeignKeys` | `SqlBoundaryTest` | Asserts that every REFERENCES in every *.sql file under initdbDir targets a table created in the same file (same bounded context). |
-| `assertNoCrossContextForeignKeysInMigrations` | `SqlBoundaryRulesTest` | [SEAM-001] on the Flyway migrations: every src/main/resources/db/migration folder under repoRoot is one context (its V files together create its tables), and a REFERENCES may only target a table that folder creates. |
+| `assertNoCrossContextForeignKeysInMigrations` | `RepositoryTreeTest`<br/>`SqlBoundaryRulesTest` | [SEAM-001] on the Flyway migrations: every src/main/resources/db/migration folder under repoRoot is one context (its V files together create its tables), and a REFERENCES may only target a table that folder creates. |
