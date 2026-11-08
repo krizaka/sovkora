@@ -157,7 +157,7 @@ def init_animatediff_pipeline(num_steps: int = DEFAULT_STEPS) -> None:
 
 
 def generate_video_frames_mlx(
-    input_image: Image.Image,
+    _input_image: Image.Image,
     num_frames: int = DEFAULT_NUM_FRAMES,
     num_inference_steps: int = DEFAULT_STEPS,
     progress_callback: Optional[Callable] = None,
@@ -173,8 +173,8 @@ def generate_video_frames_mlx(
     derived from the CLIP text encoder's understanding of the prompt.
 
     Args:
-        input_image: Starting reference image (used for dimension reference only;
-                     AnimateDiff generates from text, not image-to-video)
+        _input_image: Starting reference image (not read by this implementation;
+                      AnimateDiff generates from text, not image-to-video)
         num_frames: Number of output frames (AnimateDiff default: 16)
         num_inference_steps: Denoising steps (Lightning supports 1/2/4/8)
         progress_callback: Optional callback for progress updates
