@@ -75,11 +75,11 @@ export function resolveLink(
   if (target.startsWith("..")) return null;
   const hit = Object.entries(sources).find(([src]) => src.toLowerCase() === target.toLowerCase());
   if (hit) {
-    const hash = fragment ? `#${fragment}` : "";
-    return { href: `/docs/${hit[1]}${hash}`, internal: true };
+    const hash = fragment ? "#" + fragment : "";
+    return { href: "/docs/" + hit[1] + hash, internal: true };
   }
-  const anchor = fragment ? `#${fragment}` : "";
-  return { href: `${REPO}/blob/main/${target}${anchor}`, internal: false };
+  const anchor = fragment ? "#" + fragment : "";
+  return { href: REPO + "/blob/main/" + target + anchor, internal: false };
 }
 
 /**

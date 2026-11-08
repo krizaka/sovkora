@@ -120,8 +120,8 @@ export function ValidationPipelineCard({ fetchWithAuth }: Readonly<ValidationPip
           <h3 className="text-lg font-bold text-fg flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-accent/10 text-accent">
               <Icon name="shield" className="w-4 h-4" />
-            </span>{' '}
-            Validation Matrix
+            </span>
+            {" Validation Matrix"}
           </h3>
           <p className="text-xs text-fg-muted mt-0.5">Configure the 4-tier autonomous self-correction chain.</p>
         </article>

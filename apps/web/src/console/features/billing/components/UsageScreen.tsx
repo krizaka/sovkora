@@ -36,7 +36,7 @@ const COLUMNS: DataTableColumn<CapabilityUsage>[] = [
     align: "end",
     cell: (row) => {
       const enforced = row.enforcedRefusals > 0 ? ` (${row.enforcedRefusals} appliqués)` : "";
-      return `${row.refusals}${enforced}`;
+      return row.refusals + enforced;
     },
   },
   {

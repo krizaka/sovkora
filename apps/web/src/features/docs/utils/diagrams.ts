@@ -54,8 +54,8 @@ export function loadModel(): DocsModel {
 
 export class DiagramError extends Error {
   constructor(kind: string, line: number | null, message: string) {
-    const location = line ? `, line ${line}` : "";
-    super(`${kind} block${location}: ${message}`);
+    const location = line ? ", line " + line : "";
+    super(kind + " block" + location + ": " + message);
   }
 }
 
@@ -161,7 +161,15 @@ export function parseSequence(source: string, model: DocsModel): SequenceBlock {
             if (m) {
               known(m[1], line);
               known(m[3], line);
-              items.push({ type: "step", n: ++n, from: m[1], to: m[3], text: m[4].trim(), reply: m[2] === "-->", branch });
+              items.push({
+                type: "step",
+                n: ++n,
+                from: m[1],
+                to: m[3],
+                text: m[4].trim(),
+                reply: m[2] === "-->",
+                branch,
+              });
             } else {
               throw new DiagramError("sequence", line, `cannot read "${text}"`);
             }

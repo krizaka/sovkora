@@ -31,15 +31,11 @@ export function DocsSearch({ index }: Readonly<{ index: readonly SearchEntry[] }
         onSuggestionSelect={(s) => router.push(s.value)}
         onSubmit={() => {
           if (!hits[0]) return;
-          const fragment = hits[0].id ? `#${hits[0].id}` : "";
-          router.push(`${pageHref(hits[0].slug)}${fragment}`);
+          const fragment = hits[0].id ? "#" + hits[0].id : "";
+          router.push(pageHref(hits[0].slug) + fragment);
         }}
       />
-      {query.trim() && hits.length === 0 && (
-        <output className="mt-3 text-sm text-fg-secondary">
-          {d.searchEmpty}
-        </output>
-      )}
+      {query.trim() && hits.length === 0 && <output className="mt-3 text-sm text-fg-secondary">{d.searchEmpty}</output>}
     </div>
   );
 }
