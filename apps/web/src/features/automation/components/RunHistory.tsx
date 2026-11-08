@@ -59,7 +59,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.status,
         type: "status",
         value: (run) => r.status[run.status],
-        cell: (run) => <RunStatusCell run={run} label={r.status[run.status]} />,
+        cell: (run) => <RunStatusCell run={run} label={r.status[run.status]} />, // NOSONAR S6478 — render prop called as a function by DataTable; RunStatusCell is defined outside; r is stable (translation ref)
       },
       {
         id: "trigger",
@@ -91,7 +91,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.detail,
         priority: 2,
         value: (run) => run.errorMessage ?? run.errorCode ?? "",
-        cell: (run) => <RunDetailCell run={run} skippedBudgetLabel={r.skippedBudget} />,
+        cell: (run) => <RunDetailCell run={run} skippedBudgetLabel={r.skippedBudget} />, // NOSONAR S6478 — render prop called as a function by DataTable; RunDetailCell is defined outside; r is stable (translation ref)
       },
     ],
     [r, dateLocale],
