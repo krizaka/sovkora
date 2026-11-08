@@ -133,6 +133,22 @@ class ChecksControllerIT extends AbstractContainerIntegrationTest {
   }
 
   @Test
+  @DisplayName("collecting without a signed principal: 401, and nothing is read or audited")
+  void collectWithoutPrincipalIs401() throws Exception {
+    mvc(true, 30)
+        .perform(collect("case-777", "tenant-42", true))
+        .andExpect(status().isUnauthorized());
+    assertThat(auditLines()).isZero();
+  }
+
+  @Test
+  @DisplayName("collecting without an allowed role: 403")
+  void collectWithoutRoleIs403() throws Exception {
+    authenticate(MARIE, "acme", "ROLE_USER");
+    mvc(true, 30).perform(collect("case-777", "tenant-42", true)).andExpect(status().isForbidden());
+  }
+
+  @Test
   @DisplayName("a principal without an allowed role: 403")
   void noRoleIs403() throws Exception {
     authenticate(MARIE, "acme", "ROLE_USER");

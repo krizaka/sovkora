@@ -72,9 +72,9 @@ public class ChecksController {
       @RequestBody SubmitCheckRequest request,
       @AuthenticationPrincipal User user) {
     Actor actor = actorOf(user);
-    ResponseEntity<Object> refused = gate(actor);
-    if (refused != null) {
-      return refused;
+    Optional<ResponseEntity<Object>> refused = gate(actor);
+    if (refused.isPresent()) {
+      return refused.get();
     }
     CheckPurpose asked = PURPOSES.get(purpose);
     if (asked == null) {
@@ -117,9 +117,9 @@ public class ChecksController {
       @RequestParam(defaultValue = "false") boolean consented,
       @AuthenticationPrincipal User user) {
     Actor actor = actorOf(user);
-    ResponseEntity<Object> refused = gate(actor);
-    if (refused != null) {
-      return refused;
+    Optional<ResponseEntity<Object>> refused = gate(actor);
+    if (refused.isPresent()) {
+      return refused.get();
     }
     Optional<ProductChecks.Collected> collected =
         checks.collect(actor, providerRef, subjectId, consented);
@@ -129,10 +129,10 @@ public class ChecksController {
         .orElseGet(() -> ResponseEntity.notFound().build());
   }
 
-  /** The refusal before anything is asked, or {@code null} when the caller may go on. */
-  private ResponseEntity<Object> gate(Actor actor) {
+  /** The refusal before anything is asked, or empty when the caller may go on. */
+  private Optional<ResponseEntity<Object>> gate(Actor actor) {
     if (actor == null) {
-      return ResponseEntity.status(401).build();
+      return Optional.of(ResponseEntity.status(401).build());
     }
     if (!checks.permits(actor)) {
       ACCESS_AUDIT.warn(
@@ -140,7 +140,7 @@ public class ChecksController {
           "checks refused tenant={} subject={} reason=MISSING_ROLE",
           actor.tenant(),
           actor.subject());
-      return ResponseEntity.status(403).build();
+      return Optional.of(ResponseEntity.status(403).build());
     }
     long wait = checks.throttle(actor);
     if (wait > 0) {
@@ -149,9 +149,10 @@ public class ChecksController {
           "checks refused tenant={} subject={} reason=RATE_LIMIT",
           actor.tenant(),
           actor.subject());
-      return ResponseEntity.status(429).header("Retry-After", Long.toString(wait)).build();
+      return Optional.of(
+          ResponseEntity.status(429).header("Retry-After", Long.toString(wait)).build());
     }
-    return null;
+    return Optional.empty();
   }
 
   /** The actor of the session: none for a caller that is not a signed-in, unambiguous user. */
