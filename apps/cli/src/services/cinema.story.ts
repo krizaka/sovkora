@@ -314,11 +314,33 @@ export function parseStory(raw: unknown): Story {
 // ── The rubric ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** Verbs that say nothing about a character (the v1 film's failure): an action made only of these is flat. */
-const GENERIC =
-  /\b(moves?|moving|stands?|standing|looks? around|turns? (its|his|her) head (left|right)|flies around|is shown|appears?|idles?|poses?|walks? around|scanning)\b/gi;
+const GENERIC = new RegExp(
+  "\\b(" +
+    [
+      "moves?|moving|stands?|standing",
+      "looks? around|walks? around|scanning",
+      "turns? (?:its|his|her) head (?:left|right)",
+      "flies around|is shown|appears?|idles?|poses?",
+    ].join("|") +
+    ")\\b",
+  "gi",
+);
 /** Physical verbs of a living body: a character shot names at least one. */
-const LIVING =
-  /\b(breath\w*|lean\w*|crouch\w*|leap\w*|launch\w*|beat\w*|flap\w*|land\w*|fold\w*|grip\w*|tighten\w*|shuffl\w*|step\w*|nod\w*|bow\w*|nudg\w*|shak\w*|lift\w*|rais\w*|set\w*|tap\w*|push\w*|brac\w*|tumbl\w*|climb\w*|glanc\w*|snap\w*|puff\w*|smooth\w*|carr\w*|hold\w*|answer\w*|read\w*|recogn\w*|spread\w*|ruffl\w*|blink\w*|widen\w*|bump\w*|twirl\w*|hop\w*|spin\w*|wav(e|es|ing)|slid\w*|danc\w*|jump\w*|cheer\w*|scoop\w*|wrap\w*|flick\w*|sink\w*|shiver\w*|curl\w*|dive\w*|snatch\w*|catch\w*|bob\w*|bank\w*)\b/i;
+const LIVING = new RegExp(
+  "\\b(" +
+    [
+      "breath\\w*|lean\\w*|crouch\\w*|leap\\w*|launch\\w*|beat\\w*|flap\\w*|land\\w*",
+      "fold\\w*|grip\\w*|tighten\\w*|shuffl\\w*|step\\w*|nod\\w*|bow\\w*|nudg\\w*",
+      "shak\\w*|lift\\w*|rais\\w*|set\\w*|tap\\w*|push\\w*|brac\\w*|tumbl\\w*",
+      "climb\\w*|glanc\\w*|snap\\w*|puff\\w*|smooth\\w*|carr\\w*|hold\\w*|answer\\w*",
+      "read\\w*|recogn\\w*|spread\\w*|ruffl\\w*|blink\\w*|widen\\w*|bump\\w*|twirl\\w*",
+      "hop\\w*|spin\\w*|wav(?:e|es|ing)|slid\\w*|danc\\w*|jump\\w*|cheer\\w*|scoop\\w*",
+      "wrap\\w*|flick\\w*|sink\\w*|shiver\\w*|curl\\w*|dive\\w*|snatch\\w*|catch\\w*",
+      "bob\\w*|bank\\w*",
+    ].join("|") +
+    ")\\b",
+  "i",
+);
 /** Words too common to tie an action to a promise. */
 const STOP = new Set([
   "the",
@@ -405,8 +427,17 @@ export const MIN_INTERACTION_SHARE = 1 / 3;
 /** Rhythm: the spread of shot lengths (coefficient of variation), and what a quick shot is. */
 export const MIN_LENGTH_SPREAD = 0.15;
 export const QUICK_SHOT = 3;
-const LINEUP =
-  /\b(in a row|line[sd]? up|lineup|turns? (their|its) heads? (to|toward) the (camera|lens)|looks? (in)?to the (camera|lens)|pose[sd]? for)\b/i;
+const LINEUP = new RegExp(
+  "\\b(" +
+    [
+      "in a row|line[sd]? up|lineup",
+      "turns? (?:their|its) heads? (?:to|toward) the (?:camera|lens)",
+      "looks? (?:in)?to the (?:camera|lens)",
+      "pose[sd]? for",
+    ].join("|") +
+    ")\\b",
+  "i",
+);
 
 /**
  * Names a film must never say or show (the hard legal rule of orazaka#289): real people, songs, games, shows and brands
