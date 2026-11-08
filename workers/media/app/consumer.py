@@ -690,7 +690,11 @@ def _sound(job: dict) -> tuple:
         silent_path = measured.pop("silentPath")
         url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
         silent_url = _store(
-            silent_path, job, "video.silent.mp4", VIDEO_CONTENT_TYPE, public_url.replace(VIDEO_FILENAME, "video.silent.mp4")
+            silent_path,
+            job,
+            "video.silent.mp4",
+            VIDEO_CONTENT_TYPE,
+            public_url.replace(VIDEO_FILENAME, "video.silent.mp4"),
         )
         metrics = {
             "durationSeconds": measured["durationSeconds"],
