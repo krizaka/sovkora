@@ -123,7 +123,7 @@ export function StackPanel({ snap, goSettings }: { snap: Snapshot; goSettings: (
             {t("common.refresh")}
           </Button>
         </div>
-        {note && <p className="text-sm text-fg-secondary" role="status">{note}</p>}
+        {note && <output className="block text-sm text-fg-secondary">{note}</output>}
 
         <h3 className="pt-2 text-sm font-semibold uppercase tracking-wide text-fg-secondary">{t("stack.services")}</h3>
         {services.length === 0 ? (
