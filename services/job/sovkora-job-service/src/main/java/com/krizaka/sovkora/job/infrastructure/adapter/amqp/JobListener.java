@@ -291,6 +291,7 @@ public class JobListener {
           .get(timeoutSeconds, TimeUnit.SECONDS);
 
     } catch (TimeoutException e) {
+      logger.debug("CompletableFuture.get timed out waiting for job {}", resolved.jobId(), e);
       handleTimeout(resolved, timeoutSeconds);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

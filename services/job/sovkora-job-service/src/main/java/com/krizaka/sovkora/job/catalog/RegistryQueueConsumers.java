@@ -39,7 +39,7 @@ class RegistryQueueConsumers implements QueueConsumers {
     try {
       return queueOf(category, hosted).map(this::drains).orElse(true);
     } catch (DataAccessException unknown) {
-      logger.debug("The worker registry is not readable: {}", unknown.toString());
+      logger.debug("The worker registry is not readable: {}", unknown.getMessage(), unknown);
       return true;
     }
   }
@@ -50,7 +50,7 @@ class RegistryQueueConsumers implements QueueConsumers {
       Optional<String> own = rowOf(category, hosted);
       return own.isPresent() || !hosted ? own : rowOf(category, false);
     } catch (DataAccessException unknown) {
-      logger.debug("model_category_queue is not readable: {}", unknown.toString());
+      logger.debug("model_category_queue is not readable: {}", unknown.getMessage(), unknown);
       return Optional.empty();
     }
   }
