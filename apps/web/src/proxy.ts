@@ -27,7 +27,7 @@ import { SIGNED_OUT_REDIRECTS } from "@/core/config/redirects";
 import { LOCALE_HEADER, splitLocalePrefix } from "@/core/i18n/locale-negotiation";
 import { SITE_URL } from "@/app/_seo/seo";
 import { consoleResponse } from "@/console/core/edge";
-import { isAdminHost, routeFor } from "@/console/core/config/host";
+import { inConsoleTree, isAdminHost, routeFor } from "@/console/core/config/host";
 /** The next-auth cookie of the session, by the name this deployment uses (`__Secure-` on https); it is only read, as a hint, never trusted (krizaka-ui#827). */
 const SESSION_COOKIES = ["__Secure-next-auth.session-token", "next-auth.session-token"] as const;
 const sessionCookieOf = (request: NextRequest) =>
@@ -58,12 +58,18 @@ function handleDevHost(request: NextRequest, pathname: string): NextResponse | n
   }
   const to = devRedirect(request.method, pathname, request.nextUrl.search, process.env.APP_PUBLIC_URL ?? SITE_URL);
   if (to) return closed(NextResponse.redirect(to, 308));
+  if (inConsoleTree(pathname)) {
+    return closed(new NextResponse("Not found", { status: 404 }));
+  }
   if (pathname !== HEALTH_PATH) return closed(route(request));
   return closed(NextResponse.next());
 }
 
 /** Handle robots.txt for admin/dev addresses. */
-function handleRobotsRequest(host: string | null): NextResponse | null {
+function handleRobotsRequest(host: string | null, pathname: string): NextResponse | null {
+  if (pathname !== "/robots.txt") {
+    return null;
+  }
   if (host && typeof host === "string" && (isAdminHost(host) || isDevAddress(host))) {
     return new NextResponse("User-agent: *\nDisallow: /\n", {
       status: 200,
@@ -134,7 +140,7 @@ export function proxy(request: NextRequest) {
   if (pathname === HEALTH_PATH) {
     response = NextResponse.next();
   } else {
-    const robotsResponse = handleRobotsRequest(host);
+    const robotsResponse = handleRobotsRequest(host, pathname);
     if (robotsResponse) return robotsResponse;
     const hostRoute = routeFor(host, pathname);
     switch (hostRoute.kind) {

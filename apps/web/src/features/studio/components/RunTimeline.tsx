@@ -66,11 +66,12 @@ export function RunTimeline({ steps }: Readonly<RunTimelineProps>) {
       value: typeof percent === "number" && percent > 0 ? percent / 100 : undefined,
       description: step.status === "CANCELLED" ? t.studio.runCancelled : eta,
       content: (() => {
-        const errorContent = status === "error" && step.error ? (
-          <p role="alert" className="text-xs text-fg-danger">
-            {step.error}
-          </p>
-        ) : undefined;
+        const errorContent =
+          status === "error" && step.error ? (
+            <p role="alert" className="text-xs text-fg-danger">
+              {step.error}
+            </p>
+          ) : undefined;
         return status === "current" ? (
           <>
             <Progress
@@ -82,7 +83,9 @@ export function RunTimeline({ steps }: Readonly<RunTimelineProps>) {
             />
             <RunStepLive step={step} job={job} now={now} />
           </>
-        ) : errorContent;
+        ) : (
+          errorContent
+        );
       })(),
     };
   });
