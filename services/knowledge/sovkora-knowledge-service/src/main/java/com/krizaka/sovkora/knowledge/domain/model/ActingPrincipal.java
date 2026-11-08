@@ -7,6 +7,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Who a read is made for: the verified principal the core sends in the {@code act} claim of its
@@ -23,6 +25,8 @@ import java.util.regex.Pattern;
  */
 public record ActingPrincipal(
     String tenant, String subject, Set<String> roles, Set<String> groups) {
+
+  private static final Logger log = LoggerFactory.getLogger(ActingPrincipal.class);
 
   /** The tenant of the platform's own content; it is a source's tenant, never a caller's. */
   public static final String PLATFORM_TENANT = "*";
@@ -76,6 +80,7 @@ public record ActingPrincipal(
               names(map.get("roles")),
               names(map.get("groups"))));
     } catch (IllegalArgumentException | NullPointerException malformed) {
+      log.debug("ActingPrincipal claim is malformed and cannot be resolved", malformed);
       return Optional.empty();
     }
   }
