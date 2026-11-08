@@ -73,7 +73,11 @@ class SealedCheckKeyStoreAdapter implements CheckKeyStore {
       String key = sealer.open(scope(provider), stored);
       return key.isBlank() ? Optional.empty() : Optional.of(key);
     } catch (IllegalStateException | IllegalArgumentException unopened) {
-      log.warn("{} does not open for its scope ({})", setting, unopened.getClass().getSimpleName(), unopened);
+      log.warn(
+          "{} does not open for its scope ({})",
+          setting,
+          unopened.getClass().getSimpleName(),
+          unopened);
       return Optional.empty();
     }
   }

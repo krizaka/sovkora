@@ -114,7 +114,8 @@ public class SecurityConfig {
     try {
       return userDirectoryService.getUser(userId);
     } catch (RuntimeException ex) {
-      logger.warn("Failed to hydrate user from directory for userId={}: {}", userId, ex.getMessage(), ex);
+      logger.warn(
+          "Failed to hydrate user from directory for userId={}: {}", userId, ex.getMessage(), ex);
       throw new BadCredentialsException("Invalid or inactive session token");
     }
   }

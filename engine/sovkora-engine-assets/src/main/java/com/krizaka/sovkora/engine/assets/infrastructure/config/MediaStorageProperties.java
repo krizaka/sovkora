@@ -28,19 +28,26 @@ public record MediaStorageProperties(
   /** Fails at start, by name, on an incomplete provider — never at the first upload. */
   public MediaStorageProperties {
     Kind kind = KINDS.get(provider);
+    if (kind == null) {
+      throw new IllegalArgumentException(
+          "media.storage.provider must be local, bunny or directory, was " + provider);
+    }
     switch (kind) {
-      case null ->
-          throw new IllegalArgumentException(
-              "media.storage.provider must be local, bunny or directory, was " + provider);
-      case LOCAL -> { /* local storage needs no extra configuration */ }
-      case BUNNY when isBlank(zone) || isBlank(apiKey) ->
+      case BUNNY -> {
+        if (isBlank(zone) || isBlank(apiKey)) {
           throw new IllegalArgumentException(
               "media.storage.provider=bunny needs MEDIA_STORAGE_ZONE and MEDIA_STORAGE_API_KEY");
-      case BUNNY -> { /* zone and apiKey are present */ }
-      case DIRECTORY when isBlank(directory) ->
+        }
+      }
+      case DIRECTORY -> {
+        if (isBlank(directory)) {
           throw new IllegalArgumentException(
               "media.storage.provider=directory needs MEDIA_STORAGE_DIRECTORY");
-      case DIRECTORY -> { /* directory is present */ }
+        }
+      }
+      default -> {
+        /* local needs no extra configuration */
+      }
     }
   }
 
