@@ -164,10 +164,6 @@ public class ChatController {
     return contextService.resolve(user, conversationId);
   }
 
-  private SseEmitter streamSse(String conversationId, ChatRequest request) {
-    return streamSse(conversationId, request, "default");
-  }
-
   private SseEmitter streamSse(String conversationId, ChatRequest request, String pipelineId) {
     logger.debug("SSE stream starting: conversation={}, pipeline={}", conversationId, pipelineId);
     SseEmitter emitter = sseStreamGateway.createEmitter();

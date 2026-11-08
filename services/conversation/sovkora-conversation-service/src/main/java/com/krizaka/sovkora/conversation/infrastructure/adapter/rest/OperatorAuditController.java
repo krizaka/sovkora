@@ -24,6 +24,6 @@ class OperatorAuditController {
   @GetMapping
   @PreAuthorize("hasRole('ADMIN')")
   List<OperatorAuditStore.Stored> recent(@RequestParam(defaultValue = "200") int limit) {
-    return store.recent(Math.min(500, Math.max(1, limit)));
+    return store.recent(Math.clamp(limit, 1, 500));
   }
 }
