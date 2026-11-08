@@ -295,7 +295,7 @@ public final class RunSurfaceRules {
     Path repositoryRoot = Workspace.rootOrRepository(Path.of(System.getProperty("user.dir")));
     // The dispatchers live in another repository (the studio's outbox): standalone, the rule
     // cannot see its subject and is skipped rather than judged on the empty set.
-    Workspace.require(repositoryRoot, "DOOR-001");
+    Workspace.require(repositoryRoot, RULE);
     List<Path> sources = productionSources(repositoryRoot);
 
     Set<String> exchangeNames = new LinkedHashSet<>();

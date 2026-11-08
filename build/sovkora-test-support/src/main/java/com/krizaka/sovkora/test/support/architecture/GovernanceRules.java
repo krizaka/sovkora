@@ -33,6 +33,9 @@ public final class GovernanceRules {
   private static final String DOMAIN_LAYER = "Domain";
   private static final String APPLICATION_LAYER = "Application";
   private static final String APPLICATION_PKG_PATTERN = ".application..";
+  private static final String SECURITY_CONFIG_JAVA = "SecurityConfig.java";
+  private static final String JAVA_EXTENSION = ".java";
+  private static final String TEST_JAVA_SUFFIX = "Test.java";
 
   private static final DescribedPredicate<JavaAnnotation<?>> SPRING_BOOT_APPLICATION =
       DescribedPredicate.describe(
@@ -420,9 +423,9 @@ public final class GovernanceRules {
       for (Path file :
           GovernanceSubjects.require(
               "ADR-035",
-              "SecurityConfig.java files under " + sourceRoot,
+              SECURITY_CONFIG_JAVA + " files under " + sourceRoot,
               paths
-                  .filter(p -> p.getFileName().toString().endsWith("SecurityConfig.java"))
+                  .filter(p -> p.getFileName().toString().endsWith(SECURITY_CONFIG_JAVA))
                   .toList())) {
         String source = Files.readString(file);
         // Comments are stripped first: this file's own explanations name both the matcher and
@@ -472,7 +475,7 @@ public final class GovernanceRules {
               .anyMatch(p -> INTERNAL_CONTROLLER.matcher(readOrEmpty(p)).find());
       List<Path> configs =
           sources.stream()
-              .filter(p -> p.getFileName().toString().endsWith("SecurityConfig.java"))
+              .filter(p -> p.getFileName().toString().endsWith(SECURITY_CONFIG_JAVA))
               .toList();
       if (publishesInternal && configs.isEmpty()) {
         violations.add(
@@ -666,7 +669,7 @@ public final class GovernanceRules {
     List<Path> declarations = new ArrayList<>();
     List<String> offenders = new ArrayList<>();
     for (Path file : PackPurityRules.productionSources(repositoryRoot)) {
-      String name = file.getFileName().toString().replace(".java", "");
+      String name = file.getFileName().toString().replace(JAVA_EXTENSION, "");
       if (permitted.contains(name) || name.endsWith("Test") || name.endsWith("IT")) {
         continue;
       }
@@ -726,7 +729,7 @@ public final class GovernanceRules {
             .toList());
     for (Path file : PackPurityRules.productionSources(repositoryRoot)) {
       String name = file.getFileName().toString();
-      if ("CapabilityDeclaration.java".equals(name) || name.endsWith("Test.java")) {
+      if ("CapabilityDeclaration.java".equals(name) || name.endsWith(TEST_JAVA_SUFFIX)) {
         continue;
       }
       String source = readSource(file);
@@ -805,9 +808,9 @@ public final class GovernanceRules {
     List<Path> securityConfigs =
         GovernanceSubjects.require(
             "KIT-001",
-            "SecurityConfig.java files",
+            SECURITY_CONFIG_JAVA + " files",
             PackPurityRules.productionSources(repositoryRoot).stream()
-                .filter(file -> "SecurityConfig.java".equals(file.getFileName().toString()))
+                .filter(file -> SECURITY_CONFIG_JAVA.equals(file.getFileName().toString()))
                 .toList());
     for (Path file : securityConfigs) {
       String source = withoutComments(readSource(file));
@@ -845,7 +848,7 @@ public final class GovernanceRules {
     List<String> offenders = new ArrayList<>();
     for (Path file : sources) {
       // The rules name the table in order to forbid it; that is not authoring a dedup.
-      if (!file.toString().endsWith(".java")
+      if (!file.toString().endsWith(JAVA_EXTENSION)
           || inWorkspace(repositoryRoot, file).contains("sovkora-test-support")
           || isTheKit(file)) {
         continue;
@@ -885,7 +888,7 @@ public final class GovernanceRules {
             "KIT-003",
             "sources selecting pending outbox rows",
             sources.stream()
-                .filter(file -> file.toString().endsWith(".java"))
+                .filter(file -> file.toString().endsWith(JAVA_EXTENSION))
                 .filter(file -> readSource(file).contains("published_at IS NULL"))
                 .toList());
     for (Path file : pendingSelects) {
@@ -1013,7 +1016,7 @@ public final class GovernanceRules {
       String name = file.getFileName().toString();
       if ("RunSettlementService.java".equals(name)
           || "CreditReservationService.java".equals(name)
-          || name.endsWith("Test.java")) {
+          || name.endsWith(TEST_JAVA_SUFFIX)) {
         continue;
       }
       String source = withoutComments(readSource(file));
@@ -1073,7 +1076,7 @@ public final class GovernanceRules {
           || "StudioInstallationService.java".equals(name)
           || "PackInstallerService.java".equals(name)
           || "GovernanceRules.java".equals(name)
-          || name.endsWith("Test.java")) {
+          || name.endsWith(TEST_JAVA_SUFFIX)) {
         continue;
       }
       String source = withoutComments(readSource(file));
