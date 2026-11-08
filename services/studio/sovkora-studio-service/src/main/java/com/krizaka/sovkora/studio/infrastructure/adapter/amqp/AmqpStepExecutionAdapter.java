@@ -61,6 +61,8 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
    */
   private static final String DEFAULT_MODEL = "default";
 
+  private static final String JOB_ID_KEY = "jobId";
+
   /** Preference namespace the brand-context interceptor reads (ADR-034 §9.1). */
   private static final String BRAND_PREFIX = "orazaka.studio.brand.";
 
@@ -155,7 +157,7 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
     payload.put(JobCommand.DEFERRED_METERING_KEY, Boolean.TRUE);
 
     Map<String, Object> command = new HashMap<>();
-    command.put("jobId", jobId);
+    command.put(JOB_ID_KEY, jobId);
     command.put("userId", dispatch.actorId());
     command.put("featureKey", dispatch.featureKey());
     command.put("model", DEFAULT_MODEL);
@@ -224,7 +226,7 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
         JOBS_EXCHANGE,
         CANCEL_KEY_PREFIX + jobId,
         jobId + "-cancel",
-        Map.of("jobId", jobId));
+        Map.of(JOB_ID_KEY, jobId));
   }
 
   /**
@@ -240,7 +242,7 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
     payload.put("stepId", dispatch.stepId());
 
     Map<String, Object> command = new HashMap<>();
-    command.put("jobId", jobId);
+    command.put(JOB_ID_KEY, jobId);
     command.put("userId", dispatch.actorId());
     command.put("connectorType", dispatch.connectorType());
     command.put("action", String.valueOf(dispatch.resolvedInputs().getOrDefault("action", "send")));

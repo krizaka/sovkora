@@ -43,6 +43,12 @@ public final class OutputContract {
           "description",
           "$schema");
 
+  private static final String PROPERTIES = "properties";
+  private static final String ADDITIONAL_PROPERTIES = "additionalProperties";
+  private static final String ITEMS = "items";
+  private static final String MINIMUM = "minimum";
+  private static final String MAXIMUM = "maximum";
+
   private OutputContract() {}
 
   /**
@@ -69,12 +75,12 @@ public final class OutputContract {
                 unsupported.add(keyword);
               }
             });
-    JsonNode properties = schema.path("properties");
+    JsonNode properties = schema.path(PROPERTIES);
     if (properties.isObject()) {
       properties.values().forEach(child -> collectUnsupported(child, unsupported));
     }
-    collectUnsupported(schema.path("items"), unsupported);
-    JsonNode additional = schema.path("additionalProperties");
+    collectUnsupported(schema.path(ITEMS), unsupported);
+    JsonNode additional = schema.path(ADDITIONAL_PROPERTIES);
     if (additional.isObject()) {
       collectUnsupported(additional, unsupported);
     }
@@ -134,17 +140,17 @@ public final class OutputContract {
       bound(schema, "maxLength", length, path, found, false);
     }
     if (value.isNumber()) {
-      if (schema.has("minimum") && value.asDouble() < schema.path("minimum").asDouble()) {
+      if (schema.has(MINIMUM) && value.asDouble() < schema.path(MINIMUM).asDouble()) {
         found.add(path + ": below minimum");
       }
-      if (schema.has("maximum") && value.asDouble() > schema.path("maximum").asDouble()) {
+      if (schema.has(MAXIMUM) && value.asDouble() > schema.path(MAXIMUM).asDouble()) {
         found.add(path + ": above maximum");
       }
     }
     if (value.isArray()) {
       bound(schema, "minItems", value.size(), path, found, true);
       bound(schema, "maxItems", value.size(), path, found, false);
-      JsonNode items = schema.path("items");
+      JsonNode items = schema.path(ITEMS);
       for (int i = 0; i < value.size(); i++) {
         check(items, value.get(i), path + "[" + i + "]", found);
       }
@@ -165,10 +171,10 @@ public final class OutputContract {
             }
           });
     }
-    JsonNode properties = schema.path("properties");
+    JsonNode properties = schema.path(PROPERTIES);
     boolean closed =
-        schema.path("additionalProperties").isBoolean()
-            && !schema.path("additionalProperties").asBoolean();
+        schema.path(ADDITIONAL_PROPERTIES).isBoolean()
+            && !schema.path(ADDITIONAL_PROPERTIES).asBoolean();
     Iterator<String> names = value.propertyNames().iterator();
     while (names.hasNext()) {
       String name = names.next();

@@ -56,6 +56,14 @@ public class PackBundleResolver {
 
   /** What makes a directory a bundle. */
   private static final String MANIFEST = "pack.yaml";
+  private static final String CAPABILITIES_KEY = "capabilities";
+  private static final String INPUT_SCHEMA_KEY = "inputSchema";
+  private static final String VERSION_KEY = "version";
+  private static final String DEFINITION_KEY = "definition";
+  private static final String STATUS_KEY = "status";
+  private static final String CONFIG_SCHEMA_KEY = "configSchema";
+  private static final String CHANGELOG_KEY = "changelog";
+  private static final String CREATED_BY_KEY = "createdBy";
 
   private static final String I18N_DIRECTORY = "i18n";
 
@@ -180,7 +188,7 @@ public class PackBundleResolver {
     // `sovkoraVersion` — is recorded in the manifest and enforced by nothing yet, so it is dropped
     // here rather than silently bound to a component that does not exist.
     Object requires = resolved.remove("requires");
-    resolved.put("capabilities", contributedCapabilities(requires));
+    resolved.put(CAPABILITIES_KEY, contributedCapabilities(requires));
     resolved.put("studios", studios(bundleDirectory, manifest.get("studios")));
     resolved.put("translations", translations(bundleDirectory));
 
@@ -258,10 +266,10 @@ public class PackBundleResolver {
    * bound as a map, so the installer and the REST path hand the registry the identical string.
    */
   private Object contributedCapabilities(Object requires) {
-    if (!(requires instanceof Map<?, ?> declared) || declared.get("capabilities") == null) {
+    if (!(requires instanceof Map<?, ?> declared) || declared.get(CAPABILITIES_KEY) == null) {
       return List.of();
     }
-    if (!(declared.get("capabilities") instanceof List<?> capabilities)) {
+    if (!(declared.get(CAPABILITIES_KEY) instanceof List<?> capabilities)) {
       throw new PackInstallException("requires.capabilities is not a list");
     }
     List<Object> resolved = new ArrayList<>();
@@ -271,7 +279,7 @@ public class PackBundleResolver {
       }
       Map<String, Object> copy = new LinkedHashMap<>();
       capability.forEach((key, value) -> copy.put(String.valueOf(key), value));
-      copy.put("inputSchema", asJsonText(copy.get("inputSchema")));
+      copy.put(INPUT_SCHEMA_KEY, asJsonText(copy.get(INPUT_SCHEMA_KEY)));
       copy.put("outputSchema", asJsonText(copy.get("outputSchema")));
       resolved.add(copy);
     }
@@ -317,27 +325,28 @@ public class PackBundleResolver {
       throw new PackInstallException("Blueprint not found: " + relativePath);
     }
     JsonNode raw = readJson(file);
-    for (String required : List.of("version", "definition", "inputSchema")) {
+    for (String required : List.of(VERSION_KEY, DEFINITION_KEY, INPUT_SCHEMA_KEY)) {
       if (raw.get(required) == null) {
         throw new PackInstallException(relativePath + " declares no " + required);
       }
     }
     Map<String, Object> blueprint = new LinkedHashMap<>();
-    blueprint.put("version", raw.get("version").asString());
+    blueprint.put(VERSION_KEY, raw.get(VERSION_KEY).asString());
     blueprint.put(
-        "status", raw.path("status").isMissingNode() ? "DRAFT" : raw.get("status").asString());
-    blueprint.put("definition", raw.get("definition").toString());
-    blueprint.put("inputSchema", raw.get("inputSchema").toString());
+        STATUS_KEY,
+        raw.path(STATUS_KEY).isMissingNode() ? "DRAFT" : raw.get(STATUS_KEY).asString());
+    blueprint.put(DEFINITION_KEY, raw.get(DEFINITION_KEY).toString());
+    blueprint.put(INPUT_SCHEMA_KEY, raw.get(INPUT_SCHEMA_KEY).toString());
     blueprint.put(
-        "configSchema",
-        raw.get("configSchema") == null ? "{}" : raw.get("configSchema").toString());
+        CONFIG_SCHEMA_KEY,
+        raw.get(CONFIG_SCHEMA_KEY) == null ? "{}" : raw.get(CONFIG_SCHEMA_KEY).toString());
     blueprint.put("estimatedCredits", raw.path("estimatedCredits").asLong(0L));
     blueprint.put(
-        "changelog",
-        raw.path("changelog").isMissingNode() ? null : raw.get("changelog").asString());
+        CHANGELOG_KEY,
+        raw.path(CHANGELOG_KEY).isMissingNode() ? null : raw.get(CHANGELOG_KEY).asString());
     blueprint.put(
-        "createdBy",
-        raw.path("createdBy").isMissingNode() ? "system" : raw.get("createdBy").asString());
+        CREATED_BY_KEY,
+        raw.path(CREATED_BY_KEY).isMissingNode() ? "system" : raw.get(CREATED_BY_KEY).asString());
     return blueprint;
   }
 

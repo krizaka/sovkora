@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BlueprintPublishService {
 
+  private static final String STEP_PREFIX = STEP_PREFIX;
+
   private final JdbcTemplate jdbcTemplate;
   private final BlueprintRepository blueprintRepository;
   private final StudioCatalogService catalogService;
@@ -163,7 +165,7 @@ public class BlueprintPublishService {
         continue;
       }
       if (capabilityRoutingClient.route(step.featureKey()).isEmpty()) {
-        unroutable.add("step '" + step.id() + "' -> capability '" + step.featureKey() + "'");
+        unroutable.add(STEP_PREFIX + step.id() + "' -> capability '" + step.featureKey() + "'");
       }
     }
     if (!unroutable.isEmpty()) {
@@ -196,9 +198,9 @@ public class BlueprintPublishService {
               .latestPublished(step.studioKey())
               .flatMap(version -> blueprintRepository.find(step.studioKey(), version.version()));
       if (target.isEmpty()) {
-        refused.add("step '" + step.id() + "' -> '" + step.studioKey() + "' is not published");
+        refused.add(STEP_PREFIX + step.id() + "' -> '" + step.studioKey() + "' is not published");
       } else if (target.get().steps().stream().anyMatch(s -> s.kind() == StepKind.STUDIO)) {
-        refused.add("step '" + step.id() + "' -> '" + step.studioKey() + "' calls Studios itself");
+        refused.add(STEP_PREFIX + step.id() + "' -> '" + step.studioKey() + "' calls Studios itself");
       }
     }
     if (!refused.isEmpty()) {

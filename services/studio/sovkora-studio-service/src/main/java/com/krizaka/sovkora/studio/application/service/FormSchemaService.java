@@ -32,6 +32,9 @@ public class FormSchemaService {
 
   private static final String OPTIONS = "x-options";
   private static final String SOURCE_MODELS = "models";
+  private static final String PROPERTIES = "properties";
+  private static final String ONE_OF = "oneOf";
+  private static final String CONST = "const";
 
   private final ModelOptionsClient modelOptions;
   private final ObjectMapper objectMapper;
@@ -53,10 +56,10 @@ public class FormSchemaService {
       return inputSchema;
     }
     JsonNode root = parse(inputSchema);
-    if (root == null || !root.path("properties").isObject()) {
+    if (root == null || !root.path(PROPERTIES).isObject()) {
       return inputSchema;
     }
-    ObjectNode properties = (ObjectNode) root.path("properties");
+    ObjectNode properties = (ObjectNode) root.path(PROPERTIES);
     boolean changed = false;
     for (Map.Entry<String, JsonNode> field : properties.properties()) {
       String category = modelCategory(field.getValue());
@@ -81,10 +84,10 @@ public class FormSchemaService {
    */
   public void requireClosedSets(String inputSchema, Map<String, Object> inputs) {
     JsonNode root = parse(inputSchema);
-    if (inputs == null || root == null || !root.path("properties").isObject()) {
+    if (inputs == null || root == null || !root.path(PROPERTIES).isObject()) {
       return;
     }
-    for (Map.Entry<String, JsonNode> field : root.path("properties").properties()) {
+    for (Map.Entry<String, JsonNode> field : root.path(PROPERTIES).properties()) {
       Object supplied = inputs.get(field.getKey());
       if (supplied == null || String.valueOf(supplied).isBlank()) {
         String category = modelCategory(field.getValue());
@@ -125,11 +128,11 @@ public class FormSchemaService {
    */
   public Map<String, Object> withResolvedModels(String inputSchema, Map<String, Object> inputs) {
     JsonNode root = parse(inputSchema);
-    if (root == null || !root.path("properties").isObject()) {
+    if (root == null || !root.path(PROPERTIES).isObject()) {
       return inputs;
     }
     Map<String, Object> resolved = null;
-    for (Map.Entry<String, JsonNode> field : root.path("properties").properties()) {
+    for (Map.Entry<String, JsonNode> field : root.path(PROPERTIES).properties()) {
       String category = modelCategory(field.getValue());
       Object supplied = inputs.get(field.getKey());
       if (category == null || (supplied != null && !String.valueOf(supplied).isBlank())) {
@@ -152,7 +155,7 @@ public class FormSchemaService {
   /** Fills a blank aspect with the first one the chosen model can make (the hosted Wan: 16:9). */
   private Map<String, Object> withDefaultAspects(JsonNode root, Map<String, Object> inputs) {
     Map<String, Object> filled = null;
-    for (Map.Entry<String, JsonNode> field : root.path("properties").properties()) {
+    for (Map.Entry<String, JsonNode> field : root.path(PROPERTIES).properties()) {
       JsonNode options = field.getValue().path(OPTIONS);
       String aspectField = options.path("aspectField").asString("");
       Object model = inputs.get(field.getKey());
@@ -183,10 +186,10 @@ public class FormSchemaService {
    */
   public void requireAspectsFit(String inputSchema, Map<String, Object> inputs) {
     JsonNode root = parse(inputSchema);
-    if (root == null || inputs == null || !root.path("properties").isObject()) {
+    if (root == null || inputs == null || !root.path(PROPERTIES).isObject()) {
       return;
     }
-    for (Map.Entry<String, JsonNode> field : root.path("properties").properties()) {
+    for (Map.Entry<String, JsonNode> field : root.path(PROPERTIES).properties()) {
       JsonNode options = field.getValue().path(OPTIONS);
       String aspectField = options.path("aspectField").asString("");
       Object model = inputs.get(field.getKey());
@@ -279,11 +282,11 @@ public class FormSchemaService {
   }
 
   private static void write(ObjectNode spec, List<ModelChoice> choices) {
-    ArrayNode oneOf = spec.putArray("oneOf");
+    ArrayNode oneOf = spec.putArray(ONE_OF);
     String defaultValue = null;
     for (ModelChoice choice : choices) {
       ObjectNode entry = oneOf.addObject();
-      entry.put("const", choice.value());
+      entry.put(CONST, choice.value());
       entry.put("title", choice.label());
       if (choice.hint() != null) {
         entry.put("description", choice.hint());
@@ -327,10 +330,10 @@ public class FormSchemaService {
       for (JsonNode node : spec.path("enum")) {
         values.add(node.asString());
       }
-    } else if (spec.path("oneOf").isArray() && modelCategory(spec) == null) {
-      for (JsonNode node : spec.path("oneOf")) {
-        if (node.has("const")) {
-          values.add(node.path("const").asString());
+    } else if (spec.path(ONE_OF).isArray() && modelCategory(spec) == null) {
+      for (JsonNode node : spec.path(ONE_OF)) {
+        if (node.has(CONST)) {
+          values.add(node.path(CONST).asString());
         }
       }
     }

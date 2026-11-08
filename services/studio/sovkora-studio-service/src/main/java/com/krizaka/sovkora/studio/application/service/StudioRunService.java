@@ -61,6 +61,14 @@ public class StudioRunService {
    */
   static final String RESULT_CACHE_STUDIOS_KEY = "run.result-cache.studios";
 
+  private static final String EVT_RUN_STARTED = "evt.studio.run.started";
+  private static final String KEY_RUN_ID = "runId";
+  private static final String KEY_ACTOR_ID = "actorId";
+  private static final String KEY_STUDIO_KEY = "studioKey";
+  private static final String KEY_CORRELATION_ID = "correlationId";
+  private static final String STEP_ID_COL = "step_id";
+  private static final String STATUS_COL = "status";
+
   private static final String SELECT_RUN =
       "SELECT id, installation_id, actor_id, studio_key, blueprint_version, status, hold_id, cached_from,"
           + " resumed_from,"
@@ -261,15 +269,15 @@ public class StudioRunService {
     runAuditService.recordStarted(runId, actorId, studioKey, dataClass);
     outboxService.append(
         runId.toString(),
-        "evt.studio.run.started",
+        EVT_RUN_STARTED,
         Map.of(
-            "runId",
+            KEY_RUN_ID,
             runId.toString(),
-            "actorId",
+            KEY_ACTOR_ID,
             actorId,
-            "studioKey",
+            KEY_STUDIO_KEY,
             studioKey,
-            "correlationId",
+            KEY_CORRELATION_ID,
             correlationId,
             "parentRunId",
             parentRunId.toString()));
@@ -396,15 +404,15 @@ public class StudioRunService {
     }
     outboxService.append(
         runId.toString(),
-        "evt.studio.run.started",
+        EVT_RUN_STARTED,
         Map.of(
-            "runId",
+            KEY_RUN_ID,
             runId.toString(),
-            "actorId",
+            KEY_ACTOR_ID,
             actorId,
-            "studioKey",
+            KEY_STUDIO_KEY,
             studioKey,
-            "correlationId",
+            KEY_CORRELATION_ID,
             correlationId));
 
     runSagaService.advance(runId);
@@ -441,15 +449,15 @@ public class StudioRunService {
     runAuditService.recordStarted(runId, actorId, studioKey, dataClass);
     Map<String, Object> event =
         Map.of(
-            "runId",
+            KEY_RUN_ID,
             runId.toString(),
-            "actorId",
+            KEY_ACTOR_ID,
             actorId,
-            "studioKey",
+            KEY_STUDIO_KEY,
             studioKey,
             "cachedFrom",
             original.toString());
-    outboxService.append(runId.toString(), "evt.studio.run.started", event);
+    outboxService.append(runId.toString(), EVT_RUN_STARTED, event);
     outboxService.append(runId.toString(), "evt.studio.run.succeeded", event);
     return find(runId, actorId).orElseThrow(() -> new RunNotFoundException(runId));
   }
@@ -617,15 +625,15 @@ public class StudioRunService {
     runAuditService.recordStarted(runId, actorId, origin.studioKey(), dataClass);
     outboxService.append(
         runId.toString(),
-        "evt.studio.run.started",
+        EVT_RUN_STARTED,
         Map.of(
-            "runId",
+            KEY_RUN_ID,
             runId.toString(),
-            "actorId",
+            KEY_ACTOR_ID,
             actorId,
-            "studioKey",
+            KEY_STUDIO_KEY,
             origin.studioKey(),
-            "correlationId",
+            KEY_CORRELATION_ID,
             correlationId,
             "resumedFrom",
             originId.toString()));
@@ -645,7 +653,7 @@ public class StudioRunService {
     jdbcTemplate
         .query(
             "SELECT step_id, status FROM studio_run_step WHERE run_id = ?",
-            (rs, rowNum) -> Map.entry(rs.getString("step_id"), rs.getString("status")),
+            (rs, rowNum) -> Map.entry(rs.getString(STEP_ID_COL), rs.getString(STATUS_COL)),
             originId)
         .forEach(
             row ->
@@ -908,8 +916,8 @@ public class StudioRunService {
             + " FROM studio_run_step WHERE run_id = ?"
             + " ORDER BY started_at NULLS FIRST, step_id, ordinal",
         (rs, rowNum) -> {
-          RunStepStatus status = RunStepStatus.valueOf(rs.getString("status"));
-          String stepId = rs.getString("step_id");
+          RunStepStatus status = RunStepStatus.valueOf(rs.getString(STATUS_COL));
+          String stepId = rs.getString(STEP_ID_COL);
           long[] estimate =
               status == RunStepStatus.RUNNING && studioKey != null
                   ? medianWallTime(studioKey, stepId)
@@ -1020,7 +1028,7 @@ public class StudioRunService {
             rs.getObject("installation_id", UUID.class),
             rs.getString("studio_key"),
             rs.getString("blueprint_version"),
-            RunStatus.valueOf(rs.getString("status")),
+            RunStatus.valueOf(rs.getString(STATUS_COL)),
             rs.getString("hold_id"),
             List.of(),
             rs.getString("error_message"),

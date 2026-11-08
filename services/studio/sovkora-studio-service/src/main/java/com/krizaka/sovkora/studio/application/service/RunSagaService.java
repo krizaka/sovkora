@@ -66,6 +66,8 @@ public class RunSagaService {
    * instead of falling back to the capability's own.
    */
   private static final String UNRESOLVED_MODEL = "default";
+  private static final String STEP_PREFIX = STEP_PREFIX;
+  private static final String STEP_ID_COL = "step_id";
 
   private final JdbcTemplate jdbcTemplate;
   private final BlueprintRepository blueprintRepository;
@@ -427,7 +429,7 @@ public class RunSagaService {
         failRun(
             run,
             blueprint,
-            snapshot.failureMessages().getOrDefault(step.id(), "step '" + step.id() + "' failed"),
+            snapshot.failureMessages().getOrDefault(step.id(), STEP_PREFIX + step.id() + "' failed"),
             cause);
         return;
       }
@@ -544,7 +546,7 @@ public class RunSagaService {
         failRun(
             run,
             blueprint,
-            "step '" + step.id() + "' has no route for capability '" + e.featureKey() + "'",
+            STEP_PREFIX + step.id() + "' has no route for capability '" + e.featureKey() + "'",
             // Our own dispatch site, our own exception: a capability withdrawn from under a
             // published blueprint is a platform problem, and the actor pays nothing for it.
             FailureCause.PLATFORM_UNAVAILABLE);
@@ -640,7 +642,7 @@ public class RunSagaService {
           Map.of(),
           Map.of(),
           null,
-          "step '" + step.id() + "' could not call " + step.studioKey() + ": " + reasonOf(refused),
+          STEP_PREFIX + step.id() + "' could not call " + step.studioKey() + ": " + reasonOf(refused),
           causeOf(refused));
     }
   }
@@ -795,7 +797,7 @@ public class RunSagaService {
             "SELECT step_id, ordinal, output FROM studio_run_step"
                 + " WHERE run_id = ? AND status = ? ORDER BY step_id, ordinal",
             (rs, rowNum) ->
-                Map.entry(rs.getString("step_id"), columns.objectMap(rs.getString("output"))),
+                Map.entry(rs.getString(STEP_ID_COL), columns.objectMap(rs.getString("output"))),
             run.id(),
             RunStepStatus.SUCCEEDED.name())
         .forEach(
@@ -1089,7 +1091,7 @@ public class RunSagaService {
                 + " FROM studio_run_step WHERE run_id = ? ORDER BY step_id, ordinal",
             (rs, rowNum) ->
                 new StepData(
-                    rs.getString("step_id"),
+                    rs.getString(STEP_ID_COL),
                     rs.getInt("ordinal"),
                     RunStepStatus.valueOf(rs.getString("status")),
                     rs.getString("failure_cause"),
@@ -1176,7 +1178,7 @@ public class RunSagaService {
             (rs, rowNum) ->
                 new StepRef(
                     rs.getObject("id", UUID.class),
-                    rs.getString("step_id"),
+                    rs.getString(STEP_ID_COL),
                     rs.getInt("ordinal"),
                     runRow(rs),
                     columns.stringMap(rs.getString("installation_config")),

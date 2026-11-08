@@ -46,6 +46,7 @@ public class RestErrorResolver {
   private static final Logger logger = LoggerFactory.getLogger(RestErrorResolver.class);
   private static final String STATUS_KEY = "status";
   private static final String MESSAGE_KEY = "message";
+  private static final String LIMIT_KEY = "limit";
 
   /**
    * Maps an unknown Studio key to {@code 404}.
@@ -126,7 +127,7 @@ public class RestErrorResolver {
                 "too_many_concurrent_runs",
                 MESSAGE_KEY,
                 String.valueOf(ex.getMessage()),
-                "limit",
+                LIMIT_KEY,
                 ex.limit(),
                 "active",
                 ex.active(),
@@ -192,7 +193,7 @@ public class RestErrorResolver {
                 "too_many_webhooks",
                 MESSAGE_KEY,
                 ex.getMessage(),
-                "limit",
+                LIMIT_KEY,
                 ex.limit()));
   }
 
@@ -213,7 +214,7 @@ public class RestErrorResolver {
                 "too_many_run_streams",
                 MESSAGE_KEY,
                 ex.getMessage(),
-                "limit",
+                LIMIT_KEY,
                 ex.limit()));
   }
 
