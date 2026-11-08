@@ -13,6 +13,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The three operations an operator runs by hand: {@code keygen}, {@code migrate}, {@code verify}.
@@ -38,6 +40,8 @@ import java.util.stream.Stream;
  * worked".
  */
 public final class AssetEncryptionTool {
+
+  private static final Logger log = LoggerFactory.getLogger(AssetEncryptionTool.class);
 
   private AssetEncryptionTool() {}
 
@@ -127,6 +131,7 @@ public final class AssetEncryptionTool {
       } catch (IOException | RuntimeException e) {
         // Named and carried on: one unreadable file must not strand the other 378. The original
         // is untouched, so a re-run picks it up once whatever broke is fixed.
+        log.warn("Migration skipped {}: {}", file, e.getMessage(), e);
         failed.add(file + " — " + e.getMessage());
       }
     }
@@ -162,6 +167,7 @@ public final class AssetEncryptionTool {
           verified++;
         }
       } catch (IOException | RuntimeException e) {
+        log.warn("Verification failed for {}: {}", file, e.getMessage(), e);
         failed.add(file + " — " + e.getMessage());
       }
     }

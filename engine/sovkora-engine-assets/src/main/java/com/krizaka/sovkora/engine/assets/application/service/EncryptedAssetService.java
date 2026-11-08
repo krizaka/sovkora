@@ -118,6 +118,7 @@ public class EncryptedAssetService {
     try (InputStream in = Files.newInputStream(file)) {
       return EnvelopeCodec.startsWithMagic(in.readNBytes(EnvelopeHeader.MAGIC.length));
     } catch (IOException unreadable) {
+      logger.debug("Could not read file header to check encryption status: {}", unreadable.getMessage(), unreadable);
       return false;
     }
   }

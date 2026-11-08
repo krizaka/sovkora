@@ -12,12 +12,17 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Keeps the second copy in another directory — a mounted volume, an NFS share, a backup disk. Also
  * the reference adapter of the contract tests.
  */
 public final class DirectoryAssetStore implements DurableAssetStore {
+
+  private static final Logger log = LoggerFactory.getLogger(DirectoryAssetStore.class);
+  private static final String TEMP_PREFIX = ".orz-";
 
   private final Path root;
 
@@ -37,7 +42,7 @@ public final class DirectoryAssetStore implements DurableAssetStore {
   public void put(String key, Path file) throws IOException {
     Path target = resolve(key);
     Files.createDirectories(target.getParent());
-    Path temp = Files.createTempFile(target.getParent(), ".orz-", ".tmp");
+    Path temp = Files.createTempFile(target.getParent(), TEMP_PREFIX, ".tmp");
     try {
       Files.copy(file, temp, StandardCopyOption.REPLACE_EXISTING);
       Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
@@ -54,7 +59,7 @@ public final class DirectoryAssetStore implements DurableAssetStore {
     }
     Path parent = target.toAbsolutePath().getParent();
     Files.createDirectories(parent);
-    Path temp = Files.createTempFile(parent, ".orz-", ".tmp");
+    Path temp = Files.createTempFile(parent, TEMP_PREFIX, ".tmp");
     try {
       Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
       Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
@@ -81,7 +86,9 @@ public final class DirectoryAssetStore implements DurableAssetStore {
                 }
               });
     } catch (UncheckedIOException e) {
-      throw e.getCause();
+      IOException cause = e.getCause();
+      log.debug("Failed to delete file during directory removal", e);
+      throw cause;
     }
   }
 
@@ -94,7 +101,7 @@ public final class DirectoryAssetStore implements DurableAssetStore {
     List<StoredObject> children = new ArrayList<>();
     try (Stream<Path> entries = Files.list(dir)) {
       for (Path entry : (Iterable<Path>) entries::iterator) {
-        if (entry.getFileName().toString().startsWith(".orz-")) {
+        if (entry.getFileName().toString().startsWith(TEMP_PREFIX)) {
           continue;
         }
         boolean isDir = Files.isDirectory(entry);
