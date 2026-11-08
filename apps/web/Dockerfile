@@ -11,6 +11,8 @@ RUN corepack enable pnpm
 # Dependency manifests first — Docker layer cache skips the install on subsequent builds
 # when only source files changed.
 COPY .npmrc package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# The postinstall runs scripts/link-fonts.mjs, so the script must be there before the install.
+COPY scripts ./scripts
 RUN pnpm install --frozen-lockfile
 # Source after deps so a source-only change reuses the installed layer.
 COPY . .
