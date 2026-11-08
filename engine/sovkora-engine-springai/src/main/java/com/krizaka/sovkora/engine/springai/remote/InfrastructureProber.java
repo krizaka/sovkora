@@ -126,6 +126,7 @@ public class InfrastructureProber implements InfrastructureStatusProvider {
       socket.connect(new InetSocketAddress(host, port), timeoutMs);
       return true;
     } catch (Exception e) {
+      log.debug("Port probe failed for {}:{}", host, port, e);
       return false;
     }
   }

@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
@@ -11,6 +13,7 @@ import tools.jackson.databind.ObjectMapper;
 
 /** Utility class for mapping JSON objects to Documents. */
 final class JsonChunkMapper {
+  private static final Logger log = LoggerFactory.getLogger(JsonChunkMapper.class);
   /** ObjectMapper instance for JSON serialization and deserialization. */
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -27,6 +30,7 @@ final class JsonChunkMapper {
     try {
       return Optional.of(JSON_MAPPER.readValue(content, new TypeReference<List<Object>>() {}));
     } catch (JacksonException e) {
+      log.debug("JSON array content could not be parsed", e);
       return Optional.empty();
     }
   }
@@ -77,6 +81,7 @@ final class JsonChunkMapper {
     try {
       return Optional.of(JSON_MAPPER.writeValueAsString(value));
     } catch (JacksonException e) {
+      log.debug("Object could not be serialized to JSON", e);
       return Optional.empty();
     }
   }

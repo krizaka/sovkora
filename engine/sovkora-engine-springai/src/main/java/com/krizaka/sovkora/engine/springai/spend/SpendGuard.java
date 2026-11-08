@@ -123,6 +123,7 @@ public class SpendGuard {
       String h = host.toLowerCase(Locale.ROOT);
       return LOCAL_HOSTS.contains(h) || h.endsWith(".local") || isPrivateAddress(h);
     } catch (IllegalArgumentException e) {
+      logger.debug("Endpoint base URL is not a valid URI; treating as non-local", e);
       return false;
     }
   }
@@ -141,6 +142,7 @@ public class SpendGuard {
           || address.isLinkLocalAddress()
           || address.isAnyLocalAddress();
     } catch (java.net.UnknownHostException e) {
+      logger.debug("IP literal could not be parsed as an InetAddress; treating as non-local", e);
       return false;
     }
   }

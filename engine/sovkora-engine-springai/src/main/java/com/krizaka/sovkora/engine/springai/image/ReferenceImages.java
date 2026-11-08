@@ -14,6 +14,8 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -28,6 +30,8 @@ import tools.jackson.databind.json.JsonMapper;
  * reference is never silently dropped.
  */
 final class ReferenceImages {
+
+  private static final Logger log = LoggerFactory.getLogger(ReferenceImages.class);
 
   /** The catalogue key that says how many references a model conditions on. */
   static final String MAX_REFERENCES_KEY = "maxReferences";
@@ -49,6 +53,7 @@ final class ReferenceImages {
       JsonNode node = JSON.readTree(options).path(MAX_REFERENCES_KEY);
       return node.isIntegralNumber() ? Math.max(0, node.asInt()) : 0;
     } catch (RuntimeException unreadable) {
+      log.debug("Model options JSON could not be parsed for maxReferences key", unreadable);
       return 0;
     }
   }
@@ -179,6 +184,6 @@ final class ReferenceImages {
 
   private static String abbreviate(String body) {
     String text = body == null ? "" : body.strip();
-    return text.length() > 300 ? text.substring(0, 300) + "…" : text;
+    return text.length() > 300 ? (text.substring(0, 300) + "…") : text;
   }
 }
