@@ -6,6 +6,8 @@ import com.krizaka.sovkora.engine.tools.domain.model.law.LookupStatuteResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@code lookupStatute} tool of grounded research (ADR-087, ADR-089 §2): the text of an article
@@ -14,6 +16,8 @@ import java.util.function.Function;
  */
 public final class LookupStatuteTool
     implements Function<LookupStatuteRequest, LookupStatuteResponse> {
+
+  private static final Logger log = LoggerFactory.getLogger(LookupStatuteTool.class);
 
   /** The name the model calls the tool by. */
   public static final String NAME = "lookupStatute";
@@ -51,6 +55,7 @@ public final class LookupStatuteTool
               request.language(),
               asOf));
     } catch (IllegalArgumentException | DateTimeParseException e) {
+      log.debug("Statute lookup request has invalid parameters: {}", e.getMessage(), e);
       return LookupStatuteResponse.invalid();
     }
   }

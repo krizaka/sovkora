@@ -5,6 +5,8 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
@@ -16,6 +18,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 final class PackFiles {
 
+  private static final Logger log = LoggerFactory.getLogger(PackFiles.class);
   static final JsonMapper MAPPER = JsonMapper.builder().build();
 
   private final RestClient github;
@@ -69,6 +72,7 @@ final class PackFiles {
           .retrieve()
           .body(type);
     } catch (HttpClientErrorException.NotFound absent) {
+      log.debug("Pack file not found at path: {}", absent.getMessage(), absent);
       return null;
     }
   }

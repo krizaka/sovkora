@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -22,6 +24,8 @@ import org.springframework.web.client.RestClient;
  */
 @Component
 public class DefaultMcpOrchestrator implements McpOrchestrator {
+
+  private static final Logger log = LoggerFactory.getLogger(DefaultMcpOrchestrator.class);
 
   private final PlatformMcpServerProvider platformMcpServerProvider;
   private final UserMcpServerProvider userMcpServerProvider;
@@ -96,9 +100,11 @@ public class DefaultMcpOrchestrator implements McpOrchestrator {
                       .collect(Collectors.joining("\n")))
           .get();
     } catch (InterruptedException e) {
+      log.debug("MCP context fetch interrupted", e);
       Thread.currentThread().interrupt();
       return "";
     } catch (ExecutionException e) {
+      log.warn("MCP context fetch execution failed: {}", e.getMessage(), e);
       return "";
     }
   }
@@ -115,6 +121,7 @@ public class DefaultMcpOrchestrator implements McpOrchestrator {
       String body = client.get().retrieve().body(String.class);
       return body != null ? body : "";
     } catch (Exception ex) {
+      log.warn("MCP context fetch failed for endpoint: {}", ex.getMessage(), ex);
       return "";
     }
   }
