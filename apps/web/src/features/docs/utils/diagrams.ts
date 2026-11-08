@@ -54,7 +54,8 @@ export function loadModel(): DocsModel {
 
 export class DiagramError extends Error {
   constructor(kind: string, line: number | null, message: string) {
-    super(`${kind} block${line ? `, line ${line}` : ""}: ${message}`);
+    const location = line ? `, line ${line}` : "";
+    super(`${kind} block${location}: ${message}`);
   }
 }
 

@@ -29,7 +29,11 @@ export function DocsSearch({ index }: Readonly<{ index: readonly SearchEntry[] }
         suggestions={suggestions}
         suggestionsLabel={d.searchHint}
         onSuggestionSelect={(s) => router.push(s.value)}
-        onSubmit={() => hits[0] && router.push(`${pageHref(hits[0].slug)}${hits[0].id ? `#${hits[0].id}` : ""}`)}
+        onSubmit={() => {
+          if (!hits[0]) return;
+          const fragment = hits[0].id ? `#${hits[0].id}` : "";
+          router.push(`${pageHref(hits[0].slug)}${fragment}`);
+        }}
       />
       {query.trim() && hits.length === 0 && (
         <output className="mt-3 text-sm text-fg-secondary">

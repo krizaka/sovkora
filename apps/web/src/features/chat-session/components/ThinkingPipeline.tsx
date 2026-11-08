@@ -31,7 +31,8 @@ export function pipelineProgress(chatPipeline: Props["chatPipeline"], done: Read
   const allDone = activeIndex === -1;
   // Surface a single step: the first unfinished one, or the last step once the
   // whole chain has completed (so the trace ends on a final state, not blank).
-  const current = total > 0 ? steps[allDone ? total - 1 : activeIndex] : null;
+  const stepIndex = allDone ? total - 1 : activeIndex;
+  const current = total > 0 ? steps[stepIndex] : null;
   return { steps, total, doneCount, allDone, current };
 }
 

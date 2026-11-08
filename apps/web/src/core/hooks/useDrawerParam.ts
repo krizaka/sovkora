@@ -23,7 +23,8 @@ export function useDrawerParam(name: string) {
       if (key) next.set(name, key);
       else next.delete(name);
       const text = next.toString();
-      const url = `${pathname}${text ? `?${text}` : ""}`;
+      const qs = text ? `?${text}` : "";
+      const url = `${pathname}${qs}`;
       if (key) window.history.pushState(null, "", url);
       else window.history.replaceState(null, "", url);
     },

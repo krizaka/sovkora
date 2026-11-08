@@ -42,27 +42,28 @@ export function CreditsMeter({ wallet, available, plan, loading, href }: Readonl
       <header className="flex items-start justify-between gap-4">
         <span className="flex flex-col gap-1">
           <span className="text-xs font-semibold text-fg-muted">{w.available}</span>
-          {loading ? (
-            <Skeleton className="h-10 w-40" />
-          ) : noCredits ? (
-            <span className="flex flex-col gap-1">
-              <span className="font-display text-2xl font-bold tracking-tight text-fg">
-                {grant > 0 ? t.insights.usage.noCreditsLeft : t.insights.usage.noCredits}
+          {(() => {
+            const creditsContent = noCredits ? (
+              <span className="flex flex-col gap-1">
+                <span className="font-display text-2xl font-bold tracking-tight text-fg">
+                  {grant > 0 ? t.insights.usage.noCreditsLeft : t.insights.usage.noCredits}
+                </span>
+                <Link href="/packs" className="text-sm font-medium text-fg-accent underline-offset-4 hover:underline">
+                  {t.insights.usage.noCreditsAction}
+                </Link>
               </span>
-              <Link href="/packs" className="text-sm font-medium text-fg-accent underline-offset-4 hover:underline">
-                {t.insights.usage.noCreditsAction}
-              </Link>
-            </span>
-          ) : (
-            <NumberTicker
-              value={available}
-              locale={numberLocale}
-              trigger="change"
-              announce
-              align="start"
-              className="font-display text-4xl font-bold tracking-tight text-fg"
-            />
-          )}
+            ) : (
+              <NumberTicker
+                value={available}
+                locale={numberLocale}
+                trigger="change"
+                announce
+                align="start"
+                className="font-display text-4xl font-bold tracking-tight text-fg"
+              />
+            );
+            return loading ? <Skeleton className="h-10 w-40" /> : creditsContent;
+          })()}
         </span>
         {plan && (
           <span className="rounded-sm border border-border-default px-3 py-1 text-xs font-medium text-fg-secondary">

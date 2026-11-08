@@ -73,6 +73,35 @@ export function RunInput({
     return <SeedControl field={field} value={value} disabled={disabled} onChange={onChange} />;
   }
 
+  const textPlaceholder = field.type === "array" ? "a, b, c" : undefined;
+  const textInput = (
+    <Input
+      {...control}
+      type="text"
+      placeholder={field.placeholder ?? textPlaceholder}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+  const multilineOrText = field.multiline ? (
+    <Textarea
+      {...control}
+      rows={6}
+      placeholder={field.placeholder ?? undefined}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ) : textInput;
+  const numericOrText = field.numeric ? (
+    <Input
+      {...control}
+      type="number"
+      inputMode="numeric"
+      min={field.numeric.min ?? undefined}
+      max={field.numeric.max ?? undefined}
+      placeholder={field.defaultValue ?? undefined}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  ) : multilineOrText;
+
   return (
     <Field.Root className="gap-1.5">
       <Field.Label htmlFor={inputId}>
@@ -100,31 +129,7 @@ export function RunInput({
             </option>
           ))}
         </Select>
-      ) : field.numeric ? (
-        <Input
-          {...control}
-          type="number"
-          inputMode="numeric"
-          min={field.numeric.min ?? undefined}
-          max={field.numeric.max ?? undefined}
-          placeholder={field.defaultValue ?? undefined}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : field.multiline ? (
-        <Textarea
-          {...control}
-          rows={6}
-          placeholder={field.placeholder ?? undefined}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      ) : (
-        <Input
-          {...control}
-          type="text"
-          placeholder={field.placeholder ?? (field.type === "array" ? "a, b, c" : undefined)}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      )}
+      ) : numericOrText}
       {field.description && <Field.Hint id={hintId}>{field.description}</Field.Hint>}
     </Field.Root>
   );

@@ -21,6 +21,7 @@ export function CopyButton({
     }
     setTimeout(() => setState("idle"), 2400);
   };
+  const statusMessage = state === "failed" ? failed : "";
   return (
     <span className="inline-flex items-center gap-2">
       <Button type="button" variant="ghost" size="sm" onClick={copy}>
@@ -28,7 +29,7 @@ export function CopyButton({
         {label}
       </Button>
       <span role="status" aria-live="polite" className="text-xs text-fg-secondary">
-        {state === "done" ? done : state === "failed" ? failed : ""}
+        {state === "done" ? done : statusMessage}
       </span>
     </span>
   );

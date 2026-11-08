@@ -56,11 +56,14 @@ export function DesktopPage({
                 data-testid="desktop-mobile"
                 className="space-y-2 border-t border-border-subtle pt-5"
               >
-                {stores.ios && stores.android ? null : !stores.ios && !stores.android ? (
-                  <p className="text-sm text-fg-secondary">{d.mobile.soon}</p>
-                ) : (
-                  <p className="text-sm text-fg-secondary">{stores.ios ? d.mobile.android.soon : d.mobile.ios.soon}</p>
-                )}
+                {(() => {
+                  const partialMsg = stores.ios ? d.mobile.android.soon : d.mobile.ios.soon;
+                  return stores.ios && stores.android ? null : !stores.ios && !stores.android ? (
+                    <p className="text-sm text-fg-secondary">{d.mobile.soon}</p>
+                  ) : (
+                    <p className="text-sm text-fg-secondary">{partialMsg}</p>
+                  );
+                })()}
                 <div className="flex flex-wrap gap-3">
                   {stores.ios && (
                     <Button asChild variant="secondary" size="md">

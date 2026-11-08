@@ -8,10 +8,13 @@ export const dynamic = "force-dynamic";
 export default function sitemap(): MetadataRoute.Sitemap {
   if (!indexable()) return [];
   const lastModified = new Date();
-  return publicPaths().map((path) => ({
-    url: `${SITE_URL}${path === "/" ? "" : path}`,
-    lastModified,
-    changeFrequency: path.startsWith("/docs") ? "weekly" : "monthly",
-    priority: path === "/" ? 1 : path.startsWith("/features") || path === "/docs" ? 0.8 : 0.5,
-  }));
+  return publicPaths().map((path) => {
+    const priorityForPath = path.startsWith("/features") || path === "/docs" ? 0.8 : 0.5;
+    return {
+      url: `${SITE_URL}${path === "/" ? "" : path}`,
+      lastModified,
+      changeFrequency: path.startsWith("/docs") ? "weekly" : "monthly",
+      priority: path === "/" ? 1 : priorityForPath,
+    };
+  });
 }

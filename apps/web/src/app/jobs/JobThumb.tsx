@@ -11,7 +11,8 @@ export function JobThumb({ job }: Readonly<{ job: Job }>) {
   const { t } = useTranslation();
   const kind = jobKind(job);
   const url = jobMediaUrl(job);
-  const Glyph = kind === "video" ? VideoIcon : kind === "audio" ? SoundIcon : kind === "text" ? ChatIcon : ImageIcon;
+  const glyphForAudio = kind === "audio" ? SoundIcon : kind === "text" ? ChatIcon : ImageIcon;
+  const Glyph = kind === "video" ? VideoIcon : glyphForAudio;
   return (
     <span className="relative inline-grid h-11 w-16 shrink-0 place-items-center overflow-hidden rounded-md border border-border-subtle bg-surface-2 text-fg-muted">
       {url && (kind === "image" || kind === "video") ? (

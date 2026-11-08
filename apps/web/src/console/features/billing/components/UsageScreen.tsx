@@ -34,7 +34,10 @@ const COLUMNS: DataTableColumn<CapabilityUsage>[] = [
     header: "Refus",
     sortable: true,
     align: "end",
-    cell: (row) => `${row.refusals}${row.enforcedRefusals > 0 ? ` (${row.enforcedRefusals} appliqués)` : ""}`,
+    cell: (row) => {
+      const enforced = row.enforcedRefusals > 0 ? ` (${row.enforcedRefusals} appliqués)` : "";
+      return `${row.refusals}${enforced}`;
+    },
   },
   {
     id: "rate",
@@ -74,7 +77,8 @@ export function UsageScreen() {
     queryFn: () => BillingAdminApi.usageByCapability(30),
   });
   const rows: CapabilityUsage[] | null = usage.isPending ? null : (usage.data ?? []);
-  const error = usage.error ? (usage.error instanceof Error ? usage.error.message : "Chargement impossible") : null;
+  const errorMessage = usage.error instanceof Error ? usage.error.message : "Chargement impossible";
+  const error = usage.error ? errorMessage : null;
 
   return (
     <section className="space-y-6">

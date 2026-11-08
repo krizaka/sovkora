@@ -63,5 +63,5 @@ export function openTasks(audit: readonly AuditRow[], jobs: readonly JobRecord[]
       source: "jobs",
     });
   }
-  return tasks.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  return tasks.sort((a, b) => { const tiebreak = a.at > b.at ? -1 : 0; return a.at < b.at ? 1 : tiebreak; });
 }

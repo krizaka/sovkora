@@ -94,13 +94,16 @@ export function PlanApprovalCard({
 
             {/* Status indicator */}
             <span className="flex-shrink-0 mt-0.5">
-              {step.status === "approved" ? (
-                <Icon name="checkCircle" size={16} className="text-success" />
-              ) : step.status === "rejected" ? (
-                <Icon name="error" size={16} className="text-danger" />
-              ) : (
-                <Icon name="circle" size={16} className="text-fg-muted" />
-              )}
+              {(() => {
+                const rejectedIcon = step.status === "rejected" ? (
+                  <Icon name="error" size={16} className="text-danger" />
+                ) : (
+                  <Icon name="circle" size={16} className="text-fg-muted" />
+                );
+                return step.status === "approved" ? (
+                  <Icon name="checkCircle" size={16} className="text-success" />
+                ) : rejectedIcon;
+              })()}
             </span>
           </li>
         ))}

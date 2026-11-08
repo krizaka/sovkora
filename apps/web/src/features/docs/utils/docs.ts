@@ -74,8 +74,12 @@ export function resolveLink(
   const target = path.posix.normalize(path.posix.join(path.posix.dirname(from), rawPath));
   if (target.startsWith("..")) return null;
   const hit = Object.entries(sources).find(([src]) => src.toLowerCase() === target.toLowerCase());
-  if (hit) return { href: `/docs/${hit[1]}${fragment ? `#${fragment}` : ""}`, internal: true };
-  return { href: `${REPO}/blob/main/${target}${fragment ? `#${fragment}` : ""}`, internal: false };
+  if (hit) {
+    const hash = fragment ? `#${fragment}` : "";
+    return { href: `/docs/${hit[1]}${hash}`, internal: true };
+  }
+  const anchor = fragment ? `#${fragment}` : "";
+  return { href: `${REPO}/blob/main/${target}${anchor}`, internal: false };
 }
 
 /**

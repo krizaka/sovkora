@@ -110,7 +110,8 @@ function JobsDashboardContent() {
   const autoJob = targetJobId && dismissedJobId !== targetJobId ? (knownJob ?? fetchedJob.data ?? null) : null;
   const shownJob = selectedJob ?? autoJob;
   const autoType = autoJob?.status === JOB_STATUS.COMPLETED ? "result" : "payload";
-  const shownType = selectedJob ? modalType : autoJob ? autoType : null;
+  const fallbackType = autoJob ? autoType : null;
+  const shownType = selectedJob ? modalType : fallbackType;
 
   if (isLoading || !isAuthenticated) {
     return (

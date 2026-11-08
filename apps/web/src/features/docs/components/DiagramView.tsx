@@ -134,8 +134,10 @@ function States({
   block,
   l,
 }: Readonly<{ block: Extract<DiagramData, { kind: "states" }>["block"]; l: DocsDiagramLabels }>) {
-  const name = (id: string) =>
-    id === "start" ? l.initial : id === "end" ? l.final : (block.states.find((s) => s.id === id)?.label ?? id);
+  const name = (id: string) => {
+    const stateLabel = id === "end" ? l.final : (block.states.find((s) => s.id === id)?.label ?? id);
+    return id === "start" ? l.initial : stateLabel;
+  };
   return (
     <Figure title={l.states}>
       <ol className="m-0 list-none space-y-1.5 p-0">

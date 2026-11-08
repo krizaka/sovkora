@@ -268,11 +268,12 @@ function timingFacts(
   const apiMs = num(get("apiCall"));
   // `duration` is milliseconds in a result (`durationMs`) and seconds when the key says so.
   const apiKey = [...m].find(([k]) => KEY_TO_FACT[k] === "apiCall")?.[0] ?? "";
+  const apiDurationMs = apiMs !== null && apiKey.endsWith("sec") ? apiMs * 1000 : apiMs;
   return [
     ["queued", waiting !== null && waiting >= 1000 ? formatDuration(waiting) : null],
     ["inference", inference === null ? null : seconds(inference)],
     ["gpuTime", gpuTime === null ? null : seconds(gpuTime)],
-    ["apiCall", apiMs === null ? null : formatDuration(apiKey.endsWith("sec") ? apiMs * 1000 : apiMs)],
+    ["apiCall", apiDurationMs === null ? null : formatDuration(apiDurationMs)],
     ["total", total === null ? null : formatDuration(total)],
   ];
 }
