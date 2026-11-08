@@ -132,28 +132,41 @@ export function parseSequence(source: string, model: DocsModel): SequenceBlock {
   };
   for (const { text, n: line } of lines(source)) {
     let m: RegExpExecArray | null;
-    if ((m = /^participant\s+([\w-]+)\s*:\s*(.+)$/.exec(text))) {
+    m = /^participant\s+([\w-]+)\s*:\s*(.+)$/.exec(text);
+    if (m) {
       const value = m[2].trim();
       const id = value.startsWith("@") ? value.slice(1) : null;
       const mod = id ? (model.modules.find((x) => x.id === id) ?? null) : null;
       if (id && !mod) throw new DiagramError("sequence", line, `@${id} is not a module of the generated model`);
       participants.push({ key: m[1], label: id ?? value, module: mod });
-    } else if ((m = /^##\s+(.+)$/.exec(text))) {
-      items.push({ type: "section", title: m[1].trim() });
-    } else if ((m = /^if\s+(.+)$/.exec(text))) {
-      branch = { kind: "if", condition: m[1].trim() };
-    } else if ((m = /^else(?:\s+(.+))?$/.exec(text))) {
-      if (!branch) throw new DiagramError("sequence", line, "else without if");
-      branch = { kind: "else", condition: (m[1] ?? "").trim() };
-    } else if (text === "end") {
-      if (!branch) throw new DiagramError("sequence", line, "end without if");
-      branch = null;
-    } else if ((m = /^([\w-]+)\s*(-->|->)\s*([\w-]+)\s*:\s*(.+)$/.exec(text))) {
-      known(m[1], line);
-      known(m[3], line);
-      items.push({ type: "step", n: ++n, from: m[1], to: m[3], text: m[4].trim(), reply: m[2] === "-->", branch });
     } else {
-      throw new DiagramError("sequence", line, `cannot read "${text}"`);
+      m = /^##\s+(.+)$/.exec(text);
+      if (m) {
+        items.push({ type: "section", title: m[1].trim() });
+      } else {
+        m = /^if\s+(.+)$/.exec(text);
+        if (m) {
+          branch = { kind: "if", condition: m[1].trim() };
+        } else {
+          m = /^else(?:\s+(.+))?$/.exec(text);
+          if (m) {
+            if (!branch) throw new DiagramError("sequence", line, "else without if");
+            branch = { kind: "else", condition: (m[1] ?? "").trim() };
+          } else if (text === "end") {
+            if (!branch) throw new DiagramError("sequence", line, "end without if");
+            branch = null;
+          } else {
+            m = /^([\w-]+)\s*(-->|->)\s*([\w-]+)\s*:\s*(.+)$/.exec(text);
+            if (m) {
+              known(m[1], line);
+              known(m[3], line);
+              items.push({ type: "step", n: ++n, from: m[1], to: m[3], text: m[4].trim(), reply: m[2] === "-->", branch });
+            } else {
+              throw new DiagramError("sequence", line, `cannot read "${text}"`);
+            }
+          }
+        }
+      }
     }
   }
   if (branch) throw new DiagramError("sequence", null, "an if is never closed with end");
