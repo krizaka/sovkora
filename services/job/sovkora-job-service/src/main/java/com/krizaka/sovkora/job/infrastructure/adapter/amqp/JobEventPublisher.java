@@ -23,6 +23,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobEventPublisher {
 
+  private static final String JOB_ID_KEY = "jobId";
+
   private final RabbitTemplate rabbitTemplate;
 
   public JobEventPublisher(RabbitTemplate rabbitTemplate) {
@@ -45,7 +47,7 @@ public class JobEventPublisher {
       Map<String, Object> result,
       Map<String, Object> consumption) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("jobId", jobId);
+    payload.put(JOB_ID_KEY, jobId);
     payload.put("result", result == null ? Map.of() : result);
     // WHAT RAN, never what it costs. An aggregate settlement prices each step against its own
     // (capability, model) row, and the capability is knowable from the feature key while the model
@@ -77,7 +79,7 @@ public class JobEventPublisher {
    */
   public void emitError(String jobId, String holdId, FailureCause cause, String error) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("jobId", jobId);
+    payload.put(JOB_ID_KEY, jobId);
     payload.put("error", error == null ? "Job failed" : error);
     payload.put("cause", (cause == null ? FailureCause.EXECUTOR_FAULT : cause).name());
     putReservation(payload, holdId);
@@ -94,7 +96,7 @@ public class JobEventPublisher {
    */
   public void emitCancelled(String jobId, String holdId) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("jobId", jobId);
+    payload.put(JOB_ID_KEY, jobId);
     putReservation(payload, holdId);
     rabbitTemplate.convertAndSend(
         MessagingContract.EVENTS_EXCHANGE, "job." + jobId + ".cancelled", payload);
@@ -109,7 +111,7 @@ public class JobEventPublisher {
    */
   public void emitProgress(String jobId, int progress, String phase) {
     Map<String, Object> payload = new HashMap<>();
-    payload.put("jobId", jobId);
+    payload.put(JOB_ID_KEY, jobId);
     payload.put("progress", progress);
     if (phase != null && !phase.isBlank()) {
       payload.put("phase", phase);

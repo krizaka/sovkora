@@ -55,6 +55,7 @@ import org.springframework.stereotype.Service;
 public class JobRetentionService {
 
   private static final Logger logger = LoggerFactory.getLogger(JobRetentionService.class);
+  private static final String UPLOAD_ROOT_NOT_NULL = "uploadRoot cannot be null";
 
   /**
    * How long a tombstone keeps a purged job's directory from coming back. Far beyond the execution
@@ -116,7 +117,7 @@ public class JobRetentionService {
    * @return how many jobs were purged
    */
   public int purgeExpired(Path uploadRoot) {
-    Objects.requireNonNull(uploadRoot, "uploadRoot cannot be null");
+    Objects.requireNonNull(uploadRoot, UPLOAD_ROOT_NOT_NULL);
     int purged = 0;
     for (DataClass dataClass : DataClass.values()) {
       Optional<Duration> window = dataClass.jobRetentionAfterTerminal();
@@ -155,7 +156,7 @@ public class JobRetentionService {
    *     again retries them)
    */
   public Erasure erase(Path uploadRoot, String userId, Collection<String> jobIds) {
-    Objects.requireNonNull(uploadRoot, "uploadRoot cannot be null");
+    Objects.requireNonNull(uploadRoot, UPLOAD_ROOT_NOT_NULL);
     Objects.requireNonNull(userId, "userId cannot be null");
     if (jobIds == null || jobIds.isEmpty() || userId.isBlank()) {
       return new Erasure(0, 0);
@@ -240,7 +241,7 @@ public class JobRetentionService {
    * @return how many directories had come back and were deleted
    */
   public int reconcileOrphans(Path uploadRoot) {
-    Objects.requireNonNull(uploadRoot, "uploadRoot cannot be null");
+    Objects.requireNonNull(uploadRoot, UPLOAD_ROOT_NOT_NULL);
     List<Map.Entry<String, String>> tombstones =
         jdbcTemplate.query(
             "SELECT job_id, user_id FROM orazaka_job_purge"

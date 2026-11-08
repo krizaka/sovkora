@@ -73,12 +73,14 @@ public class JobListener {
   private static final String STATUS_FAILED = "FAILED";
   private static final String STATUS_CANCELLED = "CANCELLED";
   private static final String UNDECLARED_DATA_CLASS = "JOB_DATA_CLASS_UNDECLARED";
+  private static final String FILE_PATH_KEY = "filePath";
+  private static final String INPUT_DIR = "input";
 
   /**
    * Payload keys that used to carry a filesystem path, and no longer may. Each is filled here from
    * the id beside it; what a producer put there is dropped (ADR-066).
    */
-  private static final List<String> PATH_KEYS = List.of("filePath", "imagePath");
+  private static final List<String> PATH_KEYS = List.of(FILE_PATH_KEY, "imagePath");
 
   /** Stable dedup identity of this consumer (AGENTS.md §6 messageId idempotency). */
   private static final String DEDUP_CONSUMER = "job.executor";
@@ -773,7 +775,7 @@ public class JobListener {
     // The ids come from what the producer sent: `resolvePayload` above may already have rewritten
     // an id-shaped value into a path, and looking one up in the rewritten map would resolve
     // nothing.
-    resolved = withResolvedPath(message, resolved, payload.get("assetId"), "filePath");
+    resolved = withResolvedPath(message, resolved, payload.get("assetId"), FILE_PATH_KEY);
     resolved = withResolvedPath(message, resolved, payload.get("image"), "imagePath");
 
     if (resolved == payload) {
@@ -832,7 +834,7 @@ public class JobListener {
     }
     try {
       Path inputDir =
-          Path.of(uploadDirProperty, userId, jobId, "input").toAbsolutePath().normalize();
+          Path.of(uploadDirProperty, userId, jobId, INPUT_DIR).toAbsolutePath().normalize();
       Files.createDirectories(inputDir);
       Path inputJsonPath = inputDir.resolve("input.json");
       byte[] jsonBytes = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(payload);
@@ -842,7 +844,7 @@ public class JobListener {
       durableMirror.put(userId, jobId, inputJsonPath);
       logger.info("Saved job input payload to: {}", inputJsonPath);
 
-      String filePath = (String) payload.get("filePath");
+      String filePath = (String) payload.get(FILE_PATH_KEY);
       if (filePath != null && !filePath.isBlank()) {
         File file = new File(filePath);
         if (file.exists()) {
@@ -878,12 +880,12 @@ public class JobListener {
   private static String resolveInputFilename(JobCommand message, File file) {
     String extension = extensionForMimeType(message.payload().get("mimeType"));
     if (extension != null) {
-      return "input" + extension;
+      return INPUT_DIR + extension;
     }
     String name = file.getName();
     int dotIndex = name.lastIndexOf('.');
     if (dotIndex > 0 && dotIndex < name.length() - 1) {
-      return "input" + name.substring(dotIndex);
+      return INPUT_DIR + name.substring(dotIndex);
     }
     return "input.bin";
   }
