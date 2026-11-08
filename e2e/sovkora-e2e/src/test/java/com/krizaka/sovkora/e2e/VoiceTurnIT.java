@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 
 /**
@@ -40,6 +42,8 @@ import tools.jackson.databind.JsonNode;
 @Tag("voice")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class VoiceTurnIT extends AbstractApiE2eTest {
+
+  private static final Logger log = LoggerFactory.getLogger(VoiceTurnIT.class);
 
   /** The latency ADR-076 promises on the Mac: first spoken sentence after the upload ends. */
   private static final long FIRST_SENTENCE_BUDGET_MS = 2_500;
@@ -165,8 +169,8 @@ class VoiceTurnIT extends AbstractApiE2eTest {
       JsonNode done = frames.getLast().data();
       assertTrue(done.path("usage").path("sttSeconds").asDouble() > 5.0, "minutes are measured");
       long firstSentence = done.path("timings").path("firstSentenceMs").asLong();
-      System.out.printf(
-          "[voice] audio turn %d: stt=%d ms, first delta=%d ms, first sentence=%d ms, total=%d ms%n",
+      log.info(
+          "[voice] audio turn {}: stt={} ms, first delta={} ms, first sentence={} ms, total={} ms",
           attempt,
           done.path("timings").path("sttMs").asLong(),
           done.path("timings").path("firstDeltaMs").asLong(),
