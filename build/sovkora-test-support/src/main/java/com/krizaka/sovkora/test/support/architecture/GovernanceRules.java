@@ -13,6 +13,8 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.stream.Stream;
  */
 public final class GovernanceRules {
 
+  private static final Logger log = LoggerFactory.getLogger(GovernanceRules.class);
   private static final String DOMAIN_LAYER = "Domain";
   private static final String APPLICATION_LAYER = "Application";
   private static final String APPLICATION_PKG_PATTERN = ".application..";
@@ -759,6 +762,7 @@ public final class GovernanceRules {
     try {
       return java.nio.file.Files.readString(file);
     } catch (java.io.IOException | RuntimeException unreadable) {
+      log.debug("Source file {} could not be read; treated as empty", file, unreadable);
       return "";
     }
   }
