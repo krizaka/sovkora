@@ -92,7 +92,7 @@ public record VoiceClip(byte[] audio, String contentType, Long durationMs) {
         dataSize = Math.min(dataSize, audio.length - (offset + 8L));
         return byteRate > 0 ? (dataSize * 1000 / byteRate) : null;
       }
-      offset += 8 + (int) Math.min(size + (size & 1), Integer.MAX_VALUE - offset - 8L);
+      offset += 8 + (int) Math.min((size + (size & 1)), Integer.MAX_VALUE - offset - 8L);
     }
     return null;
   }
