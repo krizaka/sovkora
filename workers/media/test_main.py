@@ -624,6 +624,19 @@ class TestPathSecurity(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 video_worker.validate_safe_path(bp)
 
+    def test_encode_output_refuses_traversal_path(self):
+        """_encode_output must raise PermissionError for output_path values outside allowed roots."""
+        handler = video_worker.VideoInferenceHandler.__new__(video_worker.VideoInferenceHandler)
+        bad_paths = [
+            "/etc/evil.mp4",
+            "../../../../etc/evil.mp4",
+            "/private/etc/evil.mp4",
+        ]
+        for bad in bad_paths:
+            with self.subTest(bad):
+                with self.assertRaises(PermissionError):
+                    handler._encode_output({}, [], 14, bad, None, {})
+
     def test_load_image_handles_invalid_path_gracefully(self):
         """load_image should fall back to default image if image_path is outside allowed directories."""
         payload = {"image_path": "/etc/passwd"}

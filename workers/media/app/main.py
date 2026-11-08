@@ -764,12 +764,17 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
         """Encodes the generated frames to MP4 and returns the response dict (file path or base64)."""
         if output_path:
             safe_output_path = validate_safe_path(output_path)
-            os.makedirs(os.path.dirname(safe_output_path), exist_ok=True)
-            export_frames_to_video(frames, safe_output_path, fps=fps_render)
-            if job_id:
-                send_progress_update(job_id, 100, phase="upscaling")
-            apply_upscale(payload, safe_output_path, metrics)
-            return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+            # Inline startswith guard (same pattern as _write_inside_uploads) so CodeQL
+            # tracks the sanitization at this call site rather than inside validate_safe_path.
+            for root in [os.path.realpath(os.path.abspath(r)) for r in _allowed_roots()]:
+                if safe_output_path.startswith(root + os.sep):
+                    os.makedirs(os.path.dirname(safe_output_path), exist_ok=True)
+                    export_frames_to_video(frames, safe_output_path, fps=fps_render)
+                    if job_id:
+                        send_progress_update(job_id, 100, phase="upscaling")
+                    apply_upscale(payload, safe_output_path, metrics)
+                    return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+            raise PermissionError(f"Access to path '{output_path}' is denied (outside allowed directories).")
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
             tmp_path = tmp.name
         try:
