@@ -59,7 +59,7 @@ public class AgentTurnService implements AgentTurnDoor {
       return turns.turn(new AgentTurnRequest(featureKey, system, messages, tools, context));
     } catch (AccessDeniedException denied) {
       // The reason is in the engine's audit line; the answer says only that it is refused.
-      logger.info("Agent turn refused for run {}", runId);
+      logger.info("Agent turn refused for run {}", runId, denied);
       throw new Refused("access_denied", 403);
     }
   }
@@ -72,6 +72,7 @@ public class AgentTurnService implements AgentTurnDoor {
       }
     } catch (RuntimeException unknown) {
       // Fall through: whatever the directory could not give is an actor we do not know.
+      logger.debug("User directory lookup failed for actor {}", actorId, unknown);
     }
     throw new Refused("actor_unknown", 404);
   }

@@ -167,7 +167,8 @@ public class JobMeteringService {
       logger.error(
           "billable_capability '{}' is not a BillableCapability — pricing as {}",
           billableCapability,
-          BillableCapability.CHAT);
+          BillableCapability.CHAT,
+          e);
       return BillableCapability.CHAT;
     }
   }

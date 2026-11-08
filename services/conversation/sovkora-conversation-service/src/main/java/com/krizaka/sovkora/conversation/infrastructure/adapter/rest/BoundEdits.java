@@ -26,7 +26,7 @@ final class BoundEdits {
           ? ResponseEntity.noContent().build()
           : ResponseEntity.notFound().build();
     } catch (IllegalArgumentException e) {
-      throw new InvalidRequestProblem(e.getMessage());
+      throw new InvalidRequestProblem(e.getMessage(), e);
     }
   }
 
@@ -48,7 +48,7 @@ final class BoundEdits {
       write.accept(value);
       return value;
     } catch (IllegalArgumentException e) {
-      throw new InvalidRequestProblem(e.getMessage());
+      throw new InvalidRequestProblem(e.getMessage(), e);
     }
   }
 }

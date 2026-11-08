@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +26,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/internal/v1/agent-turns")
 public class AgentTurnsController {
+
+  private static final Logger logger = LoggerFactory.getLogger(AgentTurnsController.class);
 
   private final AgentTurnDoor door;
 
@@ -61,6 +65,7 @@ public class AgentTurnsController {
                   messages(request),
                   orEmpty(request.tools()).stream().map(AgentTurnWire.Tool::toDomain).toList())));
     } catch (AgentTurnDoor.Refused refused) {
+      logger.debug("Agent turn refused: status={}", refused.status(), refused);
       return refusal(refused.http(), refused.status());
     }
   }

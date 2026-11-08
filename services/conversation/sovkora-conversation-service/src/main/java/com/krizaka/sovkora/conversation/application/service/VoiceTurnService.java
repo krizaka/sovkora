@@ -232,7 +232,7 @@ public class VoiceTurnService {
       usage.forget(prepared.turnId());
       release(prepared.holdId(), "voice turn failed: " + failed.getClass().getSimpleName());
       // The class, never the message: an engine message can quote the prompt (ADR-064).
-      logger.warn("Voice turn failed ({})", failed.getClass().getSimpleName());
+      logger.warn("Voice turn failed ({})", failed.getClass().getSimpleName(), failed);
       emit.accept(new VoiceTurnEvent.Failed("turn-failed", "the turn could not be completed"));
     }
   }
@@ -528,7 +528,7 @@ public class VoiceTurnService {
       } catch (InterruptedException interrupted) {
         Thread.currentThread().interrupt();
       } catch (RuntimeException failed) {
-        logger.warn("Speech synthesis failed ({})", failed.getClass().getSimpleName());
+        logger.warn("Speech synthesis failed ({})", failed.getClass().getSimpleName(), failed);
         emit.accept(new VoiceTurnEvent.Failed("speech-failed", "a sentence could not be spoken"));
         queue.clear();
       }
