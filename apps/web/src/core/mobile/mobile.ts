@@ -10,7 +10,6 @@ import { mediaUrl } from "@/core/media/cdn";
 
 export const STEPS = ["sign-in", "studio-run", "ask", "jobs"] as const;
 export type StepId = (typeof STEPS)[number];
-export type ClipId = StepId;
 
 /** The two looks the app has; the site shows the one its visitor reads the page in. */
 export const APPEARANCES = ["dark", "light"] as const;
@@ -18,7 +17,7 @@ export type Appearance = (typeof APPEARANCES)[number];
 
 const AREA = "sites/orazaka/mobile";
 
-export function clipUrls(id: ClipId, appearance: Appearance) {
+export function clipUrls(id: StepId, appearance: Appearance) {
   return {
     webm: mediaUrl(`${AREA}/${id}-${appearance}-916.webm`),
     mp4: mediaUrl(`${AREA}/${id}-${appearance}-916.mp4`),
