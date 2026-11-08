@@ -112,7 +112,7 @@ public class ProxyController {
   private URI buildTargetUri(HttpServletRequest request) {
     URI backend = routeResolver.resolve(request.getRequestURI());
     String query = request.getQueryString();
-    String pathAndQuery = request.getRequestURI() + (query != null ? "?" + query : "");
+    String pathAndQuery = request.getRequestURI() + (query != null ? ("?" + query) : "");
     String base = backend.toString();
     if (base.endsWith("/")) {
       base = base.substring(0, base.length() - 1);
@@ -140,7 +140,7 @@ public class ProxyController {
     sink.add(
         "X-Forwarded-For",
         existingForwardedFor != null
-            ? existingForwardedFor + ", " + request.getRemoteAddr()
+            ? (existingForwardedFor + ", " + request.getRemoteAddr())
             : request.getRemoteAddr());
     sink.add("X-Forwarded-Proto", request.getScheme());
     sink.add("X-Forwarded-Host", request.getServerName() + ":" + request.getServerPort());
