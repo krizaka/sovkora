@@ -99,14 +99,8 @@ export function detectLocalAI(): {
   }
 }
 
-/**
- * Runs a comprehensive diagnostic check.
- */
-export async function runDiagnostics(): Promise<DiagnosticReport> {
-  const issues: DiagnosticIssue[] = [];
-  const systemInfo = getSystemInfo();
-
-  // 1. Check Node.js version (the minimum is NODE_MIN_MAJOR)
+/** Check Node.js version. */
+function checkNodeVersion(issues: DiagnosticIssue[]): void {
   try {
     const version = Number.parseInt(process.version.split(".")[0].substring(1));
     if (version < NODE_MIN_MAJOR) {
@@ -125,8 +119,10 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
   } catch {
     /* version parse failed, skip check */
   }
+}
 
-  // 2. Check Docker availability
+/** Check Docker availability. */
+function checkDocker(issues: DiagnosticIssue[]): void {
   const dockerStatus = detectDockerCompose();
   if (!dockerStatus.available) {
     issues.push({
@@ -141,8 +137,10 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       ],
     });
   }
+}
 
-  // 3. Check Java availability
+/** Check Java availability and version. */
+function checkJava(issues: DiagnosticIssue[]): void {
   if (!hasTool("java")) {
     issues.push({
       code: "JAVA_MISSING",
@@ -167,8 +165,11 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       });
     }
   }
+}
 
-  // 4. Check Python (for video worker)
+/** Check tool availability. */
+function checkTools(issues: DiagnosticIssue[]): void {
+  // Python
   if (!hasTool("python3")) {
     issues.push({
       code: "PYTHON_MISSING",
@@ -182,8 +183,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       ],
     });
   }
-
-  // 5. Check Maven (for Java builds)
+  // Maven
   if (!hasTool("mvn")) {
     issues.push({
       code: "MAVEN_MISSING",
@@ -197,8 +197,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       ],
     });
   }
-
-  // 6. Check Git
+  // Git
   if (!hasTool("git")) {
     issues.push({
       code: "GIT_MISSING",
@@ -208,6 +207,26 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       suggestions: ["Install Git from https://git-scm.com", "On macOS: brew install git"],
     });
   }
+}
+
+/**
+ * Runs a comprehensive diagnostic check.
+ */
+export async function runDiagnostics(): Promise<DiagnosticReport> {
+  const issues: DiagnosticIssue[] = [];
+  const systemInfo = getSystemInfo();
+
+  // 1. Check Node.js version
+  checkNodeVersion(issues);
+
+  // 2. Check Docker
+  checkDocker(issues);
+
+  // 3. Check Java
+  checkJava(issues);
+
+  // 4-6. Check tools (Python, Maven, Git)
+  checkTools(issues);
 
   // 7. Check LocalAI (critical for image generation on macOS M1)
   if (systemInfo.isAppleSilicon) {
