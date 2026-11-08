@@ -82,6 +82,6 @@ public record PackSafety(
    */
   public String responseFor(String region) {
     CrisisResource resource = resources.get(region);
-    return resource == null ? null : response + "\n\n" + resource.render();
+    return resource == null ? null : (response + "\n\n" + resource.render());
   }
 }

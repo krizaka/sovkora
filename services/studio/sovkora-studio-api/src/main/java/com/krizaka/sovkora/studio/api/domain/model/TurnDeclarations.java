@@ -80,6 +80,6 @@ public record TurnDeclarations(
    * @return the full reply, or {@code null} when the pack declares no crisis guard
    */
   public String crisisReply() {
-    return guardsCrisis() ? crisisResponse + "\n\n" + crisisResource.render() : null;
+    return guardsCrisis() ? (crisisResponse + "\n\n" + crisisResource.render()) : null;
   }
 }

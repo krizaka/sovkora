@@ -389,8 +389,8 @@ public record RunScope(
     }
     boolean quoted =
         literal.length() >= 2
-            && (literal.startsWith("'") && literal.endsWith("'")
-                || literal.startsWith("\"") && literal.endsWith("\""));
+            && ((literal.startsWith("'") && literal.endsWith("'"))
+                || (literal.startsWith("\"") && literal.endsWith("\"")));
     return quoted ? literal.substring(1, literal.length() - 1) : literal;
   }
 

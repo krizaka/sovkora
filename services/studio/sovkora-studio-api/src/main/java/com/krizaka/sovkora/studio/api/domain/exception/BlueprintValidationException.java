@@ -27,7 +27,7 @@ public class BlueprintValidationException extends RuntimeException {
    * @param message what is wrong with it
    */
   public BlueprintValidationException(String stepId, String message) {
-    super(stepId == null ? message : "step '" + stepId + "': " + message);
+    super(stepId == null ? message : ("step '" + stepId + "': " + message));
     this.stepId = stepId;
   }
 
