@@ -98,7 +98,7 @@ class HttpProviderReachability implements ProviderReachability {
   private java.util.Optional<java.util.Set<String>> listModels(String providerName) {
     String baseUrl = catalogModelManager.getProviderBaseUrl(providerName);
     String trimmed = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-    String url = trimmed.endsWith("/v1") ? trimmed + "/models" : trimmed + "/v1/models";
+    String url = trimmed.endsWith("/v1") ? (trimmed + "/models") : (trimmed + "/v1/models");
     try {
       HttpRequest request =
           HttpRequest.newBuilder(URI.create(url)).timeout(PROBE_TIMEOUT).GET().build();

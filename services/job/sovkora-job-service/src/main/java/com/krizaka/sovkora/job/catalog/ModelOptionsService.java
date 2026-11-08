@@ -113,10 +113,10 @@ public class ModelOptionsService {
       String notice =
           preferred == null
               ? null
-              : preferred.modelLabel()
+              : (preferred.modelLabel()
                   + " is not available right now; "
                   + instead.get().modelLabel()
-                  + " was used instead.";
+                  + " was used instead.");
       return new ModelResolution(instead.get().modelName(), notice);
     }
     throw new IllegalArgumentException(
@@ -125,7 +125,7 @@ public class ModelOptionsService {
             + " model is available right now"
             + (preferred == null
                 ? ""
-                : " (" + unavailableReason(preferred, drained(preferred)) + ")")
+                : (" (" + unavailableReason(preferred, drained(preferred)) + ")"))
             + ". Try again in a few minutes.");
   }
 
