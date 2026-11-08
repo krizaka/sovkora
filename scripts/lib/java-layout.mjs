@@ -32,7 +32,7 @@ export function coordinates(pom) {
 /** N3: the root package of a module, from its artifactId (`sovkora-engine-core` → com.krizaka.sovkora.engine.core). */
 export function rootPackage(artifactId) {
   const rest = artifactId.replace(/^sovkora-/, "").replace(/-service$/, "");
-  return `${GROUP}.${rest.split("-").join(".")}`;
+  return `${GROUP}.${rest.replaceAll("-", ".")}`;
 }
 
 /** Which rule each module breaks: [{ rule, module, message }]. `modules`: [{ dir, pom, main: string[], test: string[] }] (packages). */
