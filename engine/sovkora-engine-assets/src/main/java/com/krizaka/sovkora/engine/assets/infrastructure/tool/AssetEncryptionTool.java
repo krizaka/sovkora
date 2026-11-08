@@ -68,14 +68,13 @@ public final class AssetEncryptionTool {
    */
   static int run(String[] args) throws IOException {
     if (args.length < 3) {
-      System.err.println(
-          "usage: AssetEncryptionTool <keygen|migrate|verify> <keyfile> <keyId|uploadRoot>");
+      log.error("usage: AssetEncryptionTool <keygen|migrate|verify> <keyfile> <keyId|uploadRoot>");
       return 2;
     }
     Path keyFile = Path.of(args[1]);
     Command command = COMMANDS.get(args[0]);
     if (command == null) {
-      System.err.println("unknown subcommand: " + args[0]);
+      log.error("unknown subcommand: {}", args[0]);
       return 2;
     }
     return switch (command) {
@@ -87,10 +86,8 @@ public final class AssetEncryptionTool {
 
   private static int keygen(Path keyFile, String keyId) throws IOException {
     FileMasterKeyProvider.addKey(keyFile, keyId);
-    System.out.println(
-        "Wrote master key '" + keyId + "' to " + keyFile + " (mode 0600) and made it active.");
-    System.out.println(
-        "Every retired key must stay in this file for as long as one asset still names it.");
+    log.info("Wrote master key '{}' to {} (mode 0600) and made it active.", keyId, keyFile);
+    log.info("Every retired key must stay in this file for as long as one asset still names it.");
     return 0;
   }
 
@@ -187,8 +184,8 @@ public final class AssetEncryptionTool {
   }
 
   private static int report(Outcome outcome) {
-    System.out.println(outcome.describe());
-    outcome.failed().forEach(line -> System.out.println("  FAILED " + line));
+    log.info("{}", outcome.describe());
+    outcome.failed().forEach(line -> log.warn("  FAILED {}", line));
     return outcome.failed().isEmpty() ? 0 : 1;
   }
 

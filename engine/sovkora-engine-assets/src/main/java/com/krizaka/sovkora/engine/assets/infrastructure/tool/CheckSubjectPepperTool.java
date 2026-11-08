@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Seals a new subject pepper for the external checks (krizaka/sovkora-packs#138): the key of the
@@ -31,6 +33,8 @@ import java.util.regex.Pattern;
  * pepper changes every subject reference written after it (the old ones stay as they were).
  */
 public final class CheckSubjectPepperTool {
+
+  private static final Logger log = LoggerFactory.getLogger(CheckSubjectPepperTool.class);
 
   /** The setting that holds the sealed pepper. */
   public static final String SETTING_KEY = "checks.subject-pepper";
@@ -54,12 +58,12 @@ public final class CheckSubjectPepperTool {
    */
   public static void main(String[] args) {
     if (args.length != 2 || !"seal".equals(args[0])) {
-      System.err.println("usage: CheckSubjectPepperTool seal <keyfile>");
+      log.error("usage: CheckSubjectPepperTool seal <keyfile>");
       System.exit(2);
       return;
     }
     String sealed = sealNew(new FileMasterKeyProvider(Path.of(args[1])));
-    System.out.println(upsertStatement(sealed));
+    log.info("{}", upsertStatement(sealed));
   }
 
   /**
