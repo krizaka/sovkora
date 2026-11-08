@@ -1,4 +1,4 @@
-// The web steps of the home's « Where it runs » tour — the real app on www.orazaka.com, signed in as the QA user (the
+// The web steps of the home's « Where it runs » tour — the real app on dev.sovkora.com, signed in as the QA user (the
 // account the phone recordings use), nothing staged and no new generation: the workspace, a Studio's page with its
 // estimate before the run, then what was already made. Dark and light, 1120×700, ≤ 7 s each, muted.
 //
@@ -14,7 +14,7 @@ import path from "node:path";
 import sharp from "sharp";
 import { qaOnScreen } from "./qa-on-screen.mjs";
 
-const BASE = process.env.APP_BASE_URL ?? "https://www.orazaka.com";
+const BASE = process.env.APP_BASE_URL ?? "https://dev.sovkora.com";
 const OUT = path.resolve(process.argv[2] ?? "web-steps");
 const V = { width: 1120, height: 700 };
 const secret = (k) => execSync(`~/.krizaka-worktrees/tools/secret.sh @qa ${k}`, { shell: "/bin/zsh" }).toString();

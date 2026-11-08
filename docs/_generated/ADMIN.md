@@ -15,7 +15,7 @@ administrative endpoint checks it on the server (`@PreAuthorize`), whatever clie
 
 ## The SecOps console (`web`)
 
-A Next.js console served by `orazaka-web-client` on the admin host (`admin.orazaka.com`, host routing), started with the web client by `orazaka dev`.
+A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `orazaka dev`.
 
 | Screen | What it is for | Tabs |
 |:---|:---|:---|
