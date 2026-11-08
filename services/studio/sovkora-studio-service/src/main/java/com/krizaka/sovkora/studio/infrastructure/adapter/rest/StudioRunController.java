@@ -19,6 +19,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +47,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/v1/studios")
 class StudioRunController {
 
+  private static final Logger logger = LoggerFactory.getLogger(StudioRunController.class);
   private static final int DEFAULT_HISTORY_LIMIT = 50;
 
   /** The header a client sets to make a retry of a run start safe (ADR-083). */
@@ -259,6 +262,7 @@ class StudioRunController {
             subscription.close();
           } catch (Exception e) {
             // closing a slot cannot fail in a way a client could act on
+            logger.debug("Failed to close subscription: {}", e.getMessage(), e);
           }
         };
     Runnable gone =
@@ -275,11 +279,14 @@ class StudioRunController {
             pump.run(new EmitterSink(emitter, open));
             emitter.complete();
           } catch (IOException e) {
+            logger.debug("SSE stream pump IO error: {}", e.getMessage(), e);
             gone.run();
           } catch (InterruptedException e) {
+            logger.debug("SSE stream pump interrupted: {}", e.getMessage(), e);
             Thread.currentThread().interrupt();
             gone.run();
           } catch (RuntimeException e) {
+            logger.warn("SSE stream pump error: {}", e.getMessage(), e);
             emitter.completeWithError(e);
           } finally {
             close.run();

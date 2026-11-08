@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -40,6 +42,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 final class RulesetFixtureValidator {
 
+  private static final Logger logger = LoggerFactory.getLogger(RulesetFixtureValidator.class);
   private static final String RULESETS_DIRECTORY = "rulesets";
 
   private RulesetFixtureValidator() {}
@@ -90,6 +93,7 @@ final class RulesetFixtureValidator {
       try {
         passed = passes(rule.path("check"), fragment.asString(""));
       } catch (PatternSyntaxException unusable) {
+        logger.warn("Ruleset {} has unparseable regex pattern: {}", ruleId, unusable.getMessage(), unusable);
         violations.add(
             ruleId + " has a pattern this engine cannot compile: " + unusable.getMessage());
         return;

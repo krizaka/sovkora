@@ -2,6 +2,8 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.rest.dto;
 
 import com.krizaka.sovkora.studio.domain.model.AgentTurnResult;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -15,6 +17,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 public record TurnResponse(String text, List<CallDto> calls, UsageDto usage) {
 
+  private static final Logger logger = LoggerFactory.getLogger(TurnResponse.class);
   private static final ObjectMapper JSON = new ObjectMapper();
 
   /**
@@ -49,6 +52,7 @@ public record TurnResponse(String text, List<CallDto> calls, UsageDto usage) {
     try {
       return JSON.readTree(json);
     } catch (Exception malformed) {
+      logger.debug("Failed to parse tool argument JSON, treating as string: {}", malformed.getMessage(), malformed);
       return JSON.valueToTree(json);
     }
   }
