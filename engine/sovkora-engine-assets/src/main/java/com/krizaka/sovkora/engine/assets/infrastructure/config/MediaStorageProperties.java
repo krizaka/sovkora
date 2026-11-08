@@ -45,7 +45,9 @@ public record MediaStorageProperties(
               "media.storage.provider=directory needs MEDIA_STORAGE_DIRECTORY");
         }
       }
-      default -> { /* LOCAL: no extra configuration needed */ }
+      default -> {
+        /* LOCAL: no extra configuration needed */
+      }
     }
   }
 
