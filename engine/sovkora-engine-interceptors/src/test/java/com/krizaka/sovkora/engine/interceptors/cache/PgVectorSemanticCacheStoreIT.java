@@ -43,7 +43,9 @@ class PgVectorSemanticCacheStoreIT extends AbstractContainerIntegrationTest {
   private PgVectorSemanticCacheStore store;
 
   @BeforeAll
-  static void noop() {}
+  static void noop() {
+    // required by interface, not invoked in this test
+  }
 
   private PgVectorSemanticCacheStore store() throws Exception {
     if (store == null) {
