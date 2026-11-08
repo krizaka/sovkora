@@ -5,9 +5,10 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { violations } from "./lib/java-layout.mjs";
+import { toolPath } from "./lib/tool-path.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const tracked = execFileSync("git", ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean);
+const tracked = execFileSync(toolPath("git"), ["ls-files"], { cwd: ROOT, encoding: "utf8" }).split("\n").filter(Boolean);
 const poms = tracked.filter((f) => f.endsWith("/pom.xml"));
 const packagesOf = (dir, kind) =>
   [...new Set(tracked.filter((f) => f.startsWith(`${dir}/src/${kind}/java/`) && f.endsWith(".java"))

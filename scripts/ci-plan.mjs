@@ -15,6 +15,7 @@ import { spawnSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { toolPath } from "./lib/tool-path.mjs";
 
 /** What every module shares: a change here can break any of them. */
 export const SHARED =
@@ -48,10 +49,10 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const event = arg("--event") ?? process.env.GITHUB_EVENT_NAME ?? "push";
   let files = arg("--files")?.split(",").filter(Boolean) ?? null;
   if (!files && arg("--diff")) {
-    const r = spawnSync("git", ["diff", "--name-only", arg("--diff"), "HEAD"], { cwd: root, encoding: "utf8" });
+    const r = spawnSync(toolPath("git"), ["diff", "--name-only", arg("--diff"), "HEAD"], { cwd: root, encoding: "utf8" });
     files = r.status === 0 ? r.stdout.split("\n").filter(Boolean) : null;
   }
-  const poms = spawnSync("git", ["ls-files", "*pom.xml"], { cwd: root, encoding: "utf8" }).stdout.split("\n").filter(Boolean);
+  const poms = spawnSync(toolPath("git"), ["ls-files", "*pom.xml"], { cwd: root, encoding: "utf8" }).stdout.split("\n").filter(Boolean);
   const result = plan({ event, files, modules: modulesOf(poms) });
   console.log(`mode=${result.mode}\npl=${result.pl}\n# ${result.reason}`);
   if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\npl=${result.pl}\n`);
