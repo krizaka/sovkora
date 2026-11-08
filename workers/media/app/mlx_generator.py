@@ -192,16 +192,7 @@ def generate_video_frames_mlx(
 
     t0 = time.time()
 
-    # Validate step variant — Lightning only supports specific steps
-    valid_steps = {1, 2, 4, 8}
-    actual_steps = min(valid_steps, key=lambda s: abs(s - num_inference_steps))
-    if actual_steps != num_inference_steps:
-        print(
-            f"  [AnimateDiff-Lightning] Snapping steps {num_inference_steps} → {actual_steps} "
-            f"(Lightning supports {sorted(valid_steps)})",
-            flush=True,
-        )
-        num_inference_steps = actual_steps
+    num_inference_steps = _snap_lightning_steps(num_inference_steps)
 
     # Ensure dimensions are divisible by 8 (VAE requirement)
     width = (width // 8) * 8
@@ -215,17 +206,7 @@ def generate_video_frames_mlx(
         raise RuntimeError("AnimateDiff-Lightning pipeline failed to initialize. No fallback.")
 
     device = _resolve_device()
-
-    # 16 frames at 512x512 is the safe maximum for 64GB Apple Silicon.
-    # 24 frames OOM-kills during 3D temporal attention (51s/step then crash).
-    # Cinematic 4.0s target: 16 frames ÷ 4 FPS = 4.0 seconds.
-    MAX_FRAMES_MPS = 16
-    actual_frames = min(num_frames, MAX_FRAMES_MPS)
-    if actual_frames != num_frames:
-        print(
-            f"  [AnimateDiff-Lightning] Capping frames {num_frames} → {actual_frames} (MPS memory limit for 64GB)",
-            flush=True,
-        )
+    actual_frames = _cap_frames_for_mps(num_frames)
 
     # Use prompt or generate a default from the context
     if not prompt:
@@ -236,17 +217,7 @@ def generate_video_frames_mlx(
     print(f"  Steps: {num_inference_steps} | Guidance: 1.0 (Lightning CFG-free)", flush=True)
 
     try:
-        # Set random seed for reproducibility
-        seed_str = os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1")
-        try:
-            seed_val = int(seed_str)
-        except ValueError:
-            seed_val = -1
-        if seed_val == -1:
-            import secrets
-
-            # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
-            seed_val = secrets.randbelow(2**31)
+        seed_val = _resolve_mlx_seed()
         generator = torch.manual_seed(seed_val)
         print(f"  Seed: {seed_val}", flush=True)
 
@@ -287,18 +258,7 @@ def generate_video_frames_mlx(
             flush=True,
         )
 
-        # Convert to PIL if needed (diffusers may return PIL already)
-        pil_frames = []
-        for i, frame in enumerate(frames):
-            if isinstance(frame, Image.Image):
-                pil_frames.append(frame)
-            else:
-                # numpy array
-                import numpy as np
-
-                pil_frames.append(Image.fromarray(np.array(frame)))
-            if progress_callback:
-                progress_callback(None, i, None, {})
+        pil_frames = _convert_to_pil(frames, progress_callback)
 
         # Clean up GPU memory
         if device == "mps":
@@ -324,3 +284,62 @@ def generate_video_frames_mlx(
         if device == "mps":
             torch.mps.empty_cache()
         raise RuntimeError(f"AnimateDiff-Lightning inference failed (no fallback): {e}") from e
+
+
+def _snap_lightning_steps(num_inference_steps: int) -> int:
+    """Snaps the requested step count to the nearest value Lightning supports (1, 2, 4, 8)."""
+    valid_steps = {1, 2, 4, 8}
+    actual_steps = min(valid_steps, key=lambda s: abs(s - num_inference_steps))
+    if actual_steps != num_inference_steps:
+        print(
+            f"  [AnimateDiff-Lightning] Snapping steps {num_inference_steps} → {actual_steps} "
+            f"(Lightning supports {sorted(valid_steps)})",
+            flush=True,
+        )
+    return actual_steps
+
+
+def _cap_frames_for_mps(num_frames: int) -> int:
+    """Caps the frame count to the MPS memory limit (16 frames for 64 GB Apple Silicon)."""
+    # 16 frames at 512x512 is the safe maximum for 64GB Apple Silicon.
+    # 24 frames OOM-kills during 3D temporal attention (51s/step then crash).
+    # Cinematic 4.0s target: 16 frames ÷ 4 FPS = 4.0 seconds.
+    MAX_FRAMES_MPS = 16
+    actual_frames = min(num_frames, MAX_FRAMES_MPS)
+    if actual_frames != num_frames:
+        print(
+            f"  [AnimateDiff-Lightning] Capping frames {num_frames} → {actual_frames} (MPS memory limit for 64GB)",
+            flush=True,
+        )
+    return actual_frames
+
+
+def _resolve_mlx_seed() -> int:
+    """Returns the generation seed: from env if set, otherwise a fresh cryptographic random."""
+    seed_str = os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1")
+    try:
+        seed_val = int(seed_str)
+    except ValueError:
+        seed_val = -1
+    if seed_val == -1:
+        import secrets
+
+        # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
+        seed_val = secrets.randbelow(2**31)
+    return seed_val
+
+
+def _convert_to_pil(frames, progress_callback: Optional[Callable]) -> list[Image.Image]:
+    """Converts raw diffusers frames (PIL or numpy) to PIL images, calling the progress callback per frame."""
+    pil_frames = []
+    for i, frame in enumerate(frames):
+        if isinstance(frame, Image.Image):
+            pil_frames.append(frame)
+        else:
+            # numpy array
+            import numpy as np
+
+            pil_frames.append(Image.fromarray(np.array(frame)))
+        if progress_callback:
+            progress_callback(None, i, None, {})
+    return pil_frames

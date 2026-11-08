@@ -116,6 +116,25 @@ def _post(path: str, body: dict | None) -> int:
         return response.status
 
 
+def _registration_tick(declaration: dict, registered: bool) -> bool:
+    """One register-or-heartbeat attempt; returns the new registered state. Never raises."""
+    try:
+        if not registered:
+            _post("/internal/v1/workers", declaration)
+            print(f"[registry] registered {declaration['name']}", flush=True)
+            return True
+        status = _post(f"/internal/v1/workers/{declaration['name']}/heartbeat", None)
+        return status != 404
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return False
+        print(f"[registry] heartbeat/registration refused ({e.code}) — still consuming", flush=True)
+        return registered
+    except Exception as e:  # noqa: BLE001 — advisory by design; never fatal
+        print(f"[registry] job service unreachable ({e}) — still consuming", flush=True)
+        return False
+
+
 def register_forever(declaration: dict) -> None:
     """Registers, then heartbeats, until the process exits.
 
@@ -124,23 +143,7 @@ def register_forever(declaration: dict) -> None:
     """
     registered = False
     while True:
-        try:
-            if not registered:
-                _post("/internal/v1/workers", declaration)
-                registered = True
-                print(f"[registry] registered {declaration['name']}", flush=True)
-            else:
-                status = _post(f"/internal/v1/workers/{declaration['name']}/heartbeat", None)
-                if status == 404:
-                    registered = False
-        except urllib.error.HTTPError as e:
-            if e.code == 404:
-                registered = False
-            else:
-                print(f"[registry] heartbeat/registration refused ({e.code}) — still consuming", flush=True)
-        except Exception as e:  # noqa: BLE001 — advisory by design; never fatal
-            registered = False
-            print(f"[registry] job service unreachable ({e}) — still consuming", flush=True)
+        registered = _registration_tick(declaration, registered)
         time.sleep(HEARTBEAT_SECONDS if registered else RETRY_SECONDS)
 
 

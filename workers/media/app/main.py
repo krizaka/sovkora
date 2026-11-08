@@ -468,23 +468,8 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
         input_image = load_image(payload)
         try:
             with _media_semaphore, resource_guard(process) as metrics:
-                # The caller's seed first, so a clip can be made again; then the deployment's.
-                seed_str = str(payload.get("seed") or os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1"))
-                try:
-                    seed_val = int(seed_str)
-                except ValueError:
-                    seed_val = -1
-
-                if seed_val == -1:
-                    import secrets
-
-                    # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
-                    seed_val = secrets.randbelow(2**31)
-
-                print(f"Using video generation seed: {seed_val}", flush=True)
-                generator = torch.manual_seed(seed_val) if torch else None
+                seed_val, generator = self._resolve_seed(payload)
                 job_id = payload.get("job_id")
-
                 model_name = payload.get("model") or video_models.default_model_name()
                 family = MODEL_REGISTRY[model_name]
 
@@ -497,45 +482,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                 if not is_resident(model_name, _asked_for_an_image(payload)):
                     preflight_memory_guard(model_name)
 
-                steps = payload.get("videoSteps") or payload.get("video_steps")
-                fps_render = payload.get("videoFps") or payload.get("video_fps")
-
-                wan = video_models.find(model_name) if family == "Wan" else None
-                wan_image = None
-                if wan is not None and _asked_for_an_image(payload):
-                    if not wan.image_to_video:
-                        # A starting image the model would ignore is not the run that was asked for (§12).
-                        raise video_models.InvalidVideoRequest(
-                            f"model '{model_name}' makes video from text only; leave the starting "
-                            "image empty or choose an image-to-video model"
-                        )
-                    wan_image = starting_image(payload)
-                elif wan is not None and wan.requires_image:
-                    raise video_models.InvalidVideoRequest(
-                        f"model '{model_name}' starts from a photo: give it a starting image (a keyframe)"
-                    )
-                if not steps and wan is not None:
-                    steps = wan.steps
-                if not fps_render and wan is not None:
-                    fps_render = wan.fps
-
-                if not steps:
-                    model_lower = model_name.lower()
-                    if "flux" in model_lower:
-                        steps = 4  # FLUX Schnell distilled
-                    elif "animatediff" in model_lower:
-                        steps = 16  # Deep inference for 64GB Unified Memory
-                    else:
-                        steps = 25
-
-                if not fps_render:
-                    model_lower = model_name.lower()
-                    if "animatediff" in model_lower:
-                        fps_render = 12
-                    elif "flux" in model_lower:
-                        fps_render = 1  # FLUX generates still images
-                    else:
-                        fps_render = 14
+                steps, fps_render, wan, wan_image = self._resolve_model_params(payload, model_name, family)
 
                 if job_id:
                     job_control.raise_if_cancelled(job_id)
@@ -553,91 +500,10 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                             stage_reporter.step(step + 1, int(steps))
                     return kwargs
 
-                duration = payload.get("durationSeconds") or payload.get("video_length") or 2
-                # Resolution from payload (defaults handled by mlx_generator)
-                req_width = payload.get("width")
-                req_height = payload.get("height")
-
-                # MLX models: minimum 16 frames for cinematic output (4.0s at 4fps)
-                # The text-to-video AnimateDiff pipeline, by the family the registry declares — the
-                # catalogue default `animatediff-lightning-mps` used to fall through to SVD's
-                # image-to-video branch from a grey still (orazaka-worker-media#3).
-                is_mlx_model = (
-                    family in ("AnimateDiff", "MLX-AnimateDiff", "MLX-AnimateDiff-Lightning")
-                    or model_name.startswith("mlx-")
-                    or model_name.startswith("mlx-community/")
+                frames, req_width, req_height = self._run_generation(
+                    payload, model_name, family, wan, wan_image, input_image,
+                    steps, fps_render, seed_val, generator, stage_reporter, progress_cb,
                 )
-                min_frames = 16 if is_mlx_model else 14
-                frames_n = max(min_frames, min(int(duration * fps_render), 30))
-
-                # Allow explicit num_frames override from payload (backward-compatible control pathway)
-                explicit_frames = payload.get("num_frames")
-                if explicit_frames and int(explicit_frames) > 0:
-                    frames_n = int(explicit_frames)
-
-                # The Studio's aspect ("9:16" by default) picks one of the sizes the model was
-                # trained at; an explicit width and height still win (models.yaml, ADR-077).
-                shaped = wan
-                if shaped is None and payload.get("aspect"):
-                    shaped = video_models.video_models().get(model_name)
-                if shaped is not None:
-                    req_width, req_height = shaped.size_for(payload.get("aspect"), req_width, req_height)
-                if wan is not None:
-                    frames_n = wan.frames_for(duration)
-                    if explicit_frames and int(explicit_frames) > 0:
-                        frames_n = min(int(explicit_frames), wan.max_frames)
-
-                if wan is not None:
-                    ladder = wan.size_ladder(payload.get("aspect"), payload.get("width"), payload.get("height"))
-                    frames = generate_wan_frames(
-                        model_name=model_name,
-                        prompt=payload.get("prompt", ""),
-                        width=int(req_width),
-                        height=int(req_height),
-                        num_frames=frames_n,
-                        steps=int(steps),
-                        seed=seed_val,
-                        negative_prompt=payload.get("negativePrompt") or None,
-                        progress_callback=progress_cb,
-                        weights_progress=stage_reporter.weights if stage_reporter else None,
-                        image=wan_image,
-                        focus=_focus(payload),
-                        fallback_sizes=tuple(ladder[1:]) if wan_image is not None else (),
-                    )
-                    # The size really made (a smaller one when the card could not hold the first).
-                    req_width, req_height = frames[0].size
-                elif model_name.startswith("argmaxinc/"):
-                    # FLUX image generation via mflux (MLX native)
-                    frames = _generate_flux_image(
-                        prompt=payload.get("prompt", ""),
-                        model_name=model_name,
-                        steps=steps,
-                        num_frames=frames_n,
-                        seed=seed_val,
-                    )
-                elif is_mlx_model:
-                    if generate_video_frames_mlx is None:
-                        raise ImportError("AnimateDiff-Lightning pipeline is not available on this host.")
-                    mlx_kwargs = {
-                        "input_image": input_image,
-                        "num_frames": frames_n,
-                        "num_inference_steps": steps,
-                        "progress_callback": progress_cb,
-                        "prompt": payload.get("prompt", ""),
-                    }
-                    if req_width:
-                        mlx_kwargs["width"] = int(req_width)
-                    if req_height:
-                        mlx_kwargs["height"] = int(req_height)
-                    frames = generate_video_frames_mlx(**mlx_kwargs)
-                else:
-                    frames = generate_video_frames(
-                        input_image=input_image,
-                        num_frames=frames_n,
-                        num_inference_steps=steps,
-                        generator=generator,
-                        progress_callback=progress_cb,
-                    )
 
                 _record_consumption(metrics, frames, steps, fps_render, req_width, req_height)
                 _record_provenance(metrics, model_name, seed_val, payload.get("aspect"), frames, fps_render)
@@ -651,29 +517,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     send_progress_update(job_id, 100, phase="encoding")
                     if stage_reporter:
                         stage_reporter.verify()
-                if output_path:
-                    safe_output_path = validate_safe_path(output_path)
-                    os.makedirs(os.path.dirname(safe_output_path), exist_ok=True)
-                    export_frames_to_video(frames, safe_output_path, fps=fps_render)
-                    if job_id:
-                        send_progress_update(job_id, 100, phase="upscaling")
-                    apply_upscale(payload, safe_output_path, metrics)
-                    response_data = {"status": "success", "output_path": safe_output_path, "metrics": metrics}
-                else:
-                    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
-                        tmp_path = tmp.name
-                    try:
-                        export_frames_to_video(frames, tmp_path, fps=fps_render)
-                        with open(tmp_path, "rb") as f:
-                            video_bytes = f.read()
-                    finally:
-                        if os.path.exists(tmp_path):
-                            os.remove(tmp_path)
-
-                    base64_video = base64.b64encode(video_bytes).decode("utf-8")
-                    if job_id:
-                        send_progress_update(job_id, 100)
-                    response_data = {"data": [{"b64_json": base64_video}], "metrics": metrics}
+                response_data = self._encode_output(payload, frames, fps_render, output_path, job_id, metrics)
 
             body = json.dumps(response_data)
             self.send_response(200)
@@ -698,6 +542,193 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.end_headers()
             self.wfile.write(str(e).encode("utf-8"))
+
+    def _resolve_seed(self, payload: Dict[str, Any]):
+        """Returns ``(seed_val, generator)`` — a concrete seed and the torch generator for this request."""
+        # The caller's seed first, so a clip can be made again; then the deployment's.
+        seed_str = str(payload.get("seed") or os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1"))
+        try:
+            seed_val = int(seed_str)
+        except ValueError:
+            seed_val = -1
+        if seed_val == -1:
+            import secrets
+
+            # 0..2147483647, the range torch's seed takes; printed below so a clip can be made again.
+            seed_val = secrets.randbelow(2**31)
+        print(f"Using video generation seed: {seed_val}", flush=True)
+        generator = torch.manual_seed(seed_val) if torch else None
+        return seed_val, generator
+
+    def _resolve_model_params(self, payload: Dict[str, Any], model_name: str, family: str):
+        """Resolves steps, fps, the Wan model descriptor and the starting image. Returns ``(steps, fps_render, wan, wan_image)``."""
+        steps = payload.get("videoSteps") or payload.get("video_steps")
+        fps_render = payload.get("videoFps") or payload.get("video_fps")
+
+        wan = video_models.find(model_name) if family == "Wan" else None
+        wan_image = None
+        if wan is not None and _asked_for_an_image(payload):
+            if not wan.image_to_video:
+                # A starting image the model would ignore is not the run that was asked for (§12).
+                raise video_models.InvalidVideoRequest(
+                    f"model '{model_name}' makes video from text only; leave the starting "
+                    "image empty or choose an image-to-video model"
+                )
+            wan_image = starting_image(payload)
+        elif wan is not None and wan.requires_image:
+            raise video_models.InvalidVideoRequest(
+                f"model '{model_name}' starts from a photo: give it a starting image (a keyframe)"
+            )
+        if not steps and wan is not None:
+            steps = wan.steps
+        if not fps_render and wan is not None:
+            fps_render = wan.fps
+
+        if not steps:
+            model_lower = model_name.lower()
+            if "flux" in model_lower:
+                steps = 4  # FLUX Schnell distilled
+            elif "animatediff" in model_lower:
+                steps = 16  # Deep inference for 64GB Unified Memory
+            else:
+                steps = 25
+
+        if not fps_render:
+            model_lower = model_name.lower()
+            if "animatediff" in model_lower:
+                fps_render = 12
+            elif "flux" in model_lower:
+                fps_render = 1  # FLUX generates still images
+            else:
+                fps_render = 14
+
+        return steps, fps_render, wan, wan_image
+
+    def _run_generation(self, payload: Dict[str, Any], model_name: str, family: str, wan, wan_image,
+                        input_image, steps, fps_render, seed_val: int, generator, stage_reporter, progress_cb):
+        """Runs the appropriate generation backend and returns ``(frames, req_width, req_height)``."""
+        duration = payload.get("durationSeconds") or payload.get("video_length") or 2
+        # Resolution from payload (defaults handled by mlx_generator)
+        req_width = payload.get("width")
+        req_height = payload.get("height")
+
+        # MLX models: minimum 16 frames for cinematic output (4.0s at 4fps)
+        # The text-to-video AnimateDiff pipeline, by the family the registry declares — the
+        # catalogue default `animatediff-lightning-mps` used to fall through to SVD's
+        # image-to-video branch from a grey still (orazaka-worker-media#3).
+        is_mlx_model = (
+            family in ("AnimateDiff", "MLX-AnimateDiff", "MLX-AnimateDiff-Lightning")
+            or model_name.startswith("mlx-")
+            or model_name.startswith("mlx-community/")
+        )
+        min_frames = 16 if is_mlx_model else 14
+        frames_n = max(min_frames, min(int(duration * fps_render), 30))
+
+        # Allow explicit num_frames override from payload (backward-compatible control pathway)
+        explicit_frames = payload.get("num_frames")
+        if explicit_frames and int(explicit_frames) > 0:
+            frames_n = int(explicit_frames)
+
+        # The Studio's aspect ("9:16" by default) picks one of the sizes the model was
+        # trained at; an explicit width and height still win (models.yaml, ADR-077).
+        shaped = wan
+        if shaped is None and payload.get("aspect"):
+            shaped = video_models.video_models().get(model_name)
+        if shaped is not None:
+            req_width, req_height = shaped.size_for(payload.get("aspect"), req_width, req_height)
+        if wan is not None:
+            frames_n = wan.frames_for(duration)
+            if explicit_frames and int(explicit_frames) > 0:
+                frames_n = min(int(explicit_frames), wan.max_frames)
+
+        frames = self._dispatch_generation_backend(
+            payload, model_name, family, wan, wan_image, input_image,
+            steps, fps_render, frames_n, seed_val, generator,
+            req_width, req_height, stage_reporter, progress_cb, is_mlx_model,
+        )
+
+        # The size really made (a smaller one when the card could not hold the first).
+        if family == "Wan" and frames:
+            req_width, req_height = frames[0].size
+
+        return frames, req_width, req_height
+
+    def _dispatch_generation_backend(self, payload: Dict[str, Any], model_name: str, family: str, wan, wan_image,
+                                     input_image, steps, fps_render, frames_n: int, seed_val: int, generator,
+                                     req_width, req_height, stage_reporter, progress_cb, is_mlx_model: bool):
+        """Calls the right generation backend (Wan, FLUX, MLX AnimateDiff, or SVD) and returns the frames list."""
+        if wan is not None:
+            ladder = wan.size_ladder(payload.get("aspect"), payload.get("width"), payload.get("height"))
+            return generate_wan_frames(
+                model_name=model_name,
+                prompt=payload.get("prompt", ""),
+                width=int(req_width),
+                height=int(req_height),
+                num_frames=frames_n,
+                steps=int(steps),
+                seed=seed_val,
+                negative_prompt=payload.get("negativePrompt") or None,
+                progress_callback=progress_cb,
+                weights_progress=stage_reporter.weights if stage_reporter else None,
+                image=wan_image,
+                focus=_focus(payload),
+                fallback_sizes=tuple(ladder[1:]) if wan_image is not None else (),
+            )
+        if model_name.startswith("argmaxinc/"):
+            # FLUX image generation via mflux (MLX native)
+            return _generate_flux_image(
+                prompt=payload.get("prompt", ""),
+                model_name=model_name,
+                steps=steps,
+                num_frames=frames_n,
+                seed=seed_val,
+            )
+        if is_mlx_model:
+            if generate_video_frames_mlx is None:
+                raise ImportError("AnimateDiff-Lightning pipeline is not available on this host.")
+            mlx_kwargs = {
+                "input_image": input_image,
+                "num_frames": frames_n,
+                "num_inference_steps": steps,
+                "progress_callback": progress_cb,
+                "prompt": payload.get("prompt", ""),
+            }
+            if req_width:
+                mlx_kwargs["width"] = int(req_width)
+            if req_height:
+                mlx_kwargs["height"] = int(req_height)
+            return generate_video_frames_mlx(**mlx_kwargs)
+        return generate_video_frames(
+            input_image=input_image,
+            num_frames=frames_n,
+            num_inference_steps=steps,
+            generator=generator,
+            progress_callback=progress_cb,
+        )
+
+    def _encode_output(self, payload: Dict[str, Any], frames, fps_render, output_path, job_id, metrics: Dict[str, Any]) -> Dict[str, Any]:
+        """Encodes the generated frames to MP4 and returns the response dict (file path or base64)."""
+        if output_path:
+            safe_output_path = validate_safe_path(output_path)
+            os.makedirs(os.path.dirname(safe_output_path), exist_ok=True)
+            export_frames_to_video(frames, safe_output_path, fps=fps_render)
+            if job_id:
+                send_progress_update(job_id, 100, phase="upscaling")
+            apply_upscale(payload, safe_output_path, metrics)
+            return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
+            tmp_path = tmp.name
+        try:
+            export_frames_to_video(frames, tmp_path, fps=fps_render)
+            with open(tmp_path, "rb") as f:
+                video_bytes = f.read()
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        base64_video = base64.b64encode(video_bytes).decode("utf-8")
+        if job_id:
+            send_progress_update(job_id, 100)
+        return {"data": [{"b64_json": base64_video}], "metrics": metrics}
 
 
 def run(port: int = 8188) -> None:

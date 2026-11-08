@@ -322,6 +322,23 @@ def _generate_with(job: dict, scratch: str) -> tuple:
         raise InvalidJobPayload(str(bad)) from bad
 
     output_path, public_url = _output_paths(job["userId"], job_id)
+    request_body = _build_generation_request(job, job_id, payload, prompt, output_path, scratch)
+    body = _call_local_pipeline(job_id, request_body)
+
+    # The generator wrote plaintext through ffmpeg; seal it before anything else can read it
+    # (ADR-054). In place and atomically, so a kill here leaves the plaintext or the envelope and
+    # never a half-sealed file — or, on a host that does not share the store, hand it over.
+    send_progress_update(job_id, 100, phase="uploading")
+    url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
+    result = {"url": url, "format": "mp4"}
+    metrics = body.get("metrics")
+    if isinstance(metrics, dict) and metrics:
+        result["metrics"] = metrics
+    return result, extract_consumption(metrics)
+
+
+def _build_generation_request(job: dict, job_id: str, payload: dict, prompt: str, output_path: str, scratch: str) -> dict:
+    """Assembles the HTTP body sent to the local pipeline, with model selection and image path resolved."""
     request_body = dict(payload)
     request_body["prompt"] = prompt
     request_body["job_id"] = job_id
@@ -339,7 +356,11 @@ def _generate_with(job: dict, scratch: str) -> tuple:
         request_body["model"] = model
     else:
         request_body.pop("model", None)
+    return request_body
 
+
+def _call_local_pipeline(job_id: str, request_body: dict) -> dict:
+    """POSTs to the local HTTP pipeline and returns the parsed response body."""
     request = urllib.request.Request(
         f"http://127.0.0.1:{_http_port()}/v1/videos/generations",
         data=json.dumps(request_body).encode("utf-8"),
@@ -348,7 +369,7 @@ def _generate_with(job: dict, scratch: str) -> tuple:
     )
     try:
         with urllib.request.urlopen(request, timeout=1800) as response:  # noqa: S310 — fixed loopback target (127.0.0.1 + configured port), never a caller-supplied URL
-            body = json.loads(response.read().decode("utf-8"))
+            return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as refused:
         if refused.code == main.CANCELLED_STATUS:
             raise job_control.JobCancelled(f"job {job_id} was cancelled by its owner") from refused
@@ -357,17 +378,6 @@ def _generate_with(job: dict, scratch: str) -> tuple:
             # the model cannot make, a starting image for a text-to-video model): the caller's.
             raise InvalidJobPayload(refused.read().decode("utf-8", "replace")[:300]) from refused
         raise
-
-    # The generator wrote plaintext through ffmpeg; seal it before anything else can read it
-    # (ADR-054). In place and atomically, so a kill here leaves the plaintext or the envelope and
-    # never a half-sealed file — or, on a host that does not share the store, hand it over.
-    send_progress_update(job_id, 100, phase="uploading")
-    url = _store(output_path, job, VIDEO_FILENAME, VIDEO_CONTENT_TYPE, public_url)
-    result = {"url": url, "format": "mp4"}
-    metrics = body.get("metrics")
-    if isinstance(metrics, dict) and metrics:
-        result["metrics"] = metrics
-    return result, extract_consumption(metrics)
 
 
 def _resolve_owned_asset(upload_root: str, user_id: str, candidate: str):
@@ -407,17 +417,30 @@ def _resolve_owned_asset(upload_root: str, user_id: str, candidate: str):
     if not prefix or prefix != candidate:
         return None
 
+    return _find_asset_in_owner_dirs(owner_root, prefix)
+
+
+def _find_asset_in_owner_dirs(owner_root: str, prefix: str):
+    """Scans the owner's temp and home directories for a file whose name starts with ``prefix``."""
     for directory in (os.path.join(owner_root, "temp"), owner_root):
-        if not os.path.isdir(directory):
+        result = _find_asset_in_dir(directory, owner_root, prefix)
+        if result is not None:
+            return result
+    return None
+
+
+def _find_asset_in_dir(directory: str, owner_root: str, prefix: str):
+    """Returns the first regular file inside ``directory`` (owned by ``owner_root``) whose name starts with ``prefix``."""
+    if not os.path.isdir(directory):
+        return None
+    for name in sorted(os.listdir(directory)):
+        if not name.startswith(prefix):
             continue
-        for name in sorted(os.listdir(directory)):
-            if not name.startswith(prefix):
-                continue
-            found = os.path.realpath(os.path.join(directory, name))
-            # A regular file, never a directory: output lives under
-            # {root}/{user}/{jobId}/, so a job id would otherwise resolve to it.
-            if os.path.isfile(found) and found.startswith(owner_root + os.sep):
-                return found
+        found = os.path.realpath(os.path.join(directory, name))
+        # A regular file, never a directory: output lives under
+        # {root}/{user}/{jobId}/, so a job id would otherwise resolve to it.
+        if os.path.isfile(found) and found.startswith(owner_root + os.sep):
+            return found
     return None
 
 
@@ -637,48 +660,11 @@ def _sound(job: dict) -> tuple:
         if not (foley_prompt or music_prompt or voice):
             raise InvalidJobPayload("describe a foley, a music bed, or bring a voice-over")
         seed = _seed(payload)
-        try:
-            foley_model = sound_generators.resolve("foley", payload.get("foleyModel")) if foley_prompt else None
-            music_model = sound_generators.resolve("music", payload.get("musicModel")) if music_prompt else None
-        except sound_generators.UnknownSoundModel as unknown:
-            raise InvalidJobPayload(str(unknown)) from unknown
-        if foley_prompt and foley_model is None:
-            raise InvalidJobPayload(
-                "no commercially licensed foley model is installed: ask for one by name with foleyModel "
-                "(a non-commercial model is refused unless MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS=true) or leave foley empty"
-            )
+        foley_model, music_model = _resolve_sound_models(foley_prompt, music_prompt, payload)
 
         output_path, public_url = _output_paths(job["userId"], job["jobId"])
-        stages = {}
         readable = _materialise(video, scratch)
-        tracks = {}
-        if foley_model:
-            started = time.time()
-            wav = os.path.join(scratch, "foley.wav")
-            stages["foley"] = sound_generators.generate_foley(
-                foley_model, readable, foley_prompt, sound.probe(readable)["durationSeconds"], wav, seed
-            )
-            tracks["foley"] = wav
-            stages["foley"]["wallSeconds"] = round(time.time() - started, 1)
-        if music_model:
-            started = time.time()
-            wav = os.path.join(scratch, "music.wav")
-            stages["music"] = sound_generators.generate_music(
-                music_model, music_prompt, sound.probe(readable)["durationSeconds"] + 1, wav, seed
-            )
-            tracks["music"] = wav
-            stages["music"]["wallSeconds"] = round(time.time() - started, 1)
-        if voice:
-            tracks["voice"] = _materialise(voice, scratch)
-        if not foley_model and sound.probe(readable)["audio"]:
-            # The picture already carries its own sound (a cut's synthesized foley, ADR-080): it is the foley track
-            # of the mix, under the music and the voice — never silently dropped.
-            own = os.path.join(scratch, "own.wav")
-            sound._run(
-                ["ffmpeg", "-y", "-hide_banner", "-v", "error", "-i", readable, "-vn", "-ac", "2", "-ar", "48000", own]
-            )
-            tracks["foley"] = own
-            stages["foley"] = {"model": "picture's own sound"}
+        tracks, stages = _generate_sound_tracks(readable, foley_model, music_model, voice, foley_prompt, music_prompt, seed, scratch)
         started = time.time()
         try:
             measured = sound.add_sound(readable, sound.Tracks(**tracks), output_path)
@@ -706,6 +692,57 @@ def _sound(job: dict) -> tuple:
         }
         result = {"url": url, "assetId": url, "silentUrl": silent_url, "format": "mp4", "metrics": metrics}
         return result, extract_consumption(metrics)
+
+
+def _resolve_sound_models(foley_prompt: str, music_prompt: str, payload: dict):
+    """Resolves and validates foley and music model selections. Raises ``InvalidJobPayload`` on bad input."""
+    try:
+        foley_model = sound_generators.resolve("foley", payload.get("foleyModel")) if foley_prompt else None
+        music_model = sound_generators.resolve("music", payload.get("musicModel")) if music_prompt else None
+    except sound_generators.UnknownSoundModel as unknown:
+        raise InvalidJobPayload(str(unknown)) from unknown
+    if foley_prompt and foley_model is None:
+        raise InvalidJobPayload(
+            "no commercially licensed foley model is installed: ask for one by name with foleyModel "
+            "(a non-commercial model is refused unless MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS=true) or leave foley empty"
+        )
+    return foley_model, music_model
+
+
+def _generate_sound_tracks(readable: str, foley_model, music_model, voice, foley_prompt: str, music_prompt: str, seed, scratch: str):
+    """Generates all audio tracks (foley, music, voice, picture sound) and returns ``(tracks, stages)``."""
+    import time
+
+    stages = {}
+    tracks = {}
+    if foley_model:
+        started = time.time()
+        wav = os.path.join(scratch, "foley.wav")
+        stages["foley"] = sound_generators.generate_foley(
+            foley_model, readable, foley_prompt, sound.probe(readable)["durationSeconds"], wav, seed
+        )
+        tracks["foley"] = wav
+        stages["foley"]["wallSeconds"] = round(time.time() - started, 1)
+    if music_model:
+        started = time.time()
+        wav = os.path.join(scratch, "music.wav")
+        stages["music"] = sound_generators.generate_music(
+            music_model, music_prompt, sound.probe(readable)["durationSeconds"] + 1, wav, seed
+        )
+        tracks["music"] = wav
+        stages["music"]["wallSeconds"] = round(time.time() - started, 1)
+    if voice:
+        tracks["voice"] = _materialise(voice, scratch)
+    if not foley_model and sound.probe(readable)["audio"]:
+        # The picture already carries its own sound (a cut's synthesized foley, ADR-080): it is the foley track
+        # of the mix, under the music and the voice — never silently dropped.
+        own = os.path.join(scratch, "own.wav")
+        sound._run(
+            ["ffmpeg", "-y", "-hide_banner", "-v", "error", "-i", readable, "-vn", "-ac", "2", "-ar", "48000", own]
+        )
+        tracks["foley"] = own
+        stages["foley"] = {"model": "picture's own sound"}
+    return tracks, stages
 
 
 def _is_sound(routing_key: str) -> bool:
@@ -796,23 +833,7 @@ def _on_message(channel, method, _properties, body) -> None:
         send_progress_update(job_id, 0, phase="loading")
         stage_reporter = stages.reporter_for(job_id, job.get("model"))
         stage_reporter.wake()
-        if _is_sound(method.routing_key):
-            print(f"[consumer] received sound job {job_id}", flush=True)
-            result, consumption = _sound(job)
-            model = COMPOSE_ENGINE
-        elif _is_compose(method.routing_key):
-            print(f"[consumer] received compose job {job_id}", flush=True)
-            result, consumption = _compose(job)
-            # The engine that ran, reported so an assembly is priced as an assembly. Both
-            # branches are VIDEO work, and without this the pricebook can only reach the
-            # capability default — the diffusion rate — for an ffmpeg concat. Derived from the
-            # routing key like the branch above it, never from the feature key, so no pack
-            # identity enters this worker [PACK-003].
-            model = COMPOSE_ENGINE
-        else:
-            print(f"[consumer] received video job {job_id}", flush=True)
-            result, consumption = _generate(job)
-            model = job.get("model") or None
+        result, consumption, model = _dispatch_job(job, method.routing_key)
         stage_reporter.completed()
         send_job_done(job_id, result, hold_id=hold_id, consumption=consumption, model=model)
         print(f"[consumer] job {job_id} done: {result['url']}", flush=True)
@@ -850,6 +871,29 @@ def _on_message(channel, method, _properties, body) -> None:
             )
         except pika.exceptions.AMQPError as lost:
             print(f"[consumer] could not acknowledge job {job_id} (the connection is gone): {lost}", flush=True)
+
+
+def _dispatch_job(job: dict, routing_key: str) -> tuple:
+    """Routes a job to the right handler by its routing key and returns ``(result, consumption, model)``."""
+    job_id = job.get("jobId")
+    if _is_sound(routing_key):
+        print(f"[consumer] received sound job {job_id}", flush=True)
+        result, consumption = _sound(job)
+        model = COMPOSE_ENGINE
+    elif _is_compose(routing_key):
+        print(f"[consumer] received compose job {job_id}", flush=True)
+        result, consumption = _compose(job)
+        # The engine that ran, reported so an assembly is priced as an assembly. Both
+        # branches are VIDEO work, and without this the pricebook can only reach the
+        # capability default — the diffusion rate — for an ffmpeg concat. Derived from the
+        # routing key like the branch above it, never from the feature key, so no pack
+        # identity enters this worker [PACK-003].
+        model = COMPOSE_ENGINE
+    else:
+        print(f"[consumer] received video job {job_id}", flush=True)
+        result, consumption = _generate(job)
+        model = job.get("model") or None
+    return result, consumption, model
 
 
 def _consume_once() -> None:
