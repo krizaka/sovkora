@@ -36,7 +36,10 @@ export async function runCase(suite, golden, config) {
         ...(body instanceof FormData ? {} : { "Content-Type": "application/json" }),
         ...(method === "POST" && path.endsWith("/runs") ? { "Idempotency-Key": randomUUID() } : {}),
       },
-      body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
+      body: (() => {
+        const formOrJson = body instanceof FormData ? body : JSON.stringify(body);
+        return body === undefined ? undefined : formOrJson;
+      })(),
     });
     // Do not log response bodies: an error can echo private input or credentials.
     assert.equal(response.status, expectedStatus, `${method} ${path}: HTTP ${response.status}`);

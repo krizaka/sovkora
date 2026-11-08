@@ -6,16 +6,19 @@ import Ajv from "ajv";
 const ajv = new Ajv({ strict: false, validateFormats: false, allErrors: true });
 const operators = ["equals", "includes", "nonEmpty", "type", "atLeast"];
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
-const canonical = (value) =>
-  Array.isArray(value)
-    ? value.map(canonical)
-    : value && typeof value === "object"
-      ? Object.fromEntries(
-          Object.keys(value)
-            .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)) // code-point order, as sort() without a comparator
-            .map((key) => [key, canonical(value[key])]),
-        )
-      : value;
+const canonical = (value) => {
+  if (Array.isArray(value)) return value.map(canonical);
+  const isObject = value && typeof value === "object";
+  if (!isObject) return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort((a, b) => {
+        const gtOrder = a > b ? 1 : 0; // code-point order, as sort() without a comparator
+        return a < b ? -1 : gtOrder;
+      })
+      .map((key) => [key, canonical(value[key])]),
+  );
+};
 
 export function assertOutput(output, assertions) {
   for (const assertion of assertions) {
@@ -56,7 +59,8 @@ export function assertOutput(output, assertions) {
           ["object", "array", "string", "number", "boolean"].includes(assertion.type),
           "unknown assertion type",
         );
-        const type = Array.isArray(actual) ? "array" : actual === null ? "null" : typeof actual;
+        const nullOrType = actual === null ? "null" : typeof actual;
+        const type = Array.isArray(actual) ? "array" : nullOrType;
         assert.equal(type, assertion.type, label);
         break;
       }
