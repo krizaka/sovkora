@@ -27,19 +27,17 @@ describe("StudioBuilderScreen i18n — builder section (krizaka-internal#2093)",
   });
 
   it.each(["en", "fr"] as const)("BlueprintEditor renders its labels in %s", (locale) => {
-    render(
-      <BlueprintEditor studioKey="x" featureKeys={[]} onSaved={() => {}} locale={locale} />,
-      { wrapper: queryWrapper() },
-    );
+    render(<BlueprintEditor studioKey="x" featureKeys={[]} onSaved={() => {}} locale={locale} />, {
+      wrapper: queryWrapper(),
+    });
     expect(screen.getByText(studiosCopy[locale].builder.saveDraft)).toBeInTheDocument();
     expect(screen.getByText(studiosCopy[locale].builder.definition)).toBeInTheDocument();
   });
 
   it.each(["en", "fr"] as const)("BlueprintVersionTable renders its labels in %s", (locale) => {
-    render(
-      <BlueprintVersionTable studioKey="x" versions={[VERSION]} onChanged={() => {}} locale={locale} />,
-      { wrapper: queryWrapper() },
-    );
+    render(<BlueprintVersionTable studioKey="x" versions={[VERSION]} onChanged={() => {}} locale={locale} />, {
+      wrapper: queryWrapper(),
+    });
     expect(screen.getByText(studiosCopy[locale].builder.versionCol)).toBeInTheDocument();
     expect(screen.getByText(studiosCopy[locale].builder.publish)).toBeInTheDocument();
   });

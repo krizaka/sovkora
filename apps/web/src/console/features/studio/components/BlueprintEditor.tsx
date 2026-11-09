@@ -99,10 +99,7 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved, locale }: Rea
     );
 
   const publish = () =>
-    act(
-      () => StudioAdminApi.publish(studioKey, version),
-      words.versionPublished.replace("{version}", version),
-    );
+    act(() => StudioAdminApi.publish(studioKey, version), words.versionPublished.replace("{version}", version));
 
   const canAct = version.trim() !== "" && !isBusy;
 
@@ -154,20 +151,8 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved, locale }: Rea
         </ul>
       </details>
 
-      <JsonField
-        label={words.definition}
-        value={definition}
-        onChange={setDefinition}
-        disabled={isBusy}
-        rows={18}
-      />
-      <JsonField
-        label={words.inputSchema}
-        value={inputSchema}
-        onChange={setInputSchema}
-        disabled={isBusy}
-        rows={8}
-      />
+      <JsonField label={words.definition} value={definition} onChange={setDefinition} disabled={isBusy} rows={18} />
+      <JsonField label={words.inputSchema} value={inputSchema} onChange={setInputSchema} disabled={isBusy} rows={8} />
       <JsonField
         label={words.configSchema}
         value={configSchema}
