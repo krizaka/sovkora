@@ -69,6 +69,28 @@ function VersionActionsCell({
   );
 }
 
+type VersionActions = Readonly<{
+  studioKey: string;
+  busy: string | null;
+  onAct: (v: string, action: () => Promise<void>) => void;
+  words: StudiosWords["builder"];
+}>;
+
+function versionColumns({ studioKey, busy, onAct, words }: VersionActions): DataTableColumn<BlueprintVersion>[] {
+  return [
+    { id: "version", header: words.versionCol, card: "title", cell: versionCodeCell },
+    { id: "status", header: words.status, cell: versionStatusCell },
+    { id: "estimatedCredits", header: words.creditsCol, align: "end" },
+    { id: "changelog", header: words.note, value: (v) => v.changelog ?? "—" },
+    {
+      id: "actions",
+      header: "",
+      align: "end",
+      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={onAct} words={words} />,
+    },
+  ];
+}
+
 /**
  * The version history, with publish and deprecate.
  *
@@ -99,20 +121,7 @@ export function BlueprintVersionTable({
     }
   };
 
-  const columns: DataTableColumn<BlueprintVersion>[] = [
-    { id: "version", header: words.versionCol, card: "title", cell: versionCodeCell },
-    { id: "status", header: words.status, cell: versionStatusCell },
-    { id: "estimatedCredits", header: words.creditsCol, align: "end" },
-    { id: "changelog", header: words.note, value: (v) => v.changelog ?? "—" },
-    {
-      id: "actions",
-      header: "",
-      align: "end",
-      cell: (v) => (
-        <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={act} words={words} /> // NOSONAR S6478 — render prop called as a function by DataTable; VersionActionsCell is defined outside; studioKey/busy/act/words are stable refs
-      ),
-    },
-  ];
+  const columns = versionColumns({ studioKey, busy, onAct: act, words });
 
   if (versions.length === 0) {
     return <p className="text-sm text-fg-muted">{words.emptyVersions}</p>;
