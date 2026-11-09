@@ -32,6 +32,38 @@ const WORDS = {
       "Installé puis jamais lancé — le signal de churn le plus net du produit",
     ),
   },
+  builder: {
+    loading: w("Loading the catalogue…", "Chargement du catalogue…"),
+    empty: w("No Studio in the catalogue.", "Aucun Studio au catalogue."),
+    versionCol: w("Version", "Version"),
+    status: w("Status", "Statut"),
+    creditsCol: w("Credits", "Crédits"),
+    note: w("Note", "Note"),
+    versions: w("Versions", "Versions"),
+    loadingVersions: w("Reading versions", "Lecture des versions"),
+    emptyVersions: w("No version for this Studio.", "Aucune version pour ce Studio."),
+    publish: w("Publish", "Publier"),
+    deprecate: w("Deprecate", "Déprécier"),
+    deprecateTitle: w(
+      "The version stays executable for installations that pinned it",
+      "La version reste exécutable pour les installations qui l'ont épinglée",
+    ),
+    version: w("Version (semver)", "Version (semver)"),
+    credits: w("Est. credits / run", "Crédits estimés / exéc."),
+    changelog: w("Version note", "Note de version"),
+    changelogPlaceholder: w("What changes for the user", "Ce qui change pour l'utilisateur"),
+    capabilities: w(
+      "Available capabilities ({n}) — a CAPABILITY step must name one",
+      "Capacités disponibles ({n}) — un step CAPABILITY doit en nommer une",
+    ),
+    definition: w("Definition (steps + outputs)", "Définition (steps + outputs)"),
+    inputSchema: w("Input schema (run form)", "Schéma des entrées (formulaire d'exécution)"),
+    configSchema: w("Config schema (install dialog)", "Schéma de configuration (dialogue d'installation)"),
+    saveDraft: w("Save draft", "Enregistrer le brouillon"),
+    draftSaved: w("Draft {version} saved and validated.", "Brouillon {version} enregistré et validé."),
+    versionPublished: w("Version {version} published.", "Version {version} publiée."),
+    failed: w("Failed", "Échec"),
+  },
 } as const;
 
 export type StudiosWords = Localised<typeof WORDS>;
