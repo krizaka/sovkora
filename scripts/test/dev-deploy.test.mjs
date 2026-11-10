@@ -118,6 +118,18 @@ test("seedSql gives the admin ROLE_ADMIN, the user only ROLE_USER, and quotes va
 });
 
 
+test("namesSql renames accounts by e-mail, never inserts, idempotent, injection-proof", () => {
+  const sql = namesSql([
+    { username: "Éric Tremblay", email: "qa+user@orazaka.com" },
+    { username: "Mira Haddad", email: "qa+admin@orazaka.com" },
+  ]);
+  assert.match(sql, /^BEGIN;[\s\S]*COMMIT;\n$/);
+  assert.match(sql, /UPDATE users SET username = 'Éric Tremblay' WHERE lower\(email\) = lower\('qa\+user@orazaka\.com'\) AND username != 'Éric Tremblay';/);
+  assert.match(sql, /UPDATE users SET username = 'Mira Haddad' WHERE lower\(email\) = lower\('qa\+admin@orazaka\.com'\) AND username != 'Mira Haddad';/);
+  assert.doesNotMatch(sql, /INSERT/);
+  assert.match(namesSql([{ username: "O'Brien", email: "o@x" }]), /'O''Brien'/);
+});
+
 test("the demo persona on dev is a first name on a reserved e-mail domain, a plain user, never a QA account", () => {
   const p = personaAccount();
   assert.equal(p.username, "Eric");

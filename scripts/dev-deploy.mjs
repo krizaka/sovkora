@@ -332,9 +332,11 @@ function bcrypt(secret) {
   return r.stdout.trim().split(":")[1];
 }
 
+// Display names from the Sovkora cast (@krizaka/org castOf("sovkora")); full names avoid a username
+// collision with the persona objects whose first names are "Eric" and "Mira".
 const ACCOUNTS = [
-  { key: "user", username: "qa_user", email: "qa+user@orazaka.com", tier: "free", roles: ["ROLE_USER"] },
-  { key: "admin", username: "qa_admin", email: "qa+admin@orazaka.com", tier: "admin", roles: ["ROLE_USER", "ROLE_ADMIN"] },
+  { key: "user", username: "Éric Tremblay", email: "qa+user@orazaka.com", tier: "free", roles: ["ROLE_USER"] },
+  { key: "admin", username: "Mira Haddad", email: "qa+admin@orazaka.com", tier: "admin", roles: ["ROLE_USER", "ROLE_ADMIN"] },
 ];
 
 /**
@@ -386,6 +388,15 @@ export function seedSql(accounts) {
   return `BEGIN;\n${rows.join("\n")}\nCOMMIT;\n`;
 }
 
+/** Renames each account's username in place, keyed by e-mail — never inserts a new row (idempotent). */
+export function namesSql(accounts) {
+  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const rows = accounts.map((a) =>
+    `UPDATE users SET username = ${q(a.username)} WHERE lower(email) = lower(${q(a.email)}) AND username != ${q(a.username)};`,
+  );
+  return `BEGIN;\n${rows.join("\n")}\nCOMMIT;\n`;
+}
+
 function seed() {
   const env = secrets();
   const accounts = ACCOUNTS.map((a) => {
@@ -393,6 +404,7 @@ function seed() {
     return { ...a, password: pw, hash: bcrypt(pw) };
   });
   psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB", [], seedSql(accounts));
+  psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB", [], namesSql(ACCOUNTS));
   const [user, admin] = accounts;
   // The QA store (@qa reads env/dev.env first), the keys secret.sh resolves; never a document, never printed.
   storeSecret("ORAZAKA_USER_EMAIL", user.email);
