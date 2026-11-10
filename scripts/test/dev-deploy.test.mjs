@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import { connectionVars, grantSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
+import { connectionVars, grantSql, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
 
 const spec = (name) => readFileSync(new URL(`../../infra/deploy/${name}.app.yaml`, import.meta.url), "utf8");
 
@@ -117,6 +117,18 @@ test("seedSql gives the admin ROLE_ADMIN, the user only ROLE_USER, and quotes va
   assert.match(sql, /ON CONFLICT \(username\) DO UPDATE/);
 });
 
+
+test("namesSql renames accounts by e-mail, never inserts, idempotent, injection-proof", () => {
+  const sql = namesSql([
+    { username: "Éric Tremblay", email: "qa+user@orazaka.com" },
+    { username: "Mira Haddad", email: "qa+admin@orazaka.com" },
+  ]);
+  assert.match(sql, /^BEGIN;[\s\S]*COMMIT;\n$/);
+  assert.match(sql, /UPDATE users SET username = 'Éric Tremblay' WHERE lower\(email\) = lower\('qa\+user@orazaka\.com'\) AND username != 'Éric Tremblay';/);
+  assert.match(sql, /UPDATE users SET username = 'Mira Haddad' WHERE lower\(email\) = lower\('qa\+admin@orazaka\.com'\) AND username != 'Mira Haddad';/);
+  assert.doesNotMatch(sql, /INSERT/);
+  assert.match(namesSql([{ username: "O'Brien", email: "o@x" }]), /'O''Brien'/);
+});
 
 test("the demo persona on dev is a first name on a reserved e-mail domain, a plain user, never a QA account", () => {
   const p = personaAccount();
