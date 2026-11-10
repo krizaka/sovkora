@@ -9,15 +9,12 @@ alerts:
   - rule: DEPLOYMENT_FAILED
   - rule: DOMAIN_FAILED
 domains:
-  # The public address (epic krizaka/.github#119): www is primary and indexed; the apex answers 308 with www (ingress below).
-  - domain: www.orazaka.com
+  # dev.sovkora.com is the primary dev address (krizaka-internal#2951): closed to search engines by design (dev.*).
+  - domain: dev.sovkora.com
     type: PRIMARY
-  - domain: orazaka.com
-    type: ALIAS
-  # dev.orazaka.com was removed on 2026-11-05 (krizaka-internal#2600): every caller uses www.
-  # The operator console is served by this same `web` component on `admin.orazaka.com` (krizaka/orazaka-web-admin#31: the
-  # proxy of orazaka-web-client reads the Host): an ALIAS domain of this app, cut over on 2026-10-21 (docs/DEPLOY_DEV.md § Admin console).
-  - domain: admin.orazaka.com
+  # The operator console is served by this same `web` component on `admin.sovkora.com` (the
+  # proxy of orazaka-web-client reads the Host): an ALIAS domain of this app.
+  - domain: admin.sovkora.com
     type: ALIAS
 features:
   - buildpack-stack=ubuntu-22
@@ -26,13 +23,6 @@ vpc:
   id: 60296b32-efad-49be-bb41-321b1b6cc328
 ingress:
   rules:
-    # The apex leads to www (308).
-    - match:
-        authority:
-          exact: orazaka.com
-      redirect:
-        authority: www.orazaka.com
-        redirect_code: 308
     # The edge, public for the admin console and the mobile client: /edge/api/v1/... → edge /api/v1/...
     - component:
         name: core
@@ -59,12 +49,11 @@ services:
       branch: main
       deploy_on_push: true
     # The web app is one folder of the one repository (ADR-029): built on its own, with its own lockfile.
+    # Dockerfile build (krizaka-internal#2948): the DO Node.js buildpack failed to detect the app after ADR-029 moved
+    # the source to apps/web — pnpm-workspace.yaml in that folder confused buildpack detection. Consistent with core and
+    # gpu-relay. Build context is apps/web (source_dir); the Dockerfile lives beside the source it builds.
     source_dir: apps/web
-    environment_slug: node-js
-    # The web client is a pnpm project: the buildpack installs it with pnpm, then this builds it. `npm install` on a
-    # pnpm tree crashes (« Cannot read properties of null (reading 'matches') »), orazaka-web-client#282.
-    build_command: pnpm run build
-    run_command: npm start
+    dockerfile_path: apps/web/Dockerfile
     http_port: 8080
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
@@ -78,26 +67,26 @@ services:
         value: 2
         window: FIVE_MINUTES
     envs:
-      # www is indexed (krizaka-com AGENTS 2.4): robots allows, sitemap, no noindex; dev. and admin. are closed by host (orazaka-web-client src/core/config/indexing.ts). The live spec drifted to "off" once because this file said so.
+      # dev.sovkora.com is closed to search engines by design (dev.*); admin.sovkora.com too. APP_SEARCH_INDEXING=on so the app logic does not add an extra noindex layer on top of the dev-host rule.
       - { key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on" }
       - { key: AUTH_LOGIN_ENABLED, scope: RUN_AND_BUILD_TIME, value: "true" }
       - { key: AUTH_SIGNUP_ENABLED, scope: RUN_AND_BUILD_TIME, value: "false" }
       - { key: APP_COMMIT, scope: BUILD_TIME, value: "${_self.COMMIT_HASH}" }
       - { key: NODE_ENV, scope: RUN_TIME, value: production }
       - { key: ROUTER_URL, scope: RUN_TIME, value: "http://core:8088" }
-      - { key: NEXTAUTH_URL, scope: RUN_TIME, value: "https://www.orazaka.com" }
-      - { key: APP_PUBLIC_URL, scope: RUN_TIME, value: "https://www.orazaka.com" }
+      - { key: NEXTAUTH_URL, scope: RUN_TIME, value: "https://dev.sovkora.com" }
+      - { key: APP_PUBLIC_URL, scope: RUN_TIME, value: "https://dev.sovkora.com" }
       # Universal links / App Links (orazaka-web-client app-links.json): served only when set, empty = 404, never a placeholder.
       - { key: APP_IOS_TEAM_ID, scope: RUN_TIME, value: "__APP_IOS_TEAM_ID__" }
       - { key: APP_ANDROID_CERT_SHA256, scope: RUN_TIME, value: "__APP_ANDROID_CERT_SHA256__" }
       - { key: NEXTAUTH_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_WEB__" }
-      # The operator console on Host admin.orazaka.com (src/console of orazaka-web-client). Its own session, its own flag:
+      # The operator console on Host admin.sovkora.com (src/console of orazaka-web-client). Its own session, its own flag:
       # nothing of the public site's (cookie, signing key, sign-in flag) is shared. NEXTAUTH_URL stays the public site's;
       # AUTH_TRUST_HOST lets next-auth build the console's callbacks from the Host it was asked on.
       - { key: AUTH_TRUST_HOST, scope: RUN_TIME, value: "true" }
       - { key: AUTH_CONSOLE_LOGIN_ENABLED, scope: RUN_TIME, value: "true" }
       - { key: AUTH_CONSOLE_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_ADMIN__" }
-      # Only these client addresses (do-connecting-ip) reach admin.orazaka.com, sign-in page included; empty = nobody.
+      # Only these client addresses (do-connecting-ip) reach admin.sovkora.com, sign-in page included; empty = nobody.
       - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "142.122.41.109" }
 
   # The JVM services in one container (infra/deploy/Dockerfile + run-services.sh): edge :8088 (the
@@ -168,7 +157,7 @@ services:
       - { key: AUTOMATION_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8091" }
       - { key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8096" }
       # The address a sender is shown for a webhook trigger: the edge as the Internet reaches it.
-      - { key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https://www.orazaka.com/edge" }
+      - { key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https://dev.sovkora.com/edge" }
       # Broker: RabbitMQ on the orazaka-broker-dev Droplet, TLS only, VPC only (`dev-deploy.mjs broker`).
       # The GPU workers reach the same broker over the VPC with their own, narrower user.
       - { key: RABBITMQ_HOST, scope: RUN_TIME, value: broker-dev.orazaka.com }
@@ -199,7 +188,7 @@ services:
       # Sign-in open, sign-up closed — the backend refuses a registration too (403).
       - { key: AUTH_SIGNUP_ENABLED, scope: RUN_TIME, value: "false" }
       - { key: EMAIL_VERIFICATION_ENABLED, scope: RUN_TIME, value: "false" }
-      - { key: CORS_ALLOWED_ORIGINS, scope: RUN_TIME, value: "https://www.orazaka.com,https://admin.orazaka.com" }
+      - { key: CORS_ALLOWED_ORIGINS, scope: RUN_TIME, value: "https://dev.sovkora.com,https://admin.sovkora.com" }
       - { key: ORAZAKA_PACKS_SOURCES, scope: RUN_TIME, value: /app/orazaka-packs }
       # Billing runs as the sixth JVM of this container (billing :8095, reached through the edge at /api/v1/billing).
       # Enforcement stays DRY_RUN (a billing_runtime_config row): it meters, it never blocks chat.

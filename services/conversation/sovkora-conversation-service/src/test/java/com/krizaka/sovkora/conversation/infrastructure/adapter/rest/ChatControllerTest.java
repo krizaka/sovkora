@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -20,6 +21,7 @@ import com.krizaka.sovkora.engine.core.domain.ports.inbound.ChatSessionService;
 import com.krizaka.users.domain.model.Persona;
 import com.krizaka.users.domain.model.User;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -326,19 +328,21 @@ class ChatControllerTest {
     }
   }
 
-  private static void awaitTrue(java.util.function.BooleanSupplier condition, long millis)
-      throws InterruptedException {
-    long deadline = System.nanoTime() + millis * 1_000_000;
-    while (!condition.getAsBoolean() && System.nanoTime() < deadline) {
-      Thread.sleep(10);
-    }
+  private static void awaitTrue(java.util.function.BooleanSupplier condition, long millis) {
+    await()
+        .atMost(Duration.ofMillis(millis))
+        .pollInterval(Duration.ofMillis(10))
+        .until(condition::getAsBoolean);
   }
 
-  private void assertUpstreamStopsWithinOneSecond(SlowModel model) throws InterruptedException {
+  private void assertUpstreamStopsWithinOneSecond(SlowModel model) {
     awaitTrue(model.cancelled::get, 1000);
     assertThat(model.cancelled).as("upstream cancelled within 1 s").isTrue();
     int atCancel = model.emitted.get();
-    Thread.sleep(200);
+    await()
+        .pollDelay(Duration.ofMillis(200))
+        .atMost(Duration.ofMillis(500))
+        .until(() -> model.emitted.get() >= atCancel);
     assertThat(model.emitted.get()).as("no further tokens after the cancel").isEqualTo(atCancel);
   }
 

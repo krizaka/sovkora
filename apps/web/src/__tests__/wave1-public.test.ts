@@ -10,7 +10,7 @@ import { translations } from "@/core/context/translations";
 import { localeHref, splitLocalePrefix } from "@/core/i18n/locale-negotiation";
 import { proxy } from "@/proxy";
 
-/** Wave 1 of the public-pages meeting (2026-11-05, krizaka-internal#2630): www.orazaka.com says one line and breaks no link. */
+/** Wave 1 of the public-pages meeting (2026-11-05, krizaka-internal#2630): dev.sovkora.com says one line and breaks no link. */
 
 const strings = (value: unknown): string[] => {
   if (typeof value === "string") {
@@ -91,21 +91,21 @@ describe("the title and the Open Graph follow the page's language", () => {
   });
 });
 
-describe("www.orazaka.com is a code-name host: noindex, meta, header and robots; no code name on screen", () => {
-  const live = { APP_PUBLIC_URL: "https://www.orazaka.com" };
+describe("dev.sovkora.com is the dev deployment: noindex, meta, header and robots; no code name on screen", () => {
+  const live = { APP_PUBLIC_URL: "https://dev.sovkora.com" };
 
   it("knows the code-name hosts", () => {
-    for (const host of ["www.orazaka.com", "orazaka.com", "www.yomizaka.com", "www.akinaza.com"]) {
+    for (const host of ["orazaka.com", "www.yomizaka.com", "www.akinaza.com"]) {
       expect(`${host} ${isCodeNameAddress(host)}`).toBe(`${host} true`);
     }
-    for (const host of ["www.sovkora.com", "www.krizaka.com", "", undefined, null]) {
+    for (const host of ["dev.sovkora.com", "www.sovkora.com", "www.krizaka.com", "", undefined, null]) {
       expect(`${host} ${isCodeNameAddress(host)}`).toBe(`${host} false`);
     }
   });
 
-  it("is not indexable, yet it is not the development deployment (no banner, no code-name line)", () => {
+  it("is not indexable and is the development deployment (shows banner)", () => {
     expect(indexable(live)).toBe(false);
-    expect(developmentDeployment(live)).toBe(false);
+    expect(developmentDeployment(live)).toBe(true);
     expect(developmentDeployment({ APP_SEARCH_INDEXING: "off" })).toBe(true);
     expect(developmentDeployment({ APP_PUBLIC_URL: "https://dev.orazaka.com" })).toBe(true);
     expect(indexable({ APP_PUBLIC_URL: "https://www.sovkora.com" })).toBe(true);
@@ -119,7 +119,7 @@ describe("www.orazaka.com is a code-name host: noindex, meta, header and robots;
       expect(robots().sitemap).toBeUndefined();
       expect(sitemap()).toEqual([]);
       for (const path of ["/", "/fr", "/fr/pricing", "/login", "/robots.txt"]) {
-        const res = proxy(new NextRequest(`https://www.orazaka.com${path}`, { headers: { host: "www.orazaka.com" } }));
+        const res = proxy(new NextRequest(`https://dev.sovkora.com${path}`, { headers: { host: "dev.sovkora.com" } }));
         expect(`${path} ${res.headers.get("x-robots-tag")}`).toBe(`${path} ${NOINDEX_HEADER}`);
       }
     } finally {

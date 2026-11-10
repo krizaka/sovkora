@@ -62,7 +62,7 @@ function Sequence({
         ))}
       </ul>
       <ol className="m-0 list-none space-y-1.5 p-0">
-        {block.items.map((it, i) =>
+        {block.items.map((it) =>
           it.type === "section" ? (
             <li key={`section-${it.title}`} className="pt-3 font-semibold text-fg">
               {it.title}

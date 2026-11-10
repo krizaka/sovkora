@@ -97,7 +97,7 @@ public class ProxyController {
             return null;
           });
     } catch (ResourceAccessException e) {
-      logger.warn("Backend unreachable for {} {}: {}", request.getMethod(), target, e.getMessage());
+      logger.warn("Backend unreachable for {} {}", request.getMethod(), target, e);
       if (!response.isCommitted()) {
         response.setStatus(502);
         response.setContentType("application/problem+json");
@@ -105,7 +105,7 @@ public class ProxyController {
       }
     } catch (UncheckedIOException e) {
       // Client disconnected mid-stream (SSE tab closed) — nothing left to relay.
-      logger.debug("client closed the stream for {} {}", request.getMethod(), target);
+      logger.debug("client closed the stream for {} {}", request.getMethod(), target, e);
     }
   }
 

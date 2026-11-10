@@ -17,9 +17,9 @@ public record EmbeddingResponse(
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof Item item
-          && index == item.index
-          && Arrays.equals(embedding, item.embedding);
+      return other instanceof Item(var idx, var emb)
+          && index == idx
+          && Arrays.equals(embedding, emb);
     }
 
     @Override

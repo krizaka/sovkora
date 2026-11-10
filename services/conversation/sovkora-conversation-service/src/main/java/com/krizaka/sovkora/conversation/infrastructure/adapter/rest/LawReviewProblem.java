@@ -2,9 +2,9 @@ package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
 import com.krizaka.sovkora.engine.tools.domain.model.law.LawReviewRefusal;
 import java.io.Serial;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.function.Supplier;
 import org.springframework.http.HttpStatus;
 
 /**

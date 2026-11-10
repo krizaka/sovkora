@@ -101,7 +101,7 @@ public class VoiceController {
               try {
                 emitter.complete();
               } catch (IllegalStateException alreadyClosed) {
-                logger.trace("Voice turn stream already closed");
+                logger.trace("Voice turn stream already closed", alreadyClosed);
               }
             });
     return emitter;
@@ -157,7 +157,7 @@ public class VoiceController {
       emitter.send(SseEmitter.event().name(event.name()).data(event, MediaType.APPLICATION_JSON));
     } catch (IOException | IllegalStateException gone) {
       // The caller went away; the turn still ends and settles what it spent.
-      logger.debug("Voice turn client gone before {}", event.name());
+      logger.debug("Voice turn client gone before {}", event.name(), gone);
     }
   }
 }

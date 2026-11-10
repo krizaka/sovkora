@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.e2e;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,9 +12,11 @@ import com.microsoft.playwright.options.FormData;
 import com.microsoft.playwright.options.RequestOptions;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -222,15 +225,20 @@ class VoiceTurnIT extends AbstractApiE2eTest {
     assertTrue(started.status() == 201 || started.status() == 202, started.text());
     String runId = MAPPER.readTree(started.text()).path("id").asString();
 
-    JsonNode run = null;
-    for (int poll = 0; poll < 60; poll++) {
-      run = MAPPER.readTree(request.get("/api/v1/studios/runs/" + runId, bearer(token)).text());
-      String status = run.path("status").asString();
-      if ("SUCCEEDED".equals(status) || "FAILED".equals(status)) {
-        break;
-      }
-      Thread.sleep(2_000);
-    }
+    AtomicReference<JsonNode> runRef = new AtomicReference<>();
+    await()
+        .atMost(Duration.ofSeconds(120))
+        .pollInterval(Duration.ofSeconds(2))
+        .until(
+            () -> {
+              JsonNode current =
+                  MAPPER.readTree(
+                      request.get("/api/v1/studios/runs/" + runId, bearer(token)).text());
+              runRef.set(current);
+              String status = current.path("status").asString();
+              return "SUCCEEDED".equals(status) || "FAILED".equals(status);
+            });
+    JsonNode run = runRef.get();
     assertNotNull(run);
     assertEquals("SUCCEEDED", run.path("status").asString(), "run: " + run);
     JsonNode output = run.path("outputs").get(0);

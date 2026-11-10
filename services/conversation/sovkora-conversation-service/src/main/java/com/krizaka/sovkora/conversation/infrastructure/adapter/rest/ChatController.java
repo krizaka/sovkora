@@ -210,7 +210,9 @@ public class ChatController {
                             .data(Map.of("content", content), MediaType.APPLICATION_JSON));
                   } catch (IOException | IllegalStateException sendFailure) {
                     logger.debug(
-                        "Client disconnected from SSE stream [{}] mid-stream", conversationId, sendFailure);
+                        "Client disconnected from SSE stream [{}] mid-stream",
+                        conversationId,
+                        sendFailure);
                     cleanup.run();
                   }
                 }
@@ -222,7 +224,9 @@ public class ChatController {
                   emitter.completeWithError(error);
                 } catch (Exception ignored) {
                   logger.trace(
-                      "Emitter already closed during error completion [{}]", conversationId, ignored);
+                      "Emitter already closed during error completion [{}]",
+                      conversationId,
+                      ignored);
                 }
               },
               () -> {
@@ -232,7 +236,9 @@ public class ChatController {
                   emitter.complete();
                 } catch (Exception ignored) {
                   logger.trace(
-                      "Emitter already closed during normal completion [{}]", conversationId, ignored);
+                      "Emitter already closed during normal completion [{}]",
+                      conversationId,
+                      ignored);
                 }
               }));
     } catch (Exception e) {

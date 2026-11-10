@@ -81,7 +81,8 @@ public final class WebhookTargetPolicy {
           return isPublic(
               InetAddress.getByAddress(new byte[] {raw[12], raw[13], raw[14], raw[15]}));
         } catch (java.net.UnknownHostException impossible) {
-          logger.debug("Failed to get IPv4 address from bytes: {}", impossible.getMessage(), impossible);
+          logger.debug(
+              "Failed to get IPv4 address from bytes: {}", impossible.getMessage(), impossible);
           return false;
         }
       }

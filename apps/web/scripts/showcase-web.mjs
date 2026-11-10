@@ -6,18 +6,19 @@
 // Demo data only (Eric, Lumen Atelier: scripts/tour/eric.mjs). The sign-in is made OFF camera (nothing typed is filmed), any
 // e-mail on screen is hidden. A chat that gives no answer fails the run: no blank video is ever published.
 //
-//   ORAZAKA_USER_EMAIL=… ORAZAKA_USER_PASSWORD=… node scripts/showcase-web.mjs <out-dir> [--base https://www.orazaka.com]
+//   ORAZAKA_USER_EMAIL=… ORAZAKA_USER_PASSWORD=… node scripts/showcase-web.mjs <out-dir> [--base https://dev.sovkora.com]
 //
 // Writes <out-dir>/web-chat.webm and web-studio.webm (no audio), ready for the app-videos action.
 import { appendFileSync, mkdirSync, renameSync } from "node:fs";
 import path from "node:path";
 import { chromium } from "@playwright/test";
 import { askRecordedQuestion } from "./tour/chat-journey.mjs";
+import { qaOnScreen } from "./qa-on-screen.mjs";
 
 const args = process.argv.slice(2);
 const outDir = path.resolve(args[0] ?? "showcase-web");
 const baseAt = args.indexOf("--base");
-const base = (baseAt >= 0 && args[baseAt + 1] ? args[baseAt + 1] : "https://www.orazaka.com").replace(/\/$/, "");
+const base = (baseAt >= 0 && args[baseAt + 1] ? args[baseAt + 1] : "https://dev.sovkora.com").replace(/\/$/, "");
 const persona = process.env.ORAZAKA_USER_EMAIL;
 const secret = process.env.ORAZAKA_USER_PASSWORD;
 if (!persona || !secret)
@@ -88,6 +89,9 @@ await record(
     await page.goto(`${base}/chat`, { waitUntil: "load" });
     const box = page.locator("textarea").first();
     await box.waitFor();
+    if (await qaOnScreen(page)) {
+      throw new Error(`web-chat: « qa » is on screen — a demo shows a persona`);
+    }
     await askRecordedQuestion(page);
     // The answer must grow the page; then the turn is over when the composer is editable again.
     const before = (await page.locator("main").first().innerText()).length;
@@ -113,6 +117,9 @@ await record(
   async (page) => {
     await page.goto(`${base}/studios`, { waitUntil: "load" });
     await page.waitForLoadState("networkidle");
+    if (await qaOnScreen(page)) {
+      throw new Error(`web-studio: « qa » is on screen — a demo shows a persona`);
+    }
     await pause(page, 1600);
     await page.getByRole("radio", { name: /^Ready/ }).click();
     await pause(page, 2400);

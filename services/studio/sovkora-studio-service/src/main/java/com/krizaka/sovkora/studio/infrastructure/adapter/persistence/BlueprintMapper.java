@@ -119,7 +119,8 @@ final class BlueprintMapper {
     } catch (IllegalArgumentException | NullPointerException invalid) {
       // Re-raised as a blueprint violation naming the node: an admin needs the step, not a stack
       // trace pointing at a record constructor.
-      logger.warn("Blueprint step validation failed at id={}: {}", id, invalid.getMessage(), invalid);
+      logger.warn(
+          "Blueprint step validation failed at id={}: {}", id, invalid.getMessage(), invalid);
       throw new BlueprintValidationException(id, invalid.getMessage());
     }
   }

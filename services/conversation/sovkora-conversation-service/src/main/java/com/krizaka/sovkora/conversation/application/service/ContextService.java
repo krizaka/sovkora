@@ -121,9 +121,11 @@ public class ContextService {
       Map<String, Object> attributes = new HashMap<>(profile.attributes());
       Map<String, Object> profileContext = new HashMap<>();
       profileContext.put("theme", profile.theme());
-      profileContext.put(ATTR_VOICE_MODEL, attributes.getOrDefault(ATTR_VOICE_MODEL, DEFAULT_VOICE_MODEL));
       profileContext.put(
-          ATTR_PRIMARY_INDUSTRY, attributes.getOrDefault(ATTR_PRIMARY_INDUSTRY, DEFAULT_PRIMARY_INDUSTRY));
+          ATTR_VOICE_MODEL, attributes.getOrDefault(ATTR_VOICE_MODEL, DEFAULT_VOICE_MODEL));
+      profileContext.put(
+          ATTR_PRIMARY_INDUSTRY,
+          attributes.getOrDefault(ATTR_PRIMARY_INDUSTRY, DEFAULT_PRIMARY_INDUSTRY));
       Object aiBehavior = attributes.get(ATTR_AI_BEHAVIOR);
       if (aiBehavior != null) {
         profileContext.put(ATTR_AI_BEHAVIOR, aiBehavior);

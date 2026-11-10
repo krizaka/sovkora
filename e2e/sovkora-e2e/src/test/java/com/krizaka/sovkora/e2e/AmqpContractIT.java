@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.e2e;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,9 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.microsoft.playwright.APIResponse;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
@@ -194,22 +197,26 @@ class AmqpContractIT extends AbstractApiE2eTest {
 
   /** Polls the job until its status leaves PENDING; returns the new status or null on timeout. */
   private String awaitStatusChange(String token, String jobId, long timeoutMs) {
-    long deadline = System.currentTimeMillis() + timeoutMs;
-    while (System.currentTimeMillis() < deadline) {
-      APIResponse job = request.get("/api/v1/jobs/" + jobId, bearer(token));
-      if (job.status() == 200) {
-        String status = MAPPER.readTree(job.text()).path("status").asString();
-        if (!"PENDING".equals(status)) {
-          return status;
-        }
-      }
-      try {
-        Thread.sleep(500);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return null;
-      }
+    AtomicReference<String> result = new AtomicReference<>();
+    try {
+      await()
+          .atMost(Duration.ofMillis(timeoutMs))
+          .pollInterval(Duration.ofMillis(500))
+          .until(
+              () -> {
+                APIResponse job = request.get("/api/v1/jobs/" + jobId, bearer(token));
+                if (job.status() == 200) {
+                  String status = MAPPER.readTree(job.text()).path("status").asString();
+                  if (!"PENDING".equals(status)) {
+                    result.set(status);
+                    return true;
+                  }
+                }
+                return false;
+              });
+    } catch (org.awaitility.core.ConditionTimeoutException e) {
+      return null;
     }
-    return null;
+    return result.get();
   }
 }
