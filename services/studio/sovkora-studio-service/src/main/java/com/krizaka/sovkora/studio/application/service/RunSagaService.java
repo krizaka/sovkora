@@ -67,7 +67,7 @@ public class RunSagaService {
    */
   private static final String UNRESOLVED_MODEL = "default";
 
-  private static final String STEP_PREFIX = STEP_PREFIX;
+  private static final String STEP_PREFIX = "step '";
   private static final String STEP_ID_COL = "step_id";
 
   private final JdbcTemplate jdbcTemplate;
@@ -188,39 +188,22 @@ public class RunSagaService {
         findBlueprint(run.studioKey(), run.blueprintVersion(), ref.blueprintCacheSize())
             .orElse(null);
 
-    String failure = error;
-    FailureCause declared = cause;
-    Map<String, Object> produced = output;
-    if (failure == null) {
-      // A step that declares its output's shape is not SUCCEEDED on an output outside it
-      // (sovkora-studio-service#59): it fails as the executor's fault, its own retry policy
-      // applies, and
-      // the steps after it never consume a hollow result. Path and rule only, never the value.
-      Optional<String> broken = contractViolation(ref, blueprint, output);
-      if (broken.isPresent()) {
-        failure = "OUTPUT_INVALID: " + broken.get();
-        declared = FailureCause.EXECUTOR_FAULT;
-        produced = Map.of();
-      }
-    }
-
-    RunStepStatus outcome = failure == null ? RunStepStatus.SUCCEEDED : RunStepStatus.FAILED;
-    FailureCause effectiveFailureCause = declared == null ? FailureCause.EXECUTOR_FAULT : declared;
+    Assessment assessment = assessOutcome(ref, blueprint, output, error, cause);
+    // Written in the SAME statement that marks the step terminal, and guarded by the same
+    // status predicate: a redelivery that loses the race applies neither, so a step can
+    // never be counted twice in the run's total.
     int applied =
         jdbcTemplate.update(
             "UPDATE studio_run_step SET status = ?, output = ?::jsonb, error_message = ?,"
                 + " failure_cause = ?, consumption = ?::jsonb, model_name = ?, finished_at = now()"
                 + " WHERE run_id = ? AND step_id = ? AND ordinal = ? AND status = ?",
-            outcome.name(),
-            columns.json(produced),
-            failure,
+            assessment.outcome().name(),
+            columns.json(assessment.produced()),
+            assessment.failure(),
             // Stored beside the message, not derived from it later: by the time the DAG advances,
             // the executor that knew why is long gone (ADR-053).
-            failure == null ? null : effectiveFailureCause.name(),
-            // Written in the SAME statement that marks the step terminal, and guarded by the same
-            // status predicate: a redelivery that loses the race applies neither, so a step can
-            // never be counted twice in the run's total.
-            consumption == null || consumption.isEmpty() ? null : columns.json(consumption),
+            assessment.causeForDb(),
+            consumptionJson(consumption),
             model,
             ref.runId(),
             ref.stepId(),
@@ -231,7 +214,7 @@ public class RunSagaService {
       logger.debug("Outcome for job {} was already applied — redelivery, ignoring", jobId);
       return;
     }
-    if (outcome == RunStepStatus.FAILED) {
+    if (assessment.outcome() == RunStepStatus.FAILED) {
       // Put the node back in flight if its policy allows. This is a side-effect, not a branch:
       // the advance below must still run, because some *other* node may already have failed
       // hard, and returning early here would leave that run hanging instead of failing it.
@@ -341,6 +324,34 @@ public class RunSagaService {
         attempts + 1,
         step.maxAttempts());
     return true;
+  }
+
+  private Assessment assessOutcome(
+      StepRef ref,
+      Blueprint blueprint,
+      Map<String, Object> output,
+      String error,
+      FailureCause cause) {
+    // A step that declares its output's shape is not SUCCEEDED on an output outside it
+    // (sovkora-studio-service#59): it fails as the executor's fault, its own retry policy
+    // applies, and the steps after it never consume a hollow result.
+    FailureCause effectiveCause = cause != null ? cause : FailureCause.EXECUTOR_FAULT;
+    if (error != null) {
+      return new Assessment(error, effectiveCause, output);
+    }
+    Optional<String> broken = contractViolation(ref, blueprint, output);
+    if (broken.isPresent()) {
+      return new Assessment(
+          "OUTPUT_INVALID: " + broken.get(), FailureCause.EXECUTOR_FAULT, Map.of());
+    }
+    return new Assessment(null, effectiveCause, output);
+  }
+
+  private String consumptionJson(Map<String, Object> consumption) {
+    if (consumption == null || consumption.isEmpty()) {
+      return null;
+    }
+    return columns.json(consumption);
   }
 
   /**
@@ -638,7 +649,8 @@ public class RunSagaService {
     try {
       runs.getObject().startChild(child, run.id(), step.studioKey(), run.actorId(), resolved);
     } catch (RuntimeException refused) {
-      logger.info("Run {} step {} could not call {}", run.id(), step.id(), step.studioKey());
+      logger.info(
+          "Run {} step {} could not call {}", run.id(), step.id(), step.studioKey(), refused);
       applyOutcome(
           child.toString(),
           Map.of(),
@@ -1291,6 +1303,17 @@ public class RunSagaService {
       String output) {}
 
   private record FailureMessage(String message, java.sql.Timestamp finishedAt) {}
+
+  private record Assessment(
+      String failure, FailureCause effectiveCause, Map<String, Object> produced) {
+    RunStepStatus outcome() {
+      return failure == null ? RunStepStatus.SUCCEEDED : RunStepStatus.FAILED;
+    }
+
+    String causeForDb() {
+      return failure == null ? null : effectiveCause.name();
+    }
+  }
 
   /** The run row the saga reasons over. */
   private record RunRow(

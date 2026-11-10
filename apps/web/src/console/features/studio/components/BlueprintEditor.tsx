@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 import { Button } from "@krizaka/orazaka-design-system";
+import { studiosCopy, type StudiosLocale } from "@/console/core/copy/studios";
+import { useConsoleLocale } from "@/console/core/providers/ConsoleLocale";
 import { StudioAdminApi } from "@/console/services/studio.admin.api";
 
 interface BlueprintEditorProps {
   studioKey: string;
   featureKeys: string[];
   onSaved: () => void;
+  locale?: StudiosLocale;
 }
 
 /** A minimal, valid starting point so the author edits rather than stares at a blank box. */
@@ -54,7 +57,9 @@ const STARTER_CONFIG_SCHEMA = `{
  * eventually disagree about what publishes. What this screen guarantees is that the
  * refusal is shown verbatim, naming the offending step.
  */
-export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<BlueprintEditorProps>) {
+export function BlueprintEditor({ studioKey, featureKeys, onSaved, locale }: Readonly<BlueprintEditorProps>) {
+  const fromContext = useConsoleLocale();
+  const words = studiosCopy[locale ?? fromContext].builder;
   const [version, setVersion] = useState("");
   const [definition, setDefinition] = useState(STARTER_DEFINITION);
   const [inputSchema, setInputSchema] = useState(STARTER_INPUT_SCHEMA);
@@ -74,7 +79,7 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
       setNotice(success);
       onSaved();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Échec");
+      setError(caught instanceof Error ? caught.message : words.failed);
     } finally {
       setBusy(false);
     }
@@ -90,10 +95,11 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
           estimatedCredits: Number(estimatedCredits) || 0,
           changelog,
         }),
-      `Brouillon ${version} enregistré et validé.`,
+      words.draftSaved.replace("{version}", version),
     );
 
-  const publish = () => act(() => StudioAdminApi.publish(studioKey, version), `Version ${version} publiée.`);
+  const publish = () =>
+    act(() => StudioAdminApi.publish(studioKey, version), words.versionPublished.replace("{version}", version));
 
   const canAct = version.trim() !== "" && !isBusy;
 
@@ -101,7 +107,7 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
     <section className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-fg-muted">Version (semver)</span>
+          <span className="text-xs text-fg-muted">{words.version}</span>
           <input
             value={version}
             onChange={(event) => setVersion(event.target.value)}
@@ -111,7 +117,7 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-fg-muted">Crédits estimés / exécution</span>
+          <span className="text-xs text-fg-muted">{words.credits}</span>
           <input
             value={estimatedCredits}
             onChange={(event) => setEstimatedCredits(event.target.value)}
@@ -121,11 +127,11 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-fg-muted">Note de version</span>
+          <span className="text-xs text-fg-muted">{words.changelog}</span>
           <input
             value={changelog}
             onChange={(event) => setChangelog(event.target.value)}
-            placeholder="Ce qui change pour l'utilisateur"
+            placeholder={words.changelogPlaceholder}
             disabled={isBusy}
             className="h-9 rounded border border-border-subtle bg-surface-2 px-2 text-sm text-fg disabled:opacity-50"
           />
@@ -134,7 +140,7 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
 
       <details className="rounded border border-border-subtle p-3">
         <summary className="cursor-pointer text-xs text-fg-muted">
-          Capacités disponibles ({featureKeys.length}) — un step CAPABILITY doit en nommer une
+          {words.capabilities.replace("{n}", String(featureKeys.length))}
         </summary>
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {featureKeys.map((key) => (
@@ -145,22 +151,10 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
         </ul>
       </details>
 
+      <JsonField label={words.definition} value={definition} onChange={setDefinition} disabled={isBusy} rows={18} />
+      <JsonField label={words.inputSchema} value={inputSchema} onChange={setInputSchema} disabled={isBusy} rows={8} />
       <JsonField
-        label="Définition (steps + outputs)"
-        value={definition}
-        onChange={setDefinition}
-        disabled={isBusy}
-        rows={18}
-      />
-      <JsonField
-        label="Schéma des entrées (formulaire d'exécution)"
-        value={inputSchema}
-        onChange={setInputSchema}
-        disabled={isBusy}
-        rows={8}
-      />
-      <JsonField
-        label="Schéma de configuration (dialogue d'installation)"
+        label={words.configSchema}
         value={configSchema}
         onChange={setConfigSchema}
         disabled={isBusy}
@@ -172,10 +166,10 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved }: Readonly<Bl
 
       <div className="flex gap-2">
         <Button onClick={() => void save()} disabled={!canAct}>
-          Enregistrer le brouillon
+          {words.saveDraft}
         </Button>
         <Button onClick={() => void publish()} disabled={!canAct} variant="secondary">
-          Publier
+          {words.publish}
         </Button>
       </div>
     </section>

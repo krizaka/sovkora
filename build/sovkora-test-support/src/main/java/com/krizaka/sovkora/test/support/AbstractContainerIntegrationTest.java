@@ -43,6 +43,10 @@ import org.testcontainers.utility.DockerImageName;
  */
 public abstract class AbstractContainerIntegrationTest {
 
+  protected AbstractContainerIntegrationTest() {
+    // Suppresses the implicit public constructor (S1118); subclasses extend this base directly.
+  }
+
   // ── PostgreSQL + PGVector ─────────────────────────────────────────────────
 
   private static final PostgreSQLContainer<?> POSTGRES =

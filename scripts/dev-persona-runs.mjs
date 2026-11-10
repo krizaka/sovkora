@@ -13,7 +13,7 @@ import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 export const PERSONA_RUNS = [
   { studioKey: "image-generation", inputs: { prompt: "Studio product photo of a hand-glazed ceramic table lamp, warm amber glow, dark slate plinth, deep ink-blue background, soft rim light", model: "stable-diffusion-3.5-large" } },
   { studioKey: "speech-synthesis", inputs: { text: "Meet Ember, our new table lamp. Shaped by hand in Montréal, glazed in amber, and lit to make an evening feel like home." } },

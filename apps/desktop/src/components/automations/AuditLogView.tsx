@@ -4,6 +4,12 @@ import { Badge } from "@krizaka/ui/badge";
 import { automationsApi, type AuditView } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
 
+function auditTone(event: string): "warning" | "danger" | "neutral" {
+  if (event.startsWith("approval") || event.startsWith("grant")) return "warning";
+  if (event.startsWith("kill-switch")) return "danger";
+  return "neutral";
+}
+
 /** The append-only, hash-chained audit log of this Mac, and whether its chain verifies. */
 export function AuditLogView({ refreshKey }: { refreshKey: number }) {
   const { t, format } = useI18n();
@@ -32,7 +38,7 @@ export function AuditLogView({ refreshKey }: { refreshKey: number }) {
             at: e.at,
             title: `#${e.seq} ${e.event}`,
             description: `${JSON.stringify(e.data)} · ${e.hash.slice(0, 12)}`,
-            tone: e.event.startsWith("approval") || e.event.startsWith("grant") ? "warning" : e.event.startsWith("kill-switch") ? "danger" : "neutral",
+            tone: auditTone(e.event),
           }))}
           empty={t("automations.audit.none")}
         />

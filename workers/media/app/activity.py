@@ -16,11 +16,11 @@ Unset (``MEDIA_ACTIVITY_FILE`` / ``MEDIA_HEARTBEAT_FILE`` empty, the Mac), nothi
 
 from __future__ import annotations
 
+import functools
 import os
 import threading
 from contextlib import contextmanager
 from pathlib import Path
-import functools
 from typing import Callable, Iterator, TypeVar
 
 _F = TypeVar("_F", bound=Callable)
@@ -71,7 +71,7 @@ class Heartbeat:
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
-    def start(self) -> "Heartbeat":
+    def start(self) -> Heartbeat:
         if self._target is None or self._thread is not None:
             return self
         _touch_file(self._target)

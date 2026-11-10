@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.automation.infrastructure.adapter.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.krizaka.sovkora.automation.domain.model.WebhookSecret;
 import com.krizaka.sovkora.automation.domain.model.WebhookSignature;
@@ -8,6 +9,7 @@ import com.krizaka.sovkora.automation.support.AutomationServiceIT;
 import com.krizaka.sovkora.automation.support.StudioStub;
 import com.krizaka.sovkora.automation.support.TestTokens;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,14 +127,11 @@ class WebhookIngressIT extends AutomationServiceIT {
         automationId);
   }
 
-  private void eventually(Callable<Boolean> condition) throws Exception {
-    long deadline = System.currentTimeMillis() + 10_000;
-    while (!condition.call()) {
-      if (System.currentTimeMillis() > deadline) {
-        throw new AssertionError("condition not met within 10 s");
-      }
-      Thread.sleep(50);
-    }
+  private void eventually(Callable<Boolean> condition) {
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .pollInterval(Duration.ofMillis(50))
+        .until(condition::call);
   }
 
   @Test

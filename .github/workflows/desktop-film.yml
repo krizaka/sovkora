@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
           repository: krizaka/sovkora
           ref: main
-      - uses: krizaka/krizaka-desktop/.github/actions/film@4ee517f7fee30ec9bd39f04494268028de41cd37 # main
+      - uses: krizaka/krizaka-rust/.github/actions/film@4ee517f7fee30ec9bd39f04494268028de41cd37 # main
         id: film
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:

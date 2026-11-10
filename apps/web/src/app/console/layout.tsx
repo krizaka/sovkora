@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * The operator console (admin.orazaka.com, rewritten under /console by the proxy): its own providers and footer in
+ * The operator console (admin.sovkora.com, rewritten under /console by the proxy): its own providers and footer in
  * place of the public shell (`PublicShell` skips itself for this segment). Tokens, fonts and the theme script come
  * from the root layout, as everywhere in this app.
  */

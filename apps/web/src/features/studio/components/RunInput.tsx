@@ -89,26 +89,30 @@ function buildInputElement(
       onChange={(event) => onChange(event.target.value)}
     />
   );
-  return field.multiline ? (
-    <Textarea
-      {...control}
-      rows={6}
-      placeholder={field.placeholder ?? undefined}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  ) : field.numeric ? (
-    <Input
-      {...control}
-      type="number"
-      inputMode="numeric"
-      min={field.numeric.min ?? undefined}
-      max={field.numeric.max ?? undefined}
-      placeholder={field.defaultValue ?? undefined}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  ) : (
-    textInput
-  );
+  if (field.multiline) {
+    return (
+      <Textarea
+        {...control}
+        rows={6}
+        placeholder={field.placeholder ?? undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    );
+  }
+  if (field.numeric) {
+    return (
+      <Input
+        {...control}
+        type="number"
+        inputMode="numeric"
+        min={field.numeric.min ?? undefined}
+        max={field.numeric.max ?? undefined}
+        placeholder={field.defaultValue ?? undefined}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    );
+  }
+  return textInput;
 }
 
 /** One generated field, on the @krizaka/ui field (label, control, hint). */

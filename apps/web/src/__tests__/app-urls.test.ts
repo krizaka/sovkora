@@ -26,7 +26,7 @@ describe("the app's addresses", () => {
     const rule = (await nextConfig.redirects()).find((r) => r.source === "/billing");
     const host = rule?.has?.find((h) => h.type === "host");
     expect(host?.value).toBeDefined();
-    expect(new RegExp(`^${host?.value}$`).test("admin.orazaka.com")).toBe(false);
+    expect(new RegExp(`^${host?.value}$`).test("admin.sovkora.com")).toBe(false);
     expect(new RegExp(`^${host?.value}$`).test("dev.orazaka.com")).toBe(true);
   });
 
@@ -42,7 +42,7 @@ describe("the app's addresses", () => {
       for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
         const p = path.join(dir, e.name);
         if (e.isDirectory()) {
-          // The operator console (src/console, served on admin.orazaka.com) has its own addresses: /billing is its section.
+          // The operator console (src/console, served on admin.sovkora.com) has its own addresses: /billing is its section.
           if (e.name !== "__tests__" && e.name !== "node_modules" && p !== path.join(process.cwd(), "src", "console"))
             walk(p);
         } else if (

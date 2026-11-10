@@ -13,8 +13,8 @@ import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const WEB = process.env.ORAZAKA_WEB_URL ?? "https://www.orazaka.com";
-const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const WEB = process.env.ORAZAKA_WEB_URL ?? "https://dev.sovkora.com";
+const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 const SECRETS = { eric: "PERSONA", mira: "MIRA" };
 
 /** @returns {{ ok: boolean, message: string }} */
@@ -25,7 +25,7 @@ export function verdict(loginStatus, hasToken) {
 }
 
 /**
- * The web sign-in (NextAuth on www.orazaka.com): the web reaches the edge through `ROUTER_URL` (http://core:8088, inside the
+ * The web sign-in (NextAuth on dev.sovkora.com): the web reaches the edge through `ROUTER_URL` (http://core:8088, inside the
  * DO app), so a booting or unreachable core shows here while the public edge API may still answer.
  * @returns {{ ok: boolean, message: string }}
  */

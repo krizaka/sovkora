@@ -114,7 +114,11 @@ class HttpProviderReachability implements ProviderReachability {
       ids.remove(SD_SERVER_PLACEHOLDER_ID);
       return ids.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(ids);
     } catch (java.io.IOException | IllegalArgumentException unreadable) {
-      logger.debug("Could not list models for provider {}: {}", providerName, unreadable.getMessage(), unreadable);
+      logger.debug(
+          "Could not list models for provider {}: {}",
+          providerName,
+          unreadable.getMessage(),
+          unreadable);
       return java.util.Optional.empty();
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
@@ -135,11 +139,16 @@ class HttpProviderReachability implements ProviderReachability {
       return status < SERVER_ERROR;
     } catch (java.io.IOException | IllegalArgumentException unreachable) {
       logger.debug(
-          "Provider {} at {} does not answer: {}", providerName, baseUrl, unreachable.getMessage(), unreachable);
+          "Provider {} at {} does not answer: {}",
+          providerName,
+          baseUrl,
+          unreachable.getMessage(),
+          unreachable);
       return false;
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
-      logger.debug("Interrupted while probing provider {} at {}", providerName, baseUrl, interrupted);
+      logger.debug(
+          "Interrupted while probing provider {} at {}", providerName, baseUrl, interrupted);
       return false;
     }
   }

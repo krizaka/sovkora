@@ -8,6 +8,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,6 +32,7 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 public class FormSchemaService {
 
+  private static final Logger logger = LoggerFactory.getLogger(FormSchemaService.class);
   private static final String OPTIONS = "x-options";
   private static final String SOURCE_MODELS = "models";
   private static final String PROPERTIES = "properties";
@@ -358,6 +361,7 @@ public class FormSchemaService {
     try {
       return objectMapper.readTree(json);
     } catch (RuntimeException notJson) {
+      logger.debug("Could not parse JSON schema", notJson);
       return null;
     }
   }

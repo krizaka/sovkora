@@ -87,7 +87,7 @@ describe("dev.orazaka.com sends its pages to www; the BFF, auth and .well-known 
   const withEnv = async <T>(run: () => T | Promise<T>): Promise<T> => {
     const keep = { dev: process.env.APP_DEV_HOST, url: process.env.APP_PUBLIC_URL };
     process.env.APP_DEV_HOST = "dev.orazaka.com";
-    process.env.APP_PUBLIC_URL = "https://www.orazaka.com";
+    process.env.APP_PUBLIC_URL = "https://dev.sovkora.com";
     try {
       return await run();
     } finally {
@@ -103,16 +103,16 @@ describe("dev.orazaka.com sends its pages to www; the BFF, auth and .well-known 
   const dev = (path: string, method = "GET") =>
     proxy(new NextRequest(`https://dev.orazaka.com${path}`, { method, headers: { host: "dev.orazaka.com" } }));
   const www = (path: string) =>
-    proxy(new NextRequest(`https://www.orazaka.com${path}`, { headers: { host: "www.orazaka.com" } }));
+    proxy(new NextRequest(`https://dev.sovkora.com${path}`, { headers: { host: "dev.sovkora.com" } }));
 
   it("knows the dev host and what stays", () => {
     expect(isDevHost("dev.orazaka.com", { APP_DEV_HOST: "dev.orazaka.com" })).toBe(true);
-    expect(isDevHost("www.orazaka.com", { APP_DEV_HOST: "dev.orazaka.com" })).toBe(false);
+    expect(isDevHost("dev.sovkora.com", { APP_DEV_HOST: "dev.orazaka.com" })).toBe(false);
     expect(isDevHost("dev.orazaka.com", {})).toBe(false);
-    expect(devRedirect("GET", "/studios/1", "?a=b", "https://www.orazaka.com")).toBe(
-      "https://www.orazaka.com/studios/1?a=b",
+    expect(devRedirect("GET", "/studios/1", "?a=b", "https://dev.sovkora.com")).toBe(
+      "https://dev.sovkora.com/studios/1?a=b",
     );
-    expect(devRedirect("POST", "/login", "", "https://www.orazaka.com")).toBeNull();
+    expect(devRedirect("POST", "/login", "", "https://dev.sovkora.com")).toBeNull();
     for (const keep of [
       "/api/auth/callback/credentials",
       "/api/v1/profile",
@@ -120,14 +120,14 @@ describe("dev.orazaka.com sends its pages to www; the BFF, auth and .well-known 
       "/api/healthz",
       "/robots.txt",
     ])
-      expect(`${keep} ${devRedirect("GET", keep, "", "https://www.orazaka.com")}`).toBe(`${keep} null`);
+      expect(`${keep} ${devRedirect("GET", keep, "", "https://dev.sovkora.com")}`).toBe(`${keep} null`);
   });
 
   it("dev: a page answers 308 to the same path on www, noindex, even with the flag on", async () => {
     await withEnv(() => {
       const res = dev("/studios?x=1");
       expect(res.status).toBe(308);
-      expect(res.headers.get("location")).toBe("https://www.orazaka.com/studios?x=1");
+      expect(res.headers.get("location")).toBe("https://dev.sovkora.com/studios?x=1");
       expect(res.headers.get("x-robots-tag")).toBe(NOINDEX_HEADER);
     });
   });
