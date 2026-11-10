@@ -58,7 +58,7 @@ class HttpAgentTurnAdapter implements AgentTurnClient {
           statusOf(refused),
           refused.getStatusCode().is4xxClientError() ? refused.getStatusCode().value() : 502);
     } catch (RuntimeException unreachable) {
-      logger.warn("Engine turn failed for run {}: {}", turn.runId(), unreachable.toString());
+      logger.warn("Engine turn failed for run {}", turn.runId(), unreachable);
       throw new AgentTurnRefusedException(UNAVAILABLE, 503);
     }
   }
@@ -106,7 +106,7 @@ class HttpAgentTurnAdapter implements AgentTurnClient {
       String status = body == null ? "" : body.path("status").asText("");
       return status.isBlank() ? UNAVAILABLE : status;
     } catch (RuntimeException unreadable) {
-      logger.warn("Could not parse engine error response body: {}", unreadable.getMessage(), unreadable);
+      logger.warn("Could not parse engine error response body", unreadable);
       return UNAVAILABLE;
     }
   }

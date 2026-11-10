@@ -52,10 +52,10 @@ if [[ "${RUN_SERVICES_LIB:-}" == "1" ]]; then return 0 2>/dev/null || exit 0; fi
 # The asset keyring (FileMasterKeyProvider): written from the MEDIA_ENCRYPTION_KEY secret, mode 0600,
 # never logged. Without it the services that read or write assets refuse to start.
 if [[ -n "${MEDIA_ENCRYPTION_KEY:-}" ]]; then
-  mkdir -p "$HOME/.orazaka"
+  mkdir -p "$HOME/.sovkora"
   umask 077
-  printf '# orazaka master keyring v1\nactive = k1\nk1 = %s\n' "$MEDIA_ENCRYPTION_KEY" > "$HOME/.orazaka/master.key"
-  chmod 0600 "$HOME/.orazaka/master.key"
+  printf '# sovkora master keyring v1\nactive = k1\nk1 = %s\n' "$MEDIA_ENCRYPTION_KEY" > "$HOME/.sovkora/master.key"
+  chmod 0600 "$HOME/.sovkora/master.key"
   umask 022
 fi
 unset MEDIA_ENCRYPTION_KEY

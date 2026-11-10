@@ -332,9 +332,11 @@ function bcrypt(secret) {
   return r.stdout.trim().split(":")[1];
 }
 
+// Display names from the Sovkora cast (@krizaka/org castOf("sovkora")); full names avoid a username
+// collision with the persona objects whose first names are "Eric" and "Mira".
 const ACCOUNTS = [
-  { key: "user", username: "qa_user", email: "qa+user@orazaka.com", tier: "free", roles: ["ROLE_USER"] },
-  { key: "admin", username: "qa_admin", email: "qa+admin@orazaka.com", tier: "admin", roles: ["ROLE_USER", "ROLE_ADMIN"] },
+  { key: "user", username: "Éric Tremblay", email: "qa+user@orazaka.com", tier: "free", roles: ["ROLE_USER"] },
+  { key: "admin", username: "Mira Haddad", email: "qa+admin@orazaka.com", tier: "admin", roles: ["ROLE_USER", "ROLE_ADMIN"] },
 ];
 
 /**
@@ -365,21 +367,32 @@ export function personaActorSql(persona) {
 
 export function seedSql(accounts) {
   const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
-  const rows = accounts.map(
-    (a) =>
-      `UPDATE users SET ${a.hash ? `password_hash = ${q(a.hash)}, ` : ""}enabled = true, rate_limit_tier = ${q(a.tier)}
+  const rows = accounts.map((a) => {
+    const hashField = a.hash ? `password_hash = ${q(a.hash)}, ` : "";
+    const hashConflict = a.hash ? "password_hash = EXCLUDED.password_hash, " : "";
+    const rolesSql = a.roles
+      .map(
+        (r) =>
+          `INSERT INTO authorities (user_id, authority_name)\n       SELECT id, ${q(r)} FROM users WHERE lower(email) = lower(${q(a.email)}) ON CONFLICT ON CONSTRAINT unique_user_authority DO NOTHING;`,
+      )
+      .join("\n");
+    return `UPDATE users SET ${hashField}enabled = true, rate_limit_tier = ${q(a.tier)}
          WHERE lower(email) = lower(${q(a.email)});
        INSERT INTO users (id, username, password_hash, email, enabled, preferences, rate_limit_tier)
        SELECT gen_random_uuid()::text, ${q(a.username)}, ${q(a.hash ?? "!")}, ${q(a.email)}, true, ${q(JSON.stringify({ language: a.language === "fr" ? "fr" : "en" }))}, ${q(a.tier)}
          WHERE NOT EXISTS (SELECT 1 FROM users WHERE lower(email) = lower(${q(a.email)}))
-       ON CONFLICT (username) DO UPDATE SET ${a.hash ? "password_hash = EXCLUDED.password_hash, " : ""}enabled = true,
+       ON CONFLICT (username) DO UPDATE SET ${hashConflict}enabled = true,
          email = EXCLUDED.email, rate_limit_tier = EXCLUDED.rate_limit_tier;
-       ${a.roles
-         .map(
-           (r) => `INSERT INTO authorities (user_id, authority_name)
-       SELECT id, ${q(r)} FROM users WHERE lower(email) = lower(${q(a.email)}) ON CONFLICT ON CONSTRAINT unique_user_authority DO NOTHING;`,
-         )
-         .join("\n")}`,
+       ${rolesSql}`;
+  });
+  return `BEGIN;\n${rows.join("\n")}\nCOMMIT;\n`;
+}
+
+/** Renames each account's username in place, keyed by e-mail — never inserts a new row (idempotent). */
+export function namesSql(accounts) {
+  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const rows = accounts.map((a) =>
+    `UPDATE users SET username = ${q(a.username)} WHERE lower(email) = lower(${q(a.email)}) AND username != ${q(a.username)};`,
   );
   return `BEGIN;\n${rows.join("\n")}\nCOMMIT;\n`;
 }
@@ -391,6 +404,7 @@ function seed() {
     return { ...a, password: pw, hash: bcrypt(pw) };
   });
   psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB", [], seedSql(accounts));
+  psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB", [], namesSql(ACCOUNTS));
   const [user, admin] = accounts;
   // The QA store (@qa reads env/dev.env first), the keys secret.sh resolves; never a document, never printed.
   storeSecret("ORAZAKA_USER_EMAIL", user.email);
@@ -450,7 +464,7 @@ function seedPersona(name) {
 }
 
 // ── Service accounts: a Krizaka product calling Orazaka (products consume AI only through Orazaka) ──
-const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 
 /** The account a product calls Orazaka with: a plain ROLE_USER, never an admin, on the `service` rate-limit tier (ADR-083). */
 export function serviceAccount(product) {

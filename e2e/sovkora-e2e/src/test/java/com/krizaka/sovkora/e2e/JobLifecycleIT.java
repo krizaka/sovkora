@@ -156,7 +156,9 @@ class JobLifecycleIT extends AbstractApiE2eTest {
    */
   private static void sleepBriefly() {
     try {
-      Thread.sleep(500);
+      Thread.sleep(
+          500); // NOSONAR java:S2925 - shared helper reused in unrelated loops; inline Awaitility
+      // would duplicate the full poll logic twice
     } catch (InterruptedException interrupted) {
       Thread.currentThread().interrupt();
       throw new IllegalStateException("Interrupted while waiting for the job to be executed");

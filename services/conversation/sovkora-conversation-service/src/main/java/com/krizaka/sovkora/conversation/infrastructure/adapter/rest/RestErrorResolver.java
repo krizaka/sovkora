@@ -156,9 +156,12 @@ public class RestErrorResolver {
         .contentType(MediaType.APPLICATION_JSON)
         .body(
             Map.of(
-                STATUS_KEY, ex.reason(),
-                "message", ex.getMessage() == null ? ex.reason() : ex.getMessage(),
-                "remedies", List.of("upgrade_plan")));
+                STATUS_KEY,
+                ex.reason(),
+                "message",
+                ex.getMessage() == null ? ex.reason() : ex.getMessage(),
+                "remedies",
+                List.of("upgrade_plan")));
   }
 
   /**
@@ -205,10 +208,15 @@ public class RestErrorResolver {
 
   private static Map<String, Object> refusalBody(InsufficientCreditsException ex) {
     return Map.of(
-        STATUS_KEY, "insufficient_credits",
-        "capability", ex.capability().name(),
-        "required", ex.required(),
-        "balance", ex.available(),
-        "remedies", ex.remedies());
+        STATUS_KEY,
+        "insufficient_credits",
+        "capability",
+        ex.capability().name(),
+        "required",
+        ex.required(),
+        "balance",
+        ex.available(),
+        "remedies",
+        ex.remedies());
   }
 }

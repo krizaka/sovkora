@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@krizaka/query";
 import { Alert } from "@krizaka/ui/alert";
 import { Button } from "@krizaka/ui/button";
@@ -25,28 +25,38 @@ export function GithubPanel() {
   if (!data) return null;
   const pending = data.pending;
   const message = error ?? (!pending ? data.failure : null);
+
+  let statusContent: ReactNode;
+  if (data.connected) {
+    statusContent = (
+      <div className="space-y-1">
+        <p className="text-sm">{t("code.github.connected")}</p>
+        <Button variant="ghost" onClick={() => signOut.mutate()}>{t("code.github.signOut")}</Button>
+        <p className="text-xs text-fg-secondary">{t("code.github.revokeHint")}</p>
+      </div>
+    );
+  } else if (pending) {
+    statusContent = (
+      <div className="space-y-1">
+        <p className="text-sm">{format(t("code.github.enter"), { uri: pending.verification_uri })}</p>
+        <code className="block text-lg tracking-widest" data-testid="github-user-code">{pending.user_code}</code>
+        <a className="text-sm underline" href={pending.verification_uri} target="_blank" rel="noreferrer">{t("code.github.open")}</a>
+        <p className="text-xs text-fg-secondary">{t("code.github.waiting")}</p>
+        <Button variant="ghost" onClick={() => signOut.mutate()}>{t("common.cancel")}</Button>
+      </div>
+    );
+  } else {
+    statusContent = (
+      <Button variant="secondary" onClick={() => signIn.mutate()}>{t("code.github.connect")}</Button>
+    );
+  }
+
   return (
     <section className="space-y-2" aria-label={t("code.github.title")}>
       <h3 className="text-sm font-semibold">{t("code.github.title")}</h3>
       <p className="text-xs text-fg-secondary">{t("code.github.lead")}</p>
       {message && <Alert tone="danger">{message}</Alert>}
-      {data.connected ? (
-        <div className="space-y-1">
-          <p className="text-sm">{t("code.github.connected")}</p>
-          <Button variant="ghost" onClick={() => signOut.mutate()}>{t("code.github.signOut")}</Button>
-          <p className="text-xs text-fg-secondary">{t("code.github.revokeHint")}</p>
-        </div>
-      ) : pending ? (
-        <div className="space-y-1">
-          <p className="text-sm">{format(t("code.github.enter"), { uri: pending.verification_uri })}</p>
-          <code className="block text-lg tracking-widest" data-testid="github-user-code">{pending.user_code}</code>
-          <a className="text-sm underline" href={pending.verification_uri} target="_blank" rel="noreferrer">{t("code.github.open")}</a>
-          <p className="text-xs text-fg-secondary">{t("code.github.waiting")}</p>
-          <Button variant="ghost" onClick={() => signOut.mutate()}>{t("common.cancel")}</Button>
-        </div>
-      ) : (
-        <Button variant="secondary" onClick={() => signIn.mutate()}>{t("code.github.connect")}</Button>
-      )}
+      {statusContent}
     </section>
   );
 }

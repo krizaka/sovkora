@@ -5,7 +5,7 @@
 #
 #   gpu-dev.sh runpod start [gpu]   create the pod (H100 80 GB by default; GPU_RUNPOD_GPUS overrides the priority list):
 #                                    a network volume keeps the weights between pods, the worker is built in the pod from its
-#                                    public repository (GHCR is private), the tunnel dials OUT to the relay of www.orazaka.com
+#                                    public repository (GHCR is private), the tunnel dials OUT to the relay of dev.sovkora.com
 #   gpu-dev.sh runpod stop          TERMINATE it — a pod is never left running or paused; the ledger gets its end
 #   gpu-dev.sh runpod status        what runs, since when, what it has cost so far
 #   gpu-dev.sh runpod count         « pods: N running » (exit 3 when N > 0)

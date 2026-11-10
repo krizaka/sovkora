@@ -13,11 +13,11 @@ const b = await chromium.launch();
 const V = { width: 1120, height: 700 };
 const signed = await b.newContext({ viewport: V, deviceScaleFactor: 2, colorScheme: "dark" });
 const p0 = await signed.newPage();
-await p0.goto("https://www.orazaka.com/login");
+await p0.goto("https://dev.sovkora.com/login");
 await p0.fill('input[type="email"]', sh("ORAZAKA_USER_EMAIL"));
 await p0.fill('input[type="password"]', sh("ORAZAKA_USER_PASSWORD"));
 await p0.click('button[type="submit"]');
-await p0.waitForURL("https://www.orazaka.com/", { timeout: 60000 });
+await p0.waitForURL("https://dev.sovkora.com/", { timeout: 60000 });
 const state = await signed.storageState();
 await signed.close();
 const ctx = await b.newContext({
@@ -29,7 +29,7 @@ const ctx = await b.newContext({
 });
 const page = await ctx.newPage();
 const t0 = Date.now();
-await page.goto(`https://www.orazaka.com/studios/runs/${RUN}`, { waitUntil: "networkidle" });
+await page.goto(`https://dev.sovkora.com/studios/runs/${RUN}`, { waitUntil: "networkidle" });
 await page
   .waitForFunction(() => [...document.querySelectorAll("video")].every((v) => v.readyState >= 3), null, {
     timeout: 30000,

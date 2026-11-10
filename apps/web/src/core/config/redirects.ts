@@ -93,6 +93,6 @@ export const PUBLIC_REDIRECTS: readonly Redirect[] = [
     permanent: true,
   },
   ...[...REMOVED_PUBLIC, ...REMOVED_DOCS, ...RENAMED].map((r) => ({ ...r, permanent: true })),
-  // Not on admin.orazaka.com: /billing is a section of the operator console there (src/console), served by the proxy.
+  // Not on admin.sovkora.com: /billing is a section of the operator console there (src/console), served by the proxy.
   { source: "/billing", has: [{ type: "host", value: "(?!admin\\.).*" }], destination: "/usage", permanent: true },
 ];

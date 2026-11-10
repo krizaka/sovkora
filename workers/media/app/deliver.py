@@ -68,7 +68,7 @@ def plan(kind: str, master_size: tuple[int, int], spans: list[tuple[float, float
 
 
 def text_chain(
-    layout: "cut.Edit", font: str, scratch: str, titles_ass: str | None = None, fontsdir: str | None = None
+    layout: cut.Edit, font: str, scratch: str, titles_ass: str | None = None, fontsdir: str | None = None
 ) -> list[str]:
     """The filters that set a deliverable's text (pure): the film's titles script (``app/titles.py``, libass) when one is
     given — set for this deliverable's own frame —, else the cut's drawtext layout of ``texts``."""

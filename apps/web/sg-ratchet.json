@@ -2,7 +2,7 @@
   "counters": {
     "no-ambient-clock": 28,
     "no-db-in-service-or-rules": 0,
-    "no-enum-string-compare": 82,
+    "no-enum-string-compare": 79,
     "no-env-in-domain": 0,
     "no-get-time-arithmetic": 0,
     "no-get-time-difference": 1,

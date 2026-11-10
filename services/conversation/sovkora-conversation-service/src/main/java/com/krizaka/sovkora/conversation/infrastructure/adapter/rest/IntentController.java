@@ -63,7 +63,7 @@ public class IntentController {
       Object result = dispatcher.dispatch(intention);
       return ResponseEntity.ok(result);
     } catch (UseCaseResolutionException e) {
-      logger.warn("Use case resolution failed for user={}: {}", user.getId(), e.getMessage(), e);
+      logger.warn("Use case resolution failed for user={}: {}", user.id(), e.getMessage(), e);
       boolean denied = e.getMessage() != null && e.getMessage().contains("ERR-403");
       throw new ResponseStatusException(
           denied ? HttpStatus.FORBIDDEN : HttpStatus.NOT_FOUND, e.getMessage());

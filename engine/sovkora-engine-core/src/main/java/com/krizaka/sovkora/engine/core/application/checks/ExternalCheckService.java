@@ -163,7 +163,11 @@ public class ExternalCheckService implements ExternalCheckCapability {
               chosen.connector(),
               new CheckRequest(call.subject(), gate.key(), chosen.row().endpoint()));
     } catch (ProviderNotConfiguredException unconfigured) {
-      log.debug("Check provider not configured for purpose={}: {}", purpose, unconfigured.getMessage(), unconfigured);
+      log.debug(
+          "Check provider not configured for purpose={}: {}",
+          purpose,
+          unconfigured.getMessage(),
+          unconfigured);
       return refused(purpose, call, subjectRef, provider, CheckRefusal.NOT_CONFIGURED);
     }
     record(purpose, call, chosen, gate.key(), result, subjectRef, start, false);
@@ -205,7 +209,11 @@ public class ExternalCheckService implements ExternalCheckCapability {
               chosen.connector(),
               new CheckRequest(call.subject(), gate.key(), chosen.row().endpoint()));
     } catch (ProviderNotConfiguredException unconfigured) {
-      log.debug("Check provider not configured for purpose={}: {}", purpose, unconfigured.getMessage(), unconfigured);
+      log.debug(
+          "Check provider not configured for purpose={}: {}",
+          purpose,
+          unconfigured.getMessage(),
+          unconfigured);
       hold.release("the provider is not configured");
       return refused(purpose, call, subjectRef, provider, CheckRefusal.NOT_CONFIGURED);
     }

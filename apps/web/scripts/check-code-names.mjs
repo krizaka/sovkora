@@ -4,7 +4,7 @@
  * where the commercial name is required. Runs `krizaka-code-names` (bin of @krizaka/org) on the prerendered output of
  * `next build`: the HTML pages and the text bodies (`llms.txt`, captions), copied to a scratch folder so the
  * guard reads them as `.html` / `.txt`. `/docs/*` is the generated developer documentation of the engine (written in
- * the Orazaka repository, `scripts/sync-docs.mjs`), it keeps the code names until that repository speaks of Sovkora. `llms*.txt` are markdown whose `[label](https://www.orazaka.com/…)` links the guard does not yet read as addresses (to be fixed in `/org`); their prose is checked by the unit test.
+ * the Orazaka repository, `scripts/sync-docs.mjs`), it keeps the code names until that repository speaks of Sovkora. `llms*.txt` are markdown whose `[label](https://dev.sovkora.com/…)` links the guard does not yet read as addresses (to be fixed in `/org`); their prose is checked by the unit test.
  *
  *   node scripts/check-code-names.mjs [--report]
  */

@@ -45,3 +45,7 @@ test("the fixed folders are absolute, PATH is never read, and node's own folder 
     process.env.PATH = saved;
   }
 });
+
+test("macOS keeps htpasswd in /usr/sbin, so the persona seed finds it there", () => {
+  assert.ok(TOOL_FOLDERS.includes("/usr/sbin"));
+});

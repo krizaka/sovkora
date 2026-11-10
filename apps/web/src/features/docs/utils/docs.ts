@@ -111,7 +111,7 @@ export function prepareBody(body: string, from: string | null, sources: Readonly
         (_m, lead: string, kind: string) => `${lead}**${kind[0]}${kind.slice(1).toLowerCase()}.**`,
       );
   });
-  return out.join("\n").replace(/^(\s*>\s*\*\*[A-Za-z]+\.\*\*)\n\s*>\s*/gm, "$1 ");
+  return out.join("\n").replace(/^([ \t]*>[ \t]*\*\*[A-Za-z]+\.\*\*)\n[ \t]*>[ \t]*/gm, "$1 ");
 }
 
 export function sourcesMap(): Record<string, string> {

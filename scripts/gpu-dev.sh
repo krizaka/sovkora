@@ -20,7 +20,7 @@
 #
 # The droplet runs ghcr.io/krizaka/sovkora-media-worker:cuda-latest (sd-server + the worker), its weights on
 # a Volume that outlives it (orazaka-gpu-models-<region>, 80 GB, ≈ $8/month), and dials OUT to the relay of
-# www.orazaka.com (https://www.orazaka.com/gpu-relay): no public port, RabbitMQ never exposed. A watchdog on
+# dev.sovkora.com (https://dev.sovkora.com/gpu-relay): no public port, RabbitMQ never exposed. A watchdog on
 # the droplet destroys it after 30 min without a job (and after GPU_MAX_HOURS whatever it does).
 #
 # Requires doctl (authenticated), python3, curl, ssh-keygen. Secrets come from ORAZAKA_DEV_ENV_FILE (else
@@ -41,7 +41,7 @@ CHISEL_IMAGE="${GPU_CHISEL_IMAGE:-jpillora/chisel:1.12.1}"
 OLLAMA_IMAGE="${GPU_OLLAMA_IMAGE:-ollama/ollama:0.40.4}"
 # Chat and vision for the Studios while the GPU runs (sovereign: Apache-2.0 models on our GPU, no third party).
 OLLAMA_MODELS="${GPU_OLLAMA_MODELS:-qwen2.5:7b llava:latest}"
-RELAY_URL="${GPU_RELAY_URL:-https://www.orazaka.com/gpu-relay}"
+RELAY_URL="${GPU_RELAY_URL:-https://dev.sovkora.com/gpu-relay}"
 VOLUME_GB="${GPU_VOLUME_GB:-80}"
 IDLE_MINUTES="${GPU_IDLE_MINUTES:-30}"
 MAX_HOURS="${GPU_MAX_HOURS:-8}"
