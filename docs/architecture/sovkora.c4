@@ -134,8 +134,13 @@ model {
 
     // ---- Data
     db = datastore 'Databases' {
-      description 'One database and one role per context on the shared dev cluster.'
+      #retiring
+      description 'One database and one role per context on the shared dev cluster. At target they are hosted by Kridoc (ADR-032).'
       technology 'PostgreSQL 18, pgvector'
+      metadata {
+        adr 'ADR-032'
+        issue 'krizaka-internal#3028'
+      }
     }
     broker = queue 'Message broker' {
       description 'The job, event and dead-letter exchanges; TLS only, private to the network.'
@@ -191,6 +196,16 @@ model {
       technology 'SearXNG'
       metadata {
         adr 'sovkora ADR-087'
+      }
+    }
+    kridoc = library 'Kridoc adapters' {
+      #planned
+      description 'Where Sovkora keeps personal data at target: each context keeps its port, its schema and its own database, hosted by Kridoc in Canada; the sealed media and the uploads go to Kridoc file storage; the erasure and the export of a person answer Kridoc privacy service. Sovkora owns no data store of its own.'
+      technology 'Java 21 (Krizaka Java), @krizaka/storage'
+      link https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/.github/ADR-032-kridoc-hosting-and-data-platform.md 'ADR-032 (Kridoc, hosting and data)'
+      metadata {
+        adr 'ADR-032'
+        issue 'krizaka-internal#3028'
       }
     }
     serverless = container 'Serverless GPU endpoint' {
@@ -278,6 +293,56 @@ model {
     #planned
     metadata {
       adr 'sovkora ADR-085'
+    }
+  }
+  // ---- Target: the data behind Kridoc (ADR-032). Each context reaches its own database through the adapters; none reads another's.
+  sovkora.conversation -> sovkora.kridoc 'reads and writes its context data' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.job -> sovkora.kridoc 'reads and writes its context data, keeps the sealed media and the uploads' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.studio -> sovkora.kridoc 'reads and writes its context data' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.knowledge -> sovkora.kridoc 'stores vectors' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.automation -> sovkora.kridoc 'reads and writes its context data' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.users -> sovkora.kridoc 'reads and writes accounts and profiles' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.billing -> sovkora.kridoc 'reads and writes plans and wallets' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+    }
+  }
+  sovkora.kridoc -> platform 'keeps the databases, the files and the privacy records in Canada (Kridoc)' {
+    #planned
+    metadata {
+      adr 'ADR-032'
+      issue 'krizaka-internal#3028'
     }
   }
   customer -> sovkora.web 'uses www.sovkora.com in production' {
