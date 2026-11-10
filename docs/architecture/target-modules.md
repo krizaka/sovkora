@@ -43,7 +43,7 @@ A service may depend on Tier 1 + Tier 2 + **its own** Tier 3, never another cont
 
 - **users** / **billing** — Krizaka Java building blocks (`com.krizaka:*` from Maven Central, krizaka-java), run in the Sovkora core (sign-up closed, billing meters-never-blocks in dev). Consumed through their Tier-1 `*-api` contracts only.
 - **relay** (`infra/deploy/gpu-relay`, chisel), **gpu host** (RunPod/droplet, ADR-077), **db** (PostgreSQL 18 + pgvector, one DB+role per context), **broker** (RabbitMQ 4.2: `sovkora.jobs`, `sovkora.events`, `sovkora.dlx`).
-- **At target, the data is hosted by Kridoc** (.github ADR-032, Proposed): `db` and the media storage move behind the Kridoc adapters; the broker, the caches and the GPU host stay Sovkora's runtime, in Canada for any personal data they carry.
+- **At target, business files go through Kridoc** (.github ADR-032, Proposed): Sovkora is a Kridoc client for its media and uploads; its databases and hosting stay its own (ADR-022, ADR-023).
 
 ### Target-only (`#planned`) and retiring (`#retiring`)
 
@@ -55,8 +55,7 @@ A service may depend on Tier 1 + Tier 2 + **its own** Tier 3, never another cont
 | **Operator audit read model** (broker → users) | `#planned` | sovkora ADR-085 | a `users`/broker binding |
 | **Production web + per-product API key** | `#planned` | #2136, #2132 | deferred (local phase, §0) |
 | **UI kit** (`@krizaka/orazaka-design-system`, `-shared`) | `#retiring` | .github ADR-029 | folds into `@krizaka/ui`, then its repo is deleted |
-| **Databases on the shared cluster** (`db`, one database and one role per context on `krizaka-dev-pg`) | `#retiring` | .github ADR-032 (Proposed) | each context's database is hosted by Kridoc; the schema, the Flyway baseline and the repository port stay the context's |
-| **Kridoc adapters** (each context's database hosted by Kridoc, the sealed media and uploads on Kridoc file storage, the erasure and export hooks) | `#planned` | .github ADR-032 (Proposed), [krizaka-internal#3028](https://github.com/krizaka/krizaka-internal/issues/3028) | adapters behind the existing ports (`sovkora-persistence-api`, the `DurableAssetStore` port): no service changes its domain code, and no context reads another's database |
+| **Kridoc client** (the sealed media, the uploads and the archived job files through the Kridoc API; a pack reads a customer document only through a consent grant) | `#planned` | .github ADR-032 (Proposed), [krizaka-internal#3028](https://github.com/krizaka/krizaka-internal/issues/3028) | an adapter of the existing `DurableAssetStore` port: no domain code changes; the databases stay Sovkora's |
 
 ## Target feature list (from the C2 and the generated docs)
 

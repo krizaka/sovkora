@@ -134,13 +134,8 @@ model {
 
     // ---- Data
     db = datastore 'Databases' {
-      #retiring
-      description 'One database and one role per context on the shared dev cluster. At target they are hosted by Kridoc (ADR-032).'
+      description 'One database and one role per context on the shared dev cluster.'
       technology 'PostgreSQL 18, pgvector'
-      metadata {
-        adr 'ADR-032'
-        issue 'krizaka-internal#3028'
-      }
     }
     broker = queue 'Message broker' {
       description 'The job, event and dead-letter exchanges; TLS only, private to the network.'
@@ -198,11 +193,11 @@ model {
         adr 'sovkora ADR-087'
       }
     }
-    kridoc = library 'Kridoc adapters' {
+    kridoc = library 'Kridoc client' {
       #planned
-      description 'Where Sovkora keeps personal data at target: each context keeps its port, its schema and its own database, hosted by Kridoc in Canada; the sealed media and the uploads go to Kridoc file storage; the erasure and the export of a person answer Kridoc privacy service. Sovkora owns no data store of its own.'
+      description 'Sovkora as a client of Kridoc, the business storage product: the sealed media, the uploads and the archived job files go through the Kridoc API (Kridoc-hosted in Canada, or the customer own storage), behind the existing DurableAssetStore port; a pack reads a customer document only through a consent grant. The databases stay Sovkora own.'
       technology 'Java 21 (Krizaka Java), @krizaka/storage'
-      link https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/.github/ADR-032-kridoc-hosting-and-data-platform.md 'ADR-032 (Kridoc, hosting and data)'
+      link https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/.github/ADR-032-kridoc-business-storage.md 'ADR-032 (Kridoc, business storage)'
       metadata {
         adr 'ADR-032'
         issue 'krizaka-internal#3028'
@@ -295,54 +290,18 @@ model {
       adr 'sovkora ADR-085'
     }
   }
-  // ---- Target: the data behind Kridoc (ADR-032). Each context reaches its own database through the adapters; none reads another's.
-  sovkora.conversation -> sovkora.kridoc 'reads and writes its context data' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.job -> sovkora.kridoc 'reads and writes its context data, keeps the sealed media and the uploads' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.studio -> sovkora.kridoc 'reads and writes its context data' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.knowledge -> sovkora.kridoc 'stores vectors' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.automation -> sovkora.kridoc 'reads and writes its context data' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.users -> sovkora.kridoc 'reads and writes accounts and profiles' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.billing -> sovkora.kridoc 'reads and writes plans and wallets' {
-    #planned
-    metadata {
-      adr 'ADR-032'
-    }
-  }
-  sovkora.kridoc -> platform 'keeps the databases, the files and the privacy records in Canada (Kridoc)' {
+  // ---- Target: business files through Kridoc (ADR-032). The edge to the kridoc system comes once it is in the org model (ADR-032 step 1).
+  sovkora.job -> sovkora.kridoc 'keeps the sealed media, the uploads and the archived job files' {
     #planned
     metadata {
       adr 'ADR-032'
       issue 'krizaka-internal#3028'
+    }
+  }
+  sovkora.packs -> sovkora.kridoc 'reads a customer document through a consent grant' {
+    #planned
+    metadata {
+      adr 'ADR-032'
     }
   }
   customer -> sovkora.web 'uses www.sovkora.com in production' {
