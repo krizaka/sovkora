@@ -244,6 +244,20 @@ function PreviewPane({ entry, preview, onSend, message }: { entry: Entry | null;
   const pdfUrl = pdf && pdf.data === pdfData ? pdf.url : null;
 
   if (!entry) return <p className="text-sm text-fg-secondary">{t("files.select")}</p>;
+
+  let previewContent = null;
+  if (preview) {
+    if (preview.text !== null) {
+      previewContent = <pre className="whitespace-pre-wrap p-3 text-xs">{preview.text}</pre>;
+    } else if (preview.data && preview.kind === "image") {
+      previewContent = <img alt={preview.name} className="mx-auto max-h-64 object-contain" src={`data:${preview.mime};base64,${preview.data}`} />;
+    } else if (pdfUrl) {
+      previewContent = <iframe title={preview.name} src={pdfUrl} className="h-full w-full" />;
+    } else {
+      previewContent = <p className="p-3 text-sm text-fg-secondary">{preview.size > 12 * 1024 * 1024 ? t("files.tooLarge") : t("files.binary")}</p>;
+    }
+  }
+
   return (
     <div className="min-w-0 space-y-3 rounded-xl border border-border-default bg-surface-2 p-3">
       <div className="flex items-center gap-2">
@@ -252,15 +266,7 @@ function PreviewPane({ entry, preview, onSend, message }: { entry: Entry | null;
         <span className="text-xs text-fg-secondary">{formatSize(entry.size)}</span>
       </div>
       <div className="h-64 overflow-auto rounded-lg bg-surface-1">
-        {!preview ? null : preview.text !== null ? (
-          <pre className="whitespace-pre-wrap p-3 text-xs">{preview.text}</pre>
-        ) : preview.data && preview.kind === "image" ? (
-          <img alt={preview.name} className="mx-auto max-h-64 object-contain" src={`data:${preview.mime};base64,${preview.data}`} />
-        ) : pdfUrl ? (
-          <iframe title={preview.name} src={pdfUrl} className="h-full w-full" />
-        ) : (
-          <p className="p-3 text-sm text-fg-secondary">{preview.size > 12 * 1024 * 1024 ? t("files.tooLarge") : t("files.binary")}</p>
-        )}
+        {previewContent}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => void onSend(entry)}>{t("files.send")}</Button>

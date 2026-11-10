@@ -8,7 +8,7 @@ import { StageNotice } from "@/components/StageNotice";
 import type { AuthFlags } from "@/core/config/auth-flags";
 
 /**
- * The public site's shell (providers, the development-version banner) — skipped for the operator console (admin.orazaka.com), which has
+ * The public site's shell (providers, the development-version banner) — skipped for the operator console (admin.sovkora.com), which has
  * its own in `app/console/layout.tsx`. The segment is read from the rendered tree, so it follows the proxy's rewrite
  * (`/studios` on the admin host is `/console/studios`) and the public pages stay static.
  */

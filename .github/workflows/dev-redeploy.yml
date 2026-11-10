@@ -1,4 +1,4 @@
-# Keeps www.orazaka.com's `core` in step with main (docs/DEPLOY_DEV.md § Redeploy): the image clones every component at
+# Keeps dev.sovkora.com's `core` in step with main (docs/DEPLOY_DEV.md § Redeploy): the image clones every component at
 # build time, so a merge in a component repository never triggers App Platform (`deploy_on_push` cannot see it). Every 15
 # minutes (and by hand) scripts/dev-redeploy.mjs starts `doctl apps create-deployment --force-rebuild` when a repository's
 # main is newer than the last manual rebuild, and does nothing while a deployment is building. Deploys only: it never

@@ -58,7 +58,8 @@ public final class StudioStub {
             body));
     starts.incrementAndGet();
     try {
-      Thread.sleep(delayMillis);
+      Thread.sleep( // NOSONAR java:S2925 - server stub simulates configurable response latency
+          delayMillis);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }

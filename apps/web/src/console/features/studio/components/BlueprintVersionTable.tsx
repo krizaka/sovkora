@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@krizaka/ui/data-table";
+import { studiosCopy, type StudiosLocale, type StudiosWords } from "@/console/core/copy/studios";
+import { useConsoleLocale } from "@/console/core/providers/ConsoleLocale";
 import { StudioAdminApi } from "@/console/services/studio.admin.api";
 import type { BlueprintVersion } from "@krizaka/orazaka-shared";
 
@@ -12,6 +14,7 @@ interface BlueprintVersionTableProps {
   studioKey: string;
   versions: BlueprintVersion[];
   onChanged: () => void;
+  locale?: StudiosLocale;
 }
 
 function VersionCodeCell({ version }: Readonly<{ version: string }>) {
@@ -27,11 +30,13 @@ function VersionActionsCell({
   studioKey,
   busy,
   onAct,
+  words,
 }: Readonly<{
   version: BlueprintVersion;
   studioKey: string;
   busy: string | null;
   onAct: (v: string, action: () => Promise<void>) => void;
+  words: StudiosWords["builder"];
 }>) {
   return (
     <span className="space-x-2">
@@ -44,24 +49,46 @@ function VersionActionsCell({
           }}
           className="text-xs text-accent disabled:opacity-50"
         >
-          Publier
+          {words.publish}
         </button>
       )}
       {version.status === "PUBLISHED" && (
         <button
           type="button"
           disabled={busy !== null}
-          title="La version reste exécutable pour les installations qui l'ont épinglée"
+          title={words.deprecateTitle}
           onClick={() => {
             onAct(version.version, () => StudioAdminApi.deprecate(studioKey, version.version));
           }}
           className="text-xs text-fg-muted disabled:opacity-50"
         >
-          Déprécier
+          {words.deprecate}
         </button>
       )}
     </span>
   );
+}
+
+type VersionActions = Readonly<{
+  studioKey: string;
+  busy: string | null;
+  onAct: (v: string, action: () => Promise<void>) => void;
+  words: StudiosWords["builder"];
+}>;
+
+function versionColumns({ studioKey, busy, onAct, words }: VersionActions): DataTableColumn<BlueprintVersion>[] {
+  return [
+    { id: "version", header: words.versionCol, card: "title", cell: versionCodeCell },
+    { id: "status", header: words.status, cell: versionStatusCell },
+    { id: "estimatedCredits", header: words.creditsCol, align: "end" },
+    { id: "changelog", header: words.note, value: (v) => v.changelog ?? "—" },
+    {
+      id: "actions",
+      header: "",
+      align: "end",
+      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={onAct} words={words} />,
+    },
+  ];
 }
 
 /**
@@ -70,7 +97,14 @@ function VersionActionsCell({
  * Deprecate never deletes: a run records the version it executed, and removing that
  * row would destroy its reproducibility (ADR-034 §4.6). The button says so.
  */
-export function BlueprintVersionTable({ studioKey, versions, onChanged }: Readonly<BlueprintVersionTableProps>) {
+export function BlueprintVersionTable({
+  studioKey,
+  versions,
+  onChanged,
+  locale,
+}: Readonly<BlueprintVersionTableProps>) {
+  const fromContext = useConsoleLocale();
+  const words = studiosCopy[locale ?? fromContext].builder;
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,38 +115,27 @@ export function BlueprintVersionTable({ studioKey, versions, onChanged }: Readon
       await action();
       onChanged();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Échec");
+      setError(caught instanceof Error ? caught.message : words.failed);
     } finally {
       setBusy(null);
     }
   };
 
-  const columns: DataTableColumn<BlueprintVersion>[] = [
-    { id: "version", header: "Version", card: "title", cell: versionCodeCell },
-    { id: "status", header: "Statut", cell: versionStatusCell },
-    { id: "estimatedCredits", header: "Crédits", align: "end" },
-    { id: "changelog", header: "Note", value: (v) => v.changelog ?? "—" },
-    {
-      id: "actions",
-      header: "",
-      align: "end",
-      cell: (v) => <VersionActionsCell version={v} studioKey={studioKey} busy={busy} onAct={act} />, // NOSONAR S6478 — render prop called as a function by DataTable; VersionActionsCell is defined outside; studioKey/busy/act are stable refs
-    },
-  ];
+  const columns = versionColumns({ studioKey, busy, onAct: act, words });
 
   if (versions.length === 0) {
-    return <p className="text-sm text-fg-muted">Aucune version pour ce Studio.</p>;
+    return <p className="text-sm text-fg-muted">{words.emptyVersions}</p>;
   }
 
   return (
     <section className="space-y-2">
-      <h2 className="text-xs text-fg-muted">Versions</h2>
+      <h2 className="text-xs text-fg-muted">{words.versions}</h2>
       <DataTable
-        caption="Versions"
+        caption={words.versions}
         rows={versions}
         columns={columns}
         getRowId={(v) => v.version}
-        labels={{ loading: "Lecture des versions", empty: "Aucune version pour ce Studio." }}
+        labels={{ loading: words.loadingVersions, empty: words.emptyVersions }}
       />
       {error && <p className="whitespace-pre-wrap text-sm text-fg-danger">{error}</p>}
     </section>

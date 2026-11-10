@@ -90,8 +90,8 @@ class PinnedHttpClientTest {
         "/slow",
         e -> {
           try {
-            Thread.sleep(
-                3_000); // NOSONAR java:S2925 - timing-sensitive test, Awaitility not in scope
+            Thread.sleep( // NOSONAR java:S2925 - server-side HTTP handler delay, not a test wait
+                3_000);
           } catch (InterruptedException interrupted) {
             Thread.currentThread().interrupt();
           }
@@ -118,8 +118,9 @@ class PinnedHttpClientTest {
             for (int i = 0; i < 40; i++) {
               out.write('x');
               out.flush();
-              Thread.sleep(
-                  250); // NOSONAR java:S2925 - timing-sensitive test, Awaitility not in scope
+              Thread.sleep( // NOSONAR java:S2925 - server-side HTTP chunked-write delay, not a test
+                  // wait
+                  250);
             }
           } catch (IOException | InterruptedException gone) {
             Thread.currentThread().interrupt();

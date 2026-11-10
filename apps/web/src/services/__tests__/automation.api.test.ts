@@ -18,7 +18,7 @@ const webhook = {
   automationId: "a1",
   kind: "webhook",
   enabled: true,
-  webhookUrl: "https://www.orazaka.com/edge/hooks/t1",
+  webhookUrl: "https://dev.sovkora.com/edge/hooks/t1",
   secretHint: "ab12",
   secret: ["whsec", "A".repeat(43) + "="].join("_"),
   catchUp: "once",

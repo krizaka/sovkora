@@ -55,8 +55,8 @@ jobs:
             echo "docs/_generated is up to date"
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "krizaka-agents[bot]"
+          git config user.email "345578919+krizaka-agents[bot]@users.noreply.github.com"
           git checkout -B chore/docs-sync
           git add docs/_generated
           git commit -m "docs: regenerate docs/_generated (the workspace moved)"

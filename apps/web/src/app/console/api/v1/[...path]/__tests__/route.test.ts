@@ -24,7 +24,7 @@ describe("console BFF: request bodies", () => {
     const form = new FormData();
     form.append("file", new Blob(["<loi/>"], { type: "application/xml" }), "ccq.xml");
     form.append("datasetUrl", "https://www.donneesquebec.ca/ccq.xml");
-    const request = new Request("https://admin.orazaka.com/api/v1/admin/law/imports", { method: "POST", body: form });
+    const request = new Request("https://admin.sovkora.com/api/v1/admin/law/imports", { method: "POST", body: form });
     const type = request.headers.get("content-type");
     const res = await POST(request, params(["admin", "law", "imports"]));
     expect(res.status).toBe(200);
@@ -42,7 +42,7 @@ describe("console BFF: request bodies", () => {
   it("relays a JSON write as JSON", async () => {
     const fetchMock = upstream();
     await POST(
-      new Request("https://admin.orazaka.com/api/v1/admin/law/proposals/p1/reject", {
+      new Request("https://admin.sovkora.com/api/v1/admin/law/proposals/p1/reject", {
         method: "POST",
         body: '{"reason":"wrong article"}',
         headers: { "content-type": "application/json" },
