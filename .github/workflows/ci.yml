@@ -27,20 +27,20 @@ concurrency:
 jobs:
   # ── what changed ────────────────────────────────────────────────────────────────────────────────────────────────
   java-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       # packs/ too: the studio's bundle tests read the shipped packs.
       relevant: '^(pom\.xml|\.mvn/|mvnw(\.cmd)?$|build/|contracts/|engine/|services/|e2e/|packs/|infra/(initdb|migrations|users|brokers-infra|docker-compose)|modules\.json$|scripts/(ci-plan|check-skipped-tests|check-krizaka-versions)\.mjs$|scripts/lib/(skipped-tests|krizaka-versions)\.mjs$|scripts/skipped-tests-allowlist\.json$|\.github/workflows/ci\.yml$)'
   web-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       relevant: '^(apps/web/|packs/|docs/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   mobile-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       relevant: '^(apps/mobile/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   cli-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       relevant: '^(apps/cli/|packs/pack\.schema\.json$|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
 
@@ -217,7 +217,7 @@ jobs:
     name: Media worker
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       relevant: '^(workers/media/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
       working-directory: workers/media
@@ -291,7 +291,7 @@ jobs:
             tests: test_rules.py test_faces.py test_worker.py
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
     with:
       relevant: '^(packs/|\.github/workflows/ci\.yml$)'
       working-directory: packs/${{ matrix.worker }}
@@ -315,7 +315,7 @@ jobs:
         with:
           node-version: "22"
       - name: Repository layout
-        uses: krizaka/.github/actions/repo-layout@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+        uses: krizaka/.github/actions/repo-layout@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
       # The tests and the generated docs read krizaka-java at the release sovkora-parent imports (billing migrations, building blocks).
       - name: krizaka-java at the release sovkora-parent imports (a tag of a public repository, no credential)
         run: |
@@ -333,6 +333,12 @@ jobs:
             'scripts/test/*.test.mjs'
       - name: The Java layout (ADR-029 N3, N4)
         run: node scripts/check-java-layout.mjs
+      - name: No self-referencing Java constants
+        run: |
+          if git grep -P 'static\s+final\s+[\w<>]+\s+(\w+)\s*=\s*\1\s*;'; then
+            echo "::error::Self-referencing static final constants found — the field initialises to null at runtime."
+            exit 1
+          fi
       - name: Docs are generated from this code
         run: node scripts/generate-docs.mjs --check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -385,7 +391,7 @@ jobs:
         with:
           pattern: coverage-*
           merge-multiple: true
-      - uses: krizaka/.github/actions/sonar-scan@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+      - uses: krizaka/.github/actions/sonar-scan@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
         with:
           token: ${{ secrets.SONAR_TOKEN }}
           args: -Dsonar.qualitygate.wait=true
@@ -393,7 +399,8 @@ jobs:
   # ── the gate ────────────────────────────────────────────────────────────────────────────────────────────────────
   workspace:
     name: workspace
-    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format, sonar]
+    # Not `sonar`: its red on old debt is not the product's code and never freezes the repository (krizaka-internal#2598).
+    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -425,7 +432,7 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           echo "CI failed on main at ${SHA:0:7}: ${RUN_URL}" > "$RUNNER_TEMP/body.md"
-      - uses: krizaka/.github/actions/alert-issue@6664f51756c8e216132a1e38c6382fdffd4ea064 # main
+      - uses: krizaka/.github/actions/alert-issue@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}

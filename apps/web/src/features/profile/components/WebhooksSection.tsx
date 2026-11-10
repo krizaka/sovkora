@@ -108,7 +108,7 @@ export function WebhooksSection({ fetchHeaders }: Readonly<WebhooksSectionProps>
         header: w.columns.events,
         priority: 2,
         value: (e) => e.events.map((event) => w.events[EVENT_WORD[event]]).join(", "),
-        cell: (e) => <EndpointEventsCell endpoint={e} w={w} />,
+        cell: (e) => <EndpointEventsCell endpoint={e} w={w} />, // NOSONAR S6478 — render prop called as a function by DataTable; EndpointEventsCell is defined outside; w is stable (translation ref)
       },
       {
         id: "created",
@@ -119,6 +119,7 @@ export function WebhooksSection({ fetchHeaders }: Readonly<WebhooksSectionProps>
         value: (e) => new Date(e.createdAt),
         cell: (e) => timeAgoCell(e.createdAt, dateLocale),
       },
+      // prettier-ignore
       {
         id: "actions",
         header: w.columns.actions,
@@ -126,7 +127,7 @@ export function WebhooksSection({ fetchHeaders }: Readonly<WebhooksSectionProps>
         align: "end",
         hideable: false,
         card: "hidden",
-        cell: (e) => (
+        cell: (e) => ( // NOSONAR S6478 — render prop called as a function by DataTable; EndpointActionsCell is defined outside; w/hook.* are stable refs
           <EndpointActionsCell
             endpoint={e}
             w={w}

@@ -173,7 +173,8 @@ public class ColumnValueResolver {
       try {
         value = objectMapper.readTree(OutputContract.unfenced(text));
       } catch (RuntimeException unparseable) {
-        logger.debug("Output value could not be parsed as JSON: {}", unparseable.getMessage(), unparseable);
+        logger.debug(
+            "Output value could not be parsed as JSON: {}", unparseable.getMessage(), unparseable);
         throw new OutputContractException(List.of("$: not JSON"));
       }
     } else {

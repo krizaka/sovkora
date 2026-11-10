@@ -35,10 +35,7 @@ function RunStatusCell({ run, label }: Readonly<{ run: AutomationRun; label: str
   );
 }
 
-function RunDetailCell({
-  run,
-  skippedBudgetLabel,
-}: Readonly<{ run: AutomationRun; skippedBudgetLabel: string }>) {
+function RunDetailCell({ run, skippedBudgetLabel }: Readonly<{ run: AutomationRun; skippedBudgetLabel: string }>) {
   if (run.status === STATUS.skipped_budget) return skippedBudgetLabel;
   if (run.errorMessage ?? run.errorCode)
     return <span className="text-danger">{run.errorMessage ?? run.errorCode}</span>;
@@ -62,7 +59,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.status,
         type: "status",
         value: (run) => r.status[run.status],
-        cell: (run) => <RunStatusCell run={run} label={r.status[run.status]} />,
+        cell: (run) => <RunStatusCell run={run} label={r.status[run.status]} />, // NOSONAR S6478 — render prop called as a function by DataTable; RunStatusCell is defined outside; r is stable (translation ref)
       },
       {
         id: "trigger",
@@ -94,7 +91,7 @@ export function RunHistory({ automationId }: Readonly<{ automationId: string }>)
         header: r.columns.detail,
         priority: 2,
         value: (run) => run.errorMessage ?? run.errorCode ?? "",
-        cell: (run) => <RunDetailCell run={run} skippedBudgetLabel={r.skippedBudget} />,
+        cell: (run) => <RunDetailCell run={run} skippedBudgetLabel={r.skippedBudget} />, // NOSONAR S6478 — render prop called as a function by DataTable; RunDetailCell is defined outside; r is stable (translation ref)
       },
     ],
     [r, dateLocale],

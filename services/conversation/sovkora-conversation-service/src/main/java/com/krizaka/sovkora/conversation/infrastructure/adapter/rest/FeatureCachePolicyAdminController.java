@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class FeatureCachePolicyAdminController {
 
-  private static final Logger logger = LoggerFactory.getLogger(FeatureCachePolicyAdminController.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(FeatureCachePolicyAdminController.class);
   private static final String DEFAULT = FeatureCachePolicyManager.DEFAULT_FEATURE_KEY;
 
   private final FeatureCachePolicyManager policies;
@@ -71,7 +72,8 @@ public class FeatureCachePolicyAdminController {
     try {
       policies.upsert(featureKey, strategy);
     } catch (IllegalArgumentException e) {
-      logger.warn("Failed to upsert feature cache policy for key={}: {}", featureKey, e.getMessage(), e);
+      logger.warn(
+          "Failed to upsert feature cache policy for key={}: {}", featureKey, e.getMessage(), e);
       throw new InvalidRequestProblem(e.getMessage());
     }
     return new Policy(featureKey, strategy, DEFAULT.equals(featureKey));

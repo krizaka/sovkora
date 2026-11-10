@@ -11,6 +11,7 @@ export const TOOL_FOLDERS = Object.freeze([
   "/usr/local/bin",
   "/usr/bin",
   "/bin",
+  "/usr/sbin",
 ]);
 
 /** The first executable file named `name` in `folders`, or null. */

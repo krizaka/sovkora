@@ -83,7 +83,7 @@ class HttpModelOptionsAdapter implements ModelOptionsClient {
               .body(new ParameterizedTypeReference<List<ModelChoice>>() {});
       return Optional.ofNullable(options);
     } catch (RuntimeException e) {
-      logger.warn("Model options lookup failed for category {}: {}", category, e.toString());
+      logger.warn("Model options lookup failed for category {}", category, e);
       return Optional.empty();
     }
   }
@@ -114,7 +114,7 @@ class HttpModelOptionsAdapter implements ModelOptionsClient {
       return body == null ? Optional.empty() : Optional.ofNullable(body.get("routingKey"));
     } catch (RuntimeException e) {
       // Unknown is not "another queue": the capability's own key stays.
-      logger.warn("Model queue lookup failed for {}: {}", model, e.toString());
+      logger.warn("Model queue lookup failed for {}", model, e);
       return Optional.empty();
     }
   }

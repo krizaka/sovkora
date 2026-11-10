@@ -69,7 +69,7 @@ export function shortHelper(text: string | null): string | null {
   if (!text) return null;
   const clean = text.trim().replace(/\s+/g, " ");
   if (clean.length <= HELPER_MAX) return clean;
-  const sentence = /^.{1,138}?[.!?](?=\s|$)/.exec(clean);
+  const sentence = /^.{1,138}?[.!?](?!\S)/.exec(clean);
   if (sentence) return sentence[0];
   const cut = clean.slice(0, HELPER_MAX - 1);
   return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)).replace(/[\s,;:·(]+$/, "")}…`;

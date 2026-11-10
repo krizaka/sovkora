@@ -25,13 +25,13 @@ public final class InMemorySemanticCacheStore implements SemanticCacheStore {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof Entry e
-          && partition.equals(e.partition)
-          && exactKey.equals(e.exactKey)
-          && Arrays.equals(embedding, e.embedding)
-          && signature.equals(e.signature)
-          && response.equals(e.response)
-          && expiresAt.equals(e.expiresAt);
+      return other instanceof Entry(var p, var k, var emb, var sig, var resp, var exp)
+          && partition.equals(p)
+          && exactKey.equals(k)
+          && Arrays.equals(embedding, emb)
+          && signature.equals(sig)
+          && response.equals(resp)
+          && expiresAt.equals(exp);
     }
 
     @Override

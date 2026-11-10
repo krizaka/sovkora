@@ -67,7 +67,7 @@ export function SettingsPanel({ snap, onSaved, refresh }: { snap: Snapshot; onSa
       {error && <Alert tone="danger">{error}</Alert>}
       <div className="flex items-center gap-3">
         <Button onClick={() => void save()}>{t("common.save")}</Button>
-        {message && <span className="text-sm text-fg-secondary" role="status">{message}</span>}
+        {message && <output className="text-sm text-fg-secondary">{message}</output>}
       </div>
       <p className="border-t border-border-subtle pt-4 text-xs text-fg-secondary">{t("settings.about")} · {snap.appVersion}</p>
     </div>

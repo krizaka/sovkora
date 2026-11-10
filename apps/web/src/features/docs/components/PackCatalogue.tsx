@@ -22,7 +22,7 @@ function Chips({
   all: string;
 }>) {
   return (
-    <div role="group" aria-label={name} className="flex flex-wrap items-center gap-1.5">
+    <fieldset aria-label={name} className="m-0 flex flex-wrap items-center gap-1.5 border-0 p-0">
       <span className={label}>{name}</span>
       {[null, ...values].map((v) => (
         <button
@@ -35,7 +35,7 @@ function Chips({
           {v ?? all}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }
 

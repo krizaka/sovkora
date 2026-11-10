@@ -72,9 +72,9 @@ jobs:
         working-directory: apps/web
       - working-directory: apps/web
         run: ./node_modules/.bin/playwright install --with-deps chromium
-      - name: SEO family contract (indexed)
+      - name: SEO family contract (dev — indexing closed by design)
         working-directory: apps/web
-        run: node scripts/check-seo-family.mjs --base https://dev.sovkora.com --host https://dev.sovkora.com
+        run: node scripts/check-seo-family.mjs --base https://dev.sovkora.com --host https://dev.sovkora.com --index off
       - name: Console gate (admin.gated) — a GitHub runner is not an allowed address
         run: |
           test "$(curl -s -o /dev/null -w '%{http_code}' https://admin.sovkora.com/login)" = 403

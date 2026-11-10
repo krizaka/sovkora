@@ -13,8 +13,7 @@ from __future__ import annotations
 import gc
 import os
 import time
-from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from app import activity, job_control, model_cache
 from app.video_models import (
@@ -121,39 +120,13 @@ def _load(model: VideoModel, from_image: bool = False, weights_progress=None):
     torch = _torch()
     from diffusers import AutoencoderKLWan, WanImageToVideoPipeline, WanPipeline  # noqa: PLC0415
 
-    if _pipe is not None:
-        print(f"[wan] evicting {_pipe_name}", flush=True)
-        _pipe = None
-        _pipe_name = None
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+    _evict_resident_pipeline(torch)
 
     device = _device()
     started = time.time()
-    common = {"revision": model.revision, "local_files_only": True}
-    if hub_cache(model):
-        common["cache_dir"] = hub_cache(model)
-    staged = _staged_source(model, weights_progress)
-    repo = staged or model.repo
-    if staged:  # a local directory: no revision, no hub cache
-        common = {"local_files_only": True}
+    common, staged, repo = _resolve_load_sources(model, weights_progress)
     vae = AutoencoderKLWan.from_pretrained(repo, subfolder="vae", torch_dtype=torch.float32, **common)
-    extra = {}
-    if model.text_encoder_from:
-        # Same umt5-xxl as the donor, kept in bf16 there: loaded from it rather than downloading a
-        # float32 copy twice the size (models.yaml, textEncoderFrom).
-        from transformers import UMT5EncoderModel  # noqa: PLC0415
-
-        donor = find(model.text_encoder_from, load_manifest())
-        donor_staged = _staged_source(donor, weights_progress)
-        extra["text_encoder"] = UMT5EncoderModel.from_pretrained(
-            donor_staged or donor.repo,
-            subfolder="text_encoder",
-            torch_dtype=torch.bfloat16,
-            **({} if donor_staged else {"revision": donor.revision}),
-            local_files_only=True,
-        )
+    extra = _load_text_encoder(model, weights_progress)
     if from_image:
         pipe = WanImageToVideoPipeline.from_pretrained(
             repo,
@@ -168,15 +141,7 @@ def _load(model: VideoModel, from_image: bool = False, weights_progress=None):
         pipe = WanPipeline.from_pretrained(repo, vae=vae, torch_dtype=torch.bfloat16, **common, **extra)
     if model.lora:
         _load_lora(pipe, model)
-    total_gb = 0.0
-    if device == "cuda":
-        total_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-    if device == "cuda" and should_offload(model, total_gb):
-        pipe.enable_model_cpu_offload()
-        placement = f"model offload ({total_gb:.0f} GB card)"
-    else:
-        pipe.to(device)
-        placement = f"resident on {device}"
+    placement = _place_pipeline(pipe, device, torch, model)
     if hasattr(pipe.vae, "enable_tiling"):
         pipe.vae.enable_tiling()
     loaded = time.time() - started
@@ -190,6 +155,63 @@ def _load(model: VideoModel, from_image: bool = False, weights_progress=None):
     _pipe = pipe
     _pipe_name = _resident_name(model, from_image)
     return pipe
+
+
+def _evict_resident_pipeline(torch) -> None:
+    """Frees the currently resident pipeline from memory, if any."""
+    global _pipe, _pipe_name
+    if _pipe is not None:
+        print(f"[wan] evicting {_pipe_name}", flush=True)
+        _pipe = None
+        _pipe_name = None
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
+def _resolve_load_sources(model: VideoModel, weights_progress) -> tuple:
+    """Returns ``(common, staged, repo)`` — the kwargs dict, the staged path, and the repo to load from."""
+    common = {"revision": model.revision, "local_files_only": True}
+    if hub_cache(model):
+        common["cache_dir"] = hub_cache(model)
+    staged = _staged_source(model, weights_progress)
+    repo = staged or model.repo
+    if staged:  # a local directory: no revision, no hub cache
+        common = {"local_files_only": True}
+    return common, staged, repo
+
+
+def _load_text_encoder(model: VideoModel, weights_progress) -> dict:
+    """Loads a shared UMT5 text encoder from the donor model when ``textEncoderFrom`` is set."""
+    extra = {}
+    if model.text_encoder_from:
+        # Same umt5-xxl as the donor, kept in bf16 there: loaded from it rather than downloading a
+        # float32 copy twice the size (models.yaml, textEncoderFrom).
+        from transformers import UMT5EncoderModel  # noqa: PLC0415
+
+        torch = _torch()
+        donor = find(model.text_encoder_from, load_manifest())
+        donor_staged = _staged_source(donor, weights_progress)
+        extra["text_encoder"] = UMT5EncoderModel.from_pretrained(
+            donor_staged or donor.repo,
+            subfolder="text_encoder",
+            torch_dtype=torch.bfloat16,
+            **({} if donor_staged else {"revision": donor.revision}),
+            local_files_only=True,
+        )
+    return extra
+
+
+def _place_pipeline(pipe, device: str, torch, model: VideoModel) -> str:
+    """Places the pipeline on the target device (or enables CPU offload) and returns a placement description."""
+    total_gb = 0.0
+    if device == "cuda":
+        total_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+    if device == "cuda" and should_offload(model, total_gb):
+        pipe.enable_model_cpu_offload()
+        return f"model offload ({total_gb:.0f} GB card)"
+    pipe.to(device)
+    return f"resident on {device}"
 
 
 def lora_plan(model: VideoModel) -> list[tuple[str, str, bool]]:
@@ -313,11 +335,11 @@ def generate_wan_frames(
     steps: int,
     seed: int,
     negative_prompt: str | None = None,
-    progress_callback: Optional[Callable] = None,
+    progress_callback: Callable | None = None,
     image=None,
     focus: tuple[float, float] = (0.5, 0.5),
     fallback_sizes: tuple = (),
-    weights_progress: Optional[Callable] = None,
+    weights_progress: Callable | None = None,
 ) -> list:
     """Runs one Wan generation and returns its frames as PIL images.
 
@@ -333,6 +355,48 @@ def generate_wan_frames(
     model = find(model_name)
     if model.pipeline not in ("wan", "ltx"):
         raise RuntimeError(f"model '{model_name}' is not a diffusers video model")
+    _validate_image_requirements(model, model_name, image)
+    torch = _torch()
+    from_image = image is not None
+    wanted = _resident_name(model, from_image)
+    pipe = _pipe if _pipe_name == wanted else _load(model, from_image, weights_progress)
+    ladder = [(int(width), int(height)), *[(int(w), int(h)) for w, h in fallback_sizes]]
+    last_failure: Exception | None = None
+    for w, h in ladder:
+        result = _try_wan_size(
+            pipe,
+            model,
+            model_name,
+            prompt,
+            negative_prompt,
+            w,
+            h,
+            num_frames,
+            steps,
+            seed,
+            image,
+            focus,
+            from_image,
+            progress_callback,
+            torch,
+        )
+        if result is None:
+            last_failure = _last_wan_failure
+            continue
+        if result is _WAN_CANCELLED:
+            raise _last_wan_failure  # the owner stopped it: propagate the original exception
+        return result
+    raise RuntimeError(f"Wan inference failed ({model_name}): {last_failure}") from last_failure
+
+
+# Sentinel returned by _try_wan_size to signal the job was cancelled.
+_WAN_CANCELLED = object()
+# Last failure recorded by _try_wan_size for the raise after the loop.
+_last_wan_failure: Exception | None = None
+
+
+def _validate_image_requirements(model: VideoModel, model_name: str, image) -> None:
+    """Checks image-to-video vs text-to-video compatibility and raises ``InvalidVideoRequest`` if violated."""
     from_image = image is not None
     if model.requires_image and not from_image:
         raise InvalidVideoRequest(f"model '{model_name}' starts from a photo: give it a starting image (a keyframe)")
@@ -341,71 +405,90 @@ def generate_wan_frames(
             f"model '{model_name}' makes video from text only; leave the starting image empty "
             "or choose an image-to-video model (wan2.2-ti2v-5b)"
         )
-    torch = _torch()
-    wanted = _resident_name(model, from_image)
-    pipe = _pipe if _pipe_name == wanted else _load(model, from_image, weights_progress)
-    ladder = [(int(width), int(height)), *[(int(w), int(h)) for w, h in fallback_sizes]]
-    last_failure: Exception | None = None
-    for w, h in ladder:
-        generator = torch.Generator(device="cpu").manual_seed(int(seed))
-        started = time.time()
-        extra = {"image": crop_to_aspect(image, w, h, focus)} if from_image else {}
-        try:
-            if model.pipeline == "ltx":
-                frames = _run_ltx(
-                    pipe,
-                    model,
-                    prompt,
-                    negative_prompt or DEFAULT_NEGATIVE_PROMPT,
-                    w,
-                    h,
-                    num_frames,
-                    steps,
-                    generator,
-                    image,
-                    focus,
-                    progress_callback,
-                )
-                print(
-                    f"[ltx] {model_name}{' (from a photo)' if from_image else ''} {w}x{h} {len(frames)} frames, {steps} steps, seed {seed}: {time.time() - started:.0f}s",
-                    flush=True,
-                )
-                return list(frames)
-            output = pipe(
-                prompt=prompt,
-                negative_prompt=negative_prompt or DEFAULT_NEGATIVE_PROMPT,
-                width=w,
-                height=h,
-                num_frames=num_frames,
-                num_inference_steps=steps,
-                guidance_scale=model.guidance,
-                **({"guidance_scale_2": model.guidance_two} if model.guidance_two is not None else {}),
-                generator=generator,
-                output_type="pil",
-                callback_on_step_end=progress_callback,
-                **extra,
+
+
+def _try_wan_size(
+    pipe,
+    model: VideoModel,
+    model_name: str,
+    prompt: str,
+    negative_prompt,
+    w: int,
+    h: int,
+    num_frames: int,
+    steps: int,
+    seed: int,
+    image,
+    focus,
+    from_image: bool,
+    progress_callback,
+    torch,
+) -> list | object | None:
+    """Attempts to run Wan inference at ``w``x``h``.
+
+    Returns the frames list on success, ``None`` on OOM (try the next size), or ``_WAN_CANCELLED`` when the
+    job was cancelled. Any other failure is re-raised immediately.
+    """
+    global _last_wan_failure
+    generator = torch.Generator(device="cpu").manual_seed(int(seed))
+    started = time.time()
+    extra = {"image": crop_to_aspect(image, w, h, focus)} if from_image else {}
+    try:
+        if model.pipeline == "ltx":
+            frames = _run_ltx(
+                pipe,
+                model,
+                prompt,
+                negative_prompt or DEFAULT_NEGATIVE_PROMPT,
+                w,
+                h,
+                num_frames,
+                steps,
+                generator,
+                image,
+                focus,
+                progress_callback,
             )
-        except job_control.JobCancelled:
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            raise  # the owner stopped it: not a failure, and not a smaller size to try
-        except Exception as failure:  # §12: report it, never hide it
-            gc.collect()
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            last_failure = failure
-            if _is_out_of_memory(failure) and (w, h) != ladder[-1]:
-                print(f"[wan] {model_name} {w}x{h}: out of memory, trying the next size", flush=True)
-                continue
-            raise RuntimeError(f"Wan inference failed ({model_name}): {failure}") from failure
-        frames = output.frames[0]
-        if not frames:
-            raise RuntimeError(f"Wan returned no frames ({model_name})")
-        print(
-            f"[wan] {model_name}{' (from a photo)' if from_image else ''} {w}x{h} {len(frames)} "
-            f"frames, {steps} steps, seed {seed}: {time.time() - started:.0f}s",
-            flush=True,
+            print(
+                f"[ltx] {model_name}{' (from a photo)' if from_image else ''} {w}x{h} {len(frames)} frames, {steps} steps, seed {seed}: {time.time() - started:.0f}s",
+                flush=True,
+            )
+            return list(frames)
+        output = pipe(
+            prompt=prompt,
+            negative_prompt=negative_prompt or DEFAULT_NEGATIVE_PROMPT,
+            width=w,
+            height=h,
+            num_frames=num_frames,
+            num_inference_steps=steps,
+            guidance_scale=model.guidance,
+            **({"guidance_scale_2": model.guidance_two} if model.guidance_two is not None else {}),
+            generator=generator,
+            output_type="pil",
+            callback_on_step_end=progress_callback,
+            **extra,
         )
-        return list(frames)
-    raise RuntimeError(f"Wan inference failed ({model_name}): {last_failure}")
+    except job_control.JobCancelled as cancelled:
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        _last_wan_failure = cancelled
+        return _WAN_CANCELLED  # the owner stopped it: not a failure, and not a smaller size to try
+    except Exception as failure:  # §12: report it, never hide it
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        _last_wan_failure = failure
+        if _is_out_of_memory(failure):
+            print(f"[wan] {model_name} {w}x{h}: out of memory, trying the next size", flush=True)
+            return None
+        raise RuntimeError(f"Wan inference failed ({model_name}): {failure}") from failure
+    frames = output.frames[0]
+    if not frames:
+        raise RuntimeError(f"Wan returned no frames ({model_name})")
+    print(
+        f"[wan] {model_name}{' (from a photo)' if from_image else ''} {w}x{h} {len(frames)} "
+        f"frames, {steps} steps, seed {seed}: {time.time() - started:.0f}s",
+        flush=True,
+    )
+    return list(frames)

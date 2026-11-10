@@ -226,6 +226,15 @@ public final class Workspace {
               }
               return FileVisitResult.CONTINUE;
             }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException failure)
+                throws IOException {
+              if (RepositoryTree.vanished(file, failure)) {
+                return FileVisitResult.CONTINUE;
+              }
+              throw failure;
+            }
           });
     } catch (IOException e) {
       throw new UncheckedIOException("Failed to walk " + root, e);
@@ -254,6 +263,15 @@ public final class Workspace {
                 return FileVisitResult.SKIP_SUBTREE;
               }
               return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException failure)
+                throws IOException {
+              if (RepositoryTree.vanished(file, failure)) {
+                return FileVisitResult.CONTINUE;
+              }
+              throw failure;
             }
           });
     } catch (IOException e) {

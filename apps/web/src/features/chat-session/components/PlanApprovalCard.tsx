@@ -64,8 +64,7 @@ export function PlanApprovalCard({
           className="ml-auto inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-semibold bg-warning/10 text-warning border border-warning/20"
           style={{ borderRadius: "var(--kz-radius-full)" }}
         >
-          <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />{' '}
-          Awaiting
+          <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" /> Awaiting
         </span>
       </header>
 
@@ -95,14 +94,17 @@ export function PlanApprovalCard({
             {/* Status indicator */}
             <span className="flex-shrink-0 mt-0.5">
               {(() => {
-                const rejectedIcon = step.status === "rejected" ? (
-                  <Icon name="error" size={16} className="text-danger" />
-                ) : (
-                  <Icon name="circle" size={16} className="text-fg-muted" />
-                );
+                const rejectedIcon =
+                  step.status === "rejected" ? (
+                    <Icon name="error" size={16} className="text-danger" />
+                  ) : (
+                    <Icon name="circle" size={16} className="text-fg-muted" />
+                  );
                 return step.status === "approved" ? (
                   <Icon name="checkCircle" size={16} className="text-success" />
-                ) : rejectedIcon;
+                ) : (
+                  rejectedIcon
+                );
               })()}
             </span>
           </li>

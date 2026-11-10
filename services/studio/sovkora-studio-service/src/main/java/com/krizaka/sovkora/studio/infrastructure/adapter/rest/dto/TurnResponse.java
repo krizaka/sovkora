@@ -52,7 +52,10 @@ public record TurnResponse(String text, List<CallDto> calls, UsageDto usage) {
     try {
       return JSON.readTree(json);
     } catch (Exception malformed) {
-      logger.debug("Failed to parse tool argument JSON, treating as string: {}", malformed.getMessage(), malformed);
+      logger.debug(
+          "Failed to parse tool argument JSON, treating as string: {}",
+          malformed.getMessage(),
+          malformed);
       return JSON.valueToTree(json);
     }
   }
