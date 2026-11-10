@@ -28,7 +28,7 @@ public class WebhookSweeper {
         logger.info("webhooks: {} deliveries attempted", attempted);
       }
     } catch (RuntimeException failure) {
-      logger.warn("webhook sweep failed: {}", failure.toString());
+      logger.warn("webhook sweep failed", failure);
     }
   }
 }

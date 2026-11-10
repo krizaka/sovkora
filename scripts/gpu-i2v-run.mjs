@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Image → video through Orazaka's Studios (docs/DEPLOY_DEV.md § GPU): each clip of a plan is one run of the
- * `video-generation` Studio on www.orazaka.com, routed to the GPU worker. It never talks to a model directly.
+ * `video-generation` Studio on dev.sovkora.com, routed to the GPU worker. It never talks to a model directly.
  *
  *   ORAZAKA_QA_EMAIL=… ORAZAKA_QA_PASSWORD=… node scripts/gpu-i2v-run.mjs --plan plan.json --out <dir> [--images <dir>] [--only id,id] [--rate 0.76]
  *
@@ -17,7 +17,7 @@ import { execFileSync } from "node:child_process";
 import { basename, dirname, join, resolve } from "node:path";
 import { toolPath } from "./lib/tool-path.mjs";
 
-const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : fallback;

@@ -106,6 +106,23 @@ def generate(
     if not job_id:
         raise RemoteVideoError("the provider accepted the request but returned no job id")
     timeout = int((env or os.environ).get("MEDIA_REMOTE_TIMEOUT_SECONDS") or DEFAULT_TIMEOUT_SECONDS)
+    result = _poll_until_done(job, job_id, timeout, started, clock, sleep, progress, base, key, call)
+    content_id = result.get("id") or job_id
+    video = _download_result(result, content_id, job_id, base, key, call)
+    facts = {
+        "provider": model.provider or "remote",
+        "providerJobId": str(content_id),
+        "providerSeconds": round(clock() - started, 1),
+    }
+    if model.cost_usd is not None:
+        facts["costUsd"] = model.cost_usd
+    return video, facts
+
+
+def _poll_until_done(
+    job: dict, job_id: str, timeout: int, started, clock, sleep, progress, base: str, key: str, call
+) -> dict:
+    """Polls the provider until the job reaches a terminal status and returns the final result dict."""
     status, result = job.get("status"), job
     while status not in ("completed", "succeeded", "failed", "error", "cancelled"):
         if clock() - started > timeout:
@@ -118,7 +135,11 @@ def generate(
             progress(min(95, int((clock() - started) / max(timeout, 1) * 100)))
     if status != "completed" and status != "succeeded":
         raise RemoteVideoError(f"the provider's job {job_id} ended as {status}: {result.get('error')}")
-    content_id = result.get("id") or job_id
+    return result
+
+
+def _download_result(result: dict, content_id: str, job_id: str, base: str, key: str, call) -> bytes:
+    """Downloads the MP4 from either the presigned URL or the /content endpoint."""
     output = result.get("output") or {}
     url = output.get("url") if isinstance(output, dict) else None
     if url:  # the documented presigned form; the gateway answers null and serves /content instead
@@ -128,14 +149,7 @@ def generate(
         _, video = call("GET", f"{base}/v1/videos/{content_id}/content", key, timeout=300)
     if not video:
         raise RemoteVideoError(f"the provider's job {job_id} returned an empty file")
-    facts = {
-        "provider": model.provider or "remote",
-        "providerJobId": str(content_id),
-        "providerSeconds": round(clock() - started, 1),
-    }
-    if model.cost_usd is not None:
-        facts["costUsd"] = model.cost_usd
-    return video, facts
+    return video
 
 
 def probe_duration(path: str) -> float | None:

@@ -80,9 +80,9 @@ class HttpTextEmbeddingAdapter implements TextEmbeddingClient {
 
       @Override
       public boolean equals(Object other) {
-        return other instanceof Datum d
-            && index == d.index
-            && java.util.Arrays.equals(embedding, d.embedding);
+        return other instanceof Datum(var idx, var emb)
+            && index == idx
+            && java.util.Arrays.equals(embedding, emb);
       }
 
       @Override

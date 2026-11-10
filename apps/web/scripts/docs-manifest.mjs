@@ -1,5 +1,5 @@
 /**
- * The publication manifest of www.orazaka.com/docs — what is published from the Orazaka repository
+ * The publication manifest of dev.sovkora.com/docs — what is published from the Orazaka repository
  * (https://github.com/krizaka/orazaka), where each page sits in the reader's journey, and the words that introduce it.
  *
  * The pages' CONTENT is never written here: `node scripts/sync-docs.mjs <orazaka checkout>` copies it from the source

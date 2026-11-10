@@ -1,6 +1,6 @@
 "use client";
 
-import type { ClipId } from "@/core/mobile/mobile";
+import type { StepId } from "@/core/mobile/mobile";
 import { APPEARANCES, clipUrls } from "@/core/mobile/mobile";
 import { VideoSources } from "@/core/clips/VideoSources";
 
@@ -16,7 +16,7 @@ export function PhoneClip({
   label,
   alt,
   caption,
-}: Readonly<{ id: ClipId; label: string; alt: string; caption?: string }>) {
+}: Readonly<{ id: StepId; label: string; alt: string; caption?: string }>) {
   return (
     <figure className="flex w-full min-w-0 flex-col gap-3">
       <div className="mx-auto w-full max-w-[15rem] overflow-hidden rounded-2xl">

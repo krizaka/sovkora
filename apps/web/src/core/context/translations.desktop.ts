@@ -124,7 +124,7 @@ export const desktop: Record<Locale, DesktopDictionary> = {
       items: [
         {
           title: "Connected to your workspace",
-          body: "The app opens your hosted {brand} (www.orazaka.com by default, https only). You sign in on the {brand} page itself — the app never sees or stores your password.",
+          body: "The app opens your hosted {brand} (dev.sovkora.com by default, https only). You sign in on the {brand} page itself — the app never sees or stores your password.",
         },
         {
           title: "Everything on this Mac",
@@ -258,7 +258,7 @@ export const desktop: Record<Locale, DesktopDictionary> = {
       items: [
         {
           title: "Relié à votre espace",
-          body: "L'app ouvre votre {brand} hébergé (www.orazaka.com par défaut, https seulement). Vous vous connectez sur la page de {brand} elle-même — l'app ne voit ni ne garde votre mot de passe.",
+          body: "L'app ouvre votre {brand} hébergé (dev.sovkora.com par défaut, https seulement). Vous vous connectez sur la page de {brand} elle-même — l'app ne voit ni ne garde votre mot de passe.",
         },
         {
           title: "Tout sur ce Mac",

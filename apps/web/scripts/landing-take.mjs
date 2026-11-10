@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The home's hero take — the real web client answering a real question, as ONE crisp loop (760×640 window at 1.5×, ≥ 25 fps):
-// the question typed, the pipeline running (« Routed »), the answer. Recorded on www.orazaka.com as the QA user, in each
+// the question typed, the pipeline running (« Routed »), the answer. Recorded on dev.sovkora.com as the QA user, in each
 // theme and language, nothing staged; the clips go to Bunny, never into the repository.
 //
 //   ORAZAKA_USER_EMAIL=… ORAZAKA_USER_PASSWORD=… node scripts/landing-take.mjs <out-dir>
@@ -18,7 +18,7 @@ import { qaOnScreen } from "./qa-on-screen.mjs";
 const require = createRequire(import.meta.url);
 const { chromium } = require("@playwright/test");
 
-const BASE = process.env.APP_BASE_URL ?? "https://www.orazaka.com";
+const BASE = process.env.APP_BASE_URL ?? "https://dev.sovkora.com";
 const OUT = path.resolve(process.argv[2] ?? "take");
 const email = process.env.ORAZAKA_USER_EMAIL;
 const password = process.env.ORAZAKA_USER_PASSWORD;

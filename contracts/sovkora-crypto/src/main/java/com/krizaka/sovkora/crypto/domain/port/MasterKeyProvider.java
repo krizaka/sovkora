@@ -76,9 +76,9 @@ public interface MasterKeyProvider {
     /** Equal when the same key wrapped the same bytes: a value, not an identity. */
     @Override
     public boolean equals(Object other) {
-      return other instanceof WrappedKey that
-          && keyId.equals(that.keyId)
-          && Arrays.equals(wrapped, that.wrapped);
+      return other instanceof WrappedKey(var thatKeyId, var thatWrapped)
+          && keyId.equals(thatKeyId)
+          && Arrays.equals(wrapped, thatWrapped);
     }
 
     @Override

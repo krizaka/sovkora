@@ -132,7 +132,7 @@ public record BlueprintStep(
     }
     if (kind == StepKind.STUDIO
         ? ((studioKey == null) || (!STUDIO_KEY.matcher(studioKey).matches()))
-        : studioKey != null) {
+        : (studioKey != null)) {
       throw new IllegalArgumentException(
           "a STUDIO step, and only a STUDIO step, names a studioKey matching "
               + STUDIO_KEY.pattern()

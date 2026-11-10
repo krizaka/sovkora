@@ -101,11 +101,7 @@ export function PackDrawer({
                   })}
                 </ul>
               </section>
-              {holdingsUnavailable && (
-                <output className="text-xs text-fg-muted">
-                  {t.packs.holdingsUnavailable}
-                </output>
-              )}
+              {holdingsUnavailable && <output className="text-xs text-fg-muted">{t.packs.holdingsUnavailable}</output>}
             </Dialog.Body>
             {buyable && (
               <Dialog.Footer>

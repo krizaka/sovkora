@@ -79,7 +79,9 @@ class HttpStudioRunStarterAdapter implements StudioRunStarter {
       return UUID.fromString(accepted.get("id").asString());
     } catch (RestClientException unreachable) {
       logger.warn(
-          "the Studio service could not be reached: {}", unreachable.getClass().getSimpleName(), unreachable);
+          "the Studio service could not be reached: {}",
+          unreachable.getClass().getSimpleName(),
+          unreachable);
       throw new StudioStartRefusedException(
           "studio_unreachable", "the engine could not be reached");
     }

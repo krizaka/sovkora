@@ -95,7 +95,8 @@ class JdbcWebhookDeliveryStoreAdapter implements WebhookDeliveryStore {
           sealer.open(endpoint, rs.getString("secret")),
           previous == null ? null : sealer.open(endpoint, previous));
     } catch (IllegalStateException unreadable) {
-      logger.error("The signing secret of webhook endpoint {} does not open; skipped", endpoint);
+      logger.error(
+          "The signing secret of webhook endpoint {} does not open; skipped", endpoint, unreadable);
       return null;
     }
   }

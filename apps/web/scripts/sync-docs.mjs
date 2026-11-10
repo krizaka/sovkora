@@ -73,12 +73,12 @@ export function removedPublicRoutes() {
   return [...new Set([...block.matchAll(/source:\s*"([^"]+)"/g)].map((m) => m[1].replace(/\/:[a-z]+$/, "")))];
 }
 
-/** The removed routes a markdown text links (`](/gallery)` or `orazaka.com/gallery/…`), in order, once each. */
+/** The removed routes a markdown text links (`](/gallery)` or `dev.sovkora.com/gallery/…`), in order, once each. */
 export function removedLinks(md) {
   const hits = [];
   for (const route of removedPublicRoutes()) {
     const esc = route.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
-    if (new RegExp(`(\\]\\(|orazaka\\.com)${esc}(?![\\w-])`).test(md)) hits.push(route);
+    if (new RegExp(`(\\]\\(|orazaka\\.com|dev\\.sovkora\\.com)${esc}(?![\\w-])`).test(md)) hits.push(route);
   }
   return hits.sort((a, b) => md.indexOf(a) - md.indexOf(b));
 }

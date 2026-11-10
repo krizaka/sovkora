@@ -131,7 +131,9 @@ public class SpringAiImageGeneratorClient implements ImageGeneratorClient {
     // would be drawn into the picture as text. It is sent only to a model that declares its steps
     // (a diffusion.cpp engine).
     String prompt =
-        diffusionCpp ? (request.prompt() + extraArgs(request.direction(), steps)) : request.prompt();
+        diffusionCpp
+            ? (request.prompt() + extraArgs(request.direction(), steps))
+            : request.prompt();
     var response = dynamicImageModel.call(new ImagePrompt(prompt, executionOptions));
     var generation = response.getResult();
     byte[] imageData = extractImageData(generation);

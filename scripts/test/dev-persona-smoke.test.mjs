@@ -25,3 +25,10 @@ test("the workflow runs the smoke after the redeploy and on a schedule, with the
   assert.match(wf, /APP_QA_ORAZAKA_PERSONA_EMAIL: \$\{\{ secrets\.APP_QA_ORAZAKA_PERSONA_EMAIL \}\}/);
   assert.match(wf, /node scripts\/dev-persona-smoke\.mjs eric/);
 });
+
+test("the smoke targets the dev address by default, never the retired host (every run failed with « fetch failed »)", () => {
+  const source = readFileSync(new URL("../dev-persona-smoke.mjs", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /www\.orazaka\.com/);
+  assert.match(source, /ORAZAKA_WEB_URL \?\? "https:\/\/dev\.sovkora\.com"/);
+  assert.match(source, /ORAZAKA_EDGE_URL \?\? "https:\/\/dev\.sovkora\.com\/edge"/);
+});

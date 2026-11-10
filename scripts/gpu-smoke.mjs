@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * The sovereign smoke (docs/DEPLOY_DEV.md § GPU): proves OUR runtime generates — Ollama, sd-server, the media worker —
- * through Orazaka's own routing on www.orazaka.com, as the seeded test user. Never a third-party model API.
+ * through Orazaka's own routing on dev.sovkora.com, as the seeded test user. Never a third-party model API.
  *
  *   node scripts/gpu-smoke.mjs [--host droplet|mac] [--out <file>] [--only chat,image,video]
  *
@@ -21,7 +21,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
-const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : fallback;

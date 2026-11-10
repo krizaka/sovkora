@@ -1,7 +1,7 @@
 // The tools that call the public edge (journey-dev, studio-preflight) reach it only on its own origin and under its own path:
 // the base is checked once, an id read from an answer is one path segment, and a path read from an answer cannot climb out.
 
-const DEFAULT_EDGE = "https://www.orazaka.com/edge";
+const DEFAULT_EDGE = "https://dev.sovkora.com/edge";
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const LEAVES_EDGE = "the path must stay on the edge";
 

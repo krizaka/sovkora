@@ -29,10 +29,10 @@ public record ProviderMetrics(double healthScore, double p95LatencyMs, float[] p
 
   @Override
   public boolean equals(Object other) {
-    return other instanceof ProviderMetrics m
-        && Double.compare(healthScore, m.healthScore) == 0
-        && Double.compare(p95LatencyMs, m.p95LatencyMs) == 0
-        && java.util.Arrays.equals(providerVector, m.providerVector);
+    return other instanceof ProviderMetrics(var hs, var lat, var vec)
+        && Double.compare(healthScore, hs) == 0
+        && Double.compare(p95LatencyMs, lat) == 0
+        && java.util.Arrays.equals(providerVector, vec);
   }
 
   @Override
