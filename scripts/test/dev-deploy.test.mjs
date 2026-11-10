@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import { connectionVars, grantSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
+import { connectionVars, grantSql, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
 
 const spec = (name) => readFileSync(new URL(`../../infra/deploy/${name}.app.yaml`, import.meta.url), "utf8");
 
