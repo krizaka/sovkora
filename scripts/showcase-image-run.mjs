@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * The first step of the home page's "Prompt → Image → Video": each clip of a plan gets its image from a run of the
- * `image-generation` Studio on www.orazaka.com (never a model called directly). The facts the run reported are written to
+ * `image-generation` Studio on dev.sovkora.com (never a model called directly). The facts the run reported are written to
  * `<out>/<id>.image.json` beside `<id>.image.png`; a person looks at the image before it goes on (nothing is marked good here).
  *
  *   ORAZAKA_QA_EMAIL=… ORAZAKA_QA_PASSWORD=… node scripts/showcase-image-run.mjs --plan plan.json --out <dir> [--only id,id] [--redo] [--model stable-diffusion-3.5-large] [--size 1024x1024]
@@ -12,7 +12,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { runSeconds, factsOf } from "./gpu-i2v-run.mjs";
 
-const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://www.orazaka.com/edge";
+const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
   return i > 0 ? process.argv[i + 1] : fallback;

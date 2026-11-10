@@ -251,7 +251,11 @@ public class WebhookIngressService {
     try {
       key = WebhookSecret.of(sealer.open(triggerId, sealed)).key();
     } catch (IllegalStateException | IllegalArgumentException unreadable) {
-      logger.error("the secret of trigger {} cannot be opened ({})", triggerId, unreadable.getClass().getSimpleName(), unreadable);
+      logger.error(
+          "the secret of trigger {} cannot be opened ({})",
+          triggerId,
+          unreadable.getClass().getSimpleName(),
+          unreadable);
       return false;
     }
     return WebhookSignature.verify(key, signature, webhookId, timestamp, raw);

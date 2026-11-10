@@ -34,8 +34,8 @@ final class ResilientDailyCounterStore implements DailyCounterStore {
       } catch (RuntimeException unavailable) {
         if (retryAt.getAndSet(System.currentTimeMillis() + RETRY_AFTER_MILLIS) == 0) {
           logger.warn(
-              "the shared daily-quota store failed ({}): counting per instance until it answers",
-              unavailable.getClass().getSimpleName());
+              "the shared daily-quota store failed: counting per instance until it answers",
+              unavailable);
         }
       }
     }

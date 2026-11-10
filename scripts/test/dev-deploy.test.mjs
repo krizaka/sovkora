@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import { connectionVars, grantSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
+import { connectionVars, grantSql, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
 
 const spec = (name) => readFileSync(new URL(`../../infra/deploy/${name}.app.yaml`, import.meta.url), "utf8");
 
@@ -42,11 +42,11 @@ test("sovkora-dev: only the edge, the web and the GPU relay are routed; the brok
   assert.match(text, /SPRING_RABBITMQ_SSL_ENABLED, scope: RUN_TIME, value: "true"/);
 });
 
-test("sovkora-dev serves the operator console on admin.orazaka.com: alias domain, its own session and flag, IP allow-list", () => {
+test("sovkora-dev serves the operator console on admin.sovkora.com: alias domain, its own session and flag, IP allow-list", () => {
   const text = spec("sovkora-dev");
-  assert.match(text, /- domain: www\.orazaka\.com\n    type: PRIMARY/);
+  assert.match(text, /- domain: dev\.sovkora\.com\n    type: PRIMARY/);
   // The alias is in the spec since the cut-over of 2026-10-21 (the domain left `orazaka-admin-dev` first: a domain belongs to one app).
-  assert.match(text, /- domain: admin\.orazaka\.com\n    type: ALIAS/);
+  assert.match(text, /- domain: admin\.sovkora\.com\n    type: ALIAS/);
   // Same `web` component: no component of its own, no extra route, nothing paid.
   assert.deepEqual([...text.matchAll(/^  - name: (\S+)/gm)].map((m) => m[1]).sort(), ["core", "gpu-relay", "web"]);
   // The console's own flag, key and allow-list; the public site's NEXTAUTH_SECRET stays a different placeholder.
@@ -85,20 +85,19 @@ test("the relay exposes LocalAI's port to the app as well as allowing it", () =>
   assert.match(spec, /internal_ports: \[8085, 8086, 8188, 11434\]/);
 });
 
-test("www.orazaka.com is the public address; www serves /edge and the BFF; the apex answers 308 with www (epic krizaka/.github#119)", () => {
+test("dev.sovkora.com is the public dev address; serves /edge and the BFF; admin.sovkora.com is the console alias (krizaka-internal#2951)", () => {
   const spec = readFileSync(new URL("../../infra/deploy/sovkora-dev.app.yaml", import.meta.url), "utf8").replace(/^\s*#.*$/gm, "");
-  assert.match(spec, /- domain: www\.orazaka\.com\n\s+type: PRIMARY/);
-  assert.match(spec, /- domain: orazaka\.com\n\s+type: ALIAS/);
-  assert.doesNotMatch(spec, /domain: dev\.orazaka\.com/, "dev.orazaka.com was removed on 2026-11-05 (krizaka-internal#2600)");
-  assert.match(spec, /- domain: admin\.orazaka\.com\n\s+type: ALIAS/, "the console alias stays");
+  assert.match(spec, /- domain: dev\.sovkora\.com\n\s+type: PRIMARY/);
+  assert.doesNotMatch(spec, /domain: www\.orazaka\.com/, "retired orazaka.com host removed");
+  assert.doesNotMatch(spec, /domain: orazaka\.com\n\s+type: ALIAS/, "apex alias removed");
+  assert.match(spec, /- domain: admin\.sovkora\.com\n\s+type: ALIAS/, "the console alias stays");
   const rules = spec.slice(spec.indexOf("ingress:"));
-  assert.match(rules, /exact: orazaka\.com[\s\S]*?authority: www\.orazaka\.com[\s\S]*?redirect_code: 308/);
   assert.match(rules, /name: core\s+match:\s+path:\s+prefix: \/edge/, "the engine's API is host-agnostic");
-  assert.match(spec, /key: NEXTAUTH_URL, scope: RUN_TIME, value: "https:\/\/www\.orazaka\.com"/);
+  assert.match(spec, /key: NEXTAUTH_URL, scope: RUN_TIME, value: "https:\/\/dev\.sovkora\.com"/);
   assert.doesNotMatch(spec, /APP_DEV_HOST/, "no dev host to redirect any more");
-  assert.match(spec, /key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on"/, "www is indexed");
+  assert.match(spec, /key: APP_SEARCH_INDEXING, scope: RUN_AND_BUILD_TIME, value: "on"/, "flag on; dev-host rule closes indexing by name");
   const cors = /key: CORS_ALLOWED_ORIGINS[^\n]*value: "([^"]+)"/.exec(spec)?.[1].split(",");
-  for (const origin of ["https://www.orazaka.com", "https://admin.orazaka.com"]) assert.ok(cors?.includes(origin), origin);
+  for (const origin of ["https://dev.sovkora.com", "https://admin.sovkora.com"]) assert.ok(cors?.includes(origin), origin);
 });
 
 test("password: long, mixed, different each time", () => {
@@ -118,6 +117,18 @@ test("seedSql gives the admin ROLE_ADMIN, the user only ROLE_USER, and quotes va
   assert.match(sql, /ON CONFLICT \(username\) DO UPDATE/);
 });
 
+
+test("namesSql renames accounts by e-mail, never inserts, idempotent, injection-proof", () => {
+  const sql = namesSql([
+    { username: "Éric Tremblay", email: "qa+user@orazaka.com" },
+    { username: "Mira Haddad", email: "qa+admin@orazaka.com" },
+  ]);
+  assert.match(sql, /^BEGIN;[\s\S]*COMMIT;\n$/);
+  assert.match(sql, /UPDATE users SET username = 'Éric Tremblay' WHERE lower\(email\) = lower\('qa\+user@orazaka\.com'\) AND username != 'Éric Tremblay';/);
+  assert.match(sql, /UPDATE users SET username = 'Mira Haddad' WHERE lower\(email\) = lower\('qa\+admin@orazaka\.com'\) AND username != 'Mira Haddad';/);
+  assert.doesNotMatch(sql, /INSERT/);
+  assert.match(namesSql([{ username: "O'Brien", email: "o@x" }]), /'O''Brien'/);
+});
 
 test("the demo persona on dev is a first name on a reserved e-mail domain, a plain user, never a QA account", () => {
   const p = personaAccount();
@@ -497,7 +508,7 @@ test("automations (ADR-084): the service is the eighth JVM of the core, with its
   assert.match(dev, /key: AUTOMATION_PORT, scope: RUN_TIME, value: "8091"/);
   assert.match(dev, /key: AUTOMATION_INTERNAL_URL, scope: RUN_TIME, value: "http:\/\/localhost:8091"/, "the edge routes /api/v1/automations and /hooks/ to it");
   assert.match(dev, /key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http:\/\/localhost:8096"/, "it starts Studio runs over the Studio service's REST surface");
-  assert.match(dev, /key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https:\/\/www\.orazaka\.com\/edge"/, "the address a sender is shown");
+  assert.match(dev, /key: APP_PUBLIC_EDGE_URL, scope: RUN_TIME, value: "https:\/\/dev\.sovkora\.com\/edge"/, "the address a sender is shown");
   const docker = readFileSync(new URL("../../infra/deploy/Dockerfile", import.meta.url), "utf8");
   assert.match(docker, /services\/automation\/sovkora-automation-service \\/);
   assert.match(docker, /\/out\/automation\.jar/);
@@ -664,4 +675,12 @@ test("sovkora-dev: DigitalOcean alerts the team on a failed deployment or domain
     assert.match(service, /^ {4}alerts:\n {6}- rule: MEM_UTILIZATION\n {8}operator: GREATER_THAN\n {8}value: 85\n/m, service.split("\n")[0]);
     assert.match(service, /- rule: RESTART_COUNT\n {8}operator: GREATER_THAN\n {8}value: 2\n/, service.split("\n")[0]);
   }
+});
+
+test("the deployed keyring is written where the services read it (the core crashed at boot on the old folder)", () => {
+  const script = readFileSync(new URL("../../infra/deploy/run-services.sh", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../../services/job/sovkora-job-service/src/main/resources/application.yml", import.meta.url), "utf8");
+  assert.match(config, /\$\{user\.home\}\/\.sovkora\/master\.key/);
+  assert.match(script, /"\$HOME\/\.sovkora\/master\.key"/);
+  assert.doesNotMatch(script, /\$HOME\/\.orazaka/);
 });

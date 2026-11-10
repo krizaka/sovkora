@@ -1,0 +1,34 @@
+# Target architecture (advisory) — the executable C2 target of the rebuild (krizaka-internal#2927,
+# docs/architecture/target-modules.md). A standalone, non-required workflow (not listed in branch
+# protection) so a red here never blocks a merge while the parallel-slice rebuild is in flight. It
+# runs the source-level structural floor across the three toolchains (Java package root + module
+# build order, no cross-app TypeScript import, worker-media wire-contract only). It is kept out of
+# ci.yml on purpose — it is a guard, not a build-and-test step — and it already triggers on
+# merge_group so slice krizaka-internal#2933 can turn it required by one branch-protection flip (#2436).
+name: Target architecture (advisory)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  architecture-target:
+    name: Target architecture (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          package-manager-cache: false
+          node-version: "22"
+      - run: node scripts/architecture-target.mjs

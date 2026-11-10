@@ -37,8 +37,8 @@ final class ResilientBucketStore implements BucketStore {
       } catch (RuntimeException unavailable) {
         if (retryAt.getAndSet(System.currentTimeMillis() + RETRY_AFTER_MILLIS) == 0) {
           logger.warn(
-              "the shared rate-limit store failed ({}): limiting per instance until it answers",
-              unavailable.getClass().getSimpleName());
+              "the shared rate-limit store failed: limiting per instance until it answers",
+              unavailable);
         }
       }
     }

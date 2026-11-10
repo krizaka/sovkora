@@ -125,7 +125,8 @@ public class CreditReservationService {
       creditAuthorizationClient.release(holdId, reason);
     } catch (RuntimeException unreachable) {
       // Never fail a finished run on a billing outage: the billing sweeper expires the hold at TTL.
-      logger.warn("Could not close hold {} ({}); leaving it to the sweeper", holdId, reason);
+      logger.warn(
+          "Could not close hold {} ({}); leaving it to the sweeper", holdId, reason, unreachable);
     }
   }
 }

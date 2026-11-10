@@ -12,7 +12,7 @@ import unicodedata
 _DOUBLE_QUOTES = re.compile("[«»“”„‟″]")
 _SINGLE_QUOTES = re.compile("[‘’‚‛′`´]")
 _DASHES = re.compile("[‐‑‒–—―−]")
-_SPACES = re.compile(r"[\s     -    　]+")
+_SPACES = re.compile(r"\s+")
 
 
 def normalise(text: str) -> str:

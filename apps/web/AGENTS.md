@@ -44,10 +44,7 @@ with a message and, where safe, a `fix:`; written for Tsx and `.ts` is parsed as
 
 ## One app, two hosts (dev.sovkora.com · admin.sovkora.com)
 
-`dev.sovkora.com` is the public site (production: indexed, canonical, sitemap, `llms.txt`). `dev.orazaka.com` was removed on 2026-11-05
-(krizaka-internal#2600): every caller (mobile discovery, app links, e2e, scripts) uses www. The dev-host mechanism
-(`APP_DEV_HOST`, a 308 to www) stays for another dev address and is inert when unset; no `dev.*` address is ever
-indexed — by its name, whatever the configuration by its name, whatever the configuration (`isDevAddress`, `src/core/config/indexing.ts`).
+`dev.sovkora.com` is the **development address** (closed to search engines — `dev.*` by its name, `isDevAddress`, `src/core/config/indexing.ts`). `dev.orazaka.com` was removed on 2026-11-05 (krizaka-internal#2600): every caller (mobile discovery, app links, e2e, scripts) uses dev.sovkora.com. The dev-host mechanism (`APP_DEV_HOST`, a 308 to `APP_PUBLIC_URL`) stays for another dev address and is inert when unset; no `dev.*` address is ever indexed — by its name, whatever the configuration.
 
 The operator console (formerly the standalone `orazaka-web-admin` repository) lives here, served by **host routing**:
 `src/proxy.ts` → `src/console/core/config/host.ts` (`routeFor`, pure) rewrites `Host: admin.*` under `/console`
@@ -72,9 +69,9 @@ route outside `src/app/console`, never link `/console/...` (addresses on the adm
 The contract is defined once, in krizaka-com `AGENTS.md` §2.4, and checked here by `scripts/check-seo-family.mjs` (a copy of
 the same dependency-free file in every site's repository — keep the copies identical; its unit test sits beside it).
 
-dev.sovkora.com is **indexed**; `dev.*` and `admin.*` never are — robots `Disallow: /`, `X-Robots-Tag: noindex` on every answer, and
+dev.sovkora.com is **not indexed** (it is a `dev.*` address); `dev.*` and `admin.*` never are — robots `Disallow: /`, `X-Robots-Tag: noindex` on every answer, and
 `noindex` in the pages when the deployment's own address (`APP_PUBLIC_URL`) is `dev.*` or `APP_SEARCH_INDEXING=off`
-(`src/core/config/indexing.ts`, `src/proxy.ts`). What is indexed is described in `src/app/_seo/seo.ts`: origin, crawlers, JSON-LD, `llms.txt`/`llms-full.txt` rendered from the synced docs; `src/app/robots.ts`, `sitemap.ts`, `opengraph-image.tsx`). The language is chosen in the page (one URL per page), so there is no hreflang. The sign-in proxy (`src/proxy.ts`) must keep those files public. Tests: `src/__tests__/seo.test.ts`.
+(`src/core/config/indexing.ts`, `src/proxy.ts`). The post-deploy SEO check runs with `--index off` (`web-live.yml`). What would be indexed on a production host is described in `src/app/_seo/seo.ts`: origin, crawlers, JSON-LD, `llms.txt`/`llms-full.txt` rendered from the synced docs; `src/app/robots.ts`, `sitemap.ts`, `opengraph-image.tsx`). The language is chosen in the page (one URL per page), so there is no hreflang. The sign-in proxy (`src/proxy.ts`) must keep those files public. Tests: `src/__tests__/seo.test.ts`.
 
 ## Before you open or update a pull request (coding agents)
 

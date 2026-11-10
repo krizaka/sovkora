@@ -39,14 +39,14 @@ public interface SafeHttp {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof Response that
-          && status == that.status
-          && Objects.equals(finalUri, that.finalUri)
-          && Objects.equals(contentType, that.contentType)
-          && Objects.equals(charset, that.charset)
-          && Arrays.equals(body, that.body)
-          && Objects.equals(etag, that.etag)
-          && Objects.equals(lastModified, that.lastModified);
+      return other instanceof Response(var uri, var st, var ct, var cs, var bd, var et, var lm)
+          && status == st
+          && Objects.equals(finalUri, uri)
+          && Objects.equals(contentType, ct)
+          && Objects.equals(charset, cs)
+          && Arrays.equals(body, bd)
+          && Objects.equals(etag, et)
+          && Objects.equals(lastModified, lm);
     }
 
     @Override

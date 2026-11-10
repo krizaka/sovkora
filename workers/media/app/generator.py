@@ -91,42 +91,54 @@ def generate_video_frames(
     if pipe is None:
         raise RuntimeError("SVD pipeline is not initialized. Cannot generate video without model.")
 
-    if psutil and process:
-        try:
-            process_mem_mb = process.memory_info().rss / (1024 * 1024)
-            sys_mem = psutil.virtual_memory()
-            available_mem_mb = sys_mem.available / (1024 * 1024)
-            print(
-                f"Memory Check: Process RSS = {process_mem_mb:.2f} MB, System Available = {available_mem_mb:.2f} MB",
-                flush=True,
+    _apply_memory_guards(process)
+    return _run_svd_pipeline(input_image, num_frames, num_inference_steps, generator, progress_callback)
+
+
+def _apply_memory_guards(process) -> None:
+    """Checks available memory and enables VAE/attention slicing if thresholds are crossed."""
+    if not (psutil and process):
+        return
+    try:
+        process_mem_mb = process.memory_info().rss / (1024 * 1024)
+        sys_mem = psutil.virtual_memory()
+        available_mem_mb = sys_mem.available / (1024 * 1024)
+        print(
+            f"Memory Check: Process RSS = {process_mem_mb:.2f} MB, System Available = {available_mem_mb:.2f} MB",
+            flush=True,
+        )
+
+        # Dynamic memory slicing/tiling thresholds
+        MEM_SLICING_THRESHOLD_MB = 4000.0
+        MEM_AVAIL_WARNING_MB = 2000.0
+        SYSTEM_AVAIL_MIN_MB = 1500.0
+
+        if available_mem_mb < SYSTEM_AVAIL_MIN_MB:
+            raise RuntimeError(
+                f"System memory exhausted: {available_mem_mb:.0f} MB available (min: {SYSTEM_AVAIL_MIN_MB} MB)"
             )
 
-            # Dynamic memory slicing/tiling thresholds
-            MEM_SLICING_THRESHOLD_MB = 4000.0
-            MEM_AVAIL_WARNING_MB = 2000.0
-            SYSTEM_AVAIL_MIN_MB = 1500.0
+        if process_mem_mb > MEM_SLICING_THRESHOLD_MB or available_mem_mb < MEM_AVAIL_WARNING_MB:
+            print(
+                "Memory threshold reached. Enabling dynamic VAE slicing, tiling, and attention slicing to prevent OOM.",
+                flush=True,
+            )
+            if hasattr(pipe, "enable_vae_slicing"):
+                pipe.enable_vae_slicing()
+            if hasattr(pipe, "enable_vae_tiling"):
+                pipe.enable_vae_tiling()
+            if hasattr(pipe, "enable_attention_slicing"):
+                pipe.enable_attention_slicing()
+    except MemoryError as exc:
+        raise RuntimeError("MemoryError during pre-check. System cannot allocate for video generation.") from exc
+    except Exception as mem_err:
+        print(f"Error checking memory: {mem_err}", flush=True)
 
-            if available_mem_mb < SYSTEM_AVAIL_MIN_MB:
-                raise RuntimeError(
-                    f"System memory exhausted: {available_mem_mb:.0f} MB available (min: {SYSTEM_AVAIL_MIN_MB} MB)"
-                )
 
-            if process_mem_mb > MEM_SLICING_THRESHOLD_MB or available_mem_mb < MEM_AVAIL_WARNING_MB:
-                print(
-                    "Memory threshold reached. Enabling dynamic VAE slicing, tiling, and attention slicing to prevent OOM.",
-                    flush=True,
-                )
-                if hasattr(pipe, "enable_vae_slicing"):
-                    pipe.enable_vae_slicing()
-                if hasattr(pipe, "enable_vae_tiling"):
-                    pipe.enable_vae_tiling()
-                if hasattr(pipe, "enable_attention_slicing"):
-                    pipe.enable_attention_slicing()
-        except MemoryError as exc:
-            raise RuntimeError("MemoryError during pre-check. System cannot allocate for video generation.") from exc
-        except Exception as mem_err:
-            print(f"Error checking memory: {mem_err}", flush=True)
-
+def _run_svd_pipeline(
+    input_image: Image.Image, num_frames: int, num_inference_steps: int, generator, progress_callback
+) -> list:
+    """Executes the SVD pipeline and returns frames. §12 Zero-Fallback: raises on any failure."""
     import traceback
 
     try:

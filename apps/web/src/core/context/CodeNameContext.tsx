@@ -14,7 +14,7 @@ export function CodeNameProvider({ dev, children }: Readonly<{ dev: boolean; chi
 
 /**
  * « code name: orazaka » / « nom de code : orazaka »: the line under « Sovkora » on a development deployment, so the host
- * (www.orazaka.com) and the screen can be followed. `null` in production. The words are the `landing.stage.codeName` messages.
+ * (dev.sovkora.com) and the screen can be followed. `null` in production. The words are the `landing.stage.codeName` messages.
  */
 export function useCodeName(): string | null {
   const dev = useContext(DevDeployment);

@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import org.junit.jupiter.api.AfterEach;
@@ -52,6 +54,27 @@ class RepositoryTreeTest {
   @DisplayName("a missing root is an empty tree, not a failure")
   void missingRoot() {
     assertThat(RepositoryTree.files(root.resolve("absent"))).isEmpty();
+  }
+
+  @Test
+  @DisplayName(
+      "a file gone when the walk reaches it is skipped; a present but unreadable one still fails")
+  void toleratesAFileThatVanishesMidWalk() throws IOException {
+    Path gone = root.resolve("services/automation/.attach_pid10593");
+    Path present = root.resolve("services/automation/pom.xml");
+    Files.createDirectories(present.getParent());
+    Files.writeString(present, "");
+
+    // A forked test JVM's attach file, listed a moment ago and deleted before its attributes could
+    // be read: the walk continues past it (CI run 42719357631, 2026-11-09). Reported either as
+    // NoSuchFileException, or as a plain IOException over a path that is already gone.
+    assertThat(RepositoryTree.vanished(gone, new NoSuchFileException(gone.toString()))).isTrue();
+    assertThat(RepositoryTree.vanished(gone, new IOException("gone"))).isTrue();
+
+    // A file still on disk that genuinely could not be read is a real fault, not a race: rethrow
+    // it.
+    assertThat(RepositoryTree.vanished(present, new AccessDeniedException(present.toString())))
+        .isFalse();
   }
 
   @Test

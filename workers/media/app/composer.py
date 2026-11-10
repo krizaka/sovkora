@@ -15,7 +15,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-from typing import List, Optional
 
 from PIL import Image, ImageOps
 
@@ -57,7 +56,7 @@ def _canvas(path: str, width: int, height: int) -> Image.Image:
         return canvas
 
 
-def _resolve_assets(asset_paths: List[str]) -> List[str]:
+def _resolve_assets(asset_paths: list[str]) -> list[str]:
     """Keeps the readable inputs, in order, capped."""
     resolved = []
     for candidate in asset_paths[:MAX_PHOTOS]:
@@ -67,9 +66,9 @@ def _resolve_assets(asset_paths: List[str]) -> List[str]:
 
 
 def compose(
-    photo_paths: List[str],
+    photo_paths: list[str],
     output_path: str,
-    audio_path: Optional[str] = None,
+    audio_path: str | None = None,
     seconds_per_photo: float = DEFAULT_SECONDS_PER_PHOTO,
     width: int = DEFAULT_WIDTH,
     height: int = DEFAULT_HEIGHT,

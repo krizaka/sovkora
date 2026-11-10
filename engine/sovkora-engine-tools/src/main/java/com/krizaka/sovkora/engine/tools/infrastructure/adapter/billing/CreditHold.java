@@ -12,8 +12,6 @@ import com.krizaka.sovkora.engine.tools.application.port.law.ChatTokenMeter;
 import com.krizaka.sovkora.engine.tools.application.port.law.ResearchMeter;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * One {@code CALL} held against the credits, then closed once: the ADR-033 hold then settle or
@@ -28,8 +26,6 @@ import org.slf4j.LoggerFactory;
  * <p>It holds no personal data: the hold id and the ledger's key prefix only, and it never logs.
  */
 final class CreditHold implements CheckMeter.Hold, ResearchMeter.Hold, ChatTokenMeter.Hold {
-
-  private static final Logger log = LoggerFactory.getLogger(CreditHold.class);
 
   /** One call: the measurement a settled {@code CALL} reports. */
   private static final ConsumptionReport ONE_CALL =
@@ -67,6 +63,7 @@ final class CreditHold implements CheckMeter.Hold, ResearchMeter.Hold, ChatToken
    * @return the hold, or empty when there is no billable actor or the credits cannot hold the call
    *     (enforced refusal, or a grant that is not granted, which is released first)
    */
+  @SuppressWarnings("java:S1166") // metersNeverLog [ADR-033]: billing adapters must not log
   static Optional<CreditHold> take(
       CreditAuthorizationClient billing,
       BillableCapability capability,
@@ -86,7 +83,6 @@ final class CreditHold implements CheckMeter.Hold, ResearchMeter.Hold, ChatToken
           billing.hold(
               new CreditHoldCommand(actorId, capability, provider, correlationId, null, 0L));
     } catch (InsufficientCreditsException refused) {
-      log.debug("Credit hold refused: insufficient credits", refused);
       return Optional.empty();
     }
     if (!grant.granted()) {

@@ -22,7 +22,8 @@ class RunningJobsTest {
                   running.bind("job-1");
                   started.countDown();
                   try {
-                    Thread.sleep(Duration.ofSeconds(30));
+                    Thread.sleep( // NOSONAR java:S2925 - virtual thread holds the job slot
+                        Duration.ofSeconds(30));
                   } catch (InterruptedException e) {
                     interrupted.set(true);
                   } finally {

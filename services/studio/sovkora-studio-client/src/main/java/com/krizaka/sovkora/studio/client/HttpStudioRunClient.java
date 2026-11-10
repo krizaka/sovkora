@@ -53,7 +53,7 @@ final class HttpStudioRunClient implements StudioRunClient {
     } catch (RestClientException unreachable) {
       // A run that cannot be read is not a run that failed. Callers poll; an empty answer makes
       // them try again, whereas a thrown exception would surface a transient blip as a dead run.
-      logger.warn("Could not read run {}: {}", runId, unreachable.getMessage());
+      logger.warn("Could not read run {}", runId, unreachable);
       return Optional.empty();
     }
   }

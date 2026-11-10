@@ -103,7 +103,7 @@ export function PricebookScreen() {
       cell: (rate) => formatCredits(rate.estimateCredits),
     },
     { id: "version", header: "v", sortable: true, align: "end" },
-    { id: "actions", header: "", align: "end", cell: (rate) => <RateActionsCell rate={rate} onEdit={edit} /> },
+    { id: "actions", header: "", align: "end", cell: (rate) => <RateActionsCell rate={rate} onEdit={edit} /> }, // NOSONAR S6478 — render prop called as a function by DataTable; RateActionsCell is defined outside; edit is stable
   ];
 
   return (
@@ -112,7 +112,7 @@ export function PricebookScreen() {
         <h2 className="text-lg font-semibold text-fg">Grille tarifaire</h2>
         <p className="text-sm text-fg-muted">
           Une publication clôture le tarif courant et en ouvre une nouvelle version. Les réservations en cours restent
-          facturées à la version qu'elles ont figée.
+          facturées à la version qu&apos;elles ont figée.
         </p>
       </header>
 

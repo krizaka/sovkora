@@ -118,7 +118,8 @@ public class ProductCheckService implements ProductChecks {
                     submitted.purpose(),
                     door.collect(submitted.provider(), submitted.purpose(), call, providerRef));
               } catch (CoreException off) {
-                log.debug("Check collection not configured ({})", off.getClass().getSimpleName(), off);
+                log.debug(
+                    "Check collection not configured ({})", off.getClass().getSimpleName(), off);
                 return new Collected(
                     submitted.purpose(), CheckResult.refused(CheckRefusal.NOT_CONFIGURED));
               }
