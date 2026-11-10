@@ -89,7 +89,9 @@ await record(
     await page.goto(`${base}/chat`, { waitUntil: "load" });
     const box = page.locator("textarea").first();
     await box.waitFor();
-    if (await qaOnScreen(page)) throw new Error(`web-chat: « qa » is on screen — a demo shows a persona`);
+    if (await qaOnScreen(page)) {
+      throw new Error(`web-chat: « qa » is on screen — a demo shows a persona`);
+    }
     await askRecordedQuestion(page);
     // The answer must grow the page; then the turn is over when the composer is editable again.
     const before = (await page.locator("main").first().innerText()).length;
@@ -115,7 +117,9 @@ await record(
   async (page) => {
     await page.goto(`${base}/studios`, { waitUntil: "load" });
     await page.waitForLoadState("networkidle");
-    if (await qaOnScreen(page)) throw new Error(`web-studio: « qa » is on screen — a demo shows a persona`);
+    if (await qaOnScreen(page)) {
+      throw new Error(`web-studio: « qa » is on screen — a demo shows a persona`);
+    }
     await pause(page, 1600);
     await page.getByRole("radio", { name: /^Ready/ }).click();
     await pause(page, 2400);
