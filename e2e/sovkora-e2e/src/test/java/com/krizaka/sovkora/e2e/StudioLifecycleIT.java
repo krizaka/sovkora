@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.e2e;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -9,10 +10,12 @@ import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.options.FilePayload;
 import com.microsoft.playwright.options.FormData;
 import com.microsoft.playwright.options.RequestOptions;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -262,22 +265,19 @@ class StudioLifecycleIT extends AbstractApiE2eTest {
 
   /** Polls until the run leaves RUNNING; the job plane is asynchronous and offers no callback. */
   private JsonNode awaitTerminal(String token, String runId) {
-    JsonNode run = null;
-    for (int attempt = 0; attempt < 120; attempt++) {
-      APIResponse response = request.get("/api/v1/studios/runs/" + runId, bearer(token));
-      assertEquals(200, response.status());
-      run = MAPPER.readTree(response.text());
-      if (!"RUNNING".equals(run.path("status").asString())) {
-        return run;
-      }
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException interrupted) {
-        Thread.currentThread().interrupt();
-        throw new IllegalStateException("Interrupted while waiting for the run");
-      }
-    }
-    throw new AssertionError("the run never left RUNNING: " + run);
+    AtomicReference<JsonNode> run = new AtomicReference<>();
+    await()
+        .atMost(Duration.ofSeconds(240))
+        .pollInterval(Duration.ofSeconds(2))
+        .until(
+            () -> {
+              APIResponse response = request.get("/api/v1/studios/runs/" + runId, bearer(token));
+              assertEquals(200, response.status());
+              JsonNode current = MAPPER.readTree(response.text());
+              run.set(current);
+              return !"RUNNING".equals(current.path("status").asString());
+            });
+    return run.get();
   }
 
   /** A 16x16 PNG, built here so the suite carries no binary fixture. */

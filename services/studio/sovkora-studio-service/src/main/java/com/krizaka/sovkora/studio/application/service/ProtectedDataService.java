@@ -238,6 +238,7 @@ public class ProtectedDataService {
           runService.cancel(run.id(), actorId);
         } catch (RunNotFoundException ignored) {
           // Gone between the listing and now: there is nothing left to stop.
+          logger.debug("run already gone", ignored);
         }
       }
     }

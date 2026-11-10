@@ -193,68 +193,8 @@ def parse_edit(raw, clip_count: int) -> Edit:
     grade = str(raw.get("grade") or "none")
     if grade not in GRADES:
         raise EditError(f"grade must be one of {', '.join(GRADES)}")
-    shots_raw = raw.get("shots")
-    if not isinstance(shots_raw, list) or not shots_raw:
-        raise EditError("the edit has no shots")
-    if len(shots_raw) > MAX_SHOTS:
-        raise EditError(f"a cut holds at most {MAX_SHOTS} shots")
-    shots = []
-    for i, item in enumerate(shots_raw):
-        if not isinstance(item, dict):
-            raise EditError(f"shot {i} must be an object")
-        where = f"shot {i}"
-        clip = int(_number(item.get("clip", i), f"{where}.clip", 0, clip_count - 1))
-        start = _number(item.get("in", 0), f"{where}.in", 0, 600)
-        end = _number(item.get("out", start + 5), f"{where}.out", start + MIN_SHOT_SECONDS, 600)
-        speed = _number(item.get("speed", 1), f"{where}.speed", 0.25, 4)
-        ramp_at = item.get("rampAt")
-        ramp_speed = None
-        if ramp_at is not None:
-            ramp_at = _number(ramp_at, f"{where}.rampAt", start + 0.1, end - 0.1)
-            ramp_speed = _number(item.get("rampSpeed", 0.5), f"{where}.rampSpeed", 0.25, 4)
-        transition = str(item.get("transition") or "cut")
-        if transition not in TRANSITIONS:
-            raise EditError(f"{where}.transition must be one of {', '.join(TRANSITIONS)}")
-        seconds = (
-            0.0
-            if transition == "cut"
-            else _number(item.get("transitionSeconds", 0.4), f"{where}.transitionSeconds", 0.1, MAX_TRANSITION_SECONDS)
-        )
-        shots.append(
-            Shot(
-                clip=clip,
-                start=start,
-                end=end,
-                speed=speed,
-                ramp_at=ramp_at,
-                ramp_speed=ramp_speed,
-                zoom=_number(item.get("zoom", 1), f"{where}.zoom", 1, 1.5),
-                transition=transition,
-                transition_seconds=seconds,
-                caption=_text(item.get("caption"), f"{where}.caption"),
-            )
-        )
-    # A transition is the handover INTO a shot; it must fit inside both shots it joins.
-    for i, shot in enumerate(shots[1:], start=1):
-        if shot.transition_seconds >= min(shot.seconds, shots[i - 1].seconds) / 2:
-            raise EditError(f"shot {i}.transitionSeconds is longer than half of a shot it joins")
-    titles_raw = raw.get("titles") or []
-    if not isinstance(titles_raw, list) or len(titles_raw) > MAX_TITLES:
-        raise EditError(f"titles must be a list of at most {MAX_TITLES}")
-    titles = []
-    for i, item in enumerate(titles_raw):
-        style = str(item.get("style") or "hero")
-        if style not in TEXT_STYLES:
-            raise EditError(f"title {i}.style must be one of {', '.join(TEXT_STYLES)}")
-        start = _number(item.get("start", 0), f"title {i}.start", 0, MAX_SECONDS)
-        titles.append(
-            Title(
-                text=_text(item.get("text"), f"title {i}.text"),
-                start=start,
-                end=_number(item.get("end", start + 2), f"title {i}.end", start + 0.2, MAX_SECONDS),
-                style=style,
-            )
-        )
+    shots = _parse_shots(raw, clip_count)
+    titles = _parse_titles(raw)
     upscale = str(raw.get("upscale") or "none")
     if upscale not in UPSCALERS:
         raise EditError(f"upscale must be one of {', '.join(UPSCALERS)}")
@@ -282,6 +222,81 @@ def parse_edit(raw, clip_count: int) -> Edit:
     if timeline(edit)[-1][1] > MAX_SECONDS:
         raise EditError(f"the cut is longer than {MAX_SECONDS:g} s")
     return edit
+
+
+def _parse_shots(raw: dict, clip_count: int) -> list:
+    """Validates and parses the ``shots`` list from a raw edit dict."""
+    shots_raw = raw.get("shots")
+    if not isinstance(shots_raw, list) or not shots_raw:
+        raise EditError("the edit has no shots")
+    if len(shots_raw) > MAX_SHOTS:
+        raise EditError(f"a cut holds at most {MAX_SHOTS} shots")
+    shots = []
+    for i, item in enumerate(shots_raw):
+        shots.append(_parse_shot(i, item, clip_count))
+    # A transition is the handover INTO a shot; it must fit inside both shots it joins.
+    for i, shot in enumerate(shots[1:], start=1):
+        if shot.transition_seconds >= min(shot.seconds, shots[i - 1].seconds) / 2:
+            raise EditError(f"shot {i}.transitionSeconds is longer than half of a shot it joins")
+    return shots
+
+
+def _parse_shot(i: int, item, clip_count: int) -> Shot:
+    """Validates and parses one shot entry from the edit list."""
+    if not isinstance(item, dict):
+        raise EditError(f"shot {i} must be an object")
+    where = f"shot {i}"
+    clip = int(_number(item.get("clip", i), f"{where}.clip", 0, clip_count - 1))
+    start = _number(item.get("in", 0), f"{where}.in", 0, 600)
+    end = _number(item.get("out", start + 5), f"{where}.out", start + MIN_SHOT_SECONDS, 600)
+    speed = _number(item.get("speed", 1), f"{where}.speed", 0.25, 4)
+    ramp_at = item.get("rampAt")
+    ramp_speed = None
+    if ramp_at is not None:
+        ramp_at = _number(ramp_at, f"{where}.rampAt", start + 0.1, end - 0.1)
+        ramp_speed = _number(item.get("rampSpeed", 0.5), f"{where}.rampSpeed", 0.25, 4)
+    transition = str(item.get("transition") or "cut")
+    if transition not in TRANSITIONS:
+        raise EditError(f"{where}.transition must be one of {', '.join(TRANSITIONS)}")
+    seconds = (
+        0.0
+        if transition == "cut"
+        else _number(item.get("transitionSeconds", 0.4), f"{where}.transitionSeconds", 0.1, MAX_TRANSITION_SECONDS)
+    )
+    return Shot(
+        clip=clip,
+        start=start,
+        end=end,
+        speed=speed,
+        ramp_at=ramp_at,
+        ramp_speed=ramp_speed,
+        zoom=_number(item.get("zoom", 1), f"{where}.zoom", 1, 1.5),
+        transition=transition,
+        transition_seconds=seconds,
+        caption=_text(item.get("caption"), f"{where}.caption"),
+    )
+
+
+def _parse_titles(raw: dict) -> list:
+    """Validates and parses the ``titles`` list from a raw edit dict."""
+    titles_raw = raw.get("titles") or []
+    if not isinstance(titles_raw, list) or len(titles_raw) > MAX_TITLES:
+        raise EditError(f"titles must be a list of at most {MAX_TITLES}")
+    titles = []
+    for i, item in enumerate(titles_raw):
+        style = str(item.get("style") or "hero")
+        if style not in TEXT_STYLES:
+            raise EditError(f"title {i}.style must be one of {', '.join(TEXT_STYLES)}")
+        start = _number(item.get("start", 0), f"title {i}.start", 0, MAX_SECONDS)
+        titles.append(
+            Title(
+                text=_text(item.get("text"), f"title {i}.text"),
+                start=start,
+                end=_number(item.get("end", start + 2), f"title {i}.end", start + 0.2, MAX_SECONDS),
+                style=style,
+            )
+        )
+    return titles
 
 
 def timeline(edit: Edit) -> list[tuple[float, float]]:

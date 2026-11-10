@@ -49,8 +49,7 @@ public record LawChangeReview(
     String previous = change.previous() == null ? NONE : change.previous().text();
     String current =
         change.current() == null ? "(removed from the source)" : change.current().text();
-    String hashBefore =
-        change.previous() == null ? NONE : change.previous().contentHash().hex();
+    String hashBefore = change.previous() == null ? NONE : change.previous().contentHash().hex();
     String hashNow = change.current() == null ? NONE : change.current().contentHash().hex();
     String content =
         "# "

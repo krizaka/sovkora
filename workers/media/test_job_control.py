@@ -140,4 +140,12 @@ class TestProgressPayload(unittest.TestCase):
 
         import app.wan_generator as wan
 
-        self.assertIn("except job_control.JobCancelled", inspect.getsource(wan.generate_wan_frames))
+        # The guard may live in the public entry point or in a private helper
+        # extracted for cognitive complexity (S3776). Either way the module must
+        # handle JobCancelled and propagate it rather than swallow it.
+        full_source = "".join(
+            inspect.getsource(obj)
+            for name, obj in inspect.getmembers(wan, inspect.isfunction)
+            if obj.__module__ == wan.__name__
+        )
+        self.assertIn("except job_control.JobCancelled", full_source)

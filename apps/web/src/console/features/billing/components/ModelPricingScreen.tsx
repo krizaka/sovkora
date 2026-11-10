@@ -23,6 +23,8 @@ type PricingRow = {
   priced: boolean;
 };
 
+const modelStatusCell = ({ own, priced }: PricingRow) => <ModelStatusCell own={own} priced={priced} />;
+
 function ModelStatusCell({ own, priced }: Readonly<{ own: PricebookRate | undefined; priced: boolean }>) {
   return (
     <>
@@ -37,7 +39,11 @@ function ModelActionsCell({
   model,
   own,
   onDraft,
-}: Readonly<{ model: CatalogModel; own: PricebookRate | undefined; onDraft: (m: CatalogModel, r?: PricebookRate) => void }>) {
+}: Readonly<{
+  model: CatalogModel;
+  own: PricebookRate | undefined;
+  onDraft: (m: CatalogModel, r?: PricebookRate) => void;
+}>) {
   return (
     <Button size="sm" variant="ghost" onClick={() => onDraft(model, own)}>
       {own ? "Modifier" : "Tarifer"}
@@ -143,13 +149,25 @@ export function ModelPricingScreen() {
     { id: "category", header: "Catégorie", value: ({ model }) => model.category },
     { id: "capability", header: "Capacité" },
     { id: "unit", header: "Unité", value: ({ own, fallback }) => own?.unit ?? fallback?.unit ?? "—" },
-    { id: "creditsPerUnit", header: "Crédits / unité", align: "end",
-      value: ({ own, fallback }) => own?.creditsPerUnit ?? fallback?.creditsPerUnit ?? "—" },
-    { id: "estimateCredits", header: "Estimation", align: "end",
-      value: ({ own, fallback }) => own?.estimateCredits ?? fallback?.estimateCredits ?? "—" },
-    { id: "status", header: "Statut", cell: ({ own, priced }) => <ModelStatusCell own={own} priced={priced} /> },
-    { id: "actions", header: "", align: "end",
-      cell: ({ model, own }) => <ModelActionsCell model={model} own={own} onDraft={startDraft} /> },
+    {
+      id: "creditsPerUnit",
+      header: "Crédits / unité",
+      align: "end",
+      value: ({ own, fallback }) => own?.creditsPerUnit ?? fallback?.creditsPerUnit ?? "—",
+    },
+    {
+      id: "estimateCredits",
+      header: "Estimation",
+      align: "end",
+      value: ({ own, fallback }) => own?.estimateCredits ?? fallback?.estimateCredits ?? "—",
+    },
+    { id: "status", header: "Statut", cell: modelStatusCell },
+    {
+      id: "actions",
+      header: "",
+      align: "end",
+      cell: ({ model, own }) => <ModelActionsCell model={model} own={own} onDraft={startDraft} />, // NOSONAR S6478 — render prop called as a function by DataTable; ModelActionsCell is defined outside; startDraft is stable
+    },
   ];
 
   return (

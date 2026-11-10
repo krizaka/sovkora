@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BlueprintPublishService {
 
-  private static final String STEP_PREFIX = STEP_PREFIX;
+  private static final String STEP_PREFIX = "step '";
 
   private final JdbcTemplate jdbcTemplate;
   private final BlueprintRepository blueprintRepository;

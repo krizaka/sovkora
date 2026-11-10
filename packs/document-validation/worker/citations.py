@@ -40,7 +40,7 @@ UNPINNED_NOTICE = {
 #: What a finding's citation carries of a ``law`` block.
 FIELDS = ("instrument", "ref", "language", "officialUrl", "inForceFrom", "contentHash", "quote")
 
-_WHITESPACE = re.compile(r"[\s ]+")
+_WHITESPACE = re.compile(r"\s+")
 
 
 def content_hash(text: str) -> str:

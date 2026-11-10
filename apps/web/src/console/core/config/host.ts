@@ -1,6 +1,6 @@
 /**
  * @file host.ts
- * @description Two sites, one app: www.orazaka.com (the product) and admin.orazaka.com (the operator console). The
+ * @description Two sites, one app: dev.sovkora.com (the product) and admin.sovkora.com (the operator console). The
  * proxy decides by the host: on the admin host every page is served from the internal `/console` tree (`/studios` is
  * `/console/studios`), on any other host that tree does not exist (404). Pure, so it is tested without a server.
  */
