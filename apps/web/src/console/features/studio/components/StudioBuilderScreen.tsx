@@ -2,6 +2,8 @@
 
 import { cn } from "@krizaka/ui/cn";
 import { useQuery } from "@krizaka/query";
+import { studiosCopy, type StudiosLocale } from "@/console/core/copy/studios";
+import { useConsoleLocale } from "@/console/core/providers/ConsoleLocale";
 import { StudioAdminApi } from "@/console/services/studio.admin.api";
 import { useStudioAdmin } from "@/console/features/studio/hooks/useStudioAdmin";
 import { BlueprintEditor } from "@/console/features/studio/components/BlueprintEditor";
@@ -16,7 +18,9 @@ import { BlueprintVersionTable } from "@/console/features/studio/components/Blue
  * now", and publishing without that answer is how a working version gets replaced
  * by accident.
  */
-export function StudioBuilderScreen() {
+export function StudioBuilderScreen({ locale }: Readonly<{ locale?: StudiosLocale }>) {
+  const fromContext = useConsoleLocale();
+  const words = studiosCopy[locale ?? fromContext].builder;
   const { studios, versions, selected, select, isLoading, error, reloadVersions } = useStudioAdmin();
   // A best-effort list: the picker is a convenience, and the server is what actually
   // refuses a step naming a capability that does not exist.
@@ -28,7 +32,7 @@ export function StudioBuilderScreen() {
   const featureKeys: string[] = featureKeysQuery.data ?? [];
 
   if (isLoading) {
-    return <p className="text-sm text-fg-muted">Chargement du catalogue…</p>;
+    return <p className="text-sm text-fg-muted">{words.loading}</p>;
   }
 
   return (
@@ -50,7 +54,7 @@ export function StudioBuilderScreen() {
             <span className="block font-mono text-[10px] text-fg-muted">{studio.studioKey}</span>
           </button>
         ))}
-        {studios.length === 0 && <p className="text-sm text-fg-muted">Aucun Studio au catalogue.</p>}
+        {studios.length === 0 && <p className="text-sm text-fg-muted">{words.empty}</p>}
       </nav>
 
       <div className="space-y-6">
@@ -58,8 +62,18 @@ export function StudioBuilderScreen() {
 
         {selected && (
           <>
-            <BlueprintVersionTable studioKey={selected} versions={versions} onChanged={reloadVersions} />
-            <BlueprintEditor studioKey={selected} featureKeys={featureKeys} onSaved={reloadVersions} />
+            <BlueprintVersionTable
+              studioKey={selected}
+              versions={versions}
+              onChanged={reloadVersions}
+              locale={locale ?? fromContext}
+            />
+            <BlueprintEditor
+              studioKey={selected}
+              featureKeys={featureKeys}
+              onSaved={reloadVersions}
+              locale={locale ?? fromContext}
+            />
           </>
         )}
       </div>

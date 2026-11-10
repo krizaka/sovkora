@@ -2627,7 +2627,7 @@ const mdPacks = (p, cli, catalog) => {
 // ── Administration ──────────────────────────────────────────────────────────
 
 function extractAdmin(api) {
-  // The operator console lives in orazaka-web-client (host routing: admin.orazaka.com), not in a repository of its own.
+  // The operator console lives in orazaka-web-client (host routing: admin.sovkora.com), not in a repository of its own.
   const repo = REPOSITORIES.find((r) => r.name === "web");
   const src = repo ? join(ROOT, repo.path, "src") : null;
   const appDir = src ? join(src, "app", "console") : null;
@@ -2688,7 +2688,7 @@ const mdAdmin = (a) => {
     "",
     `## The SecOps console (${code(a.repo ?? "orazaka-web-client")})`,
     "",
-    "A Next.js console served by `orazaka-web-client` on the admin host (`admin.orazaka.com`, host routing), started with the web client by `orazaka dev`.",
+    "A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `orazaka dev`.",
     "",
     "| Screen | What it is for | Tabs |",
     "|:---|:---|:---|",

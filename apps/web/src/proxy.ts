@@ -122,7 +122,7 @@ function route(request: NextRequest) {
 }
 
 /**
- * Two sites, one app. admin.orazaka.com is the operator console: its requests are gated (network, then sign-in) and
+ * Two sites, one app. admin.sovkora.com is the operator console: its requests are gated (network, then sign-in) and
  * rewritten under the internal `/console` tree, and every answer says noindex. On any other host `/console` is a 404.
  * The rest is the public site; a deployment closed to search engines (APP_SEARCH_INDEXING=off) says noindex on every
  * response — pages, redirects, the BFF.

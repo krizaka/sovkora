@@ -3,7 +3,7 @@
  * @description Copy of the Mobile section of the home page and of /docs/mobile — the steps of the Sovkora app, en and fr.
  * Each step says the person's goal, what the screen does for them, and three things to notice; each of those is
  * readable in the app's code (orazaka-mobile-client) and visible in the recording — nothing invented. Recorded on the
- * iOS 27 simulator, in dark and light, against www.orazaka.com, signed in as the demo persona, Mira.
+ * iOS 27 simulator, in dark and light, against dev.sovkora.com, signed in as the demo persona, Mira.
  */
 type Locale = "en" | "fr";
 
@@ -44,7 +44,7 @@ export const mobile: Record<Locale, MobileDictionary> = {
     lead: "The mobile app runs your work from anywhere — make an image from a sentence, ask the model, and see where your jobs stand — against the same edge, services and interceptor pipeline as the web client. This is the real app, not a mock-up. Press play; nothing starts by itself.",
     all: "Follow every step",
     recordedOn:
-      "Recorded on the iOS 27 simulator (iPhone 17), in dark and light, against www.orazaka.com, signed in as the demo persona, Mira. Typing is sped up and waits are cut — each cut says how long it was.",
+      "Recorded on the iOS 27 simulator (iPhone 17), in dark and light, against dev.sovkora.com, signed in as the demo persona, Mira. Typing is sped up and waits are cut — each cut says how long it was.",
     stepsTitle: "The steps",
     step: "Step",
     notice: "What to notice",
@@ -110,7 +110,7 @@ export const mobile: Record<Locale, MobileDictionary> = {
     lead: "L'app mobile mène votre travail de n'importe où — faire une image à partir d'une phrase, interroger le modèle, voir où en sont vos jobs — face au même edge, aux mêmes services et à la même chaîne d'intercepteurs que le client web. C'est la vraie app, pas une maquette. Appuyez sur lecture ; rien ne démarre seul.",
     all: "Suivre chaque étape",
     recordedOn:
-      "Enregistré sur le simulateur iOS 27 (iPhone 17), en sombre et en clair, face à www.orazaka.com, connecté en tant que la persona de démonstration, Mira. La saisie est accélérée et les attentes coupées — chaque coupe dit sa durée.",
+      "Enregistré sur le simulateur iOS 27 (iPhone 17), en sombre et en clair, face à dev.sovkora.com, connecté en tant que la persona de démonstration, Mira. La saisie est accélérée et les attentes coupées — chaque coupe dit sa durée.",
     stepsTitle: "Les étapes",
     step: "Étape",
     notice: "À remarquer",
