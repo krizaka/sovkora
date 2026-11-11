@@ -162,6 +162,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  minimatch@>=7.0.0 <11.0.1: '>=11.0.1'
+
 importers:
 
   .:
@@ -574,6 +577,7 @@ packages:
 
   '@krizaka/orazaka-shared@1.2.0':
     resolution: {integrity: sha512-R6BUAihIzMF7NftwAQLCKL6Le+xBmLecPEUosLfFGtSFLArX77U9K2K9VbpYg56VuyqSdK10MHXP1qBtUe64HA==}
+    deprecated: Renamed to @krizaka/sovkora-shared
 
   '@krizaka/org@0.7.0':
     resolution: {integrity: sha512-1CKhAVDRRnD4VjRhUlD6LBBEJnrZJeo6mVW0oaqPG9R13/cLJRhGAX+zNuDRgkoAWOR0gl6K1CaQDgsojwspgg==}

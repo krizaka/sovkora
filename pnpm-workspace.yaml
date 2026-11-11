@@ -24,5 +24,12 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 # Krizaka's own packages are installed as soon as they are published (the release-age rule is for third parties).
+# minimatch is excluded because the override above bumps it explicitly as a security fix (GHSA ReDoS).
 minimumReleaseAgeExclude:
   - "@krizaka/*"
+  - minimatch
+
+# pnpm 12 reads overrides only from here (the "overrides" / "pnpm.overrides" of an app's package.json are ignored).
+# minimatch 7.x-10.x is pulled by dev tooling and has a ReDoS (GHSA); 3.x (ESLint) is outside the range and untouched.
+overrides:
+  "minimatch@>=7.0.0 <11.0.1": ">=11.0.1"
