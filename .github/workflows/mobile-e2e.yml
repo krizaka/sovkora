@@ -20,7 +20,7 @@ jobs:
   mobile-e2e:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/mobile-e2e.yml@461f679f96b8ec686f5b2ceba7662ff68a86a4ec # main (krizaka/.github#241, #243)
+    uses: krizaka/.github/.github/workflows/mobile-e2e.yml@31d45bcdde30a7dfc66ddb15bcb280f11b16faac # main (krizaka/.github#241, #243)
     with:
       app-id: com.krizaka.orazaka
       app-directory: apps/mobile

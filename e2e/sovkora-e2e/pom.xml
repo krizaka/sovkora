@@ -79,7 +79,7 @@
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
-            <version>1.49.0</version>
+            <version>1.64.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -141,7 +141,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.2.1</version>
+                <version>1.3.1</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -217,7 +217,7 @@
             <id>staging</id>
             <properties>
                 <docker-maven-plugin.version>0.45.1</docker-maven-plugin.version>
-                <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+                <frontend-maven-plugin.version>2.0.2</frontend-maven-plugin.version>
                 <node.version>v24.11.1</node.version>
                 <!-- UI/media e2e tiers are opt-in: they need the web client (:3000)
                      and local AI runtimes that depend on the host machine. By default
@@ -235,7 +235,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>3.5.0</version>
+                        <version>3.6.4</version>
                         <executions>
                             <!-- ── Every run starts from nothing, including after an interrupt ── -->
                             <execution>
@@ -682,7 +682,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-antrun-plugin</artifactId>
-                        <version>3.1.0</version>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <id>wait-for-router-health</id>
@@ -801,7 +801,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.5.3</version>
+                        <version>3.6.1</version>
                         <configuration>
                             <!-- @Tag("ui") tests (web-UI/media dependent) are excluded by
                                  default; the e2e-ui profile clears this to run them. -->

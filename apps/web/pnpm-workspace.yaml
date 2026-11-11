@@ -8,6 +8,7 @@ allowBuilds:
   "@parcel/watcher": true
   unrs-resolver: true
 minimumReleaseAgeExclude:
+  - minimatch
   - "@krizaka/fonts@0.5.0"
   - "@krizaka/intl@0.4.0 || 0.4.1"
   - "@krizaka/tailwind@3.65.0 || 3.71.0"
@@ -25,3 +26,6 @@ onlyBuiltDependencies:
   - "@ast-grep/cli"
   - "@parcel/watcher"
   - unrs-resolver
+# Keep in step with the root file: minimatch 7.x-10.x has a ReDoS (GHSA); 3.x (ESLint) is outside the range.
+overrides:
+  "minimatch@>=7.0.0 <11.0.1": ">=11.0.1"
