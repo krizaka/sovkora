@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
+  PROOF_TEST,
   loginVerdict,
   report,
   rollbackVerdict,
@@ -139,5 +140,11 @@ describe("the free proof that a streamed turn emits a tool-call event", () => {
     assert.equal(toolPathVerdict(facts, false).ok, true);
     assert.match(toolPathVerdict(facts, false).message, /NOT VERIFIED/);
     assert.equal(toolPathVerdict(facts, true).ok, false);
+  });
+});
+
+describe("the tool-call proof it looks for", () => {
+  it("is a file of this repository (it was looked up in a repository that no longer exists)", () => {
+    assert.ok(existsSync(new URL(`../../../${PROOF_TEST}`, import.meta.url)), PROOF_TEST);
   });
 });
