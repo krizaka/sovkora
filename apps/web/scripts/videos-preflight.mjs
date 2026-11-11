@@ -95,9 +95,10 @@ export function rollbackVerdict(deployments, required) {
   return { ok: true, message: `the active deployment ${active.id.slice(0, 8)} is not a rollback` };
 }
 
-const PROOF_REPO = "krizaka/orazaka-conversation-service";
-const PROOF_TEST =
-  "src/test/java/com/krizaka/orazaka/conversationservice/infrastructure/adapter/rest/ToolCallStreamPathTest.java";
+// One repository since ADR-029: the proof lives in conversation-service's folder of this repository, and its CI is ci.yml.
+const PROOF_REPO = "krizaka/sovkora";
+export const PROOF_TEST =
+  "services/conversation/sovkora-conversation-service/src/test/java/com/krizaka/sovkora/conversation/infrastructure/adapter/rest/ToolCallStreamPathTest.java";
 
 /**
  * The free proof that a streamed turn emits a `tool-call` event (orazaka-ai-engine#169): three paid runs came back without one,
@@ -147,7 +148,7 @@ async function toolPathFacts(coreDeployedAt) {
     }
   };
   const commits = await get(`commits?sha=main&per_page=1&path=${encodeURIComponent(PROOF_TEST)}`);
-  const runs = await get("actions/runs?branch=main&event=push&status=completed&per_page=1");
+  const runs = await get("actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=1");
   return {
     proofCommittedAt: commits?.[0]?.commit?.committer?.date ?? null,
     ciConclusion: runs?.workflow_runs?.[0]?.conclusion ?? null,
