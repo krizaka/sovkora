@@ -106,6 +106,7 @@ the service's `application.yml` or environment.
 | `studio` | `PackBootstrap.install` | every 30 s (`orazaka.studio-service.packs.bootstrap-interval`) | Installs the packs this deployment ships, so a fresh environment has Studios (ADR-068, `#45`). |
 | `studio` | `RetentionSweeper.purge` | cron `0 30 3 * * *` (`orazaka.studio-service.retention.cron`) | Purges what the retention window says may no longer be kept (ADR-034 §14, GDPR / Loi 25). |
 | `studio` | `RunSweeper.sweep` | every 60 s (`orazaka.studio-service.sweeper.interval`) | Closes runs whose steps stopped reporting, and releases their holds. |
+| `studio` | `StalledRunSweeper.sweep` | every 60 s (`orazaka.studio-service.sweeper.interval`) | Schedules `StalledRunService`: a run with no dispatched step ends instead of hanging. |
 | `studio` | `WebhookSweeper.sweep` | every 10 s (`orazaka.studio-service.webhooks.interval`) | Queues and sends the webhooks of finished runs (sovkora#189 slice B). |
 
 ## Automation
