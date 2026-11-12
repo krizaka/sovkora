@@ -99,16 +99,26 @@ function dataText(line) {
 /** The text of one SSE block; the pipeline, routing, tool-call and error events carry none. */
 function blockText(block) {
   const lines = block.split(/\r?\n/);
-  const event = lines.find((l) => l.startsWith("event:"))?.slice(6).trim() ?? "";
+  const event =
+    lines
+      .find((l) => l.startsWith("event:"))
+      ?.slice(6)
+      .trim() ?? "";
   if (/^(pipeline-|routing|tool-call|error)/.test(event)) {
     return "";
   }
-  return lines.filter((l) => l.startsWith("data:")).map(dataText).join("");
+  return lines
+    .filter((l) => l.startsWith("data:"))
+    .map(dataText)
+    .join("");
 }
 
 /** The text a chat turn streamed (its event stream, as the browser reads it). */
 export function chatTurnText(body) {
-  return body.split(/\r?\n\r?\n/).map(blockText).join("");
+  return body
+    .split(/\r?\n\r?\n/)
+    .map(blockText)
+    .join("");
 }
 
 /** One short turn must come back with an answer; the failure names the route it went through. @returns {{ ok: boolean, message: string }} */
