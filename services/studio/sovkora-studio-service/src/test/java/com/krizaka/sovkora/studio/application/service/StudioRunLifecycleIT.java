@@ -1729,6 +1729,102 @@ class StudioRunLifecycleIT {
     assertTrue(credits.released.isEmpty());
   }
 
+  // ── krizaka-internal#263: a run that never dispatched a step ──────────────
+
+  /** A run left RUNNING with no step, as a lost dispatch leaves it, started {@code age} ago. */
+  private RunDetail runWithNoStep(String age) {
+    RunDetail run = startRun();
+    jdbcTemplate.update("DELETE FROM studio_run_step WHERE run_id = ?", run.id());
+    jdbcTemplate.update(
+        "UPDATE studio_run SET started_at = now() - CAST(? AS INTERVAL) WHERE id = ?",
+        age,
+        run.id());
+    credits.released.clear();
+    return run;
+  }
+
+  private int failUndispatched(java.time.Duration timeout, int limit) {
+    return new StalledRunService(
+            jdbcTemplate,
+            context.getBean(RunSettlementService.class),
+            context.getBean(RunAuditService.class),
+            context.getBean(OutboxService.class))
+        .failUndispatched(java.time.Instant.now().minus(timeout), limit);
+  }
+
+  @Test
+  @DisplayName("[#263] a run with no dispatched step is failed with a code, its hold released")
+  void aRunWithNoStepIsFailedAfterTheTimeout() {
+    RunDetail run = runWithNoStep("10 minutes");
+
+    assertEquals(1, failUndispatched(java.time.Duration.ofMinutes(5), 50));
+
+    RunDetail failed = runService.find(run.id(), ACTOR).orElseThrow();
+    assertEquals(RunStatus.FAILED, failed.status());
+    assertNotNull(failed.finishedAt());
+    assertTrue(failed.errorMessage().startsWith(StalledRunService.REASON_CODE));
+    assertTrue(credits.released.contains("hold-1"));
+    assertEquals(
+        1,
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM studio_outbox WHERE aggregate_id = ?"
+                + " AND event_type = 'evt.studio.run.failed'",
+            Integer.class,
+            run.id().toString()));
+  }
+
+  @Test
+  @DisplayName("[#263] a young run with no step yet, and a run with a step, are left alone")
+  void aYoungOrDispatchedRunIsNotSwept() {
+    RunDetail young = runWithNoStep("1 minute");
+    RunDetail dispatched = startRun();
+    jdbcTemplate.update(
+        "UPDATE studio_run SET started_at = now() - INTERVAL '10 minutes' WHERE id = ?",
+        dispatched.id());
+
+    assertEquals(0, failUndispatched(java.time.Duration.ofMinutes(5), 50));
+
+    assertEquals(RunStatus.RUNNING, runService.find(young.id(), ACTOR).orElseThrow().status());
+    assertEquals(RunStatus.RUNNING, runService.find(dispatched.id(), ACTOR).orElseThrow().status());
+  }
+
+  @Test
+  @DisplayName("[#263] one sweep closes at most its batch; the next takes the rest")
+  void aSweepIsBounded() {
+    runWithNoStep("10 minutes");
+    runWithNoStep("11 minutes");
+
+    assertEquals(1, failUndispatched(java.time.Duration.ofMinutes(5), 1));
+    assertEquals(1, failUndispatched(java.time.Duration.ofMinutes(5), 1));
+  }
+
+  @Test
+  @DisplayName("[#263] cancelling a RUNNING run with no step ends it CANCELLED and frees the hold")
+  void cancelOfARunWithNoStepEndsIt() {
+    RunDetail run = runWithNoStep("10 minutes");
+
+    runService.cancel(run.id(), ACTOR);
+
+    assertEquals(RunStatus.CANCELLED, runService.find(run.id(), ACTOR).orElseThrow().status());
+    assertTrue(credits.released.contains("hold-1"));
+  }
+
+  @Test
+  @DisplayName("[#263] cancelling a run that already ended is a no-op, never an error")
+  void cancelOfATerminalRunIsIdempotent() {
+    RunDetail swept = runWithNoStep("10 minutes");
+    failUndispatched(java.time.Duration.ofMinutes(5), 50);
+    RunDetail cancelled = startRun();
+    runService.cancel(cancelled.id(), ACTOR);
+
+    runService.cancel(swept.id(), ACTOR);
+    runService.cancel(cancelled.id(), ACTOR);
+
+    assertEquals(RunStatus.FAILED, runService.find(swept.id(), ACTOR).orElseThrow().status());
+    assertEquals(
+        RunStatus.CANCELLED, runService.find(cancelled.id(), ACTOR).orElseThrow().status());
+  }
+
   // ── Retention (GDPR / Loi 25) ─────────────────────────────────────────────
 
   @Test
