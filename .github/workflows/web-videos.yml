@@ -13,9 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  # The preflight (one short per-token chat turn, nothing else paid): a recorded chat is a PAID run, so the persona's sign-ins, the tool
-  # the prompt needs, the default chat route (hosted per-token, ADR-095) with one answered turn and (with a DigitalOcean token) the
-  # rollback guard are proved first. Red = no recording, no spend (orazaka-ai-engine#169).
+  # The free preflight (no model call): a recorded chat is a PAID run, so the persona's sign-ins, the tool the prompt needs and
+  # (with a DigitalOcean token) the rollback guard are proved first. Red = no recording, no spend (orazaka-ai-engine#169).
   preflight:
     name: Preflight (free)
     if: github.ref == 'refs/heads/main'
