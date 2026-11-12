@@ -149,6 +149,33 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
   }
 
   @Test
+  void theServiceAppliesTheGovernanceSchemaAtStartup() throws Exception {
+    // Without the switch no host applies db/governance: platform_tool_permissions never exists on a
+    // deployed database and the tool list answers 500 (krizaka-internal#3285).
+    String yml =
+        Files.readString(
+            Path.of(
+                System.getProperty("user.dir"),
+                "src/main/resources/META-INF/sovkora/conversation-service-defaults.yml"));
+    assertThat(yml).contains("migrations.enabled: true");
+    String database = "conversation_governance_check";
+    freshDatabase(database);
+    Flyway host = conversation(database);
+    assertThat(host.migrate().migrationsExecuted).isEqualTo(1);
+    assertThat(
+            com.krizaka.sovkora.engine.persistence.infrastructure.config.GovernanceMigrations
+                .migrate(host.getConfiguration()))
+        .as("governance V1")
+        .isEqualTo(1);
+    try (Connection connection = connect(database);
+        Statement statement = connection.createStatement()) {
+      assertThat(count(statement, "SELECT count(*) FROM platform_tool_permissions"))
+          .as("the tool permissions the tool list reads")
+          .isPositive();
+    }
+  }
+
+  @Test
   void theLocalBootstrapCreatesNoTableAndSeedsNothing() throws Exception {
     // One source for the schema: a table in the initdb file would be a second copy, and the one a
     // deployed database never gets.
