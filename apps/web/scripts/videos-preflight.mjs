@@ -1,14 +1,17 @@
 #!/usr/bin/env node
-// The free preflight of the Download page's videos (orazaka-ai-engine#169). A recorded chat is a PAID run (a model answers), and
+// The preflight of the Download page's videos (orazaka-ai-engine#169; free but for one short per-token chat turn). A recorded chat is a PAID run (a model answers), and
 // two of them were spent without proof because a precondition was false (the stream path never offered tools; then the tool was
-// not registered on dev). So every paid step is preceded by this check, which calls no model and proves, in order:
+// not registered on dev). So every paid step is preceded by this check, which calls no model but for one short chat turn (step 5), and proves, in order:
 //   1. the persona signs in on the edge API (the credentials work, the engine answers);
 //   2. the tool the recorded prompt needs is among the tools the engine offers that persona (GET /api/v1/mcp/tools: the tools the
 //      ToolInterceptor attaches to a chat turn), with the argument the prompt gives it;
 //   3. the persona signs in on the web (NextAuth through ROUTER_URL: a booting core shows here while the edge may still answer);
 //   4. dev is not on an automated rollback (the old image would not have the fixes): read from the DigitalOcean app when a token
 //      is given (DIGITALOCEAN_ACCESS_TOKEN), otherwise reported as NOT VERIFIED, and refused with --require-rollback-guard.
-//   5. the tool-call path is proved free: conversation-service's ToolCallStreamPathTest (a streamed turn through the real engine,
+//   5. the default chat route is the hosted per-token provider (ADR-095: no GPU is ever left on; dev drifted to the GPU relay's
+//      ollama on 2026-11-12), read from the model catalogue, and one short chat turn as the persona, through the product's own
+//      routing, returns a non-empty answer (the cost of one short turn, a few tokens);
+//   6. the tool-call path is proved free: conversation-service's ToolCallStreamPathTest (a streamed turn through the real engine,
 //      the seeded pipeline with RAG, the real tool loop and the real SSE relay, ending in a `tool-call` event) is green on main,
 //      and dev's core was deployed after the commit that last changed it (read from the DigitalOcean app; with
 //      --require-tool-proof an unreadable deploy time refuses).
@@ -17,6 +20,11 @@
 //
 // Exits 1 on the first failed precondition's report (all checks are still listed). Nothing secret is printed.
 import { PROOF_TOOL } from "./tour/eric.mjs";
+
+/** The one provider dev chats on (ADR-095, rule 12: chat is a route, not a GPU). */
+export const CHAT_PROVIDER = "do-inference";
+/** The one short turn of the preflight: a few tokens on the per-token route, no tool, no document. */
+export const CHAT_PROBE_PROMPT = "Reply with one short sentence: hello.";
 
 const DO_API = "https://api.digitalocean.com/v2";
 const APP_NAME = "orazaka-dev";
@@ -49,6 +57,79 @@ export function toolVerdict(tools, name) {
     };
   }
   return { ok: true, message: `the tool ${name} is offered (offered: ${names.join(", ")})` };
+}
+
+/**
+ * The drift check (ADR-095): the default chat model of the catalogue must be on the hosted per-token provider. Dev drifted to
+ * the baseline's `tinyllama:latest` on `ollama` (the GPU relay, nothing behind it) when its routing rows were not re-applied.
+ * @param {unknown} catalog body of GET /api/v1/models/catalog
+ * @returns {{ ok: boolean, message: string, provider: string | null }}
+ */
+export function chatRouteVerdict(catalog) {
+  if (!Array.isArray(catalog)) {
+    return { ok: false, message: "the model catalogue is not an array", provider: null };
+  }
+  const chat = catalog.find((m) => m?.category === "chat" && m?.isDefault === true);
+  if (!chat) {
+    return { ok: false, message: "the catalogue has no default chat model", provider: null };
+  }
+  const route = `${chat.modelName} on ${chat.providerName}`;
+  if (chat.providerName !== CHAT_PROVIDER) {
+    return {
+      ok: false,
+      message: `the default chat route is ${route}, not the hosted per-token provider ${CHAT_PROVIDER} (ADR-095): dev drifted from infra/deploy/dev-data.sql`,
+      provider: chat.providerName ?? null,
+    };
+  }
+  return { ok: true, message: `the default chat route is ${route}`, provider: chat.providerName };
+}
+
+/** The text of one data line: the `content` (or `text`) of its JSON, else the raw line. */
+function dataText(line) {
+  const raw = line.slice(5).trim();
+  try {
+    const parsed = JSON.parse(raw);
+    const chunk = parsed?.content ?? parsed?.text;
+    return typeof chunk === "string" ? chunk : "";
+  } catch {
+    return raw;
+  }
+}
+
+/** The text of one SSE block; the pipeline, routing, tool-call and error events carry none. */
+function blockText(block) {
+  const lines = block.split(/\r?\n/);
+  const event =
+    lines
+      .find((l) => l.startsWith("event:"))
+      ?.slice(6)
+      .trim() ?? "";
+  if (/^(pipeline-|routing|tool-call|error)/.test(event)) {
+    return "";
+  }
+  return lines
+    .filter((l) => l.startsWith("data:"))
+    .map(dataText)
+    .join("");
+}
+
+/** The text a chat turn streamed (its event stream, as the browser reads it). */
+export function chatTurnText(body) {
+  return body
+    .split(/\r?\n\r?\n/)
+    .map(blockText)
+    .join("");
+}
+
+/** One short turn must come back with an answer; the failure names the route it went through. @returns {{ ok: boolean, message: string }} */
+export function chatAnswerVerdict(answer, provider) {
+  if (answer.trim().length === 0) {
+    return { ok: false, message: `the chat turn on the route ${provider ?? "unknown"} gave no answer` };
+  }
+  return {
+    ok: true,
+    message: `the chat answers on the route ${provider ?? "unknown"} (${answer.trim().length} characters)`,
+  };
 }
 
 /** The persona's API sign-in. @returns {{ ok: boolean, message: string }} */
@@ -191,6 +272,42 @@ async function webSignIn(web, email, pass) {
   return webVerdict(cb.status, session, email);
 }
 
+/** Posts to the edge and returns the response, or throws naming the route and the HTTP status. */
+async function edgePost(url, headers, payload, provider, timeoutMs) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  return res.ok ? res : Promise.reject(new Error(`answered HTTP ${res.status} on the route ${provider}`));
+}
+
+/** One short chat turn as the persona on the product's own route (no model named): the answer must not be empty. */
+async function chatTurn(base, auth, provider) {
+  const headers = { ...auth, "Content-Type": "application/json" };
+  const conversationId = crypto.randomUUID();
+  try {
+    await edgePost(
+      `${base}/edge/api/v1/chat/sessions`,
+      headers,
+      { conversationId, title: "preflight" },
+      provider,
+      15_000,
+    );
+    const res = await edgePost(
+      `${base}/edge/api/v1/chat/stream/${conversationId}`,
+      headers,
+      { prompt: CHAT_PROBE_PROMPT, assetIds: [] },
+      provider,
+      90_000,
+    );
+    return chatAnswerVerdict(chatTurnText(await res.text()), provider);
+  } catch (e) {
+    return { ok: false, message: `the chat turn failed: ${e.message}` };
+  }
+}
+
 /** The deployments of the dev app, newest first, or null when DigitalOcean cannot be read. */
 async function deployments(token) {
   if (!token) return null;
@@ -232,6 +349,19 @@ async function main(args) {
       : { ok: false, message: `the tool list answered HTTP ${list.status}` };
   } else {
     checks[`tool ${PROOF_TOOL}`] = { ok: false, message: "not checked (no sign-in)" };
+  }
+  checks["chat route"] = { ok: false, message: "not checked (no sign-in)" };
+  checks["chat answer"] = { ok: false, message: "not checked (no sign-in)" };
+  if (body.token) {
+    const auth = { Authorization: `Bearer ${body.token}` };
+    const catalog = await fetch(`${base}/edge/api/v1/models/catalog`, { headers: auth })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+    const route = chatRouteVerdict(catalog);
+    checks["chat route"] = route;
+    checks["chat answer"] = route.ok
+      ? await chatTurn(base, auth, route.provider)
+      : { ok: false, message: "not checked (the default chat route is not the hosted per-token provider)" };
   }
   checks["web sign-in"] = await webSignIn(base, email, pass).catch((e) => ({
     ok: false,

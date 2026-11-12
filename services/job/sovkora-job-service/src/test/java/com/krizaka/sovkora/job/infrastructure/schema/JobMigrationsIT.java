@@ -75,7 +75,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
   private Flyway flyway(String database, String locations, String table) {
     return Flyway.configure()
         .dataSource(url(database), user(), credential())
-        .locations(locations)
+        .locations(locations.split(","))
         .table(table)
         .baselineOnMigrate(true)
         .baselineVersion("0")
@@ -162,12 +162,61 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
   }
 
   @Test
+  void theDevLocationPutsTheChatDefaultOnTheHostedProviderAndSurvivesASecondRun() throws Exception {
+    String database = "job_dev_chat_route_check";
+    freshDatabase(database);
+    bootstrapExtension(database);
+    Flyway dev = flyway(database, "classpath:db/migration,classpath:db/dev", "flyway_history_job");
+
+    assertThat(dev.migrate().migrationsExecuted).as("V1 and the dev route").isEqualTo(2);
+    assertThat(dev.migrate().migrationsExecuted).as("second run").isZero();
+    dev.validate();
+
+    try (Connection connection = connect(database);
+        Statement statement = connection.createStatement()) {
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM orazaka_models WHERE category = 'chat' AND is_default"
+                      + " AND model_name = 'mistral-3-14B' AND provider_name = 'do-inference'"))
+          .as("the one chat default is the hosted per-token model")
+          .isEqualTo(1);
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM orazaka_models WHERE category = 'chat' AND is_default"))
+          .as("only one chat default")
+          .isEqualTo(1);
+    }
+  }
+
+  @Test
+  void withoutTheDevLocationTheBaselineKeepsItsLocalChatDefault() throws Exception {
+    String database = "job_baseline_chat_default_check";
+    freshDatabase(database);
+    bootstrapExtension(database);
+    job(database).migrate();
+
+    try (Connection connection = connect(database);
+        Statement statement = connection.createStatement()) {
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM orazaka_models WHERE category = 'chat' AND is_default"
+                      + " AND provider_name = 'ollama'"))
+          .as("local and customer databases stay on the local default")
+          .isEqualTo(1);
+    }
+  }
+
+  @Test
   void theServiceConfigurationBaselinesAtZeroAndKeepsItsOwnHistoryTable() throws Exception {
     String yml =
         Files.readString(
             Path.of(System.getProperty("user.dir"), "src/main/resources/application.yml"));
     assertThat(yml)
         .contains("table: flyway_history_job")
+        .contains("locations: ${DATABASE_JOB_MIGRATIONS_LOCATIONS:classpath:db/migration}")
         .contains("baseline-version: \"0\"")
         .contains("clean-disabled: true")
         .contains("placeholder-replacement: false")

@@ -14,14 +14,10 @@ INSERT INTO ai_providers (name, base_url, api_key)
 VALUES ('do-inference', 'https://inference.do-ai.run', :'ai_inference_key')
 ON CONFLICT (name) DO UPDATE SET base_url = EXCLUDED.base_url, api_key = EXCLUDED.api_key;
 
-INSERT INTO orazaka_models (model_name, model_label, category, options, provider_name, is_default, description)
-VALUES ('mistral-3-14B', 'Mistral 3 14B', 'chat', NULL, 'do-inference', FALSE,
-        'Mistral 3 14B (Apache-2.0) on DigitalOcean serverless inference — the chat default of the dev '
-        || 'environment: fluent English and French, billed per token, no GPU to run.')
-ON CONFLICT (model_name) DO NOTHING;
+-- The chat model and the chat default (mistral-3-14B on do-inference) are the job service's repeatable dev migration
+-- (services/job/sovkora-job-service/src/main/resources/db/dev/R__dev_chat_route.sql, applied at startup: krizaka-internal#3285).
 -- The other provider-hosted models (DeepSeek V4 Pro, Llama 4 Maverick, Gemma 4) and their registry metadata:
 -- infra/deploy/dev-model-registry.sql, run after this file.
-UPDATE orazaka_models SET is_default = (model_name = 'mistral-3-14B') WHERE category = 'chat';
 
 -- Vision on the same provider, so dev does not depend on a laptop's Ollama (dev only, fictional personas' photos only).
 INSERT INTO orazaka_models (model_name, model_label, category, options, provider_name, is_default, description)
