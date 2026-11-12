@@ -104,6 +104,11 @@ management:
       endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 orazaka:
+  governance:
+    # This service hosts the governance schema (interceptor policies, tool permissions): without the switch nothing
+    # applies db/governance, and GET /api/v1/mcp/tools answers 500 on a database that never had it
+    # (relation "platform_tool_permissions" does not exist, krizaka-internal#3285). Runs after this service's own migration.
+    migrations.enabled: true
   # Asset encryption (ADR-054). The master key is NOT in .env: it is the one secret whose compromise
   # is total. Declared here because AssetEncryptionProperties' own @DefaultValue
   # ("${user.home}/...") is not placeholder-resolved by the binder.
