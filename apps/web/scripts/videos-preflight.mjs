@@ -66,44 +66,56 @@ export function toolVerdict(tools, name) {
  * @returns {{ ok: boolean, message: string, provider: string | null }}
  */
 export function chatRouteVerdict(catalog) {
-  if (!Array.isArray(catalog)) return { ok: false, message: "the model catalogue is not an array", provider: null };
+  if (!Array.isArray(catalog)) {
+    return { ok: false, message: "the model catalogue is not an array", provider: null };
+  }
   const chat = catalog.find((m) => m?.category === "chat" && m?.isDefault === true);
-  if (!chat) return { ok: false, message: "the catalogue has no default chat model", provider: null };
+  if (!chat) {
+    return { ok: false, message: "the catalogue has no default chat model", provider: null };
+  }
   const route = `${chat.modelName} on ${chat.providerName}`;
-  if (chat.providerName !== CHAT_PROVIDER)
+  if (chat.providerName !== CHAT_PROVIDER) {
     return {
       ok: false,
       message: `the default chat route is ${route}, not the hosted per-token provider ${CHAT_PROVIDER} (ADR-095): dev drifted from infra/deploy/dev-data.sql`,
       provider: chat.providerName ?? null,
     };
+  }
   return { ok: true, message: `the default chat route is ${route}`, provider: chat.providerName };
 }
 
-/** The text a chat turn streamed: the `content` (or `text`) of its data events; the pipeline, routing and error events carry none. */
-export function chatTurnText(body) {
-  let text = "";
-  for (const block of body.split(/\r?\n\r?\n/)) {
-    const lines = block.split(/\r?\n/);
-    const event = lines.find((l) => l.startsWith("event:"))?.slice(6).trim() ?? "";
-    if (/^(pipeline-|routing|tool-call|error)/.test(event)) continue;
-    for (const line of lines.filter((l) => l.startsWith("data:"))) {
-      const raw = line.slice(5).trim();
-      try {
-        const parsed = JSON.parse(raw);
-        const chunk = parsed?.content ?? parsed?.text;
-        if (typeof chunk === "string") text += chunk;
-      } catch {
-        text += raw;
-      }
-    }
+/** The text of one data line: the `content` (or `text`) of its JSON, else the raw line. */
+function dataText(line) {
+  const raw = line.slice(5).trim();
+  try {
+    const parsed = JSON.parse(raw);
+    const chunk = parsed?.content ?? parsed?.text;
+    return typeof chunk === "string" ? chunk : "";
+  } catch {
+    return raw;
   }
-  return text;
+}
+
+/** The text of one SSE block; the pipeline, routing, tool-call and error events carry none. */
+function blockText(block) {
+  const lines = block.split(/\r?\n/);
+  const event = lines.find((l) => l.startsWith("event:"))?.slice(6).trim() ?? "";
+  if (/^(pipeline-|routing|tool-call|error)/.test(event)) {
+    return "";
+  }
+  return lines.filter((l) => l.startsWith("data:")).map(dataText).join("");
+}
+
+/** The text a chat turn streamed (its event stream, as the browser reads it). */
+export function chatTurnText(body) {
+  return body.split(/\r?\n\r?\n/).map(blockText).join("");
 }
 
 /** One short turn must come back with an answer; the failure names the route it went through. @returns {{ ok: boolean, message: string }} */
 export function chatAnswerVerdict(answer, provider) {
-  if (answer.trim().length === 0)
+  if (answer.trim().length === 0) {
     return { ok: false, message: `the chat turn on the route ${provider ?? "unknown"} gave no answer` };
+  }
   return {
     ok: true,
     message: `the chat answers on the route ${provider ?? "unknown"} (${answer.trim().length} characters)`,
@@ -250,28 +262,39 @@ async function webSignIn(web, email, pass) {
   return webVerdict(cb.status, session, email);
 }
 
+/** Posts to the edge and returns the response, or throws naming the route and the HTTP status. */
+async function edgePost(url, headers, payload, provider, timeoutMs) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  return res.ok ? res : Promise.reject(new Error(`answered HTTP ${res.status} on the route ${provider}`));
+}
+
 /** One short chat turn as the persona on the product's own route (no model named): the answer must not be empty. */
 async function chatTurn(base, auth, provider) {
+  const headers = { ...auth, "Content-Type": "application/json" };
+  const conversationId = crypto.randomUUID();
   try {
-    const headers = { ...auth, "Content-Type": "application/json" };
-    const conversationId = crypto.randomUUID();
-    const made = await fetch(`${base}/edge/api/v1/chat/sessions`, {
-      method: "POST",
+    await edgePost(
+      `${base}/edge/api/v1/chat/sessions`,
       headers,
-      body: JSON.stringify({ conversationId, title: "preflight" }),
-    });
-    if (!made.ok)
-      return { ok: false, message: `the chat session answered HTTP ${made.status} on the route ${provider}` };
-    const res = await fetch(`${base}/edge/api/v1/chat/stream/${conversationId}`, {
-      method: "POST",
+      { conversationId, title: "preflight" },
+      provider,
+      15_000,
+    );
+    const res = await edgePost(
+      `${base}/edge/api/v1/chat/stream/${conversationId}`,
       headers,
-      body: JSON.stringify({ prompt: CHAT_PROBE_PROMPT, assetIds: [] }),
-      signal: AbortSignal.timeout(90_000),
-    });
-    if (!res.ok) return { ok: false, message: `the chat turn on the route ${provider} answered HTTP ${res.status}` };
+      { prompt: CHAT_PROBE_PROMPT, assetIds: [] },
+      provider,
+      90_000,
+    );
     return chatAnswerVerdict(chatTurnText(await res.text()), provider);
   } catch (e) {
-    return { ok: false, message: `the chat turn on the route ${provider} failed: ${e.message}` };
+    return { ok: false, message: `the chat turn failed: ${e.message}` };
   }
 }
 
