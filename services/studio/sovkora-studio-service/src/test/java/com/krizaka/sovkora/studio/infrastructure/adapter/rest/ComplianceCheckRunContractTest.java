@@ -168,6 +168,27 @@ class ComplianceCheckRunContractTest {
     assertThat(OutputContract.violations(reportSchema, renamed))
         .contains("$.findings[0].citation: required");
 
+    ObjectNode removedCitation = (ObjectNode) report(answer());
+    ((ObjectNode) removedCitation.path("findings").get(0)).remove("citation");
+    assertThat(OutputContract.violations(reportSchema, removedCitation))
+        .contains("$.findings[0].citation: required");
+
+    ObjectNode sentence = (ObjectNode) report(answer());
+    ((ObjectNode) sentence.path("findings").get(0)).put("citation", "C.c.Q., art. 1897");
+    assertThat(OutputContract.violations(reportSchema, sentence))
+        .contains("$.findings[0].citation: must be object");
+
+    ObjectNode renamedReference = (ObjectNode) report(answer());
+    ObjectNode citation = (ObjectNode) renamedReference.path("findings").get(0).path("citation");
+    citation.set("article", citation.remove("reference"));
+    assertThat(OutputContract.violations(reportSchema, renamedReference))
+        .contains("$.findings[0].citation.reference: required");
+
+    ObjectNode flatRuleset = (ObjectNode) report(answer());
+    flatRuleset.put("ruleset", "qc-residential-lease");
+    assertThat(OutputContract.violations(reportSchema, flatRuleset))
+        .contains("$.ruleset: must be object");
+
     ObjectNode removed = (ObjectNode) report(answer());
     removed.remove("findings");
     assertThat(OutputContract.violations(reportSchema, removed)).contains("$.findings: required");
@@ -205,5 +226,7 @@ class ComplianceCheckRunContractTest {
     List<String> keys =
         recorded.path("outputs").valueStream().map(o -> o.path("key").asString()).toList();
     assertThat(keys).contains("report");
+    assertThat(recorded.path("blueprintVersion").asString()).startsWith("2.");
+    assertThat(report((ObjectNode) recorded).path("contract").asString()).startsWith("2.");
   }
 }

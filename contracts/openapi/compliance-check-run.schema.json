@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "A compliance-check run as Sovkora's edge answers GET /api/v1/studios/runs/{runId}",
-  "description": "The fields Verikora reads (verikora apps/web packages/core sovkoraRun and complianceReport), derived from the run recorded in contracts/recorded-runs/compliance-check-tenant.json. Written in the subset of JSON Schema the studio service enforces (OutputContract: no $ref, no oneOf); $defs.report is the schema of the `report` output's value, which the run carries as a JSON string. Open on purpose: Sovkora may add a field; removing or renaming one that is required here breaks Verikora.",
+  "description": "The fields Verikora reads (verikora packages/core reportOf and apps/web analysis-report-map), derived from the 2.x run recorded in contracts/recorded-runs/compliance-check-tenant.json (compliance-check 2.x, report contract 2.0). Written in the subset of JSON Schema the studio service enforces (OutputContract: no $ref, no oneOf); $defs.report is the schema of the `report` output's value, which the run carries as a JSON string. Open on purpose: Sovkora may add a field; removing or renaming one that is required here breaks Verikora.",
   "type": "object",
   "required": [
     "id",
@@ -62,19 +62,41 @@
     "report": {
       "type": "object",
       "required": [
-        "rulesetId",
-        "rulesetVersion",
+        "contract",
+        "outcome",
+        "ruleset",
         "jurisdiction",
         "asOf",
         "summary",
         "findings"
       ],
       "properties": {
-        "rulesetId": {
+        "contract": {
           "type": "string"
         },
-        "rulesetVersion": {
+        "outcome": {
           "type": "string"
+        },
+        "ruleset": {
+          "type": "object",
+          "required": [
+            "id",
+            "version"
+          ],
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "version": {
+              "type": "string"
+            },
+            "revision": {
+              "type": "integer"
+            },
+            "reviewStatus": {
+              "type": "string"
+            }
+          }
         },
         "jurisdiction": {
           "type": "string"
@@ -138,7 +160,22 @@
                 "type": "string"
               },
               "citation": {
-                "type": "string"
+                "type": "object",
+                "required": [
+                  "reference",
+                  "pinned"
+                ],
+                "properties": {
+                  "reference": {
+                    "type": "string"
+                  },
+                  "pinned": {
+                    "type": "boolean"
+                  },
+                  "notice": {
+                    "type": "object"
+                  }
+                }
               },
               "evidenceSpan": {
                 "description": "The passage the verdict rests on, or null when none. Nullable, hence no type keyword: when present as an object it carries start, end and quote.",
