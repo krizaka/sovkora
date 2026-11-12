@@ -43,7 +43,7 @@ jobs:
       - name: Build the app with its test driver
         working-directory: apps/desktop
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile --filter .
           pnpm sidecar
           pnpm exec tauri build --debug --no-bundle --features webdriver
       - name: Run the journey, filmed
