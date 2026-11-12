@@ -49,6 +49,19 @@ public class WorkerSelfRegistration {
         Objects.requireNonNull(workerRegistryService, "WorkerRegistryService cannot be null");
   }
 
+  /**
+   * The routing-key bindings this process declares in its {@code worker.yaml}.
+   *
+   * @return the bindings it drains
+   */
+  public List<String> bindings() {
+    try {
+      return readDeclaration().bindings();
+    } catch (IOException e) {
+      throw new java.io.UncheckedIOException("Cannot read worker.yaml", e);
+    }
+  }
+
   /** Records this service's declaration once the context is up. */
   @EventListener(ApplicationReadyEvent.class)
   public void registerSelf() {

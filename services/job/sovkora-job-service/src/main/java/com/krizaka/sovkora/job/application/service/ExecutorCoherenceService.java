@@ -27,6 +27,8 @@ import org.springframework.context.event.EventListener;
  * that set now depends on which jars are present. A build-time rule cannot see a jar that failed to
  * load, and it cannot see a capability row an operator added last night.
  *
+ * <p><b>Only what this process drains.</b> See {@link #unservedCapabilities()}.
+ *
  * <p><b>Logs, and does not refuse to start.</b> A capability with no executor is broken for that
  * capability; it is not a reason to take the whole job plane down and with it every capability that
  * does work. The build-time governance rule is what keeps the seeded rows honest; this is the
@@ -38,16 +40,61 @@ public class ExecutorCoherenceService {
 
   private final List<JobExecutor> executors;
   private final CapabilityManager capabilityManager;
+  private final List<String> bindings;
 
   /**
    * @param executors every registered executor
    * @param capabilityManager the capability registry
+   * @param bindings the routing-key bindings this process drains (its {@code worker.yaml})
    */
   public ExecutorCoherenceService(
-      List<JobExecutor> executors, CapabilityManager capabilityManager) {
+      List<JobExecutor> executors, CapabilityManager capabilityManager, List<String> bindings) {
     this.executors = List.copyOf(Objects.requireNonNull(executors, "executors required"));
     this.capabilityManager =
         Objects.requireNonNull(capabilityManager, "CapabilityManager cannot be null");
+    this.bindings = List.copyOf(Objects.requireNonNull(bindings, "bindings required"));
+  }
+
+  /**
+   * The enabled capabilities this process drains and has no executor for.
+   *
+   * <p>Scoped to this process's own bindings: {@code handler_key} picks a code path inside the
+   * process that receives the message, and a capability routed to an external worker (the Python
+   * pack workers on {@code job.validation.*}, the media worker on {@code job.video.*}) is received
+   * by a process that never reads it. Reporting those here was 22 false ERROR lines on every dev
+   * startup. The build-time rule [EXEC-001] draws the same line.
+   *
+   * @return the capabilities that would fail at dispatch in this process
+   */
+  public List<CapabilityDeclaration> unservedCapabilities() {
+    Set<String> served =
+        executors.stream()
+            .map(JobExecutor::handlerKey)
+            .collect(Collectors.toCollection(TreeSet::new));
+    return capabilityManager.findAll().stream()
+        .filter(CapabilityDeclaration::enabled)
+        .filter(capability -> drainedHere(capability.routingKey()))
+        .filter(capability -> !served.contains(capability.handlerKey()))
+        .toList();
+  }
+
+  private boolean drainedHere(String routingKey) {
+    return bindings.stream().anyMatch(binding -> matches(binding, routingKey));
+  }
+
+  /** AMQP topic semantics: {@code *} is one segment, {@code #} is the rest. */
+  private static boolean matches(String binding, String routingKey) {
+    String[] pattern = binding.split("\\.");
+    String[] key = routingKey.split("\\.");
+    for (int i = 0; i < pattern.length; i++) {
+      if ("#".equals(pattern[i])) {
+        return true;
+      }
+      if (i >= key.length || !("*".equals(pattern[i]) || pattern[i].equals(key[i]))) {
+        return false;
+      }
+    }
+    return pattern.length == key.length;
   }
 
   /** Runs once the context is up and the executor set is final. */
@@ -57,11 +104,7 @@ public class ExecutorCoherenceService {
         executors.stream()
             .map(JobExecutor::handlerKey)
             .collect(Collectors.toCollection(TreeSet::new));
-    List<CapabilityDeclaration> unserved =
-        capabilityManager.findAll().stream()
-            .filter(CapabilityDeclaration::enabled)
-            .filter(capability -> !served.contains(capability.handlerKey()))
-            .toList();
+    List<CapabilityDeclaration> unserved = unservedCapabilities();
 
     logger.info("Job executors registered: {}", served);
     if (unserved.isEmpty()) {
