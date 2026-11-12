@@ -156,6 +156,28 @@ runId=…` in the core's logs (user, model, counts — never a text or a vector)
 503, so a caller falls back to its own non-AI path. Existing databases need
 `infra/migrations/2026-10-15-embeddings-and-key-scopes.sql` on `krizaka_users_db`.
 
+### The service accounts and the dev reset
+
+The products that call Sovkora are data: `scripts/dev-service-products.json` (`product → { studios, app, vault }`: the Studios
+granted, the dev App Platform app, the `secrets.map` source whose file holds the key). Today: **verikora** (`verikora-dev`,
+`compliance-check` and `document-authenticity`). Folioviv has no `AI_API_KEY` in its dev app spec and its Sovkora call is the
+`text-translation` Studio behind a port, so it has no service account to put back; a product is added to the file the day it gets one.
+
+A key lives in **three places**, and `service-account` only writes the first kind of file by hand:
+
+1. the product's **vault file** (`AI_API_KEY`, one upsert, mode 600, the file never printed);
+2. the product's **dev App Platform app** (`AI_API_KEY`, type SECRET, on the components that already declare it, set on the
+   *live* spec through `doctl apps update`; the repository spec is never applied);
+3. this repository's **`SERVICE_KEY_<PRODUCT>`** Actions secret, read by the key watch (`dev-service-keys.yml`, every 30 minutes:
+   `GET /api/v1/studios/installations` → 200).
+
+`node scripts/dev-reset.mjs orazaka --target dev --yes` clears `krizaka_users_db`, which drops every `svc_<product>` and its key. It
+is refused unless each existing product is named: `--drop-service-accounts verikora` (and refused before anything is cleared when
+a dropped account is not in the list). After the reseed the reset, for each product of the list: makes the account again with the
+same code as `service-account` (`issueServiceAccount`), writes the new key to the three places, then calls the edge once per key.
+Any answer other than 200, or any failed write, fails the reset with the product named (and no key in the message). Changing a
+product's key by hand is `service-account` plus the same three writes.
+
 ## Recommendations — a product's feed, served by Sovkora (ADR-078)
 
 The knowledge service serves the products' recommender (ADR-078); decision:

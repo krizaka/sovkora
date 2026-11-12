@@ -32,7 +32,7 @@ export function serviceAccountRefusal(db, products, acknowledged) {
   if (db !== USERS_DATABASE || products.length === 0) return null;
   const missing = products.filter((p) => !acknowledged.includes(p));
   if (missing.length === 0) return null;
-  return `clearing ${USERS_DATABASE} would delete the service account and API key of ${missing.join(", ")} (their calls to Sovkora answer 401 until a new key is made and set in the product). Name them with --drop-service-accounts ${missing.join(",")} once you will rotate them (node scripts/dev-deploy.mjs service-account <product>).`;
+  return `clearing ${USERS_DATABASE} would delete the service account and API key of ${missing.join(", ")} (their calls to Sovkora answer 401 until a new key is made and set in the product). Name them with --drop-service-accounts ${missing.join(",")} : the reset then puts each one back from scripts/dev-service-products.json (new key in the product's vault file, its dev app and the key watch) and fails unless every key answers 200.`;
 }
 
 /** The alert line of a reset that drops accounts: names every product. */

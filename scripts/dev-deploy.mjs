@@ -553,15 +553,12 @@ async function edge(path, { token, body, method } = {}) {
   return res.status === 204 ? null : res.json();
 }
 
-async function createServiceAccount(product, flags) {
-  const opt = (name) => {
-    const i = flags.indexOf(name);
-    return i >= 0 ? flags[i + 1] : undefined;
-  };
-  const studios = (opt("--studios") ?? "").split(",").filter(Boolean);
-  const scopes = parseScopes(opt("--scopes"));
-  const out = opt("--out");
-  if (!out) throw new Error("--out <file> is required: the product's secrets file (the key is written there only)");
+/**
+ * Makes (or re-makes) a product's service account: the account, one live `<product>-dev` key (the previous ones revoked),
+ * its plan and its Studio grants. Returns the new key for the caller to store; it prints nothing.
+ * @returns {Promise<{ key: string, account: ReturnType<typeof serviceAccount>, name: string }>}
+ */
+export async function issueServiceAccount(product, { studios = [], scopes = [] } = {}) {
   const env = secrets();
   const account = serviceAccount(product);
   const pw = password();
@@ -581,6 +578,19 @@ async function createServiceAccount(product, flags) {
   }
   psql(env, "krizaka_billing_db", "krizaka_billing_db", "DATABASE_PASSWORD_KRIZAKA_BILLING_DB", [], planSql(product, actorId));
   if (studios.length) psql(env, "orazaka_studio_db", "orazaka_studio_db", "DATABASE_PASSWORD_ORAZAKA_STUDIO_DB", [], grantSql(actorId, studios, product));
+  return { key, account, name };
+}
+
+async function createServiceAccount(product, flags) {
+  const opt = (name) => {
+    const i = flags.indexOf(name);
+    return i >= 0 ? flags[i + 1] : undefined;
+  };
+  const studios = (opt("--studios") ?? "").split(",").filter(Boolean);
+  const scopes = parseScopes(opt("--scopes"));
+  const out = opt("--out");
+  if (!out) throw new Error("--out <file> is required: the product's secrets file (the key is written there only)");
+  const { key, account, name } = await issueServiceAccount(product, { studios, scopes });
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, upsertEnv(existsSync(out) ? readFileSync(out, "utf8") : "", connectionVars(opt("--prefix"), EDGE_URL, key)), { mode: 0o600 });
   console.log(`${account.username}: API key "${name}" (${scopes.length ? scopes.join(", ") : "unscoped"}) written to ${out} (never printed); granted ${studios.length ? studios.join(", ") : "no Studio"}`);
