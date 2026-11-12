@@ -1,8 +1,10 @@
 /**
  * The rules of « Reset dev data » (krizaka/.github docs/plans/2026-11-02-db-migration-plan.md § R, krizaka-internal#2255):
  * which databases a product owns, in which order they are cleared, what the statements are, and every guard that keeps
- * the reset away from anything that is not a DEV product database. Pure: no network, no secret, no clock.
+ * the reset away from anything that is not a DEV product database. Pure: no network, no secret, no clock (the writers
+ * and the key check of `restoreServiceAccounts` are passed in).
  */
+import { checkKeys, keyVariable } from "./service-keys.mjs";
 
 /** The 8 product databases of the dev cluster, by product, in the plan's order (identities, plans, engine, apps). */
 export const PRODUCT_DATABASES = Object.freeze({
@@ -183,4 +185,95 @@ export const ORAZAKA_CAST = Object.freeze(["eric", "mira", "krizaka"]);
 
 export function orazakaDatasetSteps() {
   return [...ORAZAKA_CAST.map((name) => ["persona", name]), ["names"]];
+}
+
+/**
+ * The products that call Sovkora with a service account (`svc_<product>`), as data (`scripts/dev-service-products.json`):
+ * the Studios the account is granted, the dev App Platform app that holds its `AI_API_KEY`, and the vault source (a name of
+ * secrets.map) whose file holds it. Refuses a shape that would make a restore guess.
+ */
+export function parseServiceProducts(text) {
+  const parsed = JSON.parse(text);
+  const out = {};
+  for (const [product, e] of Object.entries(parsed)) {
+    const ok = e && Array.isArray(e.studios) && e.studios.length > 0 && e.studios.every((x) => typeof x === "string")
+      && typeof e.app === "string" && e.app !== "" && typeof e.vault === "string" && e.vault !== "";
+    if (!ok) throw new Error(`service product ${product}: needs studios (a non-empty list), app and vault`);
+    out[product] = Object.freeze({ studios: Object.freeze([...e.studios]), app: e.app, vault: e.vault });
+  }
+  return Object.freeze(out);
+}
+
+/** The service accounts a reset drops that this list cannot put back: refused before anything is cleared. */
+export function unrestorable(dropped, catalog) {
+  return dropped.filter((p) => !Object.hasOwn(catalog, p));
+}
+
+/**
+ * The live spec of an app (a JSON document) with `key` set to `value` on every component that already declares it, as a
+ * SECRET. Never adds the variable to a component that does not read it. Throws when no component declares it.
+ * @returns {{ spec: object, components: string[] }}
+ */
+export function specWithSecret(spec, key, value) {
+  const next = structuredClone(spec);
+  const components = [];
+  for (const kind of ["services", "workers", "jobs", "static_sites", "functions"]) {
+    for (const c of next[kind] ?? []) {
+      const entry = (c.envs ?? []).find((e) => e.key === key);
+      if (!entry) continue;
+      entry.value = value;
+      entry.type = "SECRET";
+      components.push(c.name);
+    }
+  }
+  if (components.length === 0) throw new Error(`no component of ${next.name ?? "the app"} declares ${key}`);
+  return { spec: next, components };
+}
+
+/** The file of a secrets.map source (its first file, relative to the map's folder): where `secret.sh @<source>` writes a product's own keys. */
+export function vaultFileOf(mapText, source, mapDir, home) {
+  const line = mapText.split("\n").map((l) => l.trim().split(/\s+/)).find(([name]) => name === source && !name.startsWith("#"));
+  const file = line?.[1];
+  if (!file) throw new Error(`no vault source ${source} in secrets.map`);
+  if (file.startsWith("/")) return file;
+  if (file.startsWith("~/")) return `${home}/${file.slice(2)}`;
+  return `${mapDir}/${file}`;
+}
+
+/** The variable that holds the key in the product's vault file and its dev app. */
+export const KEY_VARIABLE_OF_PRODUCT = "AI_API_KEY";
+
+/**
+ * Puts back every listed product's service account after the users database was cleared and reseeded, then proves each key.
+ * Each new key goes to the three places a key lives (`writers.vault`, `writers.app`, `writers.watch`), then one call per
+ * key to the edge must answer 200. Any failure stops with the product named; no key is ever logged or put in a message.
+ *
+ * @param {{ catalog: Record<string, {studios: string[], app: string, vault: string}>,
+ *           issue: (product: string, opts: {studios: string[]}) => Promise<{key: string}>,
+ *           writers: { vault: (product: string, entry: object, key: string) => void, app: (product: string, entry: object, key: string) => void|string[], watch: (product: string, key: string) => void },
+ *           edgeUrl: string, fetchImpl?: typeof fetch, log: (line: string) => void }} p
+ */
+export async function restoreServiceAccounts({ catalog, issue, writers, edgeUrl, fetchImpl = fetch, log }) {
+  const keys = new Map();
+  for (const [product, entry] of Object.entries(catalog)) {
+    let made;
+    try {
+      made = await issue(product, { studios: [...entry.studios] });
+      writers.vault(product, entry, made.key);
+      writers.app(product, entry, made.key);
+      writers.watch(product, made.key);
+    } catch (e) {
+      throw new Error(`service account of ${product} not put back: ${scrub(e.message, made?.key)}`);
+    }
+    keys.set(product, made.key);
+    log(`  ${product}: service account back, key written to its vault file, its dev app (${entry.app}) and ${keyVariable(product)}`);
+  }
+  const results = await checkKeys({ products: [...keys.keys()], keyOf: (p) => keys.get(p), edgeUrl, fetchImpl });
+  const bad = results.filter((r) => !r.ok);
+  if (bad.length) throw new Error(`service key check failed: ${bad.map((r) => r.message).join("; ")}`);
+  for (const r of results) log(`  ${r.message}`);
+}
+
+function scrub(message, key) {
+  return key ? String(message).replaceAll(key, "<key>") : String(message);
 }

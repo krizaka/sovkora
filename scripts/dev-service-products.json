@@ -1,0 +1,7 @@
+{
+  "verikora": {
+    "studios": ["compliance-check", "document-authenticity"],
+    "app": "verikora-dev",
+    "vault": "verikora"
+  }
+}

@@ -9,7 +9,10 @@
  * put back doadmin's extensions and the runtime role's grants, redeploy its dev app (its migrations run from V1 before it
  * takes traffic), wait for the deployment, then seed the cast (Orazaka: the personas Eric, Mira, Krizaka then their names, `orazakaDatasetSteps`; the others `tools/seed-dev.sh <product>`) and run the persona smoke.
  * Clearing krizaka_users_db drops every product's service account (svc_<product>) and its API key: refused unless each product
- * is named with --drop-service-accounts (krizaka-internal#3214); the products dropped go to the run log.
+ * is named with --drop-service-accounts (krizaka-internal#3214); the products dropped go to the run log. After the Orazaka
+ * reseed (dev target) every product of scripts/dev-service-products.json gets its account back (`issueServiceAccount`) and its new
+ * key in its vault file, its dev App Platform app and this repository's SERVICE_KEY_<PRODUCT> secret; then each key must answer
+ * 200 on the edge or the reset fails naming the product (krizaka-internal#2416).
  * Without --yes it stops after the guards and the read-only preflight (same as --dry-run).
  *
  * Runs on the maintainer's Mac: the dev cluster trusts no GitHub runner (CTO decision 2026-10-28, krizaka/.github#356), so
@@ -21,15 +24,20 @@
  * ~/.krizaka-private/logs/dev-reset.jsonl).
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { homedir, userInfo } from "node:os";
 import { dirname, join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { devSecrets } from "./lib/dev-secrets.mjs";
+import { edgeBase } from "./lib/edge-url.mjs";
+import { issueServiceAccount, writeEnvKeys } from "./dev-deploy.mjs";
 import { USERS_DATABASE, droppedAccountsAlert, productsOfAccounts, serviceAccountRefusal, serviceAccountsSql } from "./lib/service-keys.mjs";
-import { DEV_APPS, EXTENSIONS, PRODUCT_DATABASES, bootstrapSql, clearSql, extensionsAtRiskSql, grantsSql, logLine, orazakaDatasetSteps, plan, productsOf, refusals } from "./lib/dev-reset.mjs";
+import { DEV_APPS, EXTENSIONS, KEY_VARIABLE_OF_PRODUCT, PRODUCT_DATABASES, bootstrapSql, clearSql, extensionsAtRiskSql, grantsSql, logLine, orazakaDatasetSteps, parseServiceProducts, plan, productsOf, refusals, restoreServiceAccounts, specWithSecret, unrestorable, vaultFileOf } from "./lib/dev-reset.mjs";
+import { keyVariable } from "./lib/service-keys.mjs";
 
 const TOOLS = join(homedir(), ".krizaka-worktrees/tools");
+const SERVICE_PRODUCTS_FILE = join(dirname(fileURLToPath(import.meta.url)), "dev-service-products.json");
+const SOURCE_REPOSITORY = "krizaka/sovkora";
 
 function flag(argv, name) {
   return argv.includes(`--${name}`);
@@ -106,7 +114,7 @@ function connectionFor({ local, host, environ, secrets }) {
 }
 
 /** One database: the read-only preflight, then (when applying) clear, extensions back, grants back. */
-function resetDatabase({ db, conn, apply, acknowledged, dropped, log }) {
+function resetDatabase({ db, conn, apply, acknowledged, dropped, catalog, log }) {
   const atRisk = psql(conn(db), db, db, extensionsAtRiskSql(db));
   const putBack = atRisk ? " (extensions put back after: " + atRisk.replaceAll("\n", ", ") + ")" : "";
   log(`  ${db}: preflight ok as its owner${putBack}`);
@@ -115,6 +123,8 @@ function resetDatabase({ db, conn, apply, acknowledged, dropped, log }) {
     if (products.length) log(`  ${droppedAccountsAlert(products)}`);
     const refusal = serviceAccountRefusal(db, products, acknowledged);
     if (apply && refusal) throw new Error(refusal);
+    const orphans = unrestorable(products, catalog);
+    if (apply && orphans.length) throw new Error(`no restore data for the service account of ${orphans.join(", ")}: add it to scripts/dev-service-products.json before a reset can put it back`);
     dropped.push(...products);
   }
   if (!apply) return;
@@ -124,16 +134,50 @@ function resetDatabase({ db, conn, apply, acknowledged, dropped, log }) {
   log(`  ${db}: cleared, extensions and grants back`);
 }
 
-/** After a product's databases are clear: its migrations run from V1 (redeploy), then the cast and the smoke. */
-function reseedProduct({ p, local, noDeploy, log }) {
+/** A command's stdout; the value, when there is one, goes on its standard input only: never on the command line, never echoed. */
+function runWithInput(cmd, args, input) {
+  const r = spawnSync(cmd, args, { input, encoding: "utf8" });
+  if (r.status !== 0) throw new Error(`${cmd.split("/").pop()} ${args.slice(0, 2).join(" ")} exited ${r.status}`);
+  return r.stdout;
+}
+
+/** The three places a service key lives; each writer takes the key as a value and prints nothing. */
+function keyWriters(environ) {
+  return {
+    /** The product's vault file: one upsert of AI_API_KEY (the file is never read into a log). */
+    vault(_product, entry, key) {
+      const map = environ.KRIZAKA_SECRETS_MAP || execFileSync(join(homedir(), ".local/bin/kz-config"), ["secretsMap"], { encoding: "utf8" }).trim();
+      writeEnvKeys(vaultFileOf(readFileSync(map, "utf8"), entry.vault, dirname(map), homedir()), { [KEY_VARIABLE_OF_PRODUCT]: key });
+    },
+    /** The product's dev app: AI_API_KEY (SECRET) on the components that declare it, on the live spec, never the repository's. */
+    app(_product, entry, key) {
+      const id = doctl("apps", "list", "--format", "ID,Spec.Name", "--no-header")
+        .split("\n").map((l) => l.trim().split(/\s+/)).find(([, name]) => name === entry.app)?.[0];
+      if (!id) throw new Error(`no App Platform app ${entry.app}`);
+      const live = JSON.parse(doctl("apps", "spec", "get", id, "--format", "json"));
+      const { spec } = specWithSecret(live, KEY_VARIABLE_OF_PRODUCT, key);
+      runWithInput(toolPath("doctl", process.env.DOCTL), ["apps", "update", id, "--spec", "-", "--format", "ID", "--no-header"], JSON.stringify(spec));
+    },
+    /** This repository's secret of the key watch; the value goes through standard input. */
+    watch(product, key) {
+      runWithInput(toolPath("gh", process.env.GH), ["secret", "set", keyVariable(product), "--repo", SOURCE_REPOSITORY], key);
+    },
+  };
+}
+
+/** After a product's databases are clear: its migrations run from V1 (redeploy), then the cast, the service accounts and the smoke. */
+async function reseedProduct({ p, local, noDeploy, catalog, environ, log }) {
   if (local) {
-    log(`  ${p}: start the stack (docker compose up): the services' migrations run from V1`);
+    log(`  ${p}: start the stack (docker compose up): the services' migrations run from V1; the products' service accounts are put back on the dev target only`);
     return;
   }
   if (!noDeploy) waitForDeployment(DEV_APPS[p], log);
   if (p === "orazaka") for (const step of orazakaDatasetSteps()) run(process.execPath, ["scripts/dev-deploy.mjs", ...step]);
   else run(join(TOOLS, "seed-dev.sh"), [p]);
-  if (p === "orazaka") run(process.execPath, ["scripts/dev-persona-smoke.mjs", "eric"]);
+  if (p === "orazaka") {
+    await restoreServiceAccounts({ catalog, issue: issueServiceAccount, writers: keyWriters(environ), edgeUrl: edgeBase(environ), log });
+    run(process.execPath, ["scripts/dev-persona-smoke.mjs", "eric"]);
+  }
 }
 
 const DEFAULT_LOG = join(homedir(), ".krizaka-private/logs/dev-reset.jsonl");
@@ -170,11 +214,12 @@ export async function main(argv = process.argv.slice(2), environ = process.env) 
   const conn = connectionFor({ local, host, environ, secrets });
   const acknowledged = option(argv, "drop-service-accounts", "").split(",").filter(Boolean);
   const dropped = [];
+  const catalog = parseServiceProducts(readFileSync(SERVICE_PRODUCTS_FILE, "utf8"));
   const record = (result) => recordRun({ file: option(argv, "log", DEFAULT_LOG), product, target, steps, result, dropped });
   try {
     for (const p of productsOf(product)) {
-      for (const db of PRODUCT_DATABASES[p]) resetDatabase({ db, conn, apply, acknowledged, dropped, log });
-      if (apply) reseedProduct({ p, local, noDeploy: flag(argv, "no-deploy"), log });
+      for (const db of PRODUCT_DATABASES[p]) resetDatabase({ db, conn, apply, acknowledged, dropped, catalog, log });
+      if (apply) await reseedProduct({ p, local, noDeploy: flag(argv, "no-deploy"), catalog, environ, log });
     }
     record(apply ? "done" : "dry-run");
     return 0;
