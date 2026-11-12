@@ -1,0 +1,26 @@
+# Service key watch (krizaka-internal#3214): Verikora dev's Sovkora key was revoked on 2026-11-08 by a dev reset and nothing
+# named it for three days. Every 30 minutes, each product's key must answer 200 on the edge (GET /api/v1/studios/installations);
+# a 401 fails the run with an error naming the product. Needs one repository secret per product, SERVICE_KEY_<PRODUCT>
+# (the product's AI_API_KEY); a product without its secret is skipped with a notice.
+name: Dev service keys
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keys:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SERVICE_KEY_VERIKORA: ${{ secrets.SERVICE_KEY_VERIKORA }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Each product's service key is accepted
+        run: node scripts/dev-service-keys.mjs

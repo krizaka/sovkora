@@ -175,6 +175,7 @@ One CI for the whole repository, and a few workflows that run on their own sched
 | [Dev image build](.github/workflows/dev-image-build.yml) | builds the dev `core` image (never pushed) | changes to the image, weekly |
 | [Dev redeploy](.github/workflows/dev-redeploy.yml) | rebuilds dev when main moved; fails on a rollback, a stale source or a schema drift | every 15 minutes |
 | [Dev persona smoke](.github/workflows/dev-persona-smoke.yml) | the demo persona signs in on dev | after a deploy, every 30 minutes |
+| [Dev service keys](.github/workflows/dev-service-keys.yml) | each product's Sovkora service key answers 200 on the edge; a 401 fails the run naming the product | every 30 minutes |
 | [Web live](.github/workflows/web-live.yml) | waits for the merged commit on dev, then the live smoke, the SEO contract, the console gate and the UI crawl | main, when `apps/web` changed |
 | [Web videos](.github/workflows/web-videos.yml) | records the download page's videos from the deployed app | daily |
 | [Mobile E2E](.github/workflows/mobile-e2e.yml) | the Maestro flows of the mobile app on an Android emulator | changes in `apps/mobile` |

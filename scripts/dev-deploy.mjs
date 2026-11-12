@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 import { devSecrets, envFileFromArgs, readEnvFile } from "./lib/dev-secrets.mjs";
 import { pendingOnDev } from "./dev-migrations.mjs";
 import { toolPath, toolPathOrNull } from "./lib/tool-path.mjs";
+import { keysToRevoke } from "./lib/service-keys.mjs";
 
 export { readEnvFile };
 
@@ -570,8 +571,14 @@ async function createServiceAccount(product, flags) {
   const { token } = await edge("/api/v1/auth/login", { body: { email: account.email, password: pw } });
   // One live key per product and environment: the previous ones are revoked.
   const name = `${product}-dev`;
-  for (const k of await edge("/api/v1/api-keys", { token })) if (k.name === name) await edge(`/api/v1/api-keys/${k.id}`, { token, method: "DELETE" });
-  const { key } = await edge("/api/v1/api-keys", { token, body: scopes.length ? { name, scopes } : { name } });
+  // The new key is made first: a failed creation never leaves the product without a key, and each revocation names it.
+  const previous = await edge("/api/v1/api-keys", { token });
+  const created = await edge("/api/v1/api-keys", { token, body: scopes.length ? { name, scopes } : { name } });
+  const { key } = created;
+  for (const k of keysToRevoke(previous, name, created)) {
+    await edge(`/api/v1/api-keys/${k.id}`, { token, method: "DELETE" });
+    console.log(`revoked the previous "${name}" key of ${account.username} (product ${product})`);
+  }
   psql(env, "krizaka_billing_db", "krizaka_billing_db", "DATABASE_PASSWORD_KRIZAKA_BILLING_DB", [], planSql(product, actorId));
   if (studios.length) psql(env, "orazaka_studio_db", "orazaka_studio_db", "DATABASE_PASSWORD_ORAZAKA_STUDIO_DB", [], grantSql(actorId, studios, product));
   mkdirSync(dirname(out), { recursive: true });

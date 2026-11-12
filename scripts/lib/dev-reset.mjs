@@ -167,9 +167,9 @@ export function plan(product, target) {
 }
 
 /** One JSON line for the run's log: who, when, what; never a credential or a host. */
-export function logLine({ actor, at, product, target, steps, result }) {
+export function logLine({ actor, at, product, target, steps, result, droppedServiceAccounts = [] }) {
   const named = steps.map((s) => [s.product, s.step, s.db].filter(Boolean).join(":"));
-  return JSON.stringify({ kind: "dev-reset", actor, at, product, target, steps: named, result });
+  return JSON.stringify({ kind: "dev-reset", actor, at, product, target, steps: named, result, droppedServiceAccounts });
 }
 
 /**
