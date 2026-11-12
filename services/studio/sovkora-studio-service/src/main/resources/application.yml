@@ -103,6 +103,11 @@ orazaka:
       # How often non-terminal runs are checked. The per-step timeout itself is a DB row
       # (run.step-timeout-seconds) — this is only the poll interval, which is bootstrap wiring.
       interval: ${STUDIO_SWEEPER_INTERVAL:60000}
+      # A run RUNNING with no step dispatched is failed (RUN_DISPATCH_TIMEOUT) after `timeout`
+      # (30s..1h), at most `batch-size` (1..500) per pass (krizaka-internal#263).
+      dispatch:
+        timeout: ${STUDIO_DISPATCH_TIMEOUT:PT5M}
+        batch-size: ${STUDIO_DISPATCH_BATCH_SIZE:50}
     # The asset store encrypts what it holds: a per-file data key wrapped by a master key that
     # lives outside the repository and outside .env (ADR-054). This is the declaration ADR-051 §8
     # required, and it is now true — so a SENSITIVE pack installs here and on a hosted deployment
