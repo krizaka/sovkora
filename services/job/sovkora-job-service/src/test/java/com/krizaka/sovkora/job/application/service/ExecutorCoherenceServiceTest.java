@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
-import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -65,7 +64,8 @@ class ExecutorCoherenceServiceTest {
     com.krizaka.sovkora.jobs.api.domain.port.JobExecutor text =
         mock(com.krizaka.sovkora.jobs.api.domain.port.JobExecutor.class);
     when(text.handlerKey()).thenReturn("text.generate");
-    CapabilityManager manager = mock(CapabilityManager.class);
+    var manager =
+        mock(com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager.class);
     when(manager.findAll()).thenReturn(List.of(capabilities));
     return new ExecutorCoherenceService(List.of(text), manager, bindings);
   }
