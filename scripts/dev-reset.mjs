@@ -3,11 +3,13 @@
  * MANUAL TOOL (ADR-026), run by a person. Owner: sovkora lane. Listed in README.md « Manual tools ».
  * « Reset dev data » in one command (krizaka/.github docs/plans/2026-11-02-db-migration-plan.md § R, krizaka-internal#2255).
  *
- *   node scripts/dev-reset.mjs <orazaka|yomizaka|akinaza|all> --target <local|dev> [--dry-run] [--yes] [--no-deploy] [--log <file>]
+ *   node scripts/dev-reset.mjs <orazaka|yomizaka|akinaza|all> --target <local|dev> [--dry-run] [--yes] [--no-deploy] [--drop-service-accounts <product,…>] [--log <file>]
  *
  * Per product, in order: clear each of its databases as the owner role (DROP OWNED BY <owner> CASCADE, public schema back),
  * put back doadmin's extensions and the runtime role's grants, redeploy its dev app (its migrations run from V1 before it
  * takes traffic), wait for the deployment, then seed the cast (Orazaka: the personas Eric, Mira, Krizaka then their names, `orazakaDatasetSteps`; the others `tools/seed-dev.sh <product>`) and run the persona smoke.
+ * Clearing krizaka_users_db drops every product's service account (svc_<product>) and its API key: refused unless each product
+ * is named with --drop-service-accounts (krizaka-internal#3214); the products dropped go to the run log.
  * Without --yes it stops after the guards and the read-only preflight (same as --dry-run).
  *
  * Runs on the maintainer's Mac: the dev cluster trusts no GitHub runner (CTO decision 2026-10-28, krizaka/.github#356), so
@@ -24,6 +26,7 @@ import { homedir, userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { devSecrets } from "./lib/dev-secrets.mjs";
+import { USERS_DATABASE, droppedAccountsAlert, productsOfAccounts, serviceAccountRefusal, serviceAccountsSql } from "./lib/service-keys.mjs";
 import { DEV_APPS, EXTENSIONS, PRODUCT_DATABASES, bootstrapSql, clearSql, extensionsAtRiskSql, grantsSql, logLine, orazakaDatasetSteps, plan, productsOf, refusals } from "./lib/dev-reset.mjs";
 
 const TOOLS = join(homedir(), ".krizaka-worktrees/tools");
@@ -103,10 +106,17 @@ function connectionFor({ local, host, environ, secrets }) {
 }
 
 /** One database: the read-only preflight, then (when applying) clear, extensions back, grants back. */
-function resetDatabase({ db, conn, apply, log }) {
+function resetDatabase({ db, conn, apply, acknowledged, dropped, log }) {
   const atRisk = psql(conn(db), db, db, extensionsAtRiskSql(db));
   const putBack = atRisk ? " (extensions put back after: " + atRisk.replaceAll("\n", ", ") + ")" : "";
   log(`  ${db}: preflight ok as its owner${putBack}`);
+  if (db === USERS_DATABASE) {
+    const products = productsOfAccounts(psql(conn(db), db, db, serviceAccountsSql()));
+    if (products.length) log(`  ${droppedAccountsAlert(products)}`);
+    const refusal = serviceAccountRefusal(db, products, acknowledged);
+    if (apply && refusal) throw new Error(refusal);
+    dropped.push(...products);
+  }
   if (!apply) return;
   psql(conn(db), db, db, clearSql(db));
   psql(conn("doadmin"), db, "doadmin", bootstrapSql(db, EXTENSIONS[db]));
@@ -135,9 +145,9 @@ function announce({ product, target, apply, steps, log }) {
 }
 
 /** One JSON line per run: who, when, what; never a credential or a host. */
-function recordRun({ file, product, target, steps, result }) {
+function recordRun({ file, product, target, steps, result, dropped }) {
   mkdirSync(dirname(file), { recursive: true });
-  const line = logLine({ actor: userInfo().username, at: new Date().toISOString(), product, target, steps, result });
+  const line = logLine({ actor: userInfo().username, at: new Date().toISOString(), product, target, steps, result, droppedServiceAccounts: dropped });
   appendFileSync(file, line + "\n");
 }
 
@@ -158,10 +168,12 @@ export async function main(argv = process.argv.slice(2), environ = process.env) 
   const log = (line) => console.log(line);
   announce({ product, target, apply, steps, log });
   const conn = connectionFor({ local, host, environ, secrets });
-  const record = (result) => recordRun({ file: option(argv, "log", DEFAULT_LOG), product, target, steps, result });
+  const acknowledged = option(argv, "drop-service-accounts", "").split(",").filter(Boolean);
+  const dropped = [];
+  const record = (result) => recordRun({ file: option(argv, "log", DEFAULT_LOG), product, target, steps, result, dropped });
   try {
     for (const p of productsOf(product)) {
-      for (const db of PRODUCT_DATABASES[p]) resetDatabase({ db, conn, apply, log });
+      for (const db of PRODUCT_DATABASES[p]) resetDatabase({ db, conn, apply, acknowledged, dropped, log });
       if (apply) reseedProduct({ p, local, noDeploy: flag(argv, "no-deploy"), log });
     }
     record(apply ? "done" : "dry-run");
