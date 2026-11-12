@@ -14,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { toolPath } from "./lib/tool-path.mjs";
 
 export const CODE_NAMES = /orazaka|yomizaka|akinaza|kachizaka/i;
 const LOCKFILE = /(^|\/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock|Cargo\.lock|[^/]*\.lock)$/;
@@ -117,9 +118,7 @@ export function lowered(counts, ratchet, creating) {
 }
 
 function readTracked(root) {
-  // A fixed, system-owned PATH for the one binary we run (Sonar S4036): never the caller's PATH.
-  const env = { ...process.env, PATH: "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin" };
-  const paths = execFileSync("git", ["ls-files", "-z"], { cwd: root, env, maxBuffer: 1 << 28 }).toString("utf8").split("\0").filter(Boolean);
+  const paths = execFileSync(toolPath("git"), ["ls-files", "-z"], { cwd: root, maxBuffer: 1 << 28 }).toString("utf8").split("\0").filter(Boolean);
   return paths.filter((p) => existsSync(join(root, p))).map((path) => {
     if (LOCKFILE.test(path)) return { path, text: null };
     const buf = readFileSync(join(root, path));
