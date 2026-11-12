@@ -32,7 +32,8 @@ spring:
     # The schema is db/migration (V1 = the baseline), applied at startup as the owner role, never by hand (krizaka-internal#2255).
     # The migrator connection is distinct from the runtime datasource; locally it falls back to the datasource values.
     enabled: true
-    locations: classpath:db/migration
+    # The dev core container adds classpath:db/dev (its chat route, ADR-095) through run-services.sh; nowhere else.
+    locations: ${DATABASE_JOB_MIGRATIONS_LOCATIONS:classpath:db/migration}
     url: ${DATABASE_JOB_MIGRATOR_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/orazaka_db}}
     user: ${DATABASE_JOB_MIGRATOR_USER:${SPRING_DATASOURCE_USERNAME:orazaka_app}}
     password: ${DATABASE_JOB_MIGRATOR_PASSWORD:${SPRING_DATASOURCE_PASSWORD:orazaka_pass}}

@@ -3,6 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
   PROOF_TEST,
+  chatAnswerVerdict,
+  chatRouteVerdict,
+  chatTurnText,
   loginVerdict,
   report,
   rollbackVerdict,
@@ -146,5 +149,64 @@ describe("the free proof that a streamed turn emits a tool-call event", () => {
 describe("the tool-call proof it looks for", () => {
   it("is a file of this repository (it was looked up in a repository that no longer exists)", () => {
     assert.ok(existsSync(new URL(`../../../${PROOF_TEST}`, import.meta.url)), PROOF_TEST);
+  });
+});
+
+const model = (modelName, providerName, isDefault, category = "chat") => ({
+  modelName,
+  providerName,
+  isDefault,
+  category,
+});
+
+describe("the default chat route (ADR-095: dev chats on the hosted per-token provider, never a GPU)", () => {
+  it("passes when the default chat model is on do-inference", () => {
+    const v = chatRouteVerdict([
+      model("tinyllama:latest", "ollama", false),
+      model("mistral-3-14B", "do-inference", true),
+    ]);
+    assert.equal(v.ok, true);
+    assert.match(v.message, /mistral-3-14B.*do-inference/);
+  });
+  it("fails, naming the route, when the default is the GPU relay's ollama (the 2026-11-12 drift)", () => {
+    const v = chatRouteVerdict([
+      model("tinyllama:latest", "ollama", true),
+      model("mistral-3-14B", "do-inference", false),
+    ]);
+    assert.equal(v.ok, false);
+    assert.match(v.message, /tinyllama:latest.*ollama.*do-inference/);
+  });
+  it("ignores the defaults of the other categories, and fails without a chat default or a list", () => {
+    assert.equal(chatRouteVerdict([model("zinc", "ollama", true, "theme")]).ok, false);
+    assert.equal(chatRouteVerdict([]).ok, false);
+    assert.equal(chatRouteVerdict({ error: 1 }).ok, false);
+  });
+});
+
+const sse = (...events) => events.map(([event, data]) => `id:x\nevent:${event}\ndata:${data}\n\n`).join("");
+
+describe("the chat answer", () => {
+  it("collects the text of a turn, ignoring the pipeline events", () => {
+    const text = chatTurnText(
+      sse(
+        ["pipeline-ack", '{"pipelineId":"default"}'],
+        ["pipeline-step", '{"interceptorId":"X"}'],
+        ["message", '{"content":"Hel"}'],
+        ["message", '{"content":"lo."}'],
+      ),
+    );
+    assert.equal(text, "Hello.");
+  });
+  it("passes on a non-empty answer", () => {
+    assert.equal(chatAnswerVerdict("Hello.", "do-inference").ok, true);
+  });
+  it("fails, naming the route, on an empty turn (pipeline events only: the GPU relay answered nothing)", () => {
+    const v = chatAnswerVerdict(chatTurnText(sse(["pipeline-step", '{"interceptorId":"X"}'])), "ollama");
+    assert.equal(v.ok, false);
+    assert.match(v.message, /ollama/);
+    assert.match(v.message, /no answer/);
+  });
+  it("fails on a whitespace-only answer", () => {
+    assert.equal(chatAnswerVerdict("  \n", "do-inference").ok, false);
   });
 });

@@ -79,6 +79,9 @@ COMMON_OPTS="${ORAZAKA_JAVA_OPTS:--XX:+UseSerialGC -XX:TieredStopAtLevel=1 -XX:C
 # the signed webhooks and schedules (ADR-084) on :8091, reached through /api/v1/automations and /hooks/.
 SERVICES="${ORAZAKA_SERVICES:-users:users.jar:128 billing:billing.jar:96 job:job.jar:192 conversation:conversation.jar:224 studio:studio.jar:128 knowledge:knowledge.jar:96 automation:automation.jar:96 edge:edge.jar:80}"
 
+# The dev chat route is a repeatable migration of the job service (db/dev, ADR-095): only this dev supervisor adds its location.
+export DATABASE_JOB_MIGRATIONS_LOCATIONS="${DATABASE_JOB_MIGRATIONS_LOCATIONS:-classpath:db/migration,classpath:db/dev}"
+
 pids=()
 workers=()
 stop_all() {

@@ -303,6 +303,15 @@ port (`orazaka-assets`), chosen by environment: `MEDIA_STORAGE_PROVIDER=local|bu
 host, through the relay). Change a model or a provider in the admin
 console or in that file — never in a service's configuration.
 
+- **The chat route is applied at startup, not by hand** (ADR-095: no GPU is ever left on; krizaka-internal#3285). The
+  `mistral-3-14B` row and the chat default are the job service's repeatable migration
+  `services/job/sovkora-job-service/src/main/resources/db/dev/R__dev_chat_route.sql`; only the `core` container's supervisor
+  (`infra/deploy/run-services.sh`, `DATABASE_JOB_MIGRATIONS_LOCATIONS`) adds that location, so local and customer databases keep
+  the baseline. A re-baselined dev database gets its route back at the next deploy.
+- **The Download videos preflight proves it** (`apps/web/scripts/videos-preflight.mjs`): the default chat model of
+  `GET /edge/api/v1/models/catalog` must be on `do-inference` (the drift check), and one short chat turn as the persona must come
+  back non-empty (a few tokens on the per-token route), else the preflight is red naming the route and no paid step runs.
+
 - The other hosted models (DeepSeek V4 Pro, Llama 4 Maverick, Gemma 4) and every model's registry metadata come
   from `infra/deploy/dev-model-registry.sql` (ORA-MODELS), run after `dev-data.sql`; selectable, never the default.
 - The key reaches the call through `ai_providers.api_key` (krizaka/orazaka-ai-engine#10); `sovkora-dev` also holds it
