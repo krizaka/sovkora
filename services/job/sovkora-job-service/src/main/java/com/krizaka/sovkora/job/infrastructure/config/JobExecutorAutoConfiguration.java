@@ -41,11 +41,15 @@ public class JobExecutorAutoConfiguration {
    *
    * @param executors every registered executor, in-repo and out-of-tree alike
    * @param capabilityManager the capability registry
+   * @param workerSelfRegistration this process's declared bindings: only what it drains is checked
    * @return the startup coherence check
    */
   @Bean
   ExecutorCoherenceService executorCoherenceService(
-      List<JobExecutor> executors, CapabilityManager capabilityManager) {
-    return new ExecutorCoherenceService(executors, capabilityManager);
+      List<JobExecutor> executors,
+      CapabilityManager capabilityManager,
+      WorkerSelfRegistration workerSelfRegistration) {
+    return new ExecutorCoherenceService(
+        executors, capabilityManager, workerSelfRegistration.bindings());
   }
 }
