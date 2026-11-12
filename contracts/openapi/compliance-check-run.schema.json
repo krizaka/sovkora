@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A compliance-check run as Sovkora's edge answers GET /api/v1/studios/runs/{runId}",
+  "description": "The fields Verikora reads (verikora apps/web packages/core sovkoraRun and complianceReport), derived from the run recorded in contracts/recorded-runs/compliance-check-tenant.json. Written in the subset of JSON Schema the studio service enforces (OutputContract: no $ref, no oneOf); $defs.report is the schema of the `report` output's value, which the run carries as a JSON string. Open on purpose: Sovkora may add a field; removing or renaming one that is required here breaks Verikora.",
+  "type": "object",
+  "required": [
+    "id",
+    "studioKey",
+    "blueprintVersion",
+    "status",
+    "outputs",
+    "errorMessage",
+    "startedAt",
+    "finishedAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "studioKey": {
+      "type": "string"
+    },
+    "blueprintVersion": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "type",
+          "value"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "description": "A string; for key `report` the JSON text of $defs.report"
+          }
+        }
+      }
+    },
+    "errorMessage": {
+      "description": "Null unless the run failed (nullable: untyped)."
+    },
+    "startedAt": {
+      "type": "string"
+    },
+    "finishedAt": {
+      "description": "Null while the run is in flight (nullable: untyped)."
+    }
+  },
+  "$defs": {
+    "report": {
+      "type": "object",
+      "required": [
+        "rulesetId",
+        "rulesetVersion",
+        "jurisdiction",
+        "asOf",
+        "summary",
+        "findings"
+      ],
+      "properties": {
+        "rulesetId": {
+          "type": "string"
+        },
+        "rulesetVersion": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "type": "string"
+        },
+        "asOf": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "object",
+          "required": [
+            "byVerdict",
+            "blockingFailures",
+            "rulesEvaluated"
+          ],
+          "properties": {
+            "byVerdict": {
+              "type": "object"
+            },
+            "blockingFailures": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rulesEvaluated": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "findings": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "ruleId",
+              "title",
+              "severity",
+              "verdict",
+              "evidenceSpan",
+              "explanation",
+              "method",
+              "citation"
+            ],
+            "properties": {
+              "ruleId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "severity": {
+                "type": "string"
+              },
+              "verdict": {
+                "type": "string"
+              },
+              "explanation": {
+                "type": "string"
+              },
+              "method": {
+                "type": "string"
+              },
+              "citation": {
+                "type": "string"
+              },
+              "evidenceSpan": {
+                "description": "The passage the verdict rests on, or null when none. Nullable, hence no type keyword: when present as an object it carries start, end and quote.",
+                "properties": {
+                  "quote": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "title": "The compliance report: the JSON text of the run's `report` output"
+    }
+  }
+}
