@@ -30,7 +30,7 @@ export function globToRegExp(glob) {
       if (glob[i + 1] === "/") { i++; re += "(?:.*/)?"; } else re += ".*";
     } else if (c === "*") re += "[^/]*";
     else if (c === "?") re += "[^/]";
-    else re += c.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    else re += c.replace(/[.+^${}()|[\]\\]/g, String.raw`\$&`);
   }
   return new RegExp(`^${re}$`);
 }
@@ -42,24 +42,50 @@ export function namingRows(markdown) {
   return new Set([...markdown.matchAll(/^\|\s*(K\d+)\s*\|/gm)].map((m) => m[1]));
 }
 
+/** A string without the allowed tokens it holds; marks each token found as used (the allow-list quoting a token is not a use of it). */
+function withoutTokens(s, tokens, path) {
+  let out = s;
+  for (const t of tokens) {
+    if (out.includes(t.e.token)) {
+      out = out.split(t.e.token).join("");
+      t.used ||= path !== ALLOW;
+    }
+  }
+  return out;
+}
+
+/** The code-name hits of one file: its path counts once, then each line of its text. */
+function hitsOf(path, text, tokens) {
+  let hits = CODE_NAMES.test(withoutTokens(path, tokens, path)) ? 1 : 0;
+  if (text === null) {
+    return hits;
+  }
+  for (const line of text.split("\n")) {
+    if (CODE_NAMES.test(withoutTokens(line, tokens, path))) {
+      hits++;
+    }
+  }
+  return hits;
+}
+
 /** @param files {path, text|null}[] (text null: binary or lockfile) */
 export function scan(files, allow) {
   const globs = (allow.paths ?? []).map((e) => ({ e, re: globToRegExp(e.glob), used: false }));
   const tokens = (allow.tokens ?? []).map((e) => ({ e, used: false }));
   const counts = {};
   for (const { path, text } of files) {
+    const hits = hitsOf(path, text, tokens);
     const glob = globs.find((g) => g.re.test(path));
-    let hits = 0;
-    const cleanOf = (s) => {
-      let out = s;
-      for (const t of tokens) if (out.includes(t.e.token)) { out = out.split(t.e.token).join(""); t.used ||= path !== ALLOW; } // the list quoting a token is not a use of it
-      return out;
-    };
-    const pathHit = CODE_NAMES.test(cleanOf(path));
-    if (pathHit) hits++;
-    if (text !== null) for (const line of text.split("\n")) if (CODE_NAMES.test(cleanOf(line))) hits++;
-    if (glob) { if (hits > 0) glob.used = true; continue; } // the whole file is kept, path and content
-    if (hits > 0) counts[folderOf(path)] = (counts[folderOf(path)] ?? 0) + hits;
+    if (glob) {
+      // the whole file is kept, path and content
+      if (hits > 0) {
+        glob.used = true;
+      }
+      continue;
+    }
+    if (hits > 0) {
+      counts[folderOf(path)] = (counts[folderOf(path)] ?? 0) + hits;
+    }
   }
   return { counts, deadGlobs: globs.filter((g) => !g.used).map((g) => g.e), deadTokens: tokens.filter((t) => !t.used).map((t) => t.e) };
 }
@@ -91,7 +117,9 @@ export function lowered(counts, ratchet, creating) {
 }
 
 function readTracked(root) {
-  const paths = execFileSync("git", ["ls-files", "-z"], { cwd: root, maxBuffer: 1 << 28 }).toString("utf8").split("\0").filter(Boolean);
+  // A fixed, system-owned PATH for the one binary we run (Sonar S4036): never the caller's PATH.
+  const env = { ...process.env, PATH: "/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin" };
+  const paths = execFileSync("git", ["ls-files", "-z"], { cwd: root, env, maxBuffer: 1 << 28 }).toString("utf8").split("\0").filter(Boolean);
   return paths.filter((p) => existsSync(join(root, p))).map((path) => {
     if (LOCKFILE.test(path)) return { path, text: null };
     const buf = readFileSync(join(root, path));
