@@ -15,6 +15,12 @@
     <name>sovkora-edge-service</name>
     <description>Sovkora Edge Gateway — strangler facade: route table + streaming reverse proxy (transport only, no business logic)</description>
 
+    <properties>
+        <!-- 2.4.0 is the first line that supports Spring Boot 4 / Spring Framework 7 (krizaka-internal#2132).
+             Only the framework-free core: no starter, no AOP; the edge binds its two meters itself. -->
+        <resilience4j.version>2.4.0</resilience4j.version>
+    </properties>
+
 
 
 
@@ -45,6 +51,13 @@
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
+        </dependency>
+        <!-- One circuit breaker per backend (krizaka-internal#2132): the edge fails fast with a coded 503
+             instead of hanging on a backend that is down or slow. -->
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-circuitbreaker</artifactId>
+            <version>${resilience4j.version}</version>
         </dependency>
         <!-- Distributed tracing (Phase 0 observability baseline). -->
         <dependency>
