@@ -4,8 +4,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 
 from PIL import Image
+
+from app import command_inputs
 
 try:
     from diffusers.utils import export_to_video
@@ -18,77 +21,73 @@ def is_apple_silicon() -> bool:
     return sys.platform == "darwin" and platform.machine() == "arm64"
 
 
-def export_frames_to_video(frames: list[Image.Image], output_path: str, fps: int = 7) -> None:
-    """
-    Encodes list of PIL Images into an MP4 video.
-    Uses h264_videotoolbox on Apple Silicon for hardware acceleration,
-    falling back to libx264 or diffusers export_to_video.
+#: The name ffmpeg writes in the worker's own temp directory before the clip moves to its destination.
+_ENCODED = "encoded.mp4"
+
+
+def export_frames_to_video(
+    frames: list[Image.Image],
+    output_path: str,
+    fps: object = 7,
+    *,
+    codec: str | None = None,
+    run: Callable[..., object] | None = None,
+) -> None:
+    """Encodes the frames into an MP4 at ``output_path``.
+
+    h264_videotoolbox on Apple Silicon, libx264 elsewhere, diffusers' ``export_to_video`` when ffmpeg fails.
+    Every value is checked before ffmpeg runs (app.command_inputs): the destination inside the worker's
+    directories, the frame rate a bounded number, the codec on the allow-list. ffmpeg only ever names files
+    in a temp directory this call made; the clip is moved to the destination once encoded.
     """
     if not frames:
         raise ValueError("Frames list must not be empty.")
-
-    if not output_path:
-        raise ValueError("Output path must not be empty.")
-
-    # Resolve and normalize output_path to ensure it does not start with a hyphen (command-line argument injection)
-    output_path = os.path.abspath(os.path.realpath(output_path))
-    if os.path.basename(output_path).startswith("-"):
-        raise ValueError("Output path filename cannot start with a hyphen.")
-    # The encoder confines its own output (defence in depth): it never trusts that the caller validated.
     from app import main  # deferred: main imports this module
 
-    if not any(
-        os.path.commonpath([root, output_path]) == root for root in map(os.path.realpath, main._allowed_roots())
-    ):
-        raise PermissionError("Output path is outside the allowed directories.")
+    target = command_inputs.destination(output_path, main._allowed_roots())
+    rate = command_inputs.frame_rate(fps)
+    chosen = command_inputs.video_codec(codec) if codec is not None else _platform_codec()
 
-    # Try hardware-accelerated encoding using FFmpeg command line
-    temp_dir = tempfile.mkdtemp()
+    work = tempfile.mkdtemp()
     try:
-        # Save frames as temporary PNG images
         for idx, frame in enumerate(frames):
-            frame_path = os.path.join(temp_dir, f"frame_{idx:04d}.png")
-            frame.save(frame_path, format="PNG")
-
-        codec = "h264_videotoolbox" if is_apple_silicon() else "libx264"
-
-        # Build command: high-bitrate cinematic encoding
-        # -b:v 8M forces dense spatial output (larger file sizes)
-        # -profile:v high -level 4.1 for maximum H.264 compatibility
-        # -movflags +faststart for web streaming readiness
+            frame.save(os.path.join(work, f"frame_{idx:04d}.png"), format="PNG")
+        encoded = os.path.join(work, _ENCODED)
+        # High-bitrate H.264: -b:v 8M for dense output, yuv420p for players, +faststart for web streaming.
         cmd = [
             "ffmpeg",
             "-y",
             "-framerate",
-            str(fps),
+            str(rate),
             "-i",
-            os.path.join(temp_dir, "frame_%04d.png"),
+            os.path.join(work, "frame_%04d.png"),
             "-c:v",
-            codec,
+            chosen.value,
             "-b:v",
             "8M",
             "-pix_fmt",
             "yuv420p",
             "-movflags",
             "+faststart",
-            output_path,
+            encoded,
         ]
-
         print(f"Executing encoder: {' '.join(cmd)}", flush=True)
-        # Run subprocess silently
-        subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        (run or subprocess.run)(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        shutil.move(encoded, target)
         print("FFmpeg encoding completed successfully.", flush=True)
         return
-    except Exception as e:
+    except (OSError, subprocess.SubprocessError) as failed:
         print(
-            f"FFmpeg encoder failed or command not found: {e}. Falling back to diffusers export_to_video.", flush=True
+            f"FFmpeg encoder failed or command not found: {failed}. Falling back to diffusers export_to_video.",
+            flush=True,
         )
     finally:
-        # Clean up temporary directory
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        shutil.rmtree(work, ignore_errors=True)
 
-    # Fallback to diffusers utility
-    if export_to_video:
-        export_to_video(frames, output_path, fps=fps)
-    else:
+    if export_to_video is None:
         raise RuntimeError("No suitable video exporter found.")
+    export_to_video(frames, target, fps=rate)
+
+
+def _platform_codec() -> command_inputs.VideoCodec:
+    return command_inputs.VideoCodec.H264_VIDEOTOOLBOX if is_apple_silicon() else command_inputs.VideoCodec.LIBX264

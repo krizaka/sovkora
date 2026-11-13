@@ -18,10 +18,16 @@ Configuration, by bounded context (never a vendor name): ``AI_INFERENCE_URL`` (d
 from __future__ import annotations
 
 import json
+import math
 import os
+import shutil
+import subprocess
+import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
+from collections.abc import Callable
 
 from app import spend
 from app.video_models import VideoModel
@@ -143,7 +149,9 @@ def _download_result(result: dict, content_id: str, job_id: str, base: str, key:
     output = result.get("output") or {}
     url = output.get("url") if isinstance(output, dict) else None
     if url:  # the documented presigned form; the gateway answers null and serves /content instead
-        with urllib.request.urlopen(url, timeout=300) as response:  # noqa: S310 — the provider's presigned https URL
+        if urllib.parse.urlsplit(str(url)).scheme != "https":
+            raise RemoteVideoError(f"the provider's job {job_id} gave a download link that is not https")
+        with urllib.request.urlopen(str(url), timeout=300) as response:  # noqa: S310 — the provider's presigned https URL, checked above
             video = response.read()
     else:
         _, video = call("GET", f"{base}/v1/videos/{content_id}/content", key, timeout=300)
@@ -152,22 +160,41 @@ def _download_result(result: dict, content_id: str, job_id: str, base: str, key:
     return video
 
 
-def probe_duration(path: str) -> float | None:
-    """The length of the clip actually received (ffprobe), the duration that is metered — or ``None``."""
-    import shutil  # noqa: PLC0415
-    import subprocess  # noqa: PLC0415
+def probe_duration(
+    video: bytes,
+    *,
+    run: Callable[..., subprocess.CompletedProcess] | None = None,
+    which: Callable[[str], str | None] = shutil.which,
+) -> float | None:
+    """The length of the clip actually received (ffprobe), the duration that is metered — or ``None``.
 
-    ffprobe = shutil.which("ffprobe")
+    ffprobe reads a copy written in the worker's temp directory, never a path a request named: the
+    only file argument is one this function created.
+    """
+    ffprobe = which("ffprobe")
     if not ffprobe:
         return None
-    try:
-        out = subprocess.run(  # noqa: S603 — a fixed binary on a file this worker just wrote
-            [ffprobe, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=True,
-        ).stdout.strip()
-        return round(float(out), 2)
-    except (OSError, ValueError, subprocess.SubprocessError):
-        return None
+    with tempfile.NamedTemporaryFile(suffix=".mp4") as copy:
+        copy.write(video)
+        copy.flush()
+        try:
+            out = (run or subprocess.run)(
+                [
+                    ffprobe,
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "format=duration",
+                    "-of",
+                    "csv=p=0",
+                    copy.name,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+            ).stdout.strip()
+            seconds = float(out)
+        except (OSError, ValueError, subprocess.SubprocessError):
+            return None
+    return round(seconds, 2) if math.isfinite(seconds) and seconds > 0 else None

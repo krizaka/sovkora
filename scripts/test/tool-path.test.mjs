@@ -49,3 +49,19 @@ test("the fixed folders are absolute, PATH is never read, and node's own folder 
 test("macOS keeps htpasswd in /usr/sbin, so the persona seed finds it there", () => {
   assert.ok(TOOL_FOLDERS.includes("/usr/sbin"));
 });
+
+test("no workspace script spawns a program by a bare name or hands it a PATH of its own: it goes through toolPath", async () => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const scripts = path.resolve(import.meta.dirname, "..");
+  const files = [scripts, path.join(scripts, "lib")].flatMap((dir) =>
+    readdirSync(dir).filter((f) => f.endsWith(".mjs")).map((f) => path.join(dir, f)),
+  );
+  const bareSpawn = /\b(?:execFileSync|execFile|spawnSync|spawn|execSync|exec)\(\s*["'`]/;
+  const ownPath = /\bPATH\s*:/;
+  const offenders = files.flatMap((file) =>
+    readFileSync(file, "utf8").split("\n").flatMap((line, i) =>
+      bareSpawn.test(line) || ownPath.test(line) ? [`${path.relative(scripts, file)}:${i + 1}`] : [],
+    ),
+  );
+  assert.deepEqual(offenders, []);
+});

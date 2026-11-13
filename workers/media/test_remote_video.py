@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
+
+import pytest
 
 from app import main, remote_video, video_models
 
@@ -131,6 +134,64 @@ class TestRun(unittest.TestCase):
     def test_a_starting_image_is_refused_not_ignored(self):
         with self.assertRaises(video_models.InvalidVideoRequest):
             main.run_remote({"prompt": "x", "image": "abc"}, MODEL, generate=lambda *a, **k: (b"", {}))
+
+
+class TestProbe(unittest.TestCase):
+    """ffprobe only reads a file the worker made itself: no request value reaches its arguments (#3390)."""
+
+    FFPROBE = "/usr/bin/ffprobe"
+
+    def test_ffprobe_reads_a_copy_the_worker_wrote(self):
+        seen = []
+
+        def run(cmd, **kwargs):
+            with open(cmd[-1], "rb") as probed:
+                seen.append((cmd, kwargs, probed.read()))
+            return subprocess.CompletedProcess(cmd, 0, stdout="4.04\n", stderr="")
+
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: self.FFPROBE) == 4.04
+        [(cmd, kwargs, content)] = seen
+        assert cmd[:-1] == [self.FFPROBE, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0"]
+        assert os.path.isabs(cmd[-1])
+        assert content == b"VIDEO"
+        assert not kwargs.get("shell", False)
+        assert not os.path.exists(cmd[-1]), "the copy is removed once probed"
+
+    def test_no_ffprobe_means_no_duration_and_no_call(self):
+        def run(cmd, **kwargs):
+            raise AssertionError("ffprobe is absent: nothing runs")
+
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: None) is None
+
+    def test_an_answer_that_is_not_a_duration_is_none(self):
+        def run(cmd, **kwargs):
+            return subprocess.CompletedProcess(cmd, 0, stdout="N/A\n", stderr="")
+
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: self.FFPROBE) is None
+
+    def test_a_run_probes_the_clip_bytes_never_the_output_path(self):
+        def fake(model, prompt, w, h, seed, progress=None, **_):
+            return b"VIDEO", {"provider": "do-inference"}
+
+        with (
+            tempfile.TemporaryDirectory() as root,
+            patch.dict(os.environ, {"UPLOAD_DIR": root}),
+            patch.object(remote_video, "probe_duration", return_value=5.0) as probe,
+        ):
+            out = os.path.join(root, "u", "j", "output", "video.mp4")
+            body = main.run_remote({"prompt": "tea", "aspect": "16:9", "output_path": out}, MODEL, generate=fake)
+        assert (probe.call_args.args, probe.call_args.kwargs) == ((b"VIDEO",), {})
+        assert body["metrics"]["durationSeconds"] == 5.0
+
+    def test_a_presigned_url_that_is_not_https_is_never_opened(self):
+        call = Recorder([(200, {"id": "v1", "status": "completed", "output": {"url": "file:///etc/passwd"}})])
+        model = video_models.find(MODEL)
+        with (
+            patch.object(remote_video.urllib.request, "urlopen") as opened,
+            pytest.raises(remote_video.RemoteVideoError, match="https"),
+        ):
+            remote_video.generate(model, "x", 832, 480, None, env=ENV, sleep=lambda s: None, call=call)
+        opened.assert_not_called()
 
 
 if __name__ == "__main__":

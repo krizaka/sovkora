@@ -81,6 +81,12 @@ describe("the chat screen — one real chat", () => {
     expect(screen.getAllByLabelText("Message Sovkora")).toHaveLength(1);
   });
 
+  it("opens on the Sovkora mark, never the code-named one", async () => {
+    await chat();
+    expect(await screen.findByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByTestId("retired-mark", { includeHiddenElements: true })).toBeNull();
+  });
+
   it("says which model answers, and nothing about the network while that model is a hosted one", async () => {
     await chat();
     expect(await screen.findByText("Mistral 3 14B")).toBeTruthy();

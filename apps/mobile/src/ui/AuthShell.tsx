@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { Mascot, OrazakaMark, Screen, Txt } from "@krizaka/ui/native";
+import { Mascot, SovkoraMark, Screen, Txt } from "@krizaka/ui/native";
 
 import { useT } from "../i18n";
 
@@ -19,7 +19,7 @@ export function AuthShell({ title, subtitle, children }: Readonly<Props>): React
   return (
     <Screen padding={24} contentStyle={styles.content}>
       <View style={styles.head}>
-        <OrazakaMark size={40} />
+        <SovkoraMark size={40} />
         <Mascot bird="duck" mood="welcome" size={96} />
         <Txt variant="display" style={styles.centre}>
           {title}

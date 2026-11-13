@@ -19,3 +19,14 @@ jest.mock("expo-video", () => {
   const player = { loop: false, play: () => undefined };
   return { useVideoPlayer: () => player, VideoView: (props) => jest.requireActual("react").createElement(View, props) };
 });
+
+// krizaka-internal#2684: the screens draw the commercial mark; the code-named one must never appear. Both are marked so a test can tell.
+jest.mock("@krizaka/ui/native", () => {
+  const { View } = jest.requireActual("react-native");
+  const actual = jest.requireActual("@krizaka/ui/native");
+  return {
+    ...actual,
+    SovkoraMark: () => jest.requireActual("react").createElement(View, { testID: "sovkora-mark" }),
+    OrazakaMark: () => jest.requireActual("react").createElement(View, { testID: "retired-mark" }),
+  };
+});

@@ -11,7 +11,6 @@ export const consoleCopy = {
   product: brandOf("orazaka").commercialName,
   console: "Operations",
   /** The dev-deployment line under the name (`{code}` is the code name); never shown in production. */
-  codeName: "code name: {code}",
   nav: {
     label: "Console",
     supervision: "Supervision",

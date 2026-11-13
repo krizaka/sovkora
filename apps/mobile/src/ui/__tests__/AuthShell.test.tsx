@@ -7,19 +7,28 @@ import fr from "../../i18n/fr.json";
 import { LocaleProvider } from "../../i18n";
 import { AuthShell } from "../AuthShell";
 
+const shell = () =>
+  render(
+    <LocaleProvider>
+      <ThemeProvider defaultMode="dark" overrides={brands.orazaka}>
+        <AuthShell title="Sign in" subtitle="to Sovkora">
+          <></>
+        </AuthShell>
+      </ThemeProvider>
+    </LocaleProvider>,
+  );
+
 // orazaka#516: the sign-in says Sovkora is in development (like Yomizaka and Akinaza) and carries the duck, Sovkora's mascot.
 describe("AuthShell", () => {
   it("says the product is in development, from the catalogue", async () => {
-    await render(
-      <LocaleProvider>
-        <ThemeProvider defaultMode="dark" overrides={brands.orazaka}>
-          <AuthShell title="Sign in" subtitle="to Sovkora">
-            <></>
-          </AuthShell>
-        </ThemeProvider>
-      </LocaleProvider>,
-    );
+    await shell();
     expect(screen.getByTestId("development-status")).toHaveTextContent(en.auth.development);
+  });
+
+  it("draws the Sovkora mark, never the code-named one", async () => {
+    await shell();
+    expect(screen.getByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByTestId("retired-mark", { includeHiddenElements: true })).toBeNull();
   });
 
   it("has the line in both languages, never « ready » wording", () => {

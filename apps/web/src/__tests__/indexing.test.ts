@@ -64,20 +64,16 @@ describe("APP_SEARCH_INDEXING — one flag closes the deployment to search engin
     expect(landing.en.stage).toEqual({
       title: "Development version",
       message: "Data can be reset at any time. This is not a commercial offer yet.",
-      codeName: "code name: {code}",
     });
     expect(landing.fr.stage).toEqual({
       title: "Version de développement",
       message: "Les données peuvent être réinitialisées à tout moment. Ce n'est pas encore une offre commerciale.",
-      codeName: "nom de code : {code}",
     });
   });
 
   it("the banner is @krizaka/ui's EnvironmentNotice, mounted once by the public shell above the page", () => {
     const shell = readFileSync(join(process.cwd(), "src/components/layout/PublicShell.tsx"), "utf8");
-    expect(shell).toMatch(
-      /<StageNotice show=\{showDevNotice\} \/>\s*<CodeNameProvider dev=\{showDevNotice\}>\{children\}<\/CodeNameProvider>/,
-    );
+    expect(shell).toMatch(/<StageNotice show=\{showDevNotice\} \/>\s*\{children\}/);
     const notice = readFileSync(join(process.cwd(), "src/components/StageNotice.tsx"), "utf8");
     expect(notice).toContain('from "@krizaka/ui/environment-notice"');
   });

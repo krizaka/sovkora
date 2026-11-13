@@ -331,6 +331,8 @@ jobs:
             --test-reporter=spec --test-reporter-destination=stdout \
             --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \
             'scripts/test/*.test.mjs'
+      - name: The retired code names only fall (docs/NAMING.md)
+        run: node scripts/check-code-names.mjs
       - name: The Java layout (ADR-029 N3, N4)
         run: node scripts/check-java-layout.mjs
       - name: No self-referencing Java constants
