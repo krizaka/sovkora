@@ -181,6 +181,15 @@ const PROOF_REPO = "krizaka/sovkora";
 export const PROOF_TEST =
   "services/conversation/sovkora-conversation-service/src/test/java/com/krizaka/sovkora/conversation/infrastructure/adapter/rest/ToolCallStreamPathTest.java";
 
+// ci.yml's other jobs (the Web app one holds the 14-day app-videos guard, i.e. the recordings this workflow republishes)
+// must not decide the proof: only the job that runs ToolCallStreamPathTest does.
+export const PROOF_JOB = "Java reactor";
+
+/** The conclusion of the proof's job in the payload of `actions/runs/{id}/jobs`; null when it is not there. */
+export function proofJobConclusion(payload) {
+  return payload?.jobs?.find((j) => j.name === PROOF_JOB)?.conclusion ?? null;
+}
+
 /**
  * The free proof that a streamed turn emits a `tool-call` event (orazaka-ai-engine#169): three paid runs came back without one,
  * so no paid run starts until this test is green on main and dev runs a build made after it.
@@ -198,7 +207,7 @@ export function toolPathVerdict({ ciConclusion, proofCommittedAt, coreDeployedAt
   if (ciConclusion !== "success") {
     return {
       ok: false,
-      message: `conversation-service CI on main is ${ciConclusion ?? "unreadable"}, not success: the tool-call proof is not green`,
+      message: `the ${PROOF_JOB} CI job on main is ${ciConclusion ?? "unreadable"}, not success: the tool-call proof is not green`,
     };
   }
   if (!coreDeployedAt) {
@@ -230,9 +239,11 @@ async function toolPathFacts(coreDeployedAt) {
   };
   const commits = await get(`commits?sha=main&per_page=1&path=${encodeURIComponent(PROOF_TEST)}`);
   const runs = await get("actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=1");
+  const runId = runs?.workflow_runs?.[0]?.id;
+  const jobs = runId ? await get(`actions/runs/${runId}/jobs?per_page=100`) : null;
   return {
     proofCommittedAt: commits?.[0]?.commit?.committer?.date ?? null,
-    ciConclusion: runs?.workflow_runs?.[0]?.conclusion ?? null,
+    ciConclusion: proofJobConclusion(jobs),
     coreDeployedAt,
   };
 }

@@ -6,7 +6,9 @@ import {
   chatAnswerVerdict,
   chatRouteVerdict,
   chatTurnText,
+  PROOF_JOB,
   loginVerdict,
+  proofJobConclusion,
   report,
   rollbackVerdict,
   toolPathVerdict,
@@ -143,6 +145,39 @@ describe("the free proof that a streamed turn emits a tool-call event", () => {
     assert.equal(toolPathVerdict(facts, false).ok, true);
     assert.match(toolPathVerdict(facts, false).message, /NOT VERIFIED/);
     assert.equal(toolPathVerdict(facts, true).ok, false);
+  });
+});
+
+describe("the CI job that judges the tool-call proof", () => {
+  const job = (name, conclusion) => ({ name, conclusion });
+  it("is Java reactor, the job that runs ToolCallStreamPathTest", () => {
+    assert.equal(PROOF_JOB, "Java reactor");
+  });
+  it("is success when Java reactor passed although Web app failed (the stale-recordings guard)", () => {
+    const conclusion = proofJobConclusion({ jobs: [job("Web app", "failure"), job("Java reactor", "success")] });
+    assert.equal(conclusion, "success");
+    assert.equal(
+      toolPathVerdict({ ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null }, false)
+        .ok,
+      true,
+    );
+  });
+  it("is refused when Java reactor failed, or is missing", () => {
+    for (const payload of [
+      { jobs: [job("Web app", "success"), job("Java reactor", "failure")] },
+      { jobs: [job("Web app", "success")] },
+      { jobs: [] },
+      null,
+    ]) {
+      const conclusion = proofJobConclusion(payload);
+      assert.notEqual(conclusion, "success");
+      const v = toolPathVerdict(
+        { ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+        false,
+      );
+      assert.equal(v.ok, false);
+      assert.match(v.message, /Java reactor/);
+    }
   });
 });
 
