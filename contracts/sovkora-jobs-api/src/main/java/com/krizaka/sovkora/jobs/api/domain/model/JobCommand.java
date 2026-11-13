@@ -82,6 +82,16 @@ public record JobCommand(
   public static final String ENRICHMENT_NAMESPACE_KEY = "orazaka.enrichment.namespace";
 
   /**
+   * Payload key by which a producer declares the product a job is served for, so the provider-spend
+   * ledger counts its calls under it (krizaka-internal#3368).
+   *
+   * <p>Not under the platform namespace on purpose: the job plane is the one that turns it into the
+   * engine's own declaration, after reading it as a plain string, so a producer states a fact and
+   * never writes into the engine's key space (ADR-064). Absent, the job is counted as unattributed.
+   */
+  public static final String SPEND_PRODUCT_KEY = "spendProduct";
+
+  /**
    * Payload keys by which a producer declares the domain this turn must refuse (ADR-051).
    *
    * <p>The fourth application of AGENTS.md §12, and the one where getting it wrong is a compliance

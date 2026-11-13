@@ -295,6 +295,82 @@ class StudioRunLifecycleIT {
         "the run ends instead of holding a run slot for ever");
   }
 
+  // ── krizaka-internal#3368: a run is counted under its product and keeps its cost ──────
+
+  @Test
+  @DisplayName(
+      "[3368] a run started for a product dispatches under it, and keeps what its steps cost")
+  void aRunIsCountedUnderItsProductAndKeepsItsCost() {
+    UUID installation = install();
+    RunDetail run =
+        runService.start(
+            installation,
+            ACTOR,
+            Map.of("photos", List.of(), "trade", "plombier"),
+            Optional.of("verikora"));
+
+    assertEquals(Optional.of("verikora"), executor.lastProduct, "the step is stamped with it");
+    assertEquals(
+        "verikora",
+        jdbcTemplate.queryForObject(
+            "SELECT product_key FROM studio_run WHERE id = ?", String.class, run.id()));
+    java.math.BigDecimal before = counter("verikora");
+
+    String job = executor.dispatched.getLast();
+    sagaService.applyOutcome(
+        job,
+        Map.of("content", "ok"),
+        Map.of(),
+        null,
+        null,
+        null,
+        new java.math.BigDecimal("0.0125"));
+    // The redelivery of the same outcome applies nothing: the run is never counted twice.
+    sagaService.applyOutcome(
+        job,
+        Map.of("content", "ok"),
+        Map.of(),
+        null,
+        null,
+        null,
+        new java.math.BigDecimal("0.0125"));
+
+    assertEquals(
+        0,
+        new java.math.BigDecimal("0.0125")
+            .compareTo(runService.find(run.id(), ACTOR).orElseThrow().costUsd()),
+        "the run keeps what its step cost, once");
+    assertEquals(
+        0.0125, counter("verikora").subtract(before).doubleValue(), 1e-9, "and it is a metric");
+  }
+
+  @Test
+  @DisplayName("[3368] a run no product's key started is unattributed and its cost says so")
+  void aRunWithoutAProductIsUnattributed() {
+    UUID installation = install();
+    RunDetail run =
+        runService.start(installation, ACTOR, Map.of("photos", List.of(), "trade", "plombier"));
+
+    assertEquals(Optional.empty(), executor.lastProduct);
+    assertNull(
+        jdbcTemplate.queryForObject(
+            "SELECT product_key FROM studio_run WHERE id = ?", String.class, run.id()));
+    assertEquals(
+        0,
+        java.math.BigDecimal.ZERO.compareTo(
+            runService.find(run.id(), ACTOR).orElseThrow().costUsd()));
+  }
+
+  private static java.math.BigDecimal counter(String product) {
+    io.micrometer.core.instrument.Counter found =
+        context
+            .getBean(io.micrometer.core.instrument.MeterRegistry.class)
+            .find(RunSagaService.RUN_COST_METRIC)
+            .tag("product", product)
+            .counter();
+    return java.math.BigDecimal.valueOf(found == null ? 0.0 : found.count());
+  }
+
   // ── sovkora-studio-service#62: a step calls a published Studio (studio.call) ─────────────
 
   /**
@@ -2050,12 +2126,14 @@ class StudioRunLifecycleIT {
 
     final List<String> dispatched = new ArrayList<>();
     Map<String, Object> lastInputs = Map.of();
+    Optional<String> lastProduct = Optional.empty();
 
     @Override
     public String submit(StepDispatch dispatch) {
       String jobId = UUID.randomUUID().toString();
       dispatched.add(jobId);
       lastInputs = dispatch.resolvedInputs();
+      lastProduct = dispatch.productKey();
       return jobId;
     }
   }
@@ -2245,7 +2323,8 @@ class StudioRunLifecycleIT {
         OutboxService outboxService,
         ColumnValueResolver columns,
         RunAuditService runAuditService,
-        ObjectProvider<StudioRunService> runs) {
+        ObjectProvider<StudioRunService> runs,
+        io.micrometer.core.instrument.MeterRegistry meterRegistry) {
       return new RunSagaService(
           jdbcTemplate,
           blueprintRepository,
@@ -2256,9 +2335,14 @@ class StudioRunLifecycleIT {
           runtimeConfigService,
           outboxService,
           columns,
-          new SimpleMeterRegistry(),
+          meterRegistry,
           runAuditService,
           runs);
+    }
+
+    @Bean
+    io.micrometer.core.instrument.MeterRegistry meterRegistry() {
+      return new SimpleMeterRegistry();
     }
 
     @Bean

@@ -107,7 +107,8 @@ class CodeTurnGateIT extends AbstractContainerIntegrationTest {
                     null,
                     null,
                     null,
-                    null)));
+                    null,
+                    java.math.BigDecimal.ZERO)));
     StudioCatalogService catalog = mock(StudioCatalogService.class);
     when(catalog.find(KEY, null)).thenReturn(Optional.of(studio()));
     when(engine.turn(any())).thenReturn(new AgentTurnResult("done", List.of(), 1, 1, 0));

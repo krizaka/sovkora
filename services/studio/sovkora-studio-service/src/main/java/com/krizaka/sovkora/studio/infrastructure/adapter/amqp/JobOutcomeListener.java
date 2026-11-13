@@ -60,7 +60,8 @@ class JobOutcomeListener {
           event.consumptionOrEmpty(),
           event.model(),
           event.failed() ? event.error() : null,
-          event.failed() ? event.failureCause() : null);
+          event.failed() ? event.failureCause() : null,
+          event.costOrZero());
     } catch (RuntimeException failed) {
       // Claimed atomically, never released, was a run left non-terminal by a redelivery its own
       // failed attempt refused (ADR-067, audit #30). Re-applying is safe: the step update is

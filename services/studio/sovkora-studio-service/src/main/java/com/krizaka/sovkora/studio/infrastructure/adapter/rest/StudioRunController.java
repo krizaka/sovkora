@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,6 +47,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @RequestMapping("/api/v1/studios")
 class StudioRunController {
+
+  /**
+   * The header the edge sets from the product scope of the caller's API key (contract copy of the
+   * edge's own constant). It belongs to the reserved {@code x-sovkora-} family the edge strips from
+   * every client request, so only the edge can have set it.
+   */
+  static final String PRODUCT_HEADER = "X-Sovkora-Product";
 
   private static final Logger logger = LoggerFactory.getLogger(StudioRunController.class);
   private static final int DEFAULT_HISTORY_LIMIT = 50;
@@ -87,6 +95,7 @@ class StudioRunController {
    * @param request the actor's answers to the run form
    * @param idempotencyKey the optional {@code Idempotency-Key}: the same key and request answer the
    *     run it already started, flagged {@code Idempotent-Replayed: true}
+   * @param product the product the edge declared from the caller's API key, absent for a session
    * @param actor the authenticated caller
    * @return {@code 202} with the accepted run; {@code 402} when the estimate is unaffordable;
    *     {@code 422} when the key started a different request
@@ -96,6 +105,7 @@ class StudioRunController {
       @PathVariable UUID installationId,
       @RequestBody(required = false) RunRequest request,
       @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey,
+      @RequestHeader(value = PRODUCT_HEADER, required = false) String product,
       @AuthenticationPrincipal Jwt actor) {
     RunRequest resolved = request == null ? new RunRequest(null) : request;
     return accepted(
@@ -104,7 +114,12 @@ class StudioRunController {
             actor.getSubject(),
             resolved.inputs(),
             idempotencyKey,
-            () -> runService.start(installationId, actor.getSubject(), resolved.inputs())));
+            () ->
+                runService.start(
+                    installationId,
+                    actor.getSubject(),
+                    resolved.inputs(),
+                    declaredProduct(product))));
   }
 
   /**
@@ -117,6 +132,7 @@ class StudioRunController {
    * @param studioKey the Studio to run
    * @param request the actor's answers to the run form
    * @param idempotencyKey the optional {@code Idempotency-Key}, as on the installation entry
+   * @param product the product the edge declared from the caller's API key, absent for a session
    * @param actor the authenticated caller
    * @return {@code 202} with the accepted run
    */
@@ -125,6 +141,7 @@ class StudioRunController {
       @PathVariable String studioKey,
       @RequestBody(required = false) RunRequest request,
       @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey,
+      @RequestHeader(value = PRODUCT_HEADER, required = false) String product,
       @AuthenticationPrincipal Jwt actor) {
     RunRequest resolved = request == null ? new RunRequest(null) : request;
     return accepted(
@@ -133,7 +150,9 @@ class StudioRunController {
             actor.getSubject(),
             resolved.inputs(),
             idempotencyKey,
-            () -> runService.start(studioKey, actor.getSubject(), resolved.inputs())));
+            () ->
+                runService.start(
+                    studioKey, actor.getSubject(), resolved.inputs(), declaredProduct(product))));
   }
 
   /**
@@ -407,5 +426,10 @@ class StudioRunController {
   ResponseEntity<Void> cancel(@PathVariable UUID runId, @AuthenticationPrincipal Jwt actor) {
     runService.cancel(runId, actor.getSubject());
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  /** The declared product, empty when the request came with none (a session, or a key without). */
+  private static Optional<String> declaredProduct(String header) {
+    return Optional.ofNullable(header).filter(value -> !value.isBlank());
   }
 }

@@ -42,7 +42,8 @@ class JobEventPublisherTest {
             "hold-7",
             "sdxl-turbo",
             Map.of("url", "/out.mp4"),
-            Map.of("frames", 48, "fps", 12));
+            Map.of("frames", 48, "fps", 12),
+            null);
 
     Map<String, Object> payload = capturePayload("job.job-1.done");
     assertEquals("job-1", payload.get("jobId"));
@@ -53,10 +54,23 @@ class JobEventPublisherTest {
   }
 
   @Test
+  void emitDone_reportsWhatTheCallsCost_andOnlyWhenTheyCostSomething() {
+    new JobEventPublisher(rabbitTemplate)
+        .emitDone("job-8", null, "m", Map.of(), Map.of(), new java.math.BigDecimal("0.0125"));
+    assertEquals(
+        new java.math.BigDecimal("0.0125"), capturePayload("job.job-8.done").get("costUsd"));
+
+    new JobEventPublisher(rabbitTemplate)
+        .emitDone("job-9", null, "m", Map.of(), Map.of(), java.math.BigDecimal.ZERO);
+    assertFalse(capturePayload("job.job-9.done").containsKey("costUsd"));
+  }
+
+  @Test
   void emitDone_omitsTheModel_whenTheProducerNamedNone() {
     // Absent, not "default": billing falls back to the capability's own pricebook row on a null
     // model, and a sentinel string would look for a row named "default" and find none.
-    new JobEventPublisher(rabbitTemplate).emitDone("job-5", "hold-9", null, Map.of(), Map.of());
+    new JobEventPublisher(rabbitTemplate)
+        .emitDone("job-5", "hold-9", null, Map.of(), Map.of(), null);
 
     assertFalse(capturePayload("job.job-5.done").containsKey("model"));
   }
@@ -74,7 +88,8 @@ class JobEventPublisherTest {
 
   @Test
   void unmeteredJob_omitsTheKeyEntirely_soAbsenceMeansNeverAuthorised() {
-    new JobEventPublisher(rabbitTemplate).emitDone("job-3", null, "sdxl-turbo", Map.of(), Map.of());
+    new JobEventPublisher(rabbitTemplate)
+        .emitDone("job-3", null, "sdxl-turbo", Map.of(), Map.of(), null);
 
     assertFalse(capturePayload("job.job-3.done").containsKey("holdId"));
   }
@@ -88,14 +103,15 @@ class JobEventPublisherTest {
 
   @Test
   void nullResult_becomesAnEmptyMap_ratherThanANullOnTheWire() {
-    new JobEventPublisher(rabbitTemplate).emitDone("job-6", "hold-9", "m", null, null);
+    new JobEventPublisher(rabbitTemplate).emitDone("job-6", "hold-9", "m", null, null, null);
 
     assertEquals(Map.of(), capturePayload("job.job-6.done").get("result"));
   }
 
   @Test
   void emptyConsumption_omitsTheKey_soAnUnmeasuredJobIsReleasedNotBilled() {
-    new JobEventPublisher(rabbitTemplate).emitDone("job-7", "hold-11", "m", Map.of(), Map.of());
+    new JobEventPublisher(rabbitTemplate)
+        .emitDone("job-7", "hold-11", "m", Map.of(), Map.of(), null);
 
     assertFalse(capturePayload("job.job-7.done").containsKey("consumption"));
   }

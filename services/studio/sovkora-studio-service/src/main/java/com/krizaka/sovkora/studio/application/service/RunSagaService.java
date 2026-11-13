@@ -22,7 +22,9 @@ import com.krizaka.sovkora.studio.domain.port.StepExecutionClient;
 import com.krizaka.sovkora.studio.infrastructure.support.CitationContract;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.studio.infrastructure.support.OutputContractException;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -68,6 +70,13 @@ public class RunSagaService {
   private static final String UNRESOLVED_MODEL = "default";
 
   private static final String STEP_PREFIX = "step '";
+
+  /** Prometheus {@code studio_run_cost_usd_total}: the provider cost of runs, per product. */
+  static final String RUN_COST_METRIC = "studio.run.cost";
+
+  /** The product of a run no product's key started; the spend ledger's own name for it. */
+  private static final String UNATTRIBUTED_PRODUCT = "unattributed";
+
   private static final String STEP_ID_COL = "step_id";
 
   private final JdbcTemplate jdbcTemplate;
@@ -172,6 +181,33 @@ public class RunSagaService {
       String model,
       String error,
       FailureCause cause) {
+    applyOutcome(jobId, output, consumption, model, error, cause, BigDecimal.ZERO);
+  }
+
+  /**
+   * Records a step's outcome, what it consumed and what its provider calls cost.
+   *
+   * <p>The cost is the job plane's, priced from the price table that is data: this adds what it is
+   * told and prices nothing (krizaka-internal#3368). It is added in the statement's own guard, so a
+   * redelivery that applies nothing adds nothing, and a run is never counted twice.
+   *
+   * @param jobId the job whose outcome this is
+   * @param output what the executor produced
+   * @param consumption the raw measurements, empty when the executor reported none
+   * @param model the engine that ran, {@code null} when the producer named none
+   * @param error the failure message, {@code null} on success
+   * @param cause the executor's declared reason for failing, {@code null} on success
+   * @param costUsd what the step's provider calls cost, zero when nothing was priced
+   */
+  @Transactional
+  public void applyOutcome(
+      String jobId,
+      Map<String, Object> output,
+      Map<String, Object> consumption,
+      String model,
+      String error,
+      FailureCause cause,
+      BigDecimal costUsd) {
     Optional<StepRef> located = locateStep(jobId);
     if (located.isEmpty()) {
       // Not one of ours: the saga queue sees every job event on the platform, including jobs
@@ -214,6 +250,7 @@ public class RunSagaService {
       logger.debug("Outcome for job {} was already applied — redelivery, ignoring", jobId);
       return;
     }
+    addCost(run, costUsd);
     if (assessment.outcome() == RunStepStatus.FAILED) {
       // Put the node back in flight if its policy allows. This is a side-effect, not a branch:
       // the advance below must still run, because some *other* node may already have failed
@@ -221,6 +258,29 @@ public class RunSagaService {
       resubmitted(ref, run, blueprint);
     }
     advance(run, blueprint, ref.installationConfig());
+  }
+
+  /**
+   * Adds what a step cost to its run, and to the run that called it, and counts it per product.
+   *
+   * <p>The metric carries the product key and nothing of the actor or the run: a cost is read per
+   * product on a dashboard, and an id as a label is a series per run.
+   */
+  private void addCost(RunRow run, BigDecimal costUsd) {
+    if (costUsd.signum() <= 0) {
+      return;
+    }
+    jdbcTemplate.update(
+        "UPDATE studio_run SET cost_usd = cost_usd + ? WHERE id = ?", costUsd, run.id());
+    if (run.parentRunId() != null) {
+      jdbcTemplate.update(
+          "UPDATE studio_run SET cost_usd = cost_usd + ? WHERE id = ?", costUsd, run.parentRunId());
+    }
+    Counter.builder(RUN_COST_METRIC)
+        .baseUnit("usd")
+        .tag("product", run.productKey().orElse(UNATTRIBUTED_PRODUCT))
+        .register(meterRegistry)
+        .increment(costUsd.doubleValue());
   }
 
   /**
@@ -296,7 +356,8 @@ public class RunSagaService {
                   stepDeclarations.crisisTerms(),
                   stepDeclarations.crisisResponse(),
                   declarations.guardSubject(run.inputs()),
-                  run.dataClass()));
+                  run.dataClass(),
+                  run.productKey()));
     } catch (UnroutableCapabilityException e) {
       // A retry of a step whose capability has since lost its route is not a retry, it is a run
       // that can no longer finish. Reporting "not resubmitted" lets the caller fail it as the
@@ -548,7 +609,8 @@ public class RunSagaService {
                     stepDeclarations.crisisTerms(),
                     stepDeclarations.crisisResponse(),
                     declarations.guardSubject(run.inputs()),
-                    run.dataClass()));
+                    run.dataClass(),
+                    run.productKey()));
       } catch (UnroutableCapabilityException e) {
         // Caught, not propagated: letting it out of an @Transactional method rolls the run back to
         // whatever it was and leaves it in flight for the sweeper to time out an hour later. The
@@ -1188,7 +1250,7 @@ public class RunSagaService {
         .query(
             "SELECT r.id, r.installation_id, r.actor_id, r.studio_key, r.blueprint_version,"
                 + " r.status, r.hold_id, r.correlation_id, r.inputs, r.data_class, r.parent_run_id,"
-                + " s.step_id, s.ordinal, i.config AS installation_config,"
+                + " r.product_key, s.step_id, s.ordinal, i.config AS installation_config,"
                 + " (SELECT config_value FROM studio_runtime_config WHERE config_key = ?)"
                 + " AS blueprint_cache_size"
                 + " FROM studio_run_step s JOIN studio_run r ON r.id = s.run_id"
@@ -1252,7 +1314,8 @@ public class RunSagaService {
     return jdbcTemplate
         .query(
             "SELECT id, installation_id, actor_id, studio_key, blueprint_version, status, hold_id,"
-                + " correlation_id, inputs, data_class, parent_run_id FROM studio_run WHERE id = ?",
+                + " correlation_id, inputs, data_class, parent_run_id, product_key FROM studio_run"
+                + " WHERE id = ?",
             (rs, rowNum) -> runRow(rs),
             runId)
         .stream()
@@ -1273,7 +1336,8 @@ public class RunSagaService {
         rs.getString("correlation_id"),
         columns.objectMap(rs.getString("inputs")),
         DataClass.valueOf(rs.getString("data_class")),
-        rs.getObject("parent_run_id", UUID.class));
+        rs.getObject("parent_run_id", UUID.class),
+        Optional.ofNullable(rs.getString("product_key")));
   }
 
   /** Where a job outcome lands in a DAG, with the rows already needed by its advance. */
@@ -1327,5 +1391,6 @@ public class RunSagaService {
       String correlationId,
       Map<String, Object> inputs,
       DataClass dataClass,
-      UUID parentRunId) {}
+      UUID parentRunId,
+      Optional<String> productKey) {}
 }

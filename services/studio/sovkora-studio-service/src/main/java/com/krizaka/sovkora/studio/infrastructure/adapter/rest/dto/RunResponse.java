@@ -2,6 +2,7 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.rest.dto;
 
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
 import com.krizaka.sovkora.studio.domain.model.RunDetail;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import java.util.UUID;
  * @param steps the per-node states
  * @param cachedFrom the run whose recorded result this one answers with, or {@code null}
  * @param resumedFrom the run this one resumes from a step, or {@code null}
+ * @param costUsd what the run's provider calls cost, in USD; zero until a step reports one
  */
 public record RunResponse(
     UUID id,
@@ -38,7 +40,8 @@ public record RunResponse(
     Instant finishedAt,
     List<RunStepResponse> steps,
     UUID cachedFrom,
-    UUID resumedFrom) {
+    UUID resumedFrom,
+    BigDecimal costUsd) {
 
   /**
    * Projects a run onto the wire.
@@ -59,6 +62,7 @@ public record RunResponse(
         run.finishedAt(),
         run.steps().stream().map(RunStepResponse::from).toList(),
         run.cachedFrom(),
-        run.resumedFrom());
+        run.resumedFrom(),
+        run.costUsd());
   }
 }

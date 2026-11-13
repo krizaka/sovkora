@@ -32,7 +32,8 @@ class StepDispatchTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
-        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+        java.util.Optional.empty());
   }
 
   @Test
@@ -84,7 +85,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -102,7 +104,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -120,7 +123,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
   }
 
   @Test
@@ -142,7 +146,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
     assertThrows(
         NullPointerException.class,
         () ->
@@ -160,7 +165,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
   }
 
   @Test
@@ -181,7 +187,8 @@ class StepDispatchTest {
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+            java.util.Optional.empty());
 
     brand.put("tone", "direct");
 
@@ -201,7 +208,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD)
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty())
             .brandContext()
             .isEmpty());
   }
@@ -224,7 +232,8 @@ class StepDispatchTest {
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+            java.util.Optional.empty());
 
     source.put("assetId", "tampered");
 
@@ -244,7 +253,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD)
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty())
             .resolvedInputs()
             .isEmpty());
   }
@@ -269,7 +279,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -287,7 +298,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                java.util.Optional.empty()));
   }
 
   @Test
@@ -308,7 +320,8 @@ class StepDispatchTest {
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+            java.util.Optional.empty());
 
     assertEquals("INSTAGRAM", connector.connectorType());
     assertNull(connector.featureKey());

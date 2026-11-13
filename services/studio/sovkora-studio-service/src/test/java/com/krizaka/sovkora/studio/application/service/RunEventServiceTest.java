@@ -113,7 +113,8 @@ class RunEventServiceTest {
         null,
         null,
         null,
-        null);
+        null,
+        java.math.BigDecimal.ZERO);
   }
 
   /**
@@ -310,7 +311,8 @@ class RunEventServiceTest {
         null,
         null,
         null,
-        null);
+        null,
+        java.math.BigDecimal.ZERO);
   }
 
   /** The actor's history reads as these lists in turn, the last one for ever. */
