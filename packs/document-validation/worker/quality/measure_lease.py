@@ -4,10 +4,10 @@
 Run: python3 worker/quality/measure_lease.py            measure, write results.json, exit 1 when the threshold refuses
      python3 worker/quality/measure_lease.py --check    same, without writing
 
-Offline and deterministic: the rules of the ruleset only, no model, no network. Per rule: found (a case expects FAIL and the rule
-fails on the expected passage), missed (expected FAIL, not found), wrong (a FAIL no case expects). A case with no deterministic
-rule behind it (`uncoveredBy`) is counted as unmeasured, never as found or missed. The threshold file is read as committed; this
-module never edits it.
+Offline and deterministic: the rules of the ruleset only, no model, no network. Per rule: found (a case expects FAIL and the
+rule fails on the expected passage), missed (expected FAIL, not found), wrong (a FAIL no case expects). A case with no
+deterministic rule behind it (`uncoveredBy`) is counted as unmeasured, never as found or missed. The threshold file is read
+as committed; this module never edits it.
 """
 
 import json
@@ -90,9 +90,11 @@ def judge(result: dict, thresholds: dict) -> list:
         if row["wrong"] > cap:
             refusals.append(f"{rule_id}: wrong {row['wrong']} > maximum {cap}")
     critical = set(thresholds["criticalCases"])
-    for r in result["cases"]:
-        if r["id"] in critical and r["missed"]:
-            refusals.append(f"critical case {r['id']} missed {', '.join(r['missed'])}")
+    refusals.extend(
+        f"critical case {r['id']} missed {', '.join(r['missed'])}"
+        for r in result["cases"]
+        if r["id"] in critical and r["missed"]
+    )
     return refusals
 
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""The Québec lease measure (krizaka-internal#3128): the cases are well formed, the committed results are the current ones, and a
-deliberately broken ruleset is refused by the threshold.
+"""The Québec lease measure (krizaka-internal#3128): the cases are well formed, the committed results are the current
+ones, and a deliberately broken ruleset is refused by the threshold.
 
 Run: python3 worker/quality/test_measure_lease.py
 """
@@ -25,7 +25,8 @@ def test_there_are_20_to_30_cases_each_with_its_source_and_no_party_name():
     for c in CASES:
         assert all(t in c["source"] for t in TOKENS), c["id"]
         assert c["source"]["kind"] in ("decision", "tal-guidance", "control"), c["id"]
-        assert c["source"]["kind"] == "control" or c["source"]["url"], c["id"]
+        if c["source"]["kind"] != "control":
+            assert c["source"]["url"], c["id"]
         assert c["clauseIdea"] and c["clause"], c["id"]
         assert c["expect"] or c["source"]["kind"] == "control" or "uncoveredBy" in c, c["id"]
         assert " c. " not in json.dumps(c, ensure_ascii=False), f"{c['id']} names parties"
