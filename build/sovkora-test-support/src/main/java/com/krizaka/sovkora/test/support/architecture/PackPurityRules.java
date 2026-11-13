@@ -102,6 +102,9 @@ public final class PackPurityRules {
           // The MECHANISM is the engine's; the domain it refuses is the pack's and lives in a row
           // (ADR-051). That split is why "scope" belongs here and "juridique" belongs nowhere.
           "scope", // orazaka.scope.refused-terms — the declared out-of-scope domain
+          // The monthly provider-spend cap (krizaka-internal#3368): the environment a deployment
+          // counts in, the product a producer declares, the downgrade marker the cap stamps.
+          "spend", // spend.environment, spend.product, spend.downgraded
           "tools", // orazaka.tools.sandbox
           "user", // orazaka.user.tier — a Context preference namespace
           // Added by the multi-repository split: the workspace manifest's file name.

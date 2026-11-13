@@ -104,6 +104,8 @@ management:
       endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
 
 orazaka:
+  # The environment this deployment's provider spend is counted in; its caps are rows (krizaka-internal#3368).
+  spend.environment: ${AI_SPEND_ENVIRONMENT:local}
   governance:
     # This service hosts the governance schema (interceptor policies, tool permissions): without the switch nothing
     # applies db/governance, and GET /api/v1/mcp/tools answers 500 on a database that never had it

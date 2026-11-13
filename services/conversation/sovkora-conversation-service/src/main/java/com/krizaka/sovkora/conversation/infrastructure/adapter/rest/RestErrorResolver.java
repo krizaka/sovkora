@@ -3,6 +3,7 @@ package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 import com.krizaka.billing.domain.exception.InsufficientCreditsException;
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineDisabledException;
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException;
+import com.krizaka.sovkora.engine.interceptors.governance.SpendCapInterceptor;
 import com.krizaka.sovkora.studio.api.domain.exception.TurnConsentRequiredException;
 import com.krizaka.users.domain.exception.InvalidRequestException;
 import com.krizaka.web.correlation.CorrelationId;
@@ -144,9 +145,20 @@ public class RestErrorResolver {
    * @return {@code 402} with the ledger's structured refusal, or {@code 403} naming the plan gap
    */
   @ExceptionHandler(PipelineShortCircuitException.class)
-  public ResponseEntity<Map<String, Object>> handlePipelineRefusal(
-      PipelineShortCircuitException ex) {
+  public ResponseEntity<?> handlePipelineRefusal(PipelineShortCircuitException ex) {
     logger.info("Pipeline refused by {}: {}", ex.interceptorId(), ex.reason());
+    if (SpendCapInterceptor.REASON_CAP_REACHED.equals(ex.reason())
+        || SpendCapInterceptor.REASON_COUNTER_UNAVAILABLE.equals(ex.reason())) {
+      // The platform's own provider budget, not the user's plan or balance: a 503 as Problem
+      // Details whose stable code a client can branch on, with nothing about the amounts.
+      ProblemDetail problem =
+          ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+      problem.setTitle("Provider spend cap");
+      problem.setProperty("code", ex.reason().replace('_', '-'));
+      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+          .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+          .body(problem);
+    }
     if (ex.getCause() instanceof InsufficientCreditsException credits) {
       return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
           .contentType(MediaType.APPLICATION_JSON)

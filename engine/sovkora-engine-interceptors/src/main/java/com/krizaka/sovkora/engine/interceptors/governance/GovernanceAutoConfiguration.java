@@ -5,8 +5,17 @@ import com.krizaka.billing.domain.port.EntitlementProvider;
 import com.krizaka.billing.domain.port.UnmeteredTurnRepository;
 import com.krizaka.sovkora.engine.interceptors.governance.persistence.InterceptorPolicyRepository;
 import com.krizaka.sovkora.engine.interceptors.governance.persistence.InterceptorPolicyStore;
+import com.krizaka.sovkora.engine.interceptors.governance.persistence.ProviderPriceRepository;
+import com.krizaka.sovkora.engine.interceptors.governance.persistence.ProviderSpendRepository;
+import com.krizaka.sovkora.engine.interceptors.governance.persistence.SpendCapRepository;
+import com.krizaka.sovkora.engine.interceptors.governance.persistence.SpendLedgerStore;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.time.Clock;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -87,5 +96,43 @@ class GovernanceAutoConfiguration {
   ChatSettlementListener chatSettlementListener(
       CreditAuthorizationClient creditAuthorizationClient) {
     return new ChatSettlementListener(creditAuthorizationClient);
+  }
+
+  /**
+   * The monthly provider-spend cap: the rows' store, the control that applies them, the one writer
+   * of the spend and the meters. Wired wherever the repositories exist, so a host with a database
+   * cannot serve a chat turn without the cap.
+   */
+  @Configuration(proxyBeanMethods = false)
+  @ConditionalOnBean({
+    SpendCapRepository.class,
+    ProviderPriceRepository.class,
+    ProviderSpendRepository.class
+  })
+  @EnableConfigurationProperties(SpendCapProperties.class)
+  static class SpendCapConfiguration {
+
+    @Bean
+    SpendLedgerStore spendLedgerStore(
+        SpendCapRepository caps, ProviderPriceRepository prices, ProviderSpendRepository spend) {
+      return new SpendLedgerStore(caps, prices, spend);
+    }
+
+    @Bean
+    SpendMetrics spendMetrics(ObjectProvider<MeterRegistry> registry) {
+      return new SpendMetrics(registry.getIfAvailable(SimpleMeterRegistry::new));
+    }
+
+    @Bean
+    SpendCapInterceptor spendCapInterceptor(
+        SpendLedgerStore ledger, SpendCapProperties properties, SpendMetrics metrics) {
+      return new SpendCapInterceptor(ledger, properties, metrics, Clock.systemUTC());
+    }
+
+    @Bean
+    ProviderSpendListener providerSpendListener(
+        SpendLedgerStore ledger, SpendCapProperties properties, SpendMetrics metrics) {
+      return new ProviderSpendListener(ledger, properties, metrics, Clock.systemUTC());
+    }
   }
 }

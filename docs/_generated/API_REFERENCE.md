@@ -40,6 +40,8 @@ no matcher covers the path — the service has no security on it whatsoever.
 |:---|:---|:---|:---|:---|
 | ANY | `/` | authenticated | LawCorpusAdminController | The Corpus tab of the review queue (ADR-089 §8): the instruments, an article by point in time (metadata only, never its text), the imports and the manual import. |
 | ANY | `/` | authenticated | LawReviewController | The review queue of ADR-089 (§5, §8): the proposals and their decisions, the golden cases and the promotion of a kind, the derivations, and the demand. |
+| GET | `/api/v1/admin/spend-caps` | ADMIN | SpendCapController | Every cap, with the actions on offer and the price table. |
+| PUT | `/api/v1/admin/spend-caps/{environment}/{productKey}` | ADMIN | SpendCapController | Creates or changes the cap of one environment and product key. |
 | POST | `/api/v1/agent/report` | authenticated | AgentController | Receives execution reports from the CLI agent after local task completion. |
 | GET | `/api/v1/agent/stream` | authenticated | AgentController | Establishes a persistent SSE stream for the CLI agent. |
 | GET | `/api/v1/assets/{jobId}/{filename}` | ADMIN + USER | AssetController | Streams one asset to its owner, or to an administrator. |

@@ -112,6 +112,8 @@ logging:
 
 # ── Sovkora — organised by module ─────────────────────────────────────────────
 orazaka:
+  # The environment this deployment's provider spend is counted in; its caps are rows (krizaka-internal#3368).
+  spend.environment: ${AI_SPEND_ENVIRONMENT:local}
   # Asset encryption (ADR-054). The master key is NOT in .env: it is the one secret whose
   # compromise is total, and .env is the file that gets pasted, copied and mounted wholesale.
   # accept-plaintext is a MIGRATION setting — a permanent tolerance is a permanent door.

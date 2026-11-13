@@ -214,6 +214,8 @@ services:
       # Spend guards (tokens must not burn): a daily budget for paid providers (chat, embeddings, video), clips per day, requests per service key per day.
       - { key: AI_SPEND_DAILY_BUDGET_USD, scope: RUN_TIME, value: "5" }
       - { key: AI_VIDEO_DAILY_RUNS, scope: RUN_TIME, value: "5" }
+      # The monthly provider-spend cap of this deployment is the row of (this environment, product key) — krizaka-internal#3368.
+      - { key: AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "dev" }
       - { key: AUTH_API_KEY_DAILY_REQUESTS, scope: RUN_TIME, value: "2000" }
       - { key: SPRING_AI_OLLAMA_BASE_URL, scope: RUN_TIME, value: "http://gpu-relay:11434" }
       - { key: ORAZAKA_OLLAMA_MODEL, scope: RUN_TIME, value: "qwen2.5:7b" }

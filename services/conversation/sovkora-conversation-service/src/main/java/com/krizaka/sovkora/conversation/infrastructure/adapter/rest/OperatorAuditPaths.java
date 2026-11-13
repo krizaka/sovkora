@@ -9,9 +9,12 @@ import java.util.regex.Pattern;
  */
 public final class OperatorAuditPaths {
 
-  /** The model registry, the app configuration and the law review queue (ADR-089 §8). */
+  /**
+   * The model registry, the app configuration, the law review queue (ADR-089 §8) and the
+   * provider-spend caps.
+   */
   private static final Pattern OPERATOR_PATH =
-      Pattern.compile("/api/v1/(?:models(?:/.*)?|admin/(?:app-config|law)(?:/.*)?)");
+      Pattern.compile("/api/v1/(?:models(?:/.*)?|admin/(?:app-config|law|spend-caps)(?:/.*)?)");
 
   private OperatorAuditPaths() {}
 

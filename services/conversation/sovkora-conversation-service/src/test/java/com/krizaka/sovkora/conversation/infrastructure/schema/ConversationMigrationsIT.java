@@ -165,8 +165,8 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
     assertThat(
             com.krizaka.sovkora.engine.persistence.infrastructure.config.GovernanceMigrations
                 .migrate(host.getConfiguration()))
-        .as("governance V1")
-        .isEqualTo(1);
+        .as("governance V1 and V2")
+        .isEqualTo(2);
     try (Connection connection = connect(database);
         Statement statement = connection.createStatement()) {
       assertThat(count(statement, "SELECT count(*) FROM platform_tool_permissions"))

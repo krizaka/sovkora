@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
  */
 class GovernanceMigrationsIT extends AbstractContainerIntegrationTest {
 
-  private static final long TABLES = 4;
+  private static final long TABLES = 10;
 
   private static String url(String database) {
     String url = postgres().getJdbcUrl();
@@ -80,7 +80,7 @@ class GovernanceMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(GovernanceMigrations.migrate(configuration))
         .as("first run on an empty database")
-        .isEqualTo(1);
+        .isEqualTo(2);
     assertThat(GovernanceMigrations.migrate(configuration)).as("second run").isZero();
     GovernanceMigrations.validate(configuration);
 
@@ -92,6 +92,9 @@ class GovernanceMigrationsIT extends AbstractContainerIntegrationTest {
         .as("the context's tables")
         .isEqualTo(TABLES);
     assertThat(applied(database, GovernanceMigrations.HISTORY_TABLE)).isEqualTo(1);
+    assertThat(count(database, "SELECT count(*) FROM provider_spend_cap WHERE action = 'REFUSE'"))
+        .as("the dev default caps, one per product key and environment")
+        .isEqualTo(8);
     assertThat(count(database, "SELECT count(*) FROM interceptor_policy"))
         .as("the baseline interceptor policies")
         .isEqualTo(9);

@@ -9,6 +9,7 @@ import com.krizaka.sovkora.engine.core.domain.model.PromptContext;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineMessage;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ProviderChatClient;
 import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
+import com.krizaka.sovkora.engine.interceptors.governance.SpendCapInterceptor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,18 @@ class RouterInterceptorTest {
     var orchestration = mock(CoreProperties.OrchestrationConfig.class);
     when(orchestration.router()).thenReturn(routerConfig);
     when(properties.orchestration()).thenReturn(orchestration);
+  }
+
+  @Test
+  void intercept_whenTheSpendCapChoseTheProvider_leavesItAlone() {
+    routerConfigured("router", null);
+    var downgraded =
+        new PromptContext("q", Map.of())
+            .withRoutedProvider("small")
+            .withSystemMetadata(Map.of(SpendCapInterceptor.DOWNGRADED_MARKER, true));
+
+    assertSame(downgraded, interceptor().intercept(downgraded));
+    verifyNoInteractions(chatClient);
   }
 
   @Test

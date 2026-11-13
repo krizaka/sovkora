@@ -105,7 +105,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(job(database).migrate().migrationsExecuted)
         .as("first run on an empty database")
-        .isEqualTo(1);
+        .isEqualTo(2);
     assertThat(job(database).migrate().migrationsExecuted).as("second run").isZero();
     job(database).validate();
 
@@ -147,7 +147,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     // Baselining at the default 1 would mark V1 applied and skip it; baselining at 0 runs it.
     assertThat(job(database).migrate().migrationsExecuted)
         .as("job V1 on a database another context filled")
-        .isEqualTo(1);
+        .isEqualTo(2);
     assertThat(
             flyway(database, otherLocation, "flyway_history_conversation")
                 .migrate()
@@ -168,7 +168,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     bootstrapExtension(database);
     Flyway dev = flyway(database, "classpath:db/migration,classpath:db/dev", "flyway_history_job");
 
-    assertThat(dev.migrate().migrationsExecuted).as("V1 and the dev route").isEqualTo(2);
+    assertThat(dev.migrate().migrationsExecuted).as("V1, V2 and the dev route").isEqualTo(3);
     assertThat(dev.migrate().migrationsExecuted).as("second run").isZero();
     dev.validate();
 

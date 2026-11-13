@@ -16,6 +16,7 @@ generated: true
 | core 4 | `SystemContextInjector` | context | 🔒 non-bypassable |
 | core 5 | `RagInterceptor` | enrichment | 🔒 non-bypassable |
 | 4 | `EntitlementInterceptor` | governance | ✅ |
+| 4 | `SpendCapInterceptor` | governance | ✅ |
 | 5 | `McpInterceptor` | enrichment | ✅ |
 | 6 | `BrandContextInterceptor` | enrichment | ✅ |
 | 7 | `MemoryInterceptor` | enrichment | ✅ |

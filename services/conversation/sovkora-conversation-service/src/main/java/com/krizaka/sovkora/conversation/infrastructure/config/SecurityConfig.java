@@ -142,6 +142,9 @@ public class SecurityConfig {
                     // The law review queue (ADR-089 §8): proposals, promotion, corpus, demand.
                     .requestMatchers("/api/v1/admin/law/**")
                     .hasAuthority(ADMIN)
+                    // The monthly provider-spend caps (krizaka-internal#3368).
+                    .requestMatchers("/api/v1/admin/spend-caps/**")
+                    .hasAuthority(ADMIN)
                     .requestMatchers("/api/v1/auth/login")
                     .permitAll()
                     .requestMatchers("/api/v1/auth/register")
