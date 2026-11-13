@@ -53,9 +53,7 @@ def test_an_unexpected_failure_carries_the_type_name_only():
 def test_a_missing_file_carries_the_type_name_never_its_path():
     import app.consumer as consumer
 
-    sent, out = _deliver(
-        consumer, "media-missing", FileNotFoundError(f"/uploads/u-1/{MARK}/clip.mp4")
-    )
+    sent, out = _deliver(consumer, "media-missing", FileNotFoundError(f"/uploads/u-1/{MARK}/clip.mp4"))
     assert sent.call_args.args[:2] == ("media-missing", "FileNotFoundError")
     assert sent.call_args.kwargs["cause"] == consumer.PLATFORM_UNAVAILABLE
     assert MARK not in repr(sent.call_args)
@@ -66,9 +64,7 @@ def test_a_refusal_carries_its_code_and_never_what_it_was_refused_for():
     import app.consumer as consumer
 
     refusal = consumer.InvalidJobPayload(consumer.ASPECT_UNSUPPORTED)
-    sent, out = _deliver(
-        consumer, "media-bad", _raised(refusal, ValueError(f"unknown aspect '{MARK}'"))
-    )
+    sent, out = _deliver(consumer, "media-bad", _raised(refusal, ValueError(f"unknown aspect '{MARK}'")))
     assert sent.call_args.args[:2] == ("media-bad", "ASPECT_UNSUPPORTED")
     assert sent.call_args.kwargs["cause"] == consumer.INPUT_INVALID
     assert MARK not in repr(sent.call_args)
@@ -115,9 +111,7 @@ def _speech_handler(text):
     handler.headers = {"Content-Length": str(len(body))}
     handler.rfile = io.BytesIO(body)
     handler.sent = []
-    handler._send = lambda code, payload, content_type, extra=None: handler.sent.append(
-        (code, payload)
-    )
+    handler._send = lambda code, payload, content_type, extra=None: handler.sent.append((code, payload))
     return handler
 
 

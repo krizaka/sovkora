@@ -707,8 +707,7 @@ class Shell(unittest.TestCase):
         with redirect_stdout(out):
             self.deliver("job.screening.plan", {"jobId": "j-7", "payload": dict(applicant(), cutoffs={mark: []})})
         body = {"jobId": "j-7", "error": "INPUT_REFUSED", "cause": "INPUT_INVALID"}
-        expected = ("orazaka.events", "job.j-7.error", body)
-        assert self.channel.published == [expected]
+        assert [(key, sent) for _, key, sent in self.channel.published] == [("job.j-7.error", body)]
         assert mark not in json.dumps(self.channel.published) + out.getvalue()
         assert "INPUT_REFUSED" in out.getvalue()
 

@@ -42,9 +42,7 @@ FORMAT_NOT_SUPPORTED = "FORMAT_NOT_SUPPORTED"
 class SpeechRequestError(CodedReasonError):
     """A request this server positively checked and cannot honour. Its reason is a code, never a quote of it."""
 
-    REASONS = frozenset(
-        {NOT_JSON, MODEL_NOT_SERVED, INPUT_EMPTY, INPUT_TOO_LONG, FORMAT_NOT_SUPPORTED}
-    )
+    REASONS = frozenset({NOT_JSON, MODEL_NOT_SERVED, INPUT_EMPTY, INPUT_TOO_LONG, FORMAT_NOT_SUPPORTED})
 
 
 def parse_request(raw: bytes) -> dict:

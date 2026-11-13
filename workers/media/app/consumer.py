@@ -901,9 +901,7 @@ def _on_message(channel, method, _properties, body) -> None:
         # The type name only: a missing file's message is a path, which carries the owner's id and file names.
         print(f"[consumer] job {job_id} could not run: {type(missing).__name__}", flush=True)
         if job_id:
-            send_job_error(
-                job_id, type(missing).__name__, hold_id=hold_id, cause=PLATFORM_UNAVAILABLE
-            )
+            send_job_error(job_id, type(missing).__name__, hold_id=hold_id, cause=PLATFORM_UNAVAILABLE)
     except Exception as e:  # honest failure: report and ack — a bad job never succeeds on retry
         # The type name only: the message of an exception raised while reading a prompt or a clip can quote it.
         print(f"[consumer] job {job_id} failed: {type(e).__name__}", flush=True)
