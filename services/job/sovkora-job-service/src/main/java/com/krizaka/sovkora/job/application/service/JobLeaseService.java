@@ -49,7 +49,7 @@ public class JobLeaseService {
     this.clock = Objects.requireNonNull(clock, "Clock cannot be null");
     this.policy = Objects.requireNonNull(policy, "JobLeasePolicy cannot be null");
     this.workerId =
-        configuredWorkerId == null || configuredWorkerId.isBlank()
+        (configuredWorkerId == null || configuredWorkerId.isBlank())
             ? "job-service-" + UUID.randomUUID()
             : configuredWorkerId;
   }

@@ -86,7 +86,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @DisplayName(
       "a worker that dies: the lease expires, the job is re-enqueued, then failed after the cap")
   void crashedWorkerJobIsReEnqueuedThenFailedAfterTheCap() {
-    String id = processing("hold-1");
+    String id = processing();
     leases.claim(command(id, "hold-1"));
 
     // Attempt 1 and 2: the worker dies each time, nothing renews.
@@ -133,7 +133,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a live heartbeat keeps the job")
   void renewedLeaseKeepsTheJob() {
-    String id = processing(null);
+    String id = processing();
     leases.claim(command(id, null));
 
     clock.advance(Duration.ofSeconds(100));
@@ -148,9 +148,9 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a worker only renews the jobs it holds")
   void renewalIgnoresAJobAnotherWorkerHolds() {
-    String mine = processing(null);
+    String mine = processing();
     leases.claim(command(mine, null));
-    String theirs = processing(null);
+    String theirs = processing();
     jdbc.update(
         "UPDATE orazaka_jobs SET locked_by_worker = 'another-worker', lease_expires_at = ? WHERE id = ?",
         java.sql.Timestamp.from(T0.plusSeconds(60)),
@@ -171,8 +171,8 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a job that died before its first claim is recovered from its last update")
   void unclaimedProcessingJobIsRecoveredFromItsUpdatedAt() {
-    String stale = processing(null);
-    String fresh = processing(null);
+    String stale = processing();
+    String fresh = processing();
     jdbc.update(
         "UPDATE orazaka_jobs SET updated_at = ? WHERE id = ?",
         java.sql.Timestamp.from(T0.minusSeconds(300)),
@@ -191,7 +191,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a job whose capability is gone fails at once instead of being re-published nowhere")
   void unknownCapabilityFailsTheJob() {
-    String id = processing("hold-9");
+    String id = processing();
     jdbc.update("UPDATE orazaka_jobs SET feature_key = 'gone.capability' WHERE id = ?", id);
     leases.claim(
         new JobCommand(id, ACTOR, "gone.capability", "default", Map.of(), DataClass.STANDARD));
@@ -206,7 +206,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a job recovered and failed is purged by retention like any failed job")
   void failedOrphanIsCoveredByRetention(@TempDir Path uploads) throws Exception {
-    String id = processing(null);
+    String id = processing();
     jdbc.update("UPDATE orazaka_jobs SET retry_count = ? WHERE id = ?", CAP, id);
     leases.claim(command(id, null));
     Path directory = Files.createDirectories(uploads.resolve(ACTOR).resolve(id));
@@ -237,7 +237,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   void twoSweepersNeverTakeTheSameJob() throws Exception {
     int jobs = 30;
     for (int i = 0; i < jobs; i++) {
-      String id = processing(null);
+      String id = processing();
       leases.claim(command(id, null));
     }
     clock.advance(Duration.ofSeconds(121));
@@ -271,8 +271,8 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Test
   @DisplayName("a sweeper skips a job another sweeper has locked instead of waiting for it")
   void aLockedJobIsSkippedNotAwaited() {
-    String locked = processing(null);
-    String free = processing(null);
+    String locked = processing();
+    String free = processing();
     leases.claim(command(locked, null));
     leases.claim(command(free, null));
     clock.advance(Duration.ofSeconds(121));
@@ -303,7 +303,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
 
   // ── fixtures ────────────────────────────────────────────────────────────
 
-  private String processing(String holdId) {
+  private String processing() {
     String id = UUID.randomUUID().toString();
     jdbc.update(
         "INSERT INTO orazaka_jobs (id, user_id, feature_key, status, payload, data_class, updated_at)"
@@ -443,10 +443,14 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
       }
 
       @Override
-      public void markPublished(UUID eventId) {}
+      public void markPublished(UUID eventId) {
+        // Test stub: the relay never runs here, publishing is a no-op.
+      }
 
       @Override
-      public void recordFailure(UUID eventId, int previousAttempts) {}
+      public void recordFailure(UUID eventId, int previousAttempts) {
+        // Test stub: the relay never runs here, so no failure is ever recorded.
+      }
 
       @Override
       public long purgePublishedBefore(Instant cutoff) {

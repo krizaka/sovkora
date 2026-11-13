@@ -305,6 +305,8 @@ public class JobListener {
       Thread.currentThread().interrupt();
       handleInterruption(resolved, e);
     } catch (Exception e) {
+      // Broad on purpose: whatever the execution threw (checked, unchecked, an executor fault) must
+      // reach the saga as a failure, or the job would stay RUNNING with nobody told.
       if (runningJobs.isCancelled(resolved.jobId())) {
         // The interrupt that ended the blocked call is the cancel itself, not a defect.
         handleCancelled(resolved);

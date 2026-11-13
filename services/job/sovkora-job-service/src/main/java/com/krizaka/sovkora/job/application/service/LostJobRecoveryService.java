@@ -2,6 +2,7 @@ package com.krizaka.sovkora.job.application.service;
 
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.job.domain.model.JobLeasePolicy;
+import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
@@ -111,7 +112,7 @@ public class LostJobRecoveryService {
           job.retryCount() < policy.maxRetries()
               ? capabilityManager
                   .findByFeatureKey(job.featureKey())
-                  .map(capability -> capability.routingKey())
+                  .map(CapabilityDeclaration::routingKey)
               : Optional.empty();
       if (routingKey.isPresent()) {
         reEnqueue(job, routingKey.get(), now);
