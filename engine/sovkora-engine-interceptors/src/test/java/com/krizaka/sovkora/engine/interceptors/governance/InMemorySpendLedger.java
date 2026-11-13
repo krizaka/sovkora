@@ -2,12 +2,7 @@ package com.krizaka.sovkora.engine.interceptors.governance;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /** A ledger in memory for the unit tests of the control, with a switch that makes it unreadable. */
 class InMemorySpendLedger implements SpendLedger {

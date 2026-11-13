@@ -4,21 +4,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.krizaka.sovkora.engine.core.domain.event.ChatCompletedEvent;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
-import com.krizaka.sovkora.engine.core.domain.model.chat.InternalChatRequest;
-import com.krizaka.sovkora.engine.core.domain.model.chat.InternalChatResponse;
-import com.krizaka.sovkora.engine.core.domain.model.chat.TokenUsage;
+import com.krizaka.sovkora.engine.core.domain.model.chat.*;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.YearMonth;
-import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import java.time.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
 
 @DisplayName("ProviderSpendListener — the one writer of provider spend")
 class ProviderSpendListenerTest {
