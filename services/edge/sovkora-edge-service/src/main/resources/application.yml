@@ -92,6 +92,29 @@ orazaka:
       - path-prefix: /hooks/
         target: ${AUTOMATION_INTERNAL_URL:http://localhost:8091}
 
+# The edge's fail-fast settings (krizaka-internal#2132): a new key takes the product's name (docs/NAMING.md).
+sovkora:
+  edge:
+    # Fail fast (krizaka-internal#2132): one circuit breaker per backend of the route table. A backend whose
+    # circuit is open, that refuses, or that sends no headers within the response timeout gets the caller a
+    # 503 BACKEND_UNAVAILABLE / BACKEND_TIMEOUT with Retry-After at once. Bounds are checked at startup.
+    backend:
+      timeouts:
+        connect: ${EDGE_BACKEND_CONNECT_TIMEOUT:2s}
+        # The wait for the response headers only: an SSE stream already flowing is never cut. Below the
+        # ingress's own 60 s, so the caller gets the edge's coded 503, never the ingress's HTML 504.
+        response: ${EDGE_BACKEND_RESPONSE_TIMEOUT:50s}
+      breaker:
+        failure-rate-percent: ${EDGE_BACKEND_FAILURE_RATE_PERCENT:50}
+        slow-call-threshold: ${EDGE_BACKEND_SLOW_CALL_THRESHOLD:20s}
+        slow-call-rate-percent: ${EDGE_BACKEND_SLOW_CALL_RATE_PERCENT:80}
+        window-calls: ${EDGE_BACKEND_WINDOW_CALLS:20}
+        minimum-calls: ${EDGE_BACKEND_MINIMUM_CALLS:10}
+        open-duration: ${EDGE_BACKEND_OPEN_DURATION:30s}
+        half-open-calls: ${EDGE_BACKEND_HALF_OPEN_CALLS:3}
+      # The Retry-After of a timeout or a refusal while the circuit is still closed.
+      retry-after: ${EDGE_BACKEND_RETRY_AFTER:5s}
+
 management:
   # The edge's own actuator lives on a dedicated management port so the main
   # port proxies EVERYTHING — including /actuator/** — to the routed backend

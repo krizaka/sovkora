@@ -27,7 +27,7 @@ import org.springframework.test.context.DynamicPropertySource;
 /**
  * Black-box round-trip of the streaming proxy against a JDK {@link HttpServer} stub backend:
  * status/body/header pass-through, hop-by-hop stripping, {@code X-Forwarded-*} injection, query
- * preservation, and 502 on an unreachable backend.
+ * preservation, and a coded 503 on an unreachable backend.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -188,22 +188,24 @@ class ProxyControllerTest {
 
   @Test
   @DisplayName(
-      "An unreachable backend answers 502 as RFC 9457 problem details (and keeps the legacy error member)")
+      "An unreachable backend answers at once a 503 BACKEND_UNAVAILABLE problem with Retry-After (and keeps the legacy error member)")
   void unreachableBackendIsProblemDetails() throws Exception {
     HttpResponse<String> response =
         client.send(
             HttpRequest.newBuilder(edge("/down/api/v1/anything")).GET().build(),
             HttpResponse.BodyHandlers.ofString());
 
-    assertThat(response.statusCode()).isEqualTo(502);
+    assertThat(response.statusCode()).isEqualTo(503);
     assertThat(response.headers().firstValue("Content-Type"))
         .hasValueSatisfying(type -> assertThat(type).startsWith("application/problem+json"));
+    assertThat(response.headers().firstValue("Retry-After")).isPresent();
     assertThat(response.body())
         .contains("\"type\":\"about:blank\"")
-        .contains("\"title\":\"Bad Gateway\"")
-        .contains("\"status\":502")
+        .contains("\"title\":\"Service Unavailable\"")
+        .contains("\"status\":503")
+        .contains("\"code\":\"BACKEND_UNAVAILABLE\"")
         .contains("\"detail\":")
-        .contains("\"error\":\"Bad Gateway\"");
+        .contains("\"error\":\"Service Unavailable\"");
   }
 
   // ADR-085 slice 1: one request id, end to end.
