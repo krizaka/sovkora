@@ -44,14 +44,19 @@ public final class LeakProbe implements AutoCloseable {
   /** The captured log lines (message and the message of any attached exception) with the mark. */
   public List<String> logLinesHolding(String mark) {
     return appender.list.stream()
-        .map(
-            event ->
-                event.getFormattedMessage()
-                    + (event.getThrowableProxy() == null
-                        ? ""
-                        : " " + event.getThrowableProxy().getMessage()))
+        .map(event -> event.getFormattedMessage() + throwableSuffix(event))
         .filter(line -> line.contains(mark))
         .toList();
+  }
+
+  /**
+   * The logged exception's message after a space, or nothing when the event carries no exception.
+   */
+  private static String throwableSuffix(ILoggingEvent event) {
+    if (event.getThrowableProxy() == null) {
+      return "";
+    }
+    return " " + event.getThrowableProxy().getMessage();
   }
 
   /**
