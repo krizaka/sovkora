@@ -3,11 +3,12 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { navWords } from "@krizaka/ui/app-frame";
 import { AppShell } from "@/components/layout/AppShell";
+import { RETIRED_NAME, visibleWords } from "@/core/utils/visible-words.testkit";
 import { translations } from "@/core/context/translations";
 
 const mockLogout = jest.fn();
 const mockUser = {
-  current: { name: "Admin", email: "admin@orazaka.io", role: "admin" } as {
+  current: { name: "Admin", email: "admin@sovkora.com", role: "admin" } as {
     name: string;
     email: string;
     role: string;
@@ -51,7 +52,7 @@ describe("AppShell (the shared AppFrame)", () => {
     jest.clearAllMocks();
     mockUser.current = {
       name: "Admin",
-      email: "admin@orazaka.io",
+      email: "admin@sovkora.com",
       role: "admin",
     };
   });
@@ -98,5 +99,11 @@ describe("AppShell (the shared AppFrame)", () => {
     openMenu();
     fireEvent.click(screen.getByRole("menuitem", { name: t.appNav.signOut }));
     expect(mockLogout).toHaveBeenCalled();
+  });
+
+  it("says Sovkora and never the code name, on a development deployment too (krizaka-internal#2684)", () => {
+    const { container } = render(<AppShell>page</AppShell>);
+    expect(visibleWords(container)).toContain("Sovkora");
+    expect(visibleWords(container)).not.toMatch(RETIRED_NAME);
   });
 });

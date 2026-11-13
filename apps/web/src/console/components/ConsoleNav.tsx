@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { CodeNameLine, OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { IconButton } from "@krizaka/ui/button";
 import { NavBar } from "@krizaka/ui/nav-bar";
 import { ThemeToggle } from "@krizaka/ui/theme";
 import { LogoutIcon } from "@krizaka/icons";
 import { consoleCopy } from "@/console/core/copy/console";
-import { consoleCodeName } from "@/console/core/config/code-name";
 import { APP_ENV } from "@/console/core/config/version";
 import { CONSOLE_GROUPS, activeGroup } from "@/console/core/config/sections";
 
@@ -29,19 +28,17 @@ export function ConsoleNav() {
   const group = activeGroup(usePathname());
   const active = (id: string) => group?.id === id;
   const copy = consoleCopy.nav;
-  const codeName = consoleCodeName();
 
   return (
     <section className="sticky top-0 z-40">
       <NavBar.Root label={copy.label} floating={false}>
         <NavBar.Brand asChild>
           <Link href="/">
-            <OrazakaLogo size={24} />
+            <SovkoraLogo size={24} />
             <span className="flex flex-col leading-tight">
               <span>
                 {consoleCopy.product} <span className="font-normal text-fg-muted">{consoleCopy.console}</span>
               </span>
-              {codeName ? <CodeNameLine>{codeName}</CodeNameLine> : null}
             </span>
           </Link>
         </NavBar.Brand>

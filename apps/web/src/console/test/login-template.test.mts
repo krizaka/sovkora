@@ -9,7 +9,7 @@ const page = readFileSync(new URL("../../app/console/login/page.tsx", import.met
 test("the sign-in is built on @krizaka/ui/auth-layout and wears the Sovkora brand", () => {
   assert.match(form, /from "@krizaka\/ui\/auth-layout"/);
   assert.match(form, /brand-orazaka/);
-  assert.match(form, /<OrazakaLogo size=\{112\} \/>/); // the animated mark in the brand panel
+  assert.match(form, /<SovkoraLogo size=\{112\} \/>/); // the animated mark in the brand panel
 });
 
 test("no local split layout, no radar, no page-local main around the template", () => {

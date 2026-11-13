@@ -9,9 +9,7 @@ import { displayName } from "@krizaka/org";
 /** The commercial name, shown until the setting says otherwise. A code name is refused (see {@link brandName}). */
 export const DEFAULT_BRAND = displayName("orazaka");
 
-/** The internal name: the repository, the packages, the addresses. Shown only as the dev-deployment line under the commercial name. */
-export const CODE_NAME = "orazaka";
-
+/** The internal name: refused as a brand (see {@link brandName}), never shown. */
 const CODE_NAME_PATTERN = /orazaka/i;
 
 /** The name to show for a setting value: the trimmed value, else the default; a value naming the code name is refused. */

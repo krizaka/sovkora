@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Providers } from "@/core/providers/Providers";
-import { CodeNameProvider } from "@/core/context/CodeNameContext";
 import { StageNotice } from "@/components/StageNotice";
 import type { AuthFlags } from "@/core/config/auth-flags";
 
@@ -22,7 +21,7 @@ export function PublicShell({
   return (
     <Providers authFlags={authFlags} brand={brand}>
       <StageNotice show={showDevNotice} />
-      <CodeNameProvider dev={showDevNotice}>{children}</CodeNameProvider>
+      {children}
     </Providers>
   );
 }
