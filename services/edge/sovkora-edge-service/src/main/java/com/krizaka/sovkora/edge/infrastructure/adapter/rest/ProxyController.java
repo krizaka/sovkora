@@ -1,6 +1,9 @@
 package com.krizaka.sovkora.edge.infrastructure.adapter.rest;
 
 import com.krizaka.sovkora.edge.infrastructure.config.filter.RequestIdFilter;
+import com.krizaka.sovkora.edge.infrastructure.support.BackendAdmission;
+import com.krizaka.sovkora.edge.infrastructure.support.BackendBreaker;
+import com.krizaka.sovkora.edge.infrastructure.support.BackendCall;
 import com.krizaka.sovkora.edge.infrastructure.support.RouteResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -8,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,6 +36,11 @@ import org.springframework.web.client.RestClient;
  * <p>Transport only: hop-by-hop headers and the platform's reserved {@code X-Sovkora-*} headers are
  * stripped, {@code X-Forwarded-*} is appended, status and body pass through verbatim —
  * authorization stays with the backend that owns the resource.
+ *
+ * <p>Fail fast (krizaka-internal#2132): every call passes the backend's circuit breaker. A backend
+ * whose circuit is open, that refuses the connection, or that does not send its headers within the
+ * response timeout is answered at once with a coded 503 and a {@code Retry-After} ({@link
+ * BackendRefusal}), never with the backend's text and never by holding the request open.
  */
 @RestController
 public class ProxyController {
@@ -62,26 +72,28 @@ public class ProxyController {
 
   private static final int STREAM_BUFFER_BYTES = 8192;
 
-  /**
-   * RFC 9457 problem details of a backend that cannot be reached; {@code error} is kept for older
-   * clients.
-   */
-  private static final String BAD_GATEWAY_PROBLEM =
-      "{\"type\":\"about:blank\",\"title\":\"Bad Gateway\",\"status\":502,"
-          + "\"detail\":\"The service behind the edge cannot be reached.\",\"error\":\"Bad Gateway\"}";
-
   private final RestClient proxyRestClient;
   private final RouteResolver routeResolver;
+  private final BackendBreaker backendBreaker;
 
-  public ProxyController(RestClient proxyRestClient, RouteResolver routeResolver) {
+  public ProxyController(
+      RestClient proxyRestClient, RouteResolver routeResolver, BackendBreaker backendBreaker) {
     this.proxyRestClient = Objects.requireNonNull(proxyRestClient, "RestClient cannot be null");
     this.routeResolver = Objects.requireNonNull(routeResolver, "RouteResolver cannot be null");
+    this.backendBreaker = Objects.requireNonNull(backendBreaker, "BackendBreaker cannot be null");
   }
 
   /** Catch-all proxy entry point — everything not served by the edge itself is forwarded. */
   @RequestMapping("/**")
   public void proxy(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    URI target = buildTargetUri(request);
+    URI backend = routeResolver.resolve(request.getRequestURI());
+    URI target = buildTargetUri(backend, request);
+    BackendAdmission admission = backendBreaker.admit(backend);
+    if (admission instanceof BackendAdmission.Refused refused) {
+      BackendRefusal.UNAVAILABLE.write(response, refused.retryAfter());
+      return;
+    }
+    BackendCall call = ((BackendAdmission.Granted) admission).call();
     try {
       RestClient.RequestBodySpec spec =
           proxyRestClient
@@ -93,24 +105,44 @@ public class ProxyController {
       }
       spec.exchange(
           (clientRequest, clientResponse) -> {
+            call.answered(clientResponse.getStatusCode().value());
             relayResponse(clientResponse, response);
             return null;
           });
     } catch (ResourceAccessException e) {
-      logger.warn("Backend unreachable for {} {}", request.getMethod(), target, e);
+      call.failed(e);
+      BackendRefusal refusal =
+          isResponseTimeout(e) ? BackendRefusal.TIMEOUT : BackendRefusal.UNAVAILABLE;
+      if (refusal == BackendRefusal.TIMEOUT) {
+        logger.warn("Backend timed out for {} {}", request.getMethod(), target, e);
+      } else {
+        logger.warn("Backend unreachable for {} {}", request.getMethod(), target, e);
+      }
       if (!response.isCommitted()) {
-        response.setStatus(502);
-        response.setContentType("application/problem+json");
-        response.getWriter().write(BAD_GATEWAY_PROBLEM);
+        refusal.write(response, backendBreaker.retryAfter(backend));
       }
     } catch (UncheckedIOException e) {
       // Client disconnected mid-stream (SSE tab closed) — nothing left to relay.
       logger.debug("client closed the stream for {} {}", request.getMethod(), target, e);
+    } finally {
+      call.released();
     }
   }
 
-  private URI buildTargetUri(HttpServletRequest request) {
-    URI backend = routeResolver.resolve(request.getRequestURI());
+  /** A response timeout, as opposed to a connect timeout, which is a backend not reachable. */
+  private static boolean isResponseTimeout(ResourceAccessException e) {
+    for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+      if (cause instanceof HttpConnectTimeoutException) {
+        return false;
+      }
+      if (cause instanceof HttpTimeoutException) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static URI buildTargetUri(URI backend, HttpServletRequest request) {
     String query = request.getQueryString();
     String pathAndQuery = request.getRequestURI() + (query != null ? ("?" + query) : "");
     String base = backend.toString();
