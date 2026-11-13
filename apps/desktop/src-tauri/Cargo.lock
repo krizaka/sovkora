@@ -2411,12 +2411,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "krizaka-tauri-kit"
-version = "0.3.0"
-source = "git+https://github.com/krizaka/krizaka-tauri-kit?tag=v0.3.0#9ad65e394c20f2a417b1af792bb7aceb0994af64"
+name = "krizaka-rust"
+version = "0.4.0"
+source = "git+https://github.com/krizaka/krizaka-rust?tag=v0.4.0#d1aadcd477dc00bd33235da999a35eabd89fb587"
 dependencies = [
  "base64 0.23.1",
  "keyring",
+ "rustix",
  "serde",
  "serde_json",
  "url",
@@ -3118,7 +3119,7 @@ version = "0.2.0"
 dependencies = [
  "base64 0.23.1",
  "chrono",
- "krizaka-tauri-kit",
+ "krizaka-rust",
  "libc",
  "notify",
  "pdf-extract",

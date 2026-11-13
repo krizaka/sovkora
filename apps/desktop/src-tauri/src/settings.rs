@@ -1,11 +1,43 @@
 //! App settings: connect mode, the remote Sovkora, the workspace folder, watched folders.
 
+use krizaka_rust::files::Limits;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 pub const DEFAULT_REMOTE: &str = "https://www.orazaka.com";
 pub const LOCAL_WORKSPACE_URL: &str = "http://localhost:3000";
+
+// @fixed: a megabyte and a kilobyte, units of the limits below, not settings
+const KB: u64 = 1024;
+const MB: u64 = 1024 * KB;
+
+/// What the files panel may list, preview and send, in the units a person reads. A limit left out is the kit's default,
+/// and a value above the kit's ceiling is lowered by the kit, never obeyed (`krizaka_rust::files::Limits`).
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct FileLimits {
+    pub max_entries: Option<usize>,
+    pub max_text_preview_kb: Option<u64>,
+    pub max_image_preview_mb: Option<u64>,
+    pub max_pdf_preview_mb: Option<u64>,
+    pub max_send_mb: Option<u64>,
+}
+
+impl FileLimits {
+    /// The limits the app passes to the kit's `list_dir` and `preview`.
+    pub fn to_kit(&self) -> Limits {
+        let bytes = |value: Option<u64>, unit: u64| value.map(|v| v.saturating_mul(unit));
+        Limits {
+            max_entries: self.max_entries,
+            max_text_preview: bytes(self.max_text_preview_kb, KB)
+                .map(|b| usize::try_from(b).unwrap_or(usize::MAX)),
+            max_image_preview: bytes(self.max_image_preview_mb, MB),
+            max_pdf_preview: bytes(self.max_pdf_preview_mb, MB),
+            max_send: bytes(self.max_send_mb, MB),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -17,6 +49,9 @@ pub struct Settings {
     pub workspace_dir: Option<String>,
     pub watched: Vec<PathBuf>,
     pub locale: String,
+    /// What the files panel lists, previews and sends; a file saved before this field existed reads the kit's defaults.
+    #[serde(default)]
+    pub limits: FileLimits,
 }
 
 impl Default for Settings {
@@ -27,6 +62,7 @@ impl Default for Settings {
             workspace_dir: None,
             watched: vec![],
             locale: "en".into(),
+            limits: FileLimits::default(),
         }
     }
 }
@@ -82,11 +118,11 @@ impl Settings {
 /// A remote Sovkora must be HTTPS (plain http only for a loopback address), without credentials in the URL, and is
 /// reduced to its origin: the app window may never leave it. The rule is krizaka-tauri-kit's navigation guard.
 pub fn normalize_remote(input: &str) -> Result<String, String> {
-    krizaka_tauri_kit::nav_guard::normalize_origin(input)
+    krizaka_rust::nav_guard::normalize_origin(input).map_err(|e| e.to_string())
 }
 
 /// True when `target` is on the same origin as `allowed` — the navigation guard of the workspace window.
-pub use krizaka_tauri_kit::nav_guard::same_origin;
+pub use krizaka_rust::nav_guard::same_origin;
 
 #[cfg(test)]
 mod tests {
@@ -144,5 +180,38 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(loc.workspace_url(), LOCAL_WORKSPACE_URL);
+    }
+
+    #[test]
+    fn a_settings_file_from_before_the_limits_reads_the_kit_defaults(
+    ) -> Result<(), serde_json::Error> {
+        let old = r#"{"mode":"remote","remoteUrl":"https://sovkora.example","workspaceDir":null,"watched":[],"locale":"en"}"#;
+        let s: Settings = serde_json::from_str(old)?;
+        assert_eq!(s.limits, FileLimits::default());
+        assert_eq!(s.limits.to_kit(), Limits::default());
+        assert_eq!(Limits::default().pdf_preview(), 12 * MB);
+        assert_eq!(Limits::default().send(), 50 * MB);
+        Ok(())
+    }
+
+    #[test]
+    fn the_limits_are_read_in_megabytes_and_the_kit_lowers_what_exceeds_its_ceiling(
+    ) -> Result<(), serde_json::Error> {
+        let json = r#"{"maxPdfPreviewMb":20,"maxSendMb":100,"maxTextPreviewKb":8,"maxEntries":50}"#;
+        let limits: FileLimits = serde_json::from_str(json)?;
+        let kit = limits.to_kit();
+        assert_eq!(kit.pdf_preview(), 20 * MB);
+        assert_eq!(kit.send(), 100 * MB);
+        assert_eq!(kit.text_preview(), 8 * 1024);
+        assert_eq!(kit.entries(), 50);
+        let absurd = FileLimits {
+            max_send_mb: Some(u64::MAX),
+            max_pdf_preview_mb: Some(1_000_000),
+            ..Default::default()
+        }
+        .to_kit();
+        assert_eq!(absurd.send(), 200 * MB);
+        assert_eq!(absurd.pdf_preview(), 50 * MB);
+        Ok(())
     }
 }
