@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component;
  * ABUSE_RATE_LIMIT_STORE=redis}, in Redis shared by every edge instance (ADR-083 slice 3).
  *
  * <p>{@code orazaka.edge.api-key-daily-limit} (env {@code AUTH_API_KEY_DAILY_REQUESTS}, default
- * 2000); a negative value switches the quota off.
+ * 2000) is the fallback for an owner whose tier declares no {@code dailyRequests}; a negative value
+ * switches that fallback off.
  */
 @Component
 class ApiKeyDailyQuota {
@@ -46,13 +47,19 @@ class ApiKeyDailyQuota {
     return new ApiKeyDailyQuota(-1, Clock.systemUTC());
   }
 
-  /** Counts one call of {@code apiKey}; {@code false} when its day's quota is already spent. */
-  boolean tryAcquire(String apiKey) {
-    if (limit < 0) {
+  /**
+   * Counts one call of {@code apiKey}; {@code false} when its day's quota is already spent. The
+   * ceiling is the owner's own ({@code ownerLimit}, declared by the identity service in the token
+   * exchange, krizaka-internal#3423); {@code null} means the owner declared none, and the global
+   * setting applies. The limit is read on every call, so a change applies on the next exchange.
+   */
+  boolean tryAcquire(String apiKey, Integer ownerLimit) {
+    int effective = ownerLimit != null ? ownerLimit : limit;
+    if (effective < 0) {
       return true;
     }
     LocalDate today = LocalDate.now(clock.withZone(ZoneOffset.UTC));
-    return store.increment(KeyDigest.of(apiKey), today) <= limit;
+    return store.increment(KeyDigest.of(apiKey), today) <= effective;
   }
 
   /**

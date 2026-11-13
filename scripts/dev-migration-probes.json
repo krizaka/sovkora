@@ -21,7 +21,8 @@
     "infra/migrations/2026-10-29-feature-tool-bounds.sql": "orazaka_db",
     "infra/migrations/2026-10-30-feature-structured-bounds.sql": "orazaka_db",
     "infra/migrations/2026-10-30-feature-cache-policy.sql": "orazaka_db",
-    ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": "krizaka_billing_db"
+    ".krizaka-java/krizaka-billing/infra/migrations/2026-10-26-free-studios-granted.sql": "krizaka_billing_db",
+    "infra/migrations/2026-11-13-service-daily-requests.sql": "krizaka_users_db"
   },
   "probes": {
     "infra/migrations/2026-09-04-capability-uri-path-nullable.sql": [
@@ -121,6 +122,13 @@
         "db": "orazaka_db",
         "label": "the image capability declares references and referenceWeight",
         "sql": "EXISTS (SELECT 1 FROM orazaka_capabilities WHERE feature_key = 'orazaka.core.media.image' AND (input_schema -> 'properties') ?& ARRAY['references', 'referenceWeight'])"
+      }
+    ],
+    "infra/migrations/2026-11-13-service-daily-requests.sql": [
+      {
+        "db": "krizaka_users_db",
+        "label": "the service tier carries a daily request ceiling",
+        "sql": "EXISTS (SELECT 1 FROM rate_limits WHERE tier_key = 'service' AND daily_requests IS NOT NULL)"
       }
     ]
   },
