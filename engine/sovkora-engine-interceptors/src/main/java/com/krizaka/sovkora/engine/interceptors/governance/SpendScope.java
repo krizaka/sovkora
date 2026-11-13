@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.engine.interceptors.governance;
 
+import com.krizaka.sovkora.engine.core.domain.model.Context;
 import java.util.Map;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Map;
 public record SpendScope(String environment, String productKey) {
 
   /** The context key under which a producer declares the product a turn is served for. */
-  public static final String PRODUCT_DECLARATION = "orazaka.spend.product";
+  public static final String PRODUCT_DECLARATION = Context.PLATFORM_NAMESPACE + "spend.product";
 
   /** The scope of a turn whose producer declared no product. */
   public static final String UNATTRIBUTED = "unattributed";

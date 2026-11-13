@@ -178,7 +178,8 @@ public class SafetyInterceptor implements PromptContextInterceptor {
       return subject;
     }
     // Otherwise the turn itself. A bare "prompt" key used to be read here as a Studio step's
-    // payload prompt — but the job plane has carried only orazaka.* payload keys into a context
+    // payload prompt — but the job plane has carried only platform-namespace payload keys into a
+    // context
     // since before this guard existed, so the only party that could ever supply it was the user,
     // through a stored preference. A guard's subject is not the user's to write (ADR-064).
     return context.rawUserQuery() == null ? "" : context.rawUserQuery();

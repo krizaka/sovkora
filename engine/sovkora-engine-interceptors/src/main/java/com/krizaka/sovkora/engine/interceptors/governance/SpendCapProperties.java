@@ -14,7 +14,8 @@ public record SpendCapProperties(String environment) {
   public SpendCapProperties {
     if (environment == null || environment.isBlank()) {
       throw new IllegalArgumentException(
-          "orazaka.spend.environment must name the environment this deployment's spend is counted in");
+          "the spend environment (AI_SPEND_ENVIRONMENT) must name the environment this deployment's"
+              + " spend is counted in");
     }
   }
 }

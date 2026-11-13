@@ -2,6 +2,7 @@ package com.krizaka.sovkora.engine.interceptors.governance;
 
 import com.krizaka.sovkora.engine.core.application.interceptor.PromptContextInterceptor;
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException;
+import com.krizaka.sovkora.engine.core.domain.model.Context;
 import com.krizaka.sovkora.engine.core.domain.model.PromptContext;
 import java.math.BigDecimal;
 import java.time.*;
@@ -35,7 +36,7 @@ public class SpendCapInterceptor implements PromptContextInterceptor {
   public static final String REASON_COUNTER_UNAVAILABLE = "provider_spend_counter_unavailable";
 
   /** System-metadata marker: the cap already chose the provider of this turn. */
-  public static final String DOWNGRADED_MARKER = "orazaka.spend.downgraded";
+  public static final String DOWNGRADED_MARKER = Context.PLATFORM_NAMESPACE + "spend.downgraded";
 
   private static final Logger log = LoggerFactory.getLogger(SpendCapInterceptor.class);
 

@@ -3,6 +3,7 @@ package com.krizaka.sovkora.engine.interceptors.governance;
 import static org.assertj.core.api.Assertions.*;
 
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException;
+import com.krizaka.sovkora.engine.core.domain.model.Context;
 import com.krizaka.sovkora.engine.core.domain.model.PromptContext;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
@@ -117,5 +118,16 @@ class SpendCapInterceptorTest {
     assertThatThrownBy(
             () -> interceptor(IN_NOVEMBER).beforeExecution(new PromptContext("hello", Map.of())))
         .isInstanceOf(PipelineShortCircuitException.class);
+  }
+
+  @Test
+  @DisplayName("the downgrade marker and the product declaration live in the platform namespace")
+  void markers_areDeclaredUnderThePlatformNamespace() {
+    // A key outside the platform namespace is dropped by the pipeline's merge, or is the caller's
+    // to write (ADR-064); deriving both keys from it keeps them in step when the namespace moves.
+    assertThat(SpendCapInterceptor.DOWNGRADED_MARKER)
+        .isEqualTo(Context.PLATFORM_NAMESPACE + "spend.downgraded");
+    assertThat(SpendScope.PRODUCT_DECLARATION)
+        .isEqualTo(Context.PLATFORM_NAMESPACE + "spend.product");
   }
 }
