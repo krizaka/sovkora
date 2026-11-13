@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.edge.infrastructure.adapter.rest;
 
+import com.krizaka.sovkora.edge.infrastructure.config.filter.ApiKeyProduct;
 import com.krizaka.sovkora.edge.infrastructure.config.filter.RequestIdFilter;
 import com.krizaka.sovkora.edge.infrastructure.support.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -176,6 +177,11 @@ public class ProxyController {
     Object requestId = request.getAttribute(RequestIdFilter.ATTRIBUTE);
     if (requestId != null) {
       sink.add(RequestIdFilter.HEADER, requestId.toString());
+    }
+    // The product the exchanged key declared, set by the edge itself: the loop above dropped any
+    // x-sovkora-* header a client sent, so this is the only way one reaches a backend.
+    if (request.getAttribute(ApiKeyProduct.ATTRIBUTE) instanceof String product) {
+      sink.add(ApiKeyProduct.HEADER, product);
     }
     String existingForwardedFor = request.getHeader("X-Forwarded-For");
     sink.add(

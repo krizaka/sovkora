@@ -43,14 +43,21 @@ class ApiKeyExchangeFilterTest {
           String body =
               new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
           boolean valid =
-              body.contains("oz_valid") || body.contains("oz_scoped") || body.contains("oz_prod");
+              body.contains("oz_valid")
+                  || body.contains("oz_scoped")
+                  || body.contains("oz_prod")
+                  || body.contains("oz_product");
           // oz_prod… keys declare their environment (#2132); oz_prodembed is also scoped ai:embed.
           String scopes =
-              body.contains("oz_scoped")
-                  ? "[\"ai:embed\"]"
-                  : body.contains("oz_prodembed")
-                      ? "[\"env:prod\",\"ai:embed\"]"
-                      : body.contains("oz_prod") ? "[\"env:prod\"]" : "[]";
+              body.contains("oz_product2")
+                  ? "[\"product:verikora\",\"product:folioviv\"]"
+                  : body.contains("oz_product")
+                      ? "[\"product:verikora\"]"
+                      : body.contains("oz_scoped")
+                          ? "[\"ai:embed\"]"
+                          : body.contains("oz_prodembed")
+                              ? "[\"env:prod\",\"ai:embed\"]"
+                              : body.contains("oz_prod") ? "[\"env:prod\"]" : "[]";
           // The identity service sends the owner's tier with the exchange; a key named
           // oz_valid_rpm<N> belongs to a tier of N requests per minute.
           String tier =
@@ -116,6 +123,47 @@ class ApiKeyExchangeFilterTest {
 
     assertThat(forwarded.get()).isEqualTo("Bearer minted-jwt");
     assertThat(exchangeHits.get()).isEqualTo(2);
+  }
+
+  /** Sends one request bearing this key through the filter. */
+  private MockHttpServletResponse send(MockHttpServletRequest request, String key)
+      throws Exception {
+    request.addHeader("Authorization", "Bearer " + key);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter().doFilter(request, response, new MockFilterChain());
+    return response;
+  }
+
+  @Test
+  @DisplayName("[3368] the product a key declares is set on the request for the proxy")
+  void declaredProductIsSet() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    assertThat(send(request, "oz_product").getStatus()).isEqualTo(200);
+
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isEqualTo("verikora");
+  }
+
+  @Test
+  @DisplayName("[3368] a key with no product declares none: nothing is set")
+  void noProductNothingSet() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    send(request, "oz_valid_key");
+
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isNull();
+  }
+
+  @Test
+  @DisplayName("[3368] a key that declares two products is refused with a coded problem")
+  void twoProductsRefused() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    MockHttpServletResponse response = send(request, "oz_product2");
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(response.getContentAsString()).contains("API_KEY_PRODUCT_INVALID");
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isNull();
   }
 
   @Test
