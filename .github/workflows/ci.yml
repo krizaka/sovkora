@@ -143,7 +143,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
-          name: coverage-web
+          name: report-web
           if-no-files-found: ignore
           retention-days: 1
           path: apps/web/coverage/lcov.info
@@ -174,7 +174,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
-          name: coverage-mobile
+          name: report-mobile
           if-no-files-found: ignore
           retention-days: 1
           path: apps/mobile/coverage/lcov.info
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
-          name: coverage-cli
+          name: report-cli
           if-no-files-found: ignore
           retention-days: 1
           path: apps/cli/coverage/lcov.info
@@ -236,6 +236,91 @@ jobs:
         test_failure_answer.py
         && python -m coverage xml -o coverage.xml
 
+  # The coverage of the Python workers. The shared python-ci runs their tests for the gate and cannot upload a report, so each
+  # worker's suite runs once more here, with coverage: the reports are what SonarCloud reads (krizaka-internal#2525).
+  python-changes:
+    uses: krizaka/.github/.github/workflows/changes.yml@c291e5f3da409bc20e651d260316d5d9302cb2cc # main
+    with:
+      relevant: '^(workers/media/|packs/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
+
+  python-coverage:
+    name: Python coverage (${{ matrix.dir }})
+    needs: python-changes
+    if: ${{ !cancelled() && needs.python-changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dir: workers/media
+            slug: workers__media
+            packages: pytest pyyaml pika Pillow psutil cryptography numpy
+            setup: command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          - dir: packs/document-validation/worker
+            slug: packs__document-validation__worker
+            packages: pypdf pika pyyaml pikepdf reportlab Pillow pytest
+          - dir: packs/message-authenticity/worker
+            slug: packs__message-authenticity__worker
+            packages: pika pyyaml pytest
+          - dir: packs/media-safety/worker
+            slug: packs__media-safety__worker
+            packages: pika pyyaml pytest
+          - dir: packs/echo-toolkit/worker
+            slug: packs__echo-toolkit__worker
+            packages: pika pyyaml pytest
+          - dir: packs/tenant-screening-qc/worker
+            slug: packs__tenant-screening-qc__worker
+            packages: pika pyyaml pytest
+          - dir: packs/identity-document-check/worker
+            slug: packs__identity-document-check__worker
+            packages: pika pyyaml pytest
+          - dir: packs/worker-common
+            slug: packs__worker-common
+            packages: pika pytest
+          - dir: packs/profile-photo-check/worker
+            slug: packs__profile-photo-check__worker
+            requirements: packs/profile-photo-check/requirements.txt
+            packages: pytest
+            setup: python fetch_models.py
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install (wheels only)
+        working-directory: ${{ matrix.dir }}
+        env:
+          PACKAGES: ${{ matrix.packages }}
+          REQUIREMENTS: ${{ matrix.requirements }}
+          ROOT: ${{ github.workspace }}
+        run: |
+          if [ -n "$REQUIREMENTS" ]; then pip install --only-binary :all: -r "$ROOT/$REQUIREMENTS"; fi
+          # shellcheck disable=SC2086  # the packages are word-split on purpose
+          pip install --only-binary :all: coverage $PACKAGES
+      - name: Setup
+        if: ${{ matrix.setup != '' }}
+        working-directory: ${{ matrix.dir }}
+        env:
+          SETUP: ${{ matrix.setup }}
+        run: bash -eo pipefail -c "$SETUP"
+      - name: Tests with coverage
+        working-directory: ${{ matrix.dir }}
+        run: |
+          python -m coverage run --source=. --omit='test_*.py,*/test_*.py' -m pytest -q
+          python -m coverage xml -o coverage.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: report-py-${{ matrix.slug }}
+          if-no-files-found: ignore
+          retention-days: 1
+          path: ${{ matrix.dir }}/coverage.xml
+
   packs-schema:
     name: Packs (schema, goldens)
     runs-on: ubuntu-latest
@@ -256,9 +341,16 @@ jobs:
           node-version: "22"
       - run: npm ci --ignore-scripts
       - run: npm run format:check
-      - run: npm test
+      - run: npm run test:coverage
         env:
           GOLDEN_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ always() }}
+        with:
+          name: report-packs
+          if-no-files-found: ignore
+          retention-days: 1
+          path: packs/coverage/lcov.info
 
   # The pack workers, one shared python-ci each (a list command opens with set -euo pipefail: only the last status counted).
   packs-workers:
@@ -350,7 +442,7 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
-          name: coverage-scripts
+          name: report-scripts
           if-no-files-found: ignore
           retention-days: 1
           path: coverage/lcov.info
@@ -377,7 +469,7 @@ jobs:
   # required checks run on, merge_group included (krizaka-internal#2000). It reads the coverage of every part that ran.
   sonar:
     name: SonarCloud
-    needs: [java, web, mobile, cli, scripts]
+    needs: [java, web, mobile, cli, scripts, packs-schema, python-coverage]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -393,10 +485,23 @@ jobs:
         with:
           fetch-depth: 0 # blame and new-code detection need the history
           persist-credentials: false
+      # The Java artifact keeps the repository's paths (jacoco.xml, classes): it lands at the root. Every other report is
+      # one file named lcov.info or coverage.xml, so each artifact keeps its own folder: merging them overwrote one another.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: coverage-*
-          merge-multiple: true
+          name: coverage-java
+        continue-on-error: true # a java job that did not run has nothing to give; the check below says if it owed something
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: report-*
+          path: coverage-reports
+      - name: Every part that passed left its coverage (a missing report fails the scan)
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: node scripts/prepare-sonar-coverage.mjs
       - uses: krizaka/.github/actions/sonar-scan@c291e5f3da409bc20e651d260316d5d9302cb2cc # main
         with:
           token: ${{ secrets.SONAR_TOKEN }}
@@ -406,7 +511,7 @@ jobs:
   workspace:
     name: workspace
     # Not `sonar`: its red on old debt is not the product's code and never freezes the repository (krizaka-internal#2598).
-    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format]
+    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, python-coverage, scripts, infra-format]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
