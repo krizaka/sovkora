@@ -268,7 +268,7 @@ jobs:
         include:
           - worker: document-validation/worker
             packages: pypdf pika pyyaml pikepdf reportlab Pillow pytest
-            tests: test_rules.py test_golden.py test_authenticity.py test_authenticity_formats.py test_forensics.py test_screening.py test_identify.py test_check.py test_regex_safety.py test_derivation.py test_lecture.py
+            tests: test_rules.py test_golden.py test_authenticity.py test_authenticity_formats.py test_forensics.py test_screening.py test_identify.py test_check.py test_regex_safety.py test_derivation.py test_lecture.py test_failure_answer.py
           - worker: message-authenticity/worker
             packages: pika pyyaml pytest
             tests: test_authenticity.py
