@@ -25,6 +25,17 @@ import {
   UPDATE_URL,
 } from "../discovery";
 
+// krizaka-internal#2684: the screens draw the commercial mark; the code-named one never appears.
+jest.mock("@krizaka/ui/native", () => {
+  const { View } = jest.requireActual("react-native");
+  const actual = jest.requireActual("@krizaka/ui/native");
+  return {
+    ...actual,
+    SovkoraMark: () => <View testID="sovkora-mark" />,
+    OrazakaMark: () => <View testID="orazaka-mark" />,
+  };
+});
+
 jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn(async () => null),
   setItemAsync: jest.fn(async () => undefined),
@@ -170,6 +181,8 @@ describe("the gate the manifest raises", () => {
     expect(screen.getByText("Please update.")).toBeTruthy();
     expect(screen.getByText("Version 2.1.0")).toBeTruthy();
     expect(screen.queryByText("the app")).toBeNull();
+    expect(screen.getByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
+    expect(screen.queryByTestId("orazaka-mark", { includeHiddenElements: true })).toBeNull();
   });
 
   it("replaces the app with the maintenance screen and its message", async () => {

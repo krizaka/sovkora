@@ -8,7 +8,7 @@ import {
   IconButton,
   MessageBubble,
   MessageComposer,
-  OrazakaMark,
+  SovkoraMark,
   Screen,
   Txt,
   useTheme,
@@ -30,7 +30,7 @@ function Welcome({ onPick }: Readonly<{ onPick: (prompt: string) => void }>): Re
   const t = useT();
   return (
     <EmptyState
-      icon={<OrazakaMark size={56} />}
+      icon={<SovkoraMark size={56} />}
       title={t("chat.emptyTitle")}
       description={t("chat.emptyDescription")}
       action={

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { Mascot } from "@krizaka/ui/mascots";
 import { AuthLayout } from "@krizaka/ui/auth-layout";
 import { DevelopmentStatus } from "@/components/DevelopmentStatus";
@@ -33,7 +33,7 @@ export function AuthScreen({
       <AuthLayout
         brand={
           <>
-            <OrazakaLogo size={28} animated={false} /> Sovkora
+            <SovkoraLogo size={28} animated={false} /> Sovkora
           </>
         }
         promise={t.auth.heroHeadline}

@@ -7,7 +7,7 @@ import { translations } from "@/core/context/translations";
 
 const mockLogout = jest.fn();
 const mockUser = {
-  current: { name: "Admin", email: "admin@orazaka.io", role: "admin" } as {
+  current: { name: "Admin", email: "admin@sovkora.com", role: "admin" } as {
     name: string;
     email: string;
     role: string;
@@ -51,7 +51,7 @@ describe("AppShell (the shared AppFrame)", () => {
     jest.clearAllMocks();
     mockUser.current = {
       name: "Admin",
-      email: "admin@orazaka.io",
+      email: "admin@sovkora.com",
       role: "admin",
     };
   });

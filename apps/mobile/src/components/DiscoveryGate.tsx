@@ -2,7 +2,7 @@ import React from "react";
 import { AppState, Linking, Platform, View } from "react-native";
 import { pickMessage } from "@krizaka/discovery";
 import { DiscoveryGate as Gate, DiscoveryProvider, type DiscoveryProviderProps } from "@krizaka/discovery/react";
-import { ForceUpdateScreen, MaintenanceScreen, OrazakaMark, useTheme } from "@krizaka/ui/native";
+import { ForceUpdateScreen, MaintenanceScreen, SovkoraMark, useTheme } from "@krizaka/ui/native";
 import { discovery, UPDATE_URL } from "../config/discovery";
 import { useI18n } from "../i18n";
 
@@ -23,7 +23,7 @@ function ForceUpdate({ gate }: Readonly<{ gate: UpdateGate }>): React.JSX.Elemen
   return (
     <ForceUpdateScreen
       fill
-      mark={<OrazakaMark size={64} />}
+      mark={<SovkoraMark size={64} />}
       title={t("update.forceTitle")}
       message={pickMessage(gate.message, locale)}
       versionLabel={t("update.version", { version: gate.latestAppVersion })}
@@ -40,7 +40,7 @@ function Maintenance({ gate }: Readonly<{ gate: MaintenanceGate }>): React.JSX.E
   return (
     <MaintenanceScreen
       fill
-      mark={<OrazakaMark size={64} />}
+      mark={<SovkoraMark size={64} />}
       title={t("update.maintenanceTitle")}
       message={pickMessage(gate.message, locale)}
       retryLabel={t("common.retry")}

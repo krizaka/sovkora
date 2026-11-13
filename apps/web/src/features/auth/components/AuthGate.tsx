@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { LockIcon } from "@krizaka/icons";
 import { Button } from "@krizaka/ui/button";
-import { OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { useAuthFlags } from "@/core/context/AuthFlagsContext";
 import { useTranslation } from "@/core/context/LocaleContext";
 
@@ -15,7 +15,7 @@ export function AuthClosed() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-surface-0 px-4 py-16 text-fg">
       <article className="flex max-w-lg flex-col items-center gap-6 text-center">
-        <OrazakaLogo size={72} />
+        <SovkoraLogo size={72} />
         <h1 className="font-display text-2xl font-bold tracking-tight text-balance sm:text-3xl">{c.title}</h1>
         <p className="text-base leading-relaxed text-pretty text-fg-secondary">{c.body}</p>
         <nav className="flex flex-wrap justify-center gap-3" aria-label={c.title}>

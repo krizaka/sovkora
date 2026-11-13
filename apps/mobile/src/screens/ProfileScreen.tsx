@@ -80,7 +80,7 @@ export function ProfileScreen({ navigation }: Props): React.JSX.Element {
             <Avatar
               size="xl"
               alt={t("profile.avatarOf", { name: data.username })}
-              defaultAvatar={{ brand: "orazaka", seed: data.id }}
+              defaultAvatar={{ brand: "sovkora", seed: data.id }}
             />
             <Txt variant="title" style={styles.centre}>
               {data.username}

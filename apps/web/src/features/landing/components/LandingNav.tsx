@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CodeNameLine, OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { NavBar } from "@krizaka/ui/nav-bar";
 import { ThemeToggle } from "@krizaka/ui/theme";
 import { BarActions } from "@/features/landing/components/BarActions";
 import { useLanguageSwitch } from "@/components/LocaleSwitch";
 import { useBrand } from "@/core/context/BrandContext";
-import { useCodeName } from "@/core/context/CodeNameContext";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { NAV_DOCS, NAV_GROUPS, NAV_PAGES, entryHref, navActive } from "@/features/landing/utils/site-nav";
 
@@ -30,7 +29,6 @@ export function LandingNav({ onHome = true }: Readonly<{ onHome?: boolean }>) {
   const n = t.landing.nav;
   const language = useLanguageSwitch(n.langLabel);
   const brand = useBrand();
-  const codeName = useCodeName();
   const active = navActive(usePathname());
   const groups = NAV_GROUPS.map((g) => ({
     id: g.id,
@@ -61,11 +59,8 @@ export function LandingNav({ onHome = true }: Readonly<{ onHome?: boolean }>) {
       <NavBar.Root label={brand} className="pointer-events-auto mx-auto max-w-(--kz-page-max,72rem)">
         <NavBar.Brand asChild>
           <Link href="/" aria-label={n.home}>
-            <OrazakaLogo size={26} />
-            <span className="flex flex-col leading-tight">
-              <span>{brand}</span>
-              {codeName ? <CodeNameLine>{codeName}</CodeNameLine> : null}
-            </span>
+            <SovkoraLogo size={26} />
+            <span>{brand}</span>
           </Link>
         </NavBar.Brand>
 

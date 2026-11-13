@@ -166,7 +166,6 @@ export const landing: Record<Locale, LandingDictionary> = {
     stage: {
       title: "Development version",
       message: "Data can be reset at any time. This is not a commercial offer yet.",
-      codeName: "code name: {code}",
     },
     footer: {
       privacy: "Privacy",
@@ -341,7 +340,6 @@ export const landing: Record<Locale, LandingDictionary> = {
     stage: {
       title: "Version de développement",
       message: "Les données peuvent être réinitialisées à tout moment. Ce n'est pas encore une offre commerciale.",
-      codeName: "nom de code : {code}",
     },
     footer: {
       privacy: "Confidentialité",

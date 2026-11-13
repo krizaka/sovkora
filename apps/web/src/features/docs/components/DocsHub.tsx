@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { DocsHubPage } from "@krizaka/ui/docs-hub-page";
 import { CodeBlock } from "@krizaka/ui/code-block";
-import { OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { LinkCard } from "@krizaka/ui/link-card";
 import { PackIcon } from "@krizaka/icons";
 import { useTranslation } from "@/core/context/LocaleContext";
@@ -41,7 +41,7 @@ export function DocsHub({
       collections={journeys.map((j) => ({
         id: j.id,
         brand: "orazaka",
-        mark: <OrazakaLogo size={28} />,
+        mark: <SovkoraLogo size={28} />,
         title: d.journeys[j.id].title,
         href: j.href,
         description: d.journeys[j.id].blurb,
