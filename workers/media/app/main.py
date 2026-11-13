@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import base64
+import html
 import io
 import json
 import os
 import sys
 import tempfile
 import threading
+from enum import StrEnum
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import Any
 
@@ -73,7 +75,6 @@ MODEL_MEMORY_GB: dict[str, int] = {
     "wan2.2-t2v-a14b": 64,  # two bf16 experts (~57 GB) + the text encoder, offloaded
     "wan2.2-i2v-a14b": 64,  # the same two experts, image to video
 }
-_JSON = "application/json"
 _DEFAULT_MODEL_GB = 12  # conservative estimate for unregistered models
 
 # Serialize heavy media work: at most one model resident / one inference at a time.
@@ -81,6 +82,27 @@ _media_semaphore = threading.Semaphore(1)
 
 #: What the pipeline answers a job its owner stopped (nginx's "client closed request"): not a failure.
 CANCELLED_STATUS = 499
+
+
+class ErrorCode(StrEnum):
+    """The ``error`` of every refusal the HTTP pipeline answers: a closed set the caller can branch on."""
+
+    NOT_FOUND = "not_found"
+    MODEL_NOT_REGISTERED = "model_not_registered"
+    INVALID_REQUEST = "invalid_request"
+    CANCELLED = "cancelled"
+    GENERATION_FAILED = "generation_failed"
+
+
+#: The fixed ``detail`` of each code. A refusal of the request itself (INVALID_REQUEST) says the
+#: worker's own reason instead, HTML-escaped; an exception or provider message is only ever logged.
+_FIXED_DETAIL: dict[ErrorCode, str] = {
+    ErrorCode.NOT_FOUND: "the media worker has no such route",
+    ErrorCode.MODEL_NOT_REGISTERED: "the model is not registered on this worker",
+    ErrorCode.INVALID_REQUEST: "the request cannot be honoured",
+    ErrorCode.CANCELLED: "the job was cancelled by its owner",
+    ErrorCode.GENERATION_FAILED: "the video could not be made; the worker's log has the cause",
+}
 
 
 def preflight_memory_guard(model_name: str) -> None:
@@ -241,7 +263,10 @@ def _generate_flux_image(
     try:
         from mflux import Config, Flux1
 
-        print(f"Initializing FLUX via mflux: model={model_name}, steps={steps}, seed={seed}", flush=True)
+        print(
+            f"Initializing FLUX via mflux: model={model_name}, steps={steps}, seed={seed}",
+            flush=True,
+        )
         flux = Flux1(
             model_alias="schnell",
             quantize=4,
@@ -261,7 +286,9 @@ def _generate_flux_image(
         return [pil_image.copy() for _ in range(num_frames)]
 
     except ImportError as exc:
-        raise RuntimeError("mflux is not installed. Cannot generate FLUX image without the dependency.") from exc
+        raise RuntimeError(
+            "mflux is not installed. Cannot generate FLUX image without the dependency."
+        ) from exc
     except Exception as e:
         raise RuntimeError(f"FLUX inference failed: {e}") from e
 
@@ -369,7 +396,9 @@ def run_remote(
             f"model '{model_name}' makes video from text only; leave the starting image empty"
         )
     prompt = (payload.get("prompt") or "").strip()
-    width, height = model.size_for(payload.get("aspect"), payload.get("width"), payload.get("height"))
+    width, height = model.size_for(
+        payload.get("aspect"), payload.get("width"), payload.get("height")
+    )
     seed_text = str(payload.get("seed") or os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1"))
     try:
         seed_val = int(seed_text)
@@ -385,7 +414,9 @@ def run_remote(
                 job_control.raise_if_cancelled(job_id)
                 send_progress_update(job_id, percent, phase="generating")
 
-        video, facts = generate(model, prompt, width, height, seed_val if seed_val >= 0 else None, progress=progress)
+        video, facts = generate(
+            model, prompt, width, height, seed_val if seed_val >= 0 else None, progress=progress
+        )
         metrics.update(facts)
         metrics["model"] = model_name
         metrics["seed"] = str(seed_val) if seed_val >= 0 else "provider"
@@ -393,9 +424,12 @@ def run_remote(
         metrics["width"], metrics["height"], metrics["fps"] = width, height, model.fps
         output_path = payload.get("output_path")
         if not output_path:
-            return {"data": [{"b64_json": base64.b64encode(video).decode("ascii")}], "metrics": metrics}
+            return {
+                "data": [{"b64_json": base64.b64encode(video).decode("ascii")}],
+                "metrics": metrics,
+            }
         safe_output_path = _write_inside_uploads(validate_safe_path(output_path), video)
-        measured = remote_video.probe_duration(safe_output_path)
+        measured = remote_video.probe_duration(video)
         if measured:
             metrics["durationSeconds"] = measured
         if job_id:
@@ -404,61 +438,83 @@ def run_remote(
 
 
 class VideoInferenceHandler(BaseHTTPRequestHandler):
-    def _serve_remote(self, payload: dict[str, Any], model_name: str, process) -> None:
-        try:
-            with _media_semaphore:
-                body = json.dumps(run_remote(payload, model_name, process))
-            status, content = 200, body.encode("utf-8")
-        except video_models.InvalidVideoRequest as bad:
-            status, content = 400, json.dumps({"error": str(bad)}).encode("utf-8")
-        except job_control.JobCancelled as stopped:
-            status, content = CANCELLED_STATUS, json.dumps({"error": str(stopped)}).encode("utf-8")
-        except Exception as failure:  # §12: the provider's refusal or failure is the job's failure
-            print(f"Error during remote video generation: {failure}", flush=True)
-            status, content = 500, str(failure).encode("utf-8")
+    def _answer(self, status: int, body: dict[str, Any]) -> None:
+        """The one way this handler answers: a JSON body, its charset, and no content sniffing."""
+        content = json.dumps(body).encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", _JSON)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(len(content)))
         self.end_headers()
         self.wfile.write(content)
 
+    def _refuse(self, status: int, code: ErrorCode) -> None:
+        self._answer(status, {"error": code.value, "detail": _FIXED_DETAIL[code]})
+
+    def _refuse_request(self, bad: video_models.InvalidVideoRequest) -> None:
+        """A request the worker checked and cannot honour: its own reason, escaped, since it may quote the request."""
+        print(f"Refused video request: {bad}", flush=True)
+        self._answer(
+            400,
+            {
+                "error": ErrorCode.INVALID_REQUEST.value,
+                "detail": html.escape(str(bad), quote=False),
+            },
+        )
+
+    def _fail(self, payload: dict[str, Any], failure: Exception) -> None:
+        """An unexpected failure: the cause goes to the log with the job id, the caller gets a fixed message."""
+        print(
+            f"Error during video generation (job {payload.get('job_id')!r}): {failure!r}",
+            flush=True,
+        )
+        self._refuse(500, ErrorCode.GENERATION_FAILED)
+
+    def _serve_remote(self, payload: dict[str, Any], model_name: str, process) -> None:
+        try:
+            with _media_semaphore:
+                body = run_remote(payload, model_name, process)
+        except video_models.InvalidVideoRequest as bad:
+            self._refuse_request(bad)
+        except job_control.JobCancelled:
+            self._refuse(CANCELLED_STATUS, ErrorCode.CANCELLED)
+        except Exception as failure:  # noqa: BLE001 — §12: the provider's refusal or failure is the job's failure
+            self._fail(payload, failure)
+        else:
+            self._answer(200, body)
+
+    def _read_payload(self) -> dict[str, Any]:
+        """The request body as a JSON object; anything else reads as an empty request, as it always has."""
+        try:
+            length = max(0, int(self.headers.get("Content-Length", 0)))
+            payload = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+        except (ValueError, UnicodeDecodeError):
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
     def do_GET(self) -> None:
         if self.path == "/":
-            self.send_response(200)
-            self.send_header("Content-Type", _JSON)
-            self.end_headers()
-            self.wfile.write(json.dumps({"status": "running"}).encode("utf-8"))
+            self._answer(200, {"status": "running"})
         else:
-            self.send_response(404)
-            self.end_headers()
+            self._refuse(404, ErrorCode.NOT_FOUND)
 
     def do_POST(self) -> None:
         if self.path != "/v1/videos/generations":
-            self.send_response(404)
-            self.end_headers()
+            self._refuse(404, ErrorCode.NOT_FOUND)
             return
 
-        content_length = int(self.headers.get("Content-Length", 0))
-        try:
-            payload: dict[str, Any] = json.loads(self.rfile.read(content_length).decode("utf-8"))
-        except Exception:
-            payload = {}
-
+        payload = self._read_payload()
         model_name = payload.get("model") or video_models.default_model_name()
-        if model_name not in MODEL_REGISTRY:
-            self.send_response(400)
-            self.send_header("Content-Type", _JSON)
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": f"Model '{model_name}' is not registered."}).encode("utf-8"))
+        if not isinstance(model_name, str) or model_name not in MODEL_REGISTRY:
+            self._refuse(400, ErrorCode.MODEL_NOT_REGISTERED)
             return
 
         try:
-            upscale.requested(payload)  # a value nobody can make is refused before a GPU second is spent
+            upscale.requested(
+                payload
+            )  # a value nobody can make is refused before a GPU second is spent
         except video_models.InvalidVideoRequest as bad:
-            self.send_response(400)
-            self.send_header("Content-Type", _JSON)
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(bad)}).encode("utf-8"))
+            self._refuse_request(bad)
             return
 
         process = psutil.Process(os.getpid()) if psutil else None
@@ -482,7 +538,9 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                 if not is_resident(model_name, _asked_for_an_image(payload)):
                     preflight_memory_guard(model_name)
 
-                steps, fps_render, wan, wan_image = self._resolve_model_params(payload, model_name, family)
+                steps, fps_render, wan, wan_image = self._resolve_model_params(
+                    payload, model_name, family
+                )
 
                 if job_id:
                     job_control.raise_if_cancelled(job_id)
@@ -490,12 +548,16 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
 
                 stage_reporter = stages.reporter_for(job_id, model_name)
 
-                def progress_cb(pipe_self: Any, step: int, timestep: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
+                def progress_cb(
+                    pipe_self: Any, step: int, timestep: Any, kwargs: dict[str, Any]
+                ) -> dict[str, Any]:
                     if job_id:
                         # The step boundary: where a cancelled job ends, within one denoising step.
                         job_control.raise_if_cancelled(job_id)
                         progress = min(int((step + 1) / steps * 100), 100)
-                        send_progress_update(job_id, progress, phase="generating", step=step + 1, steps=int(steps))
+                        send_progress_update(
+                            job_id, progress, phase="generating", step=step + 1, steps=int(steps)
+                        )
                         if stage_reporter:
                             stage_reporter.step(step + 1, int(steps))
                     return kwargs
@@ -516,10 +578,14 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                 )
 
                 _record_consumption(metrics, frames, steps, fps_render, req_width, req_height)
-                _record_provenance(metrics, model_name, seed_val, payload.get("aspect"), frames, fps_render)
+                _record_provenance(
+                    metrics, model_name, seed_val, payload.get("aspect"), frames, fps_render
+                )
                 if family == "Wan" and wan_image is not None:
                     # How much of the starting image the frame kept (a portrait still cut to 16:9 keeps a third): said, never hidden.
-                    metrics["imageKept"] = video_models.kept_fraction(wan_image, int(req_width), int(req_height))
+                    metrics["imageKept"] = video_models.kept_fraction(
+                        wan_image, int(req_width), int(req_height)
+                    )
 
                 output_path = payload.get("output_path")
                 if job_id:
@@ -527,31 +593,19 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     send_progress_update(job_id, 100, phase="encoding")
                     if stage_reporter:
                         stage_reporter.verify()
-                response_data = self._encode_output(payload, frames, fps_render, output_path, job_id, metrics)
+                response_data = self._encode_output(
+                    payload, frames, fps_render, output_path, job_id, metrics
+                )
 
-            body = json.dumps(response_data)
-            self.send_response(200)
-            self.send_header("Content-Type", _JSON)
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body.encode("utf-8"))
         except job_control.JobCancelled as stopped:
             print(f"Video generation stopped: {stopped}", flush=True)
-            self.send_response(CANCELLED_STATUS)
-            self.send_header("Content-Type", _JSON)
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(stopped)}).encode("utf-8"))
+            self._refuse(CANCELLED_STATUS, ErrorCode.CANCELLED)
         except video_models.InvalidVideoRequest as bad:
-            print(f"Refused video request: {bad}", flush=True)
-            self.send_response(400)
-            self.send_header("Content-Type", _JSON)
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(bad)}).encode("utf-8"))
-        except Exception as e:
-            print(f"Error during video generation: {e}", flush=True)
-            self.send_response(500)
-            self.end_headers()
-            self.wfile.write(str(e).encode("utf-8"))
+            self._refuse_request(bad)
+        except Exception as failure:  # noqa: BLE001 — every failure answers, none leaves the client hanging
+            self._fail(payload, failure)
+        else:
+            self._answer(200, response_data)
 
     def _resolve_seed(self, payload: dict[str, Any]):
         """Returns ``(seed_val, generator)`` — a concrete seed and the torch generator for this request."""
@@ -710,7 +764,9 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
     ):
         """Calls the right generation backend (Wan, FLUX, MLX AnimateDiff, or SVD) and returns the frames list."""
         if wan is not None:
-            ladder = wan.size_ladder(payload.get("aspect"), payload.get("width"), payload.get("height"))
+            ladder = wan.size_ladder(
+                payload.get("aspect"), payload.get("width"), payload.get("height")
+            )
             return generate_wan_frames(
                 model_name=model_name,
                 prompt=payload.get("prompt", ""),
@@ -759,7 +815,13 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
         )
 
     def _encode_output(
-        self, payload: dict[str, Any], frames, fps_render, output_path, job_id, metrics: dict[str, Any]
+        self,
+        payload: dict[str, Any],
+        frames,
+        fps_render,
+        output_path,
+        job_id,
+        metrics: dict[str, Any],
     ) -> dict[str, Any]:
         """Encodes the generated frames to MP4 and returns the response dict (file path or base64)."""
         if output_path:
@@ -773,8 +835,14 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     if job_id:
                         send_progress_update(job_id, 100, phase="upscaling")
                     apply_upscale(payload, safe_output_path, metrics)
-                    return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
-            raise PermissionError(f"Access to path '{output_path}' is denied (outside allowed directories).")
+                    return {
+                        "status": "success",
+                        "output_path": safe_output_path,
+                        "metrics": metrics,
+                    }
+            raise PermissionError(
+                f"Access to path '{output_path}' is denied (outside allowed directories)."
+            )
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
             tmp_path = tmp.name
         try:
