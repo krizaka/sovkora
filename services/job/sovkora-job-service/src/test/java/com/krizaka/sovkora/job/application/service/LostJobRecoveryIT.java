@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;
+import com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore;
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.job.domain.model.JobLeasePolicy;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
-import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.jobs.api.domain.model.JobCommand;
 import com.krizaka.sovkora.persistence.api.domain.model.OutboxMessage;
-import com.krizaka.sovkora.persistence.api.domain.model.PendingOutboxEvent;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.OutboxStore;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
@@ -31,8 +31,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,12 +41,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.ObjectMapper;
@@ -73,7 +70,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   @Autowired LostJobRecoveryService recovery;
   @Autowired Wiring.MutableClock clock;
   @Autowired Wiring.CapturingOutbox outbox;
-  @Autowired PlatformTransactionManager transactions;
+  @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
 
   @BeforeEach
   void reset() {
@@ -102,7 +99,8 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
       JobCommand republished = (JobCommand) requeued.payload();
       assertThat(republished.jobId()).isEqualTo(id);
       assertThat(republished.holdId()).isEqualTo("hold-1");
-      assertThat(republished.dataClass()).isEqualTo(DataClass.SENSITIVE);
+      assertThat(republished.dataClass())
+          .isEqualTo(com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
       // The next worker picks it up again and dies again.
       jdbc.update("UPDATE orazaka_jobs SET status = 'PROCESSING' WHERE id = ?", id);
       leases.claim(republished);
@@ -194,7 +192,13 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
     String id = processing();
     jdbc.update("UPDATE orazaka_jobs SET feature_key = 'gone.capability' WHERE id = ?", id);
     leases.claim(
-        new JobCommand(id, ACTOR, "gone.capability", "default", Map.of(), DataClass.STANDARD));
+        new JobCommand(
+            id,
+            ACTOR,
+            "gone.capability",
+            "default",
+            Map.of(),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
     clock.advance(Duration.ofSeconds(121));
 
     assertThat(recovery.recoverExpired()).isEqualTo(1);
@@ -216,13 +220,11 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
     jdbc.update(
         "UPDATE orazaka_jobs SET updated_at = now() - interval '400 days' WHERE id = ?", id);
 
-    int purged =
-        new JobRetentionService(
-                jdbc,
-                new com.krizaka.sovkora.engine.assets.infrastructure.storage.NoDurableAssetStore(),
-                new com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties(
-                    "local", null, null, "storage.bunnycdn.com", null, "default"))
-            .purgeExpired(uploads);
+    MediaStorageProperties storage =
+        new MediaStorageProperties("local", null, null, "storage.bunnycdn.com", null, "default");
+    JobRetentionService retention =
+        new JobRetentionService(jdbc, new NoDurableAssetStore(), storage);
+    int purged = retention.purgeExpired(uploads);
 
     assertThat(purged).isEqualTo(1);
     assertThat(
@@ -244,7 +246,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
 
     ExecutorService pool = Executors.newFixedThreadPool(2);
     CountDownLatch go = new CountDownLatch(1);
-    List<Future<Integer>> sweeps = new ArrayList<>();
+    List<java.util.concurrent.Future<Integer>> sweeps = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
       sweeps.add(
           pool.submit(
@@ -255,7 +257,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
     }
     go.countDown();
     int taken = 0;
-    for (Future<Integer> sweep : sweeps) {
+    for (java.util.concurrent.Future<Integer> sweep : sweeps) {
       taken += sweep.get(30, TimeUnit.SECONDS);
     }
     pool.shutdownNow();
@@ -319,7 +321,12 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   private JobCommand command(String id, String holdId) {
     JobCommand command =
         new JobCommand(
-            id, ACTOR, FEATURE, "default", Map.of("text", DOCUMENT_TEXT), DataClass.SENSITIVE);
+            id,
+            ACTOR,
+            FEATURE,
+            "default",
+            Map.of("text", DOCUMENT_TEXT),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
     return holdId == null ? command : command.withReservation(holdId, id);
   }
 
@@ -338,7 +345,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   }
 
   /** The real baseline and the real lease migration, on the container's database. */
-  @Configuration
+  @org.springframework.context.annotation.Configuration
   @EnableTransactionManagement
   static class Wiring {
 
@@ -353,7 +360,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
         @Value("${spring.datasource.url}") String url,
         @Value("${spring.datasource.username}") String user,
         @Value("${spring.datasource.password}") String password) {
-      return new DriverManagerDataSource(url, user, password);
+      return new org.springframework.jdbc.datasource.DriverManagerDataSource(url, user, password);
     }
 
     @Bean
@@ -383,7 +390,8 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
     }
 
     @Bean
-    PlatformTransactionManager transactionManager(DataSource dataSource) {
+    org.springframework.transaction.PlatformTransactionManager transactionManager(
+        DataSource dataSource) {
       return new DataSourceTransactionManager(dataSource);
     }
 
@@ -438,7 +446,8 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
       }
 
       @Override
-      public List<PendingOutboxEvent> lockPendingBatch(int batchSize) {
+      public List<com.krizaka.sovkora.persistence.api.domain.model.PendingOutboxEvent>
+          lockPendingBatch(int batchSize) {
         return List.of();
       }
 
@@ -458,19 +467,25 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
       }
     }
 
+    /** A clock the test moves by hand; nothing in these tests sleeps. */
     static final class MutableClock extends Clock {
-      private volatile Instant now;
+      private final AtomicReference<Instant> current;
 
       MutableClock(Instant start) {
-        this.now = start;
+        current = new AtomicReference<>(start);
       }
 
       void set(Instant instant) {
-        this.now = instant;
+        current.set(instant);
       }
 
       void advance(Duration duration) {
-        this.now = now.plus(duration);
+        current.updateAndGet(instant -> instant.plus(duration));
+      }
+
+      @Override
+      public Instant instant() {
+        return current.get();
       }
 
       @Override
@@ -480,12 +495,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
 
       @Override
       public Clock withZone(ZoneId zone) {
-        return this;
-      }
-
-      @Override
-      public Instant instant() {
-        return now;
+        return Clock.fixed(instant(), zone);
       }
     }
   }
