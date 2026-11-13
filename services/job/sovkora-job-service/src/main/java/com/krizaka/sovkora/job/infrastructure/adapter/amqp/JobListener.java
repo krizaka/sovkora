@@ -10,6 +10,7 @@ import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetServi
 import com.krizaka.sovkora.engine.core.application.pipeline.PipelineShortCircuitException;
 import com.krizaka.sovkora.engine.core.domain.model.Authority;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
+import com.krizaka.sovkora.engine.interceptors.governance.SpendScope;
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.job.application.service.ContextService;
 import com.krizaka.sovkora.job.durable.DurableMirror;
@@ -376,6 +377,9 @@ public class JobListener {
         simulationHook.beforeExecution(message, timeoutSeconds);
         long startedAt = System.nanoTime();
         JobExecutionResult executed = dispatchToExecutor(message, context);
+        // What the step's provider calls cost, collected while it ran and reported with its
+        // outcome: the engine's listener priced each call, nothing is priced here.
+        BigDecimal cost = runningJobs.costSoFar(message.jobId());
         Map<String, Object> result = executed.output();
         // calls: 0 (a paid step that did not answer) settles nothing: no consumption, the hold is
         // released in full (sovkora-job-service#68).
@@ -393,7 +397,7 @@ public class JobListener {
         // which is the half of the pricebook key (capability, model) that was missing.
         String executedModel = executed.model() != null ? executed.model() : message.model();
         jobEventPublisher.emitDone(
-            message.jobId(), message.holdId(), executedModel, result, consumption);
+            message.jobId(), message.holdId(), executedModel, result, consumption, cost);
         logger.info("Successfully completed Job ID: {}", message.jobId());
       } finally {
         SecurityContextHolder.clearContext();
@@ -466,6 +470,13 @@ public class JobListener {
                 entry ->
                     entry.getKey() != null && entry.getKey().startsWith(Context.PLATFORM_NAMESPACE))
             .collect(HashMap::new, (map, e) -> map.put(e.getKey(), e.getValue()), HashMap::putAll);
+    // The product a producer says the job is served for becomes the engine's own declaration here,
+    // read as a plain string: the ledger counts the job's calls under it, and a job that names none
+    // is counted as unattributed (krizaka-internal#3368).
+    if (message.payload().get(JobCommand.SPEND_PRODUCT_KEY) instanceof String product
+        && !product.isBlank()) {
+      namespaced.put(SpendScope.PRODUCT_DECLARATION, product);
+    }
     if (namespaced.isEmpty()) {
       return context;
     }

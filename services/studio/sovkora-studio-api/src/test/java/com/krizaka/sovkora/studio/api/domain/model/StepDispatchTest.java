@@ -18,21 +18,36 @@ class StepDispatchTest {
   private static final String ACTOR = "550e8400-e29b-41d4-a716-446655440002";
 
   private static StepDispatch dispatch(String featureKey) {
+    return plain(
+        RUN, "describe", 0, featureKey, null, Map.of("assetId", "a1"), ACTOR, "intention-42");
+  }
+
+  /** A dispatch with no brand context, declarations or product: only the identity fields vary. */
+  private static StepDispatch plain(
+      UUID run,
+      String stepId,
+      int ordinal,
+      String featureKey,
+      String connectorType,
+      Map<String, Object> inputs,
+      String actor,
+      String correlationId) {
     return new StepDispatch(
-        RUN,
-        "describe",
-        0,
+        run,
+        stepId,
+        ordinal,
         featureKey,
-        null,
-        Map.of("assetId", "a1"),
-        ACTOR,
-        "intention-42",
-        Map.of("tone", "premium"),
+        connectorType,
+        inputs,
+        actor,
+        correlationId,
+        Map.of(),
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
-        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+        Optional.empty());
   }
 
   @Test
@@ -68,99 +83,19 @@ class StepDispatchTest {
   @Test
   void rejects_aBlankStepIdActorOrCorrelation() {
     assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                " ",
-                0,
-                "k",
-                null,
-                Map.of(),
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        IllegalArgumentException.class, () -> plain(RUN, " ", 0, "k", null, Map.of(), ACTOR, "c"));
     assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                "a",
-                0,
-                "k",
-                null,
-                Map.of(),
-                "",
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        IllegalArgumentException.class, () -> plain(RUN, "a", 0, "k", null, Map.of(), "", "c"));
     assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                "a",
-                0,
-                "k",
-                null,
-                Map.of(),
-                ACTOR,
-                " ",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        IllegalArgumentException.class, () -> plain(RUN, "a", 0, "k", null, Map.of(), ACTOR, " "));
   }
 
   @Test
   void rejects_aNegativeOrdinalOrAMissingRun() {
     assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                "a",
-                -1,
-                "k",
-                null,
-                Map.of(),
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        IllegalArgumentException.class, () -> plain(RUN, "a", -1, "k", null, Map.of(), ACTOR, "c"));
     assertThrows(
-        NullPointerException.class,
-        () ->
-            new StepDispatch(
-                null,
-                "a",
-                0,
-                "k",
-                null,
-                Map.of(),
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        NullPointerException.class, () -> plain(null, "a", 0, "k", null, Map.of(), ACTOR, "c"));
   }
 
   @Test
@@ -181,7 +116,8 @@ class StepDispatchTest {
             Optional.empty(),
             Optional.empty(),
             Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+            Optional.empty());
 
     brand.put("tone", "direct");
 
@@ -201,7 +137,8 @@ class StepDispatchTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD)
+                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
+                Optional.empty())
             .brandContext()
             .isEmpty());
   }
@@ -209,106 +146,28 @@ class StepDispatchTest {
   @Test
   void copiesTheResolvedInputs_andTreatsNullAsEmpty() {
     Map<String, Object> source = new HashMap<>(Map.of("assetId", "a1"));
-    StepDispatch dispatch =
-        new StepDispatch(
-            RUN,
-            "a",
-            0,
-            "k",
-            null,
-            source,
-            ACTOR,
-            "c",
-            Map.of(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+    StepDispatch dispatch = plain(RUN, "a", 0, "k", null, source, ACTOR, "c");
 
     source.put("assetId", "tampered");
 
     assertEquals("a1", dispatch.resolvedInputs().get("assetId"));
-    assertTrue(
-        new StepDispatch(
-                RUN,
-                "a",
-                0,
-                "k",
-                null,
-                null,
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD)
-            .resolvedInputs()
-            .isEmpty());
+    assertTrue(plain(RUN, "a", 0, "k", null, null, ACTOR, "c").resolvedInputs().isEmpty());
   }
 
   @Test
   @DisplayName("A dispatch must name exactly one plane — neither would be awaited forever")
   void namesExactlyOneTarget() {
     assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                "a",
-                0,
-                null,
-                null,
-                Map.of(),
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        IllegalArgumentException.class, () -> plain(RUN, "a", 0, null, null, Map.of(), ACTOR, "c"));
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            new StepDispatch(
-                RUN,
-                "a",
-                0,
-                "k",
-                "INSTAGRAM",
-                Map.of(),
-                ACTOR,
-                "c",
-                Map.of(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD));
+        () -> plain(RUN, "a", 0, "k", "INSTAGRAM", Map.of(), ACTOR, "c"));
   }
 
   @Test
   @DisplayName("A connector dispatch names its connector instead of a capability")
   void connectorDispatchIsValid() {
-    StepDispatch connector =
-        new StepDispatch(
-            RUN,
-            "publish",
-            0,
-            null,
-            "INSTAGRAM",
-            Map.of(),
-            ACTOR,
-            "c",
-            Map.of(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            Optional.empty(),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+    StepDispatch connector = plain(RUN, "publish", 0, null, "INSTAGRAM", Map.of(), ACTOR, "c");
 
     assertEquals("INSTAGRAM", connector.connectorType());
     assertNull(connector.featureKey());

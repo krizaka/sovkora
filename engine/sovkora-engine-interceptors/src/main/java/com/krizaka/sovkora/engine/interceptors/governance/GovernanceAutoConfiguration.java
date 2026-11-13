@@ -130,9 +130,17 @@ class GovernanceAutoConfiguration {
     }
 
     @Bean
+    JobSpendTally jobSpendTally() {
+      return new JobSpendTally();
+    }
+
+    @Bean
     ProviderSpendListener providerSpendListener(
-        SpendLedgerStore ledger, SpendCapProperties properties, SpendMetrics metrics) {
-      return new ProviderSpendListener(ledger, properties, metrics, Clock.systemUTC());
+        SpendLedgerStore ledger,
+        SpendCapProperties properties,
+        SpendMetrics metrics,
+        JobSpendTally jobs) {
+      return new ProviderSpendListener(ledger, properties, metrics, jobs, Clock.systemUTC());
     }
   }
 }

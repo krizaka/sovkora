@@ -91,7 +91,8 @@ class ComplianceCheckRunContractTest {
         Instant.parse(recorded.path("finishedAt").asString()),
         recorded.path("steps").valueStream().map(ComplianceCheckRunContractTest::step).toList(),
         null,
-        null);
+        null,
+        java.math.BigDecimal.ZERO);
   }
 
   private static RunArtefact artefact(JsonNode output) {

@@ -40,6 +40,10 @@ import java.util.UUID;
  *     template repeating it (ADR-034 §9.1); defensively copied
  * @param dataClass the run's data class; the job this step becomes carries it and is purged by it
  *     (ADR-065)
+ * @param productKey the product the run was started for, declared by the edge from the caller's API
+ *     key (krizaka-internal#3368); empty for a run no product's key started. The job it becomes is
+ *     counted under it in the provider-spend ledger, and under the explicit {@code unattributed}
+ *     scope when it is empty — never under a product the run happened to look like
  */
 public record StepDispatch(
     UUID runId,
@@ -55,7 +59,8 @@ public record StepDispatch(
     Optional<String> crisisTerms,
     Optional<String> crisisResponse,
     Optional<String> guardSubject,
-    DataClass dataClass) {
+    DataClass dataClass,
+    Optional<String> productKey) {
 
   /** Compact canonical constructor enforcing the contract's invariants (ERR-106). */
   public StepDispatch {
@@ -73,6 +78,7 @@ public record StepDispatch(
     // (ADR-065). Required: a step dispatched with no class would reach the job plane as work nobody
     // classified, and the job plane refuses that rather than reading it as STANDARD.
     Objects.requireNonNull(dataClass, "a dispatch must carry its run's data class");
+    productKey = Objects.requireNonNullElse(productKey, Optional.empty());
     if (crisisTerms.isPresent() != crisisResponse.isPresent()) {
       throw new IllegalArgumentException(
           "a crisis declaration must carry both its terms and its reviewed response");

@@ -17,6 +17,9 @@ import org.springframework.context.event.EventListener;
  * never loses the turn the user was already served. A turn whose provider reported no usage, or
  * whose model has no price row, adds nothing — and the second is counted ({@code
  * ai_cost_unpriced_total}), so a missing price is visible instead of silent.
+ *
+ * <p>The cost of a call is also handed to {@link JobSpendTally}, for the job that is collecting it
+ * (a Studio step's run keeps its cost): the sum is this listener's own, never priced a second time.
  */
 public class ProviderSpendListener {
 
@@ -27,13 +30,19 @@ public class ProviderSpendListener {
   private final SpendLedger ledger;
   private final SpendCapProperties properties;
   private final SpendMetrics metrics;
+  private final JobSpendTally jobs;
   private final Clock clock;
 
   public ProviderSpendListener(
-      SpendLedger ledger, SpendCapProperties properties, SpendMetrics metrics, Clock clock) {
+      SpendLedger ledger,
+      SpendCapProperties properties,
+      SpendMetrics metrics,
+      JobSpendTally jobs,
+      Clock clock) {
     this.ledger = ledger;
     this.properties = properties;
     this.metrics = metrics;
+    this.jobs = jobs;
     this.clock = clock;
   }
 
@@ -51,7 +60,11 @@ public class ProviderSpendListener {
     SpendScope scope =
         SpendScope.of(properties.environment(), event.request().context().preferences());
     try {
-      record(scope, String.valueOf(event.response().metadata().get(PROVIDER_METADATA)), usage);
+      record(
+          scope,
+          event.request().context().conversationId(),
+          String.valueOf(event.response().metadata().get(PROVIDER_METADATA)),
+          usage);
     } catch (RuntimeException failure) {
       log.error(
           "Could not record the provider spend of a turn in scope {}", scope.label(), failure);
@@ -59,7 +72,7 @@ public class ProviderSpendListener {
     }
   }
 
-  private void record(SpendScope scope, String model, TokenUsage usage) {
+  private void record(SpendScope scope, String jobId, String model, TokenUsage usage) {
     Optional<ProviderPrice> price = ledger.priceOf(model);
     if (price.isEmpty()) {
       log.warn("No price row for model {}; its spend is not counted", model);
@@ -68,6 +81,7 @@ public class ProviderSpendListener {
     }
     BigDecimal cost = price.get().costOf(usage);
     metrics.cost(scope, CAPABILITY, model, cost);
+    jobs.add(jobId, cost);
     if (cost.signum() == 0) {
       return;
     }

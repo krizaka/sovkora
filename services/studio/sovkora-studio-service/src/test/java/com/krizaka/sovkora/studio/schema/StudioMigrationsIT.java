@@ -55,8 +55,9 @@ class StudioMigrationsIT extends AbstractContainerIntegrationTest {
     }
 
     assertThat(flyway().migrate().migrationsExecuted)
-        .as("first run on an empty database: the baseline and the step re-issue")
-        .isEqualTo(2);
+        .as(
+            "first run on an empty database: the baseline, the step re-issue, the run's product and cost")
+        .isEqualTo(3);
     assertThat(flyway().migrate().migrationsExecuted).as("second run").isZero();
     flyway().validate();
 

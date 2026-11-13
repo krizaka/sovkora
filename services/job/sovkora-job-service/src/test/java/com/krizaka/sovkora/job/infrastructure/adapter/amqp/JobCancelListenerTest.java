@@ -16,7 +16,8 @@ class JobCancelListenerTest {
 
   @Test
   void aCancelMessageStopsTheJobNamedInItsRoutingKey() {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
 
     new JobCancelListener(running).onCancel(cancelOf("job.cancel.abc-123"));
 
@@ -25,7 +26,8 @@ class JobCancelListenerTest {
 
   @Test
   void anyOtherKeyIsIgnored() {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
 
     new JobCancelListener(running).onCancel(cancelOf("job.video.generate"));
     new JobCancelListener(running).onCancel(cancelOf("job.cancel."));
