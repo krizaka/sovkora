@@ -2266,6 +2266,11 @@
       },
       {
         "module": "sovkora-job-service",
+        "exchange": "orazaka.jobs",
+        "routingKey": "(dynamic)"
+      },
+      {
+        "module": "sovkora-job-service",
         "exchange": "orazaka.events",
         "routingKey": "(dynamic)"
       },

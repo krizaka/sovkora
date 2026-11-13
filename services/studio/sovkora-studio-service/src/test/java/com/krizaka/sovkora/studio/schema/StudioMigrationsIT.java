@@ -55,8 +55,8 @@ class StudioMigrationsIT extends AbstractContainerIntegrationTest {
     }
 
     assertThat(flyway().migrate().migrationsExecuted)
-        .as("first run on an empty database")
-        .isEqualTo(1);
+        .as("first run on an empty database: the baseline and the step re-issue")
+        .isEqualTo(2);
     assertThat(flyway().migrate().migrationsExecuted).as("second run").isZero();
     flyway().validate();
 
@@ -77,6 +77,13 @@ class StudioMigrationsIT extends AbstractContainerIntegrationTest {
                   "SELECT count(*) FROM studio_runtime_config WHERE config_key ="
                       + " 'downloads.mac-enabled'"))
           .as("the reference data (runtime-config defaults)")
+          .isEqualTo(1);
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM studio_runtime_config WHERE config_key ="
+                      + " 'run.step-max-reissues' AND min_value = 0 AND max_value = 5"))
+          .as("the re-issue maximum, a bounded row (SOV-105)")
           .isEqualTo(1);
       assertThat(count(statement, "SELECT count(*) FROM operator_audit"))
           .as("the operator audit the old infra/migrations file added")

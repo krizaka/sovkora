@@ -108,15 +108,8 @@ public class StalledRunService {
         FailureCause.TIMEOUT);
     runAuditService.recordFinished(
         run.id(), run.actorId(), run.studioKey(), false, FailureCause.TIMEOUT);
-    outboxService.append(
-        run.id().toString(),
-        "evt.studio.run.failed",
-        java.util.Map.of(
-            "runId", run.id().toString(),
-            "actorId", run.actorId(),
-            "studioKey", run.studioKey(),
-            "blueprintVersion", run.blueprintVersion(),
-            "correlationId", run.correlationId()));
+    outboxService.appendRunFailed(
+        run.id(), run.actorId(), run.studioKey(), run.blueprintVersion(), run.correlationId());
     return true;
   }
 

@@ -3,9 +3,12 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.schedule;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
 import com.krizaka.sovkora.studio.api.domain.model.RunStepStatus;
+import com.krizaka.sovkora.studio.application.service.OutboxService;
 import com.krizaka.sovkora.studio.application.service.RunAuditService;
 import com.krizaka.sovkora.studio.application.service.RunSettlementService;
+import com.krizaka.sovkora.studio.application.service.StepReissueService;
 import com.krizaka.sovkora.studio.application.service.StudioRuntimeConfigService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -57,6 +60,14 @@ public class RunSweeper {
 
   private static final int RUN_MAX_FALLBACK_SECONDS = 4 * 3600;
 
+  /**
+   * The most times a silent step's command is sent again before its run fails (ADR SOV-105 §2). A
+   * row, bounded 0..5 by its own min and max; 0 turns the guard off.
+   */
+  private static final String MAX_REISSUES_KEY = "run.step-max-reissues";
+
+  private static final int MAX_REISSUES_FALLBACK = 2;
+
   /** The lane a step that never declared one is judged by — the one that waits (ADR-067). */
   private static final String DEFAULT_LANE = "BATCH";
 
@@ -65,16 +76,25 @@ public class RunSweeper {
   private final StudioRuntimeConfigService runtimeConfigService;
 
   private final RunAuditService runAuditService;
+  private final StepReissueService reissueService;
+  private final OutboxService outboxService;
+  private final MeterRegistry meterRegistry;
 
   public RunSweeper(
       JdbcTemplate jdbcTemplate,
       RunSettlementService settlementService,
       StudioRuntimeConfigService runtimeConfigService,
-      RunAuditService runAuditService) {
+      RunAuditService runAuditService,
+      StepReissueService reissueService,
+      OutboxService outboxService,
+      MeterRegistry meterRegistry) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.settlementService = Objects.requireNonNull(settlementService, "settlement");
     this.runtimeConfigService = Objects.requireNonNull(runtimeConfigService, "config required");
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
+    this.reissueService = Objects.requireNonNull(reissueService, "StepReissueService required");
+    this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
+    this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry required");
   }
 
   /** Fails runs whose steps exceeded the timeout, releasing every outstanding hold. */
@@ -84,27 +104,36 @@ public class RunSweeper {
     int interactiveSeconds =
         runtimeConfigService.intValue(INTERACTIVE_TIMEOUT_KEY, INTERACTIVE_FALLBACK_SECONDS);
     int batchSeconds = runtimeConfigService.intValue(BATCH_TIMEOUT_KEY, BATCH_FALLBACK_SECONDS);
+    int maxReissues =
+        Math.max(0, runtimeConfigService.intValue(MAX_REISSUES_KEY, MAX_REISSUES_FALLBACK));
 
+    // First the steps that still have re-issues: a lost message costs a delay, not a paid file.
+    reissueService.reissueSilentSteps(interactiveSeconds, batchSeconds, maxReissues);
+
+    // What is left past its ceiling has no re-issue left, or its command never reached the broker
+    // (the newest copy is missing or still unpublished): the dispatch is lost.
+    // One row per run, claimed (KIT-003): a run with stale steps in two lanes, or a run another
+    // instance is sweeping, would otherwise release its hold and announce its failure twice.
     List<StaleRun> stale =
         jdbcTemplate.query(
-            "SELECT DISTINCT r.id, r.hold_id, r.actor_id, r.studio_key,"
-                + " COALESCE(s.latency_class, ?) AS lane FROM studio_run r"
-                + " JOIN studio_run_step s ON s.run_id = r.id"
-                + " WHERE r.finished_at IS NULL AND s.status = ?"
-                + " AND s.started_at < now() - make_interval(secs => CASE"
-                + "   WHEN COALESCE(s.latency_class, ?) = 'INTERACTIVE' THEN ? ELSE ? END)",
-            (rs, rowNum) ->
-                new StaleRun(
-                    rs.getObject("id", UUID.class),
-                    rs.getString("hold_id"),
-                    rs.getString("actor_id"),
-                    rs.getString("studio_key"),
-                    rs.getString("lane")),
+            "SELECT r.id, r.hold_id, r.actor_id, r.studio_key, r.blueprint_version,"
+                + " r.correlation_id, s.lane FROM studio_run r"
+                + " JOIN LATERAL (SELECT COALESCE(st.latency_class, ?) AS lane"
+                + "   FROM studio_run_step st WHERE st.run_id = r.id AND st.status = ?"
+                + "   AND COALESCE(st.reissued_at, st.started_at) < now() - make_interval(secs =>"
+                + "     CASE WHEN COALESCE(st.latency_class, ?) = 'INTERACTIVE' THEN ? ELSE ? END)"
+                + "   AND (st.reissues >= ? OR COALESCE((SELECT o.published_at IS NULL"
+                + "     FROM studio_outbox o WHERE o.message_id = st.job_id"
+                + "     ORDER BY o.created_at DESC LIMIT 1), TRUE))"
+                + "   ORDER BY st.started_at LIMIT 1) s ON TRUE"
+                + " WHERE r.finished_at IS NULL FOR UPDATE OF r SKIP LOCKED",
+            (rs, rowNum) -> StaleRun.of(rs, rs.getString("lane")),
             DEFAULT_LANE,
             RunStepStatus.RUNNING.name(),
             DEFAULT_LANE,
             interactiveSeconds,
-            batchSeconds);
+            batchSeconds,
+            maxReissues);
 
     for (StaleRun run : stale) {
       int ceiling = "INTERACTIVE".equals(run.lane()) ? interactiveSeconds : batchSeconds;
@@ -113,10 +142,15 @@ public class RunSweeper {
           run.id(),
           run.lane(),
           ceiling);
+      // A step that was sent again and still said nothing is a dispatch the platform lost, not a
+      // step that is slow: the executor is declared unreachable (ADR-053). With the guard off
+      // (0 re-issues) the platform cannot tell the two apart and keeps the old answer.
       fail(
           run,
           "a " + run.lane() + " step exceeded the " + ceiling + "s ceiling and never reported back",
-          "swept: step exceeded its ceiling");
+          "swept: step exceeded its ceiling",
+          maxReissues > 0 ? FailureCause.PLATFORM_UNAVAILABLE : FailureCause.TIMEOUT,
+          "step_ceiling");
     }
 
     sweepOverdueRuns();
@@ -128,16 +162,11 @@ public class RunSweeper {
         Math.max(60, runtimeConfigService.intValue(RUN_MAX_KEY, RUN_MAX_FALLBACK_SECONDS));
     List<StaleRun> overdue =
         jdbcTemplate.query(
-            "SELECT id, hold_id, actor_id, studio_key FROM studio_run"
+            "SELECT id, hold_id, actor_id, studio_key, blueprint_version, correlation_id"
+                + " FROM studio_run"
                 + " WHERE finished_at IS NULL AND status = ?"
-                + " AND started_at < now() - make_interval(secs => ?)",
-            (rs, rowNum) ->
-                new StaleRun(
-                    rs.getObject("id", UUID.class),
-                    rs.getString("hold_id"),
-                    rs.getString("actor_id"),
-                    rs.getString("studio_key"),
-                    "RUN"),
+                + " AND started_at < now() - make_interval(secs => ?) FOR UPDATE SKIP LOCKED",
+            (rs, rowNum) -> StaleRun.of(rs, "RUN"),
             RunStatus.RUNNING.name(),
             maxSeconds);
     for (StaleRun run : overdue) {
@@ -148,25 +177,29 @@ public class RunSweeper {
       fail(
           run,
           "the run was still in flight after " + maxSeconds + "s and was closed",
-          "swept: run exceeded its maximum duration");
+          "swept: run exceeded its maximum duration",
+          FailureCause.TIMEOUT,
+          "run_max");
     }
   }
 
-  private void fail(StaleRun run, String reason, String releaseNote) {
+  private void fail(
+      StaleRun run, String reason, String releaseNote, FailureCause cause, String bound) {
     // The sweeper is the fourth producer of a failed run, and under ADR-053 it declares its cause
-    // like the other three. A step that stopped reporting is TIMEOUT by definition: the platform
-    // lost track of work it had accepted, which releases the hold and blames nobody.
+    // like the other three: the platform lost track of work it had accepted, which releases the
+    // hold and blames nobody.
     jdbcTemplate.update(
         "UPDATE studio_run SET status = ?, error_message = ?, failure_cause = ?,"
             + " finished_at = now() WHERE id = ? AND finished_at IS NULL",
         RunStatus.FAILED.name(),
         reason,
-        FailureCause.TIMEOUT.name(),
+        cause.name(),
         run.id());
     jdbcTemplate.update(
-        "UPDATE studio_run_step SET status = ?, finished_at = now()"
+        "UPDATE studio_run_step SET status = ?, failure_cause = ?, finished_at = now()"
             + " WHERE run_id = ? AND status IN (?, ?)",
         RunStepStatus.FAILED.name(),
+        cause.name(),
         run.id(),
         RunStepStatus.PENDING.name(),
         RunStepStatus.RUNNING.name());
@@ -176,10 +209,33 @@ public class RunSweeper {
     // And a protected run that ended this way must appear in its own trail. Before ADR-053 a
     // swept SENSITIVE run left no audit row at all — the one terminal path that recorded
     // nothing, which is the hole a trail cannot have.
-    runAuditService.recordFinished(
-        run.id(), run.actorId(), run.studioKey(), false, FailureCause.TIMEOUT);
+    runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), false, cause);
+    // The failure is announced the way every other failed run is, so what follows runs by their
+    // events hears this one too.
+    outboxService.appendRunFailed(
+        run.id(), run.actorId(), run.studioKey(), run.blueprintVersion(), run.correlationId());
+    meterRegistry.counter("sovkora.studio.run.past_bound", "bound", bound).increment();
   }
 
   /** A run with a step that stopped reporting, and the lane whose ceiling it passed. */
-  private record StaleRun(UUID id, String holdId, String actorId, String studioKey, String lane) {}
+  private record StaleRun(
+      UUID id,
+      String holdId,
+      String actorId,
+      String studioKey,
+      String blueprintVersion,
+      String correlationId,
+      String lane) {
+
+    static StaleRun of(java.sql.ResultSet rs, String lane) throws java.sql.SQLException {
+      return new StaleRun(
+          rs.getObject("id", UUID.class),
+          rs.getString("hold_id"),
+          rs.getString("actor_id"),
+          rs.getString("studio_key"),
+          rs.getString("blueprint_version"),
+          rs.getString("correlation_id"),
+          lane);
+    }
+  }
 }

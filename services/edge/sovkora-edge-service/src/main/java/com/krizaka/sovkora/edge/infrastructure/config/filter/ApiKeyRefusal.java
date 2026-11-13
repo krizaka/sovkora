@@ -11,6 +11,7 @@ import java.io.IOException;
 enum ApiKeyRefusal {
   INVALID(401, "API_KEY_INVALID", "Invalid API key"),
   WRONG_ENVIRONMENT(401, "API_KEY_WRONG_ENVIRONMENT", "API key of another environment"),
+  PRODUCT_INVALID(401, "API_KEY_PRODUCT_INVALID", "API key declares an invalid product"),
   SCOPE_DENIED(403, "API_KEY_SCOPE_DENIED", "API key scope does not allow this request"),
   RATE_LIMITED(429, "API_KEY_RATE_LIMITED", "Rate limit of this API key is reached"),
   QUOTA_EXCEEDED(429, "API_KEY_QUOTA_EXCEEDED", "Daily quota of this API key is reached"),

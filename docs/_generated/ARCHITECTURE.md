@@ -252,6 +252,7 @@ Who calls whom while the platform runs: HTTP (UI defaults, the edge route table,
 | `sovkora-conversation-service` | `orazaka.events` | `evt.capability.changed` |
 | `sovkora-conversation-service` | `orazaka.jobs` | `job.automation.approved` |
 | `sovkora-engine-persistence-bridge` | `orazaka.events` | `evt.control.verdict` |
+| `sovkora-job-service` | `orazaka.jobs` | `(dynamic)` |
 | `sovkora-job-service` | `orazaka.events` | `(dynamic)` |
 | `sovkora-job-service` | `orazaka.events` | `evt.capability.changed` |
 | `sovkora-job-service` | `orazaka.events` | `job.{…}.cancelled` |

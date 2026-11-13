@@ -3,6 +3,7 @@ package com.krizaka.sovkora.job.infrastructure.adapter.amqp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,13 @@ public class RunningJobs {
     running.remove(jobId);
     // Clears the flag on purpose: the interrupt was meant for this job and has been answered.
     Thread.interrupted();
+  }
+
+  /**
+   * @return the jobs the executor is running right now, whose leases are this worker's to renew
+   */
+  public Set<String> runningIds() {
+    return Set.copyOf(running.keySet());
   }
 
   /**

@@ -30,6 +30,8 @@ class ApiKeyExchangeFilterTest {
 
   private static HttpServer stub;
   private static final AtomicInteger exchangeHits = new AtomicInteger();
+  private static final java.util.concurrent.atomic.AtomicReference<Integer> mutableDaily =
+      new java.util.concurrent.atomic.AtomicReference<>();
 
   @BeforeAll
   static void startStub() throws IOException {
@@ -41,18 +43,34 @@ class ApiKeyExchangeFilterTest {
           String body =
               new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
           boolean valid =
-              body.contains("oz_valid") || body.contains("oz_scoped") || body.contains("oz_prod");
+              body.contains("oz_valid")
+                  || body.contains("oz_scoped")
+                  || body.contains("oz_prod")
+                  || body.contains("oz_product");
           // oz_prod… keys declare their environment (#2132); oz_prodembed is also scoped ai:embed.
           String scopes =
-              body.contains("oz_scoped")
-                  ? "[\"ai:embed\"]"
-                  : body.contains("oz_prodembed")
-                      ? "[\"env:prod\",\"ai:embed\"]"
-                      : body.contains("oz_prod") ? "[\"env:prod\"]" : "[]";
+              body.contains("oz_product2")
+                  ? "[\"product:verikora\",\"product:folioviv\"]"
+                  : body.contains("oz_product")
+                      ? "[\"product:verikora\"]"
+                      : body.contains("oz_scoped")
+                          ? "[\"ai:embed\"]"
+                          : body.contains("oz_prodembed")
+                              ? "[\"env:prod\",\"ai:embed\"]"
+                              : body.contains("oz_prod") ? "[\"env:prod\"]" : "[]";
           // The identity service sends the owner's tier with the exchange; a key named
           // oz_valid_rpm<N> belongs to a tier of N requests per minute.
           String tier =
               body.contains("oz_valid_rpm2") ? ",\"tierKey\":\"tiny\",\"requestsPerMinute\":2" : "";
+          // A key named oz_valid_dq<N> belongs to an owner whose daily quota is N requests;
+          // oz_valid_dqmut's is whatever the test last set (null = none).
+          java.util.regex.Matcher daily =
+              java.util.regex.Pattern.compile("oz_valid_dq(\\d+)").matcher(body);
+          if (daily.find()) {
+            tier += ",\"dailyRequests\":" + daily.group(1);
+          } else if (body.contains("oz_valid_dqmut") && mutableDaily.get() != null) {
+            tier += ",\"dailyRequests\":" + mutableDaily.get();
+          }
           byte[] response =
               (valid ? "{\"token\":\"minted-jwt\",\"scopes\":" + scopes + tier + "}" : "{}")
                   .getBytes(StandardCharsets.UTF_8);
@@ -105,6 +123,47 @@ class ApiKeyExchangeFilterTest {
 
     assertThat(forwarded.get()).isEqualTo("Bearer minted-jwt");
     assertThat(exchangeHits.get()).isEqualTo(2);
+  }
+
+  /** Sends one request bearing this key through the filter. */
+  private MockHttpServletResponse send(MockHttpServletRequest request, String key)
+      throws Exception {
+    request.addHeader("Authorization", "Bearer " + key);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter().doFilter(request, response, new MockFilterChain());
+    return response;
+  }
+
+  @Test
+  @DisplayName("[3368] the product a key declares is set on the request for the proxy")
+  void declaredProductIsSet() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    assertThat(send(request, "oz_product").getStatus()).isEqualTo(200);
+
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isEqualTo("verikora");
+  }
+
+  @Test
+  @DisplayName("[3368] a key with no product declares none: nothing is set")
+  void noProductNothingSet() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    send(request, "oz_valid_key");
+
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isNull();
+  }
+
+  @Test
+  @DisplayName("[3368] a key that declares two products is refused with a coded problem")
+  void twoProductsRefused() throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
+
+    MockHttpServletResponse response = send(request, "oz_product2");
+
+    assertThat(response.getStatus()).isEqualTo(401);
+    assertThat(response.getContentAsString()).contains("API_KEY_PRODUCT_INVALID");
+    assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isNull();
   }
 
   @Test
@@ -268,6 +327,54 @@ class ApiKeyExchangeFilterTest {
     assertThat(statuses).containsExactly(200, 200, 429, 200);
   }
 
+  private ApiKeyExchangeFilter withGlobalDailyQuota(int limit) {
+    return new ApiKeyExchangeFilter(
+        RestClient.builder().build(),
+        new EdgeIdentityProperties(
+            URI.create("http://127.0.0.1:" + stub.getAddress().getPort()),
+            "sovkora-test-secret-at-least-32-characters!"),
+        new ApiKeyDailyQuota(limit, java.time.Clock.systemUTC()));
+  }
+
+  @Test
+  @DisplayName("[3423] two owners with different daily limits are each refused at their own")
+  void ownersAreRefusedAtTheirOwnDailyLimit() throws Exception {
+    ApiKeyExchangeFilter filter = withGlobalDailyQuota(100);
+    assertThat(call(filter, "oz_valid_dq1_a").getStatus()).isEqualTo(200);
+    MockHttpServletResponse small = call(filter, "oz_valid_dq1_a");
+    assertThat(small.getStatus()).isEqualTo(429);
+    assertThat(small.getContentAsString()).contains("\"code\":\"API_KEY_QUOTA_EXCEEDED\"");
+    assertThat(small.getHeader("Retry-After")).isNotNull();
+    for (int i = 0; i < 3; i++) {
+      assertThat(call(filter, "oz_valid_dq3_a").getStatus()).isEqualTo(200);
+    }
+    assertThat(call(filter, "oz_valid_dq3_a").getStatus()).isEqualTo(429);
+  }
+
+  @Test
+  @DisplayName("[3423] an owner with no daily limit of its own gets the global setting")
+  void noOwnLimitFallsBackToTheGlobalSetting() throws Exception {
+    ApiKeyExchangeFilter filter = withGlobalDailyQuota(1);
+    assertThat(call(filter, "oz_valid_nodq").getStatus()).isEqualTo(200);
+    assertThat(call(filter, "oz_valid_nodq").getStatus()).isEqualTo(429);
+  }
+
+  @Test
+  @DisplayName("[3423] a limit changed at the identity service applies on the next exchange")
+  void aChangedLimitAppliesOnTheNextExchange() throws Exception {
+    ApiKeyExchangeFilter filter = withGlobalDailyQuota(100);
+    mutableDaily.set(1);
+    try {
+      assertThat(call(filter, "oz_valid_dqmut").getStatus()).isEqualTo(200);
+      assertThat(call(filter, "oz_valid_dqmut").getStatus()).isEqualTo(429);
+      mutableDaily.set(3);
+      assertThat(call(filter, "oz_valid_dqmut").getStatus()).isEqualTo(200);
+      assertThat(call(filter, "oz_valid_dqmut").getStatus()).isEqualTo(429);
+    } finally {
+      mutableDaily.set(null);
+    }
+  }
+
   private ApiKeyExchangeFilter limited(ApiKeyRateLimiter.Mode mode) {
     return new ApiKeyExchangeFilter(
         RestClient.builder().build(),
@@ -343,8 +450,8 @@ class ApiKeyExchangeFilterTest {
     }
 
     // Two calls spent two of three: one is left.
-    assertThat(quota.tryAcquire("oz_valid_rpm2_d")).isTrue();
-    assertThat(quota.tryAcquire("oz_valid_rpm2_d")).isFalse();
+    assertThat(quota.tryAcquire("oz_valid_rpm2_d", null)).isTrue();
+    assertThat(quota.tryAcquire("oz_valid_rpm2_d", null)).isFalse();
   }
 
   @Test

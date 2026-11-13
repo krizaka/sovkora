@@ -50,7 +50,11 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
 
   /** Wire shape of the internal exchange response (contract copy — no shared jar). */
   record ExchangeResponse(
-      String token, List<String> scopes, String tierKey, Integer requestsPerMinute) {}
+      String token,
+      List<String> scopes,
+      String tierKey,
+      Integer requestsPerMinute,
+      Integer dailyRequests) {}
 
   private final ApiKeyDailyQuota quota;
   private final ApiKeyRateLimiter rateLimiter;
@@ -134,21 +138,13 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
           response, "This key does not belong to the environment of this address.");
       return;
     }
-    // A scoped key is held to its scopes here: the minted JWT is the owner's, so nothing
-    // downstream could tell the difference.
-    if (!ApiKeyScopes.permits(exchanged.scopes(), request.getMethod(), request.getRequestURI())) {
-      logger.warn(
-          "API key scoped {} refused {} {}",
-          exchanged.scopes(),
-          request.getMethod(),
-          request.getRequestURI());
-      ApiKeyRefusal.SCOPE_DENIED.write(response, "The key's scopes do not name this request.");
+    if (refusedForScopes(request, response, exchanged)) {
       return;
     }
     if (refusedByRateLimit(request, response, apiKey, exchanged)) {
       return;
     }
-    if (!quota.tryAcquire(apiKey)) {
+    if (!quota.tryAcquire(apiKey, exchanged.dailyRequests())) {
       logger.warn(
           "API key over its daily quota: {} {}", request.getMethod(), request.getRequestURI());
       long retryAfter = quota.secondsUntilReset();
@@ -158,6 +154,37 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
     }
     filterChain.doFilter(
         new AuthorizationRewriter(request, BEARER_PREFIX + exchanged.token()), response);
+  }
+
+  /**
+   * Holds the key to its scopes and hands the product it declares to the proxy; {@code true} when
+   * the request was answered: 401 for more than one product or a malformed one, 403 for a route the
+   * scopes do not name.
+   */
+  private boolean refusedForScopes(
+      HttpServletRequest request, HttpServletResponse response, ExchangeResponse exchanged)
+      throws IOException {
+    try {
+      ApiKeyProduct.declaredBy(exchanged.scopes())
+          .ifPresent(product -> request.setAttribute(ApiKeyProduct.ATTRIBUTE, product.key()));
+    } catch (IllegalArgumentException e) {
+      logger.warn("API key with an invalid product scope refused: {}", e.getMessage());
+      ApiKeyRefusal.PRODUCT_INVALID.write(
+          response, "The key declares more than one product, or a malformed one.");
+      return true;
+    }
+    // A scoped key is held to its scopes here: the minted JWT is the owner's, so nothing
+    // downstream could tell the difference.
+    if (ApiKeyScopes.permits(exchanged.scopes(), request.getMethod(), request.getRequestURI())) {
+      return false;
+    }
+    logger.warn(
+        "API key scoped {} refused {} {}",
+        exchanged.scopes(),
+        request.getMethod(),
+        request.getRequestURI());
+    ApiKeyRefusal.SCOPE_DENIED.write(response, "The key's scopes do not name this request.");
+    return true;
   }
 
   /** Applies the key's per-minute limit; {@code true} when the request was answered 429. */

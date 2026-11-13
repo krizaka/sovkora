@@ -14,13 +14,15 @@ import { FilesPanel } from "../components/FilesPanel";
 import { StackPanel } from "../components/StackPanel";
 
 const base: Snapshot = {
-  settings: { mode: "remote", remoteUrl: "https://www.orazaka.com", workspaceDir: "/w", watched: [], locale: "en" },
+  settings: { mode: "remote", remoteUrl: "https://www.orazaka.com", workspaceDir: "/w", watched: [], locale: "en", limits: {} },
   roots: [],
   sidecar: true,
   autostart: false,
   probe: { web: false, edge: false, state: "stopped" },
   appVersion: "0.1.0",
 };
+
+const fileEntry = (name: string, kind = "txt") => ({ name, path: `/Users/a/Clients/${name}`, isDir: false, size: 10, modified: 0, kind });
 
 let client = createQueryClient({ maxRetries: 0 });
 const wrap = (ui: React.ReactNode, locale: "en" | "fr" = "en") => (
@@ -106,10 +108,9 @@ describe("FilesPanel", () => {
   });
 
   it("shows the preview of the file clicked last, whatever the order the answers come back in (race)", async () => {
-    const entry = (name: string) => ({ name, path: `/Users/a/Clients/${name}`, isDir: false, size: 10, modified: 0, kind: "txt" });
     let answerA: (v: unknown) => void = () => undefined;
     invoke.mockImplementation(async (cmd: string, args?: { path?: string }) => {
-      if (cmd === "list_dir") return { truncated: false, entries: [entry("a.txt"), entry("b.txt")] };
+      if (cmd === "list_dir") return { truncated: false, entries: [fileEntry("a.txt"), fileEntry("b.txt")] };
       if (cmd === "preview_file" && args?.path?.endsWith("a.txt")) return new Promise((resolve) => { answerA = resolve; });
       if (cmd === "preview_file") return { name: "b.txt", size: 10, mime: "text/plain", kind: "txt", text: "content of B", data: null };
       return undefined;
@@ -123,6 +124,21 @@ describe("FilesPanel", () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(screen.getByText("content of B")).toBeInTheDocument();
     expect(screen.queryByText("content of A")).not.toBeInTheDocument();
+  });
+
+  it("says « too large » for a PDF the kit did not embed (its limit, not a size written in the page), « no preview » for a binary", async () => {
+    invoke.mockImplementation(async (cmd: string, args?: { path?: string }) => {
+      if (cmd === "list_dir") return { truncated: false, entries: [fileEntry("big.pdf", "pdf"), fileEntry("tool.bin", "file")] };
+      if (cmd === "preview_file" && args?.path?.endsWith("big.pdf")) return { name: "big.pdf", size: 99_000_000, mime: "application/pdf", kind: "pdf", text: null, data: null };
+      if (cmd === "preview_file") return { name: "tool.bin", size: 99_000_000, mime: "application/octet-stream", kind: "file", text: null, data: null };
+      return undefined;
+    });
+    render(wrap(<FilesPanel snap={{ ...base, roots: ["/Users/a/Clients"] }} />));
+    fireEvent.click(screen.getByText("/Users/a/Clients"));
+    fireEvent.click(await screen.findByText("big.pdf"));
+    expect(await screen.findByText("Too large to preview here.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("tool.bin"));
+    expect(await screen.findByText("No preview for this kind of file.")).toBeInTheDocument();
   });
 
   it("falls back to no folder when the shared folder is revoked (derived, no effect)", async () => {

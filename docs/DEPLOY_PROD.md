@@ -42,8 +42,9 @@ service's development chat route.
 - **One key per consuming product, its own limits.** The rate limit is per key, from its owner's tier, a row
   (`rate_limits`, `rate_limit_tiers`): the products' service accounts are on the `service` tier
   (`infra/migrations/2026-10-20-service-rate-tier.sql`, run once on the prod `krizaka_users_db`). The daily quota is per
-  key too, but its ceiling is one setting for every key (`AUTH_API_KEY_DAILY_REQUESTS`); a ceiling per product as a row is
-  a next slice (below).
+  key too, and its ceiling is the owner's tier's (`rate_limits.daily_requests`, returned as `dailyRequests` by the
+  token exchange; `infra/migrations/2026-11-13-service-daily-requests.sql` gives the `service` tier its row); a tier with
+  none falls back to `AUTH_API_KEY_DAILY_REQUESTS`.
 
 The checks that keep this honest: `node scripts/check-prod-spec.mjs` (no plain secret, no development host, no web app, no
 video worker, no GPU relay, only the edge routed, `AUTH_API_KEY_ENVIRONMENT=prod`), `scripts/test/prod-app-spec.test.mjs`,
