@@ -131,3 +131,17 @@ test("the supervisor waits for the job service before it starts the services tha
   const sh = root("infra/deploy/run-services.sh");
   assert.match(sh, /job\) wait_port localhost 8090 "\$\{ORAZAKA_JOB_READY_TIMEOUT:-240\}"/);
 });
+
+// ── The dev chat route is data the service applies at startup (krizaka-internal#3285, ADR-095) ──
+test("the core container's supervisor adds the dev-only migration location of the job service, and the job service reads it", () => {
+  const sh = root("infra/deploy/run-services.sh");
+  assert.match(sh, /export DATABASE_JOB_MIGRATIONS_LOCATIONS="\$\{DATABASE_JOB_MIGRATIONS_LOCATIONS:-classpath:db\/migration,classpath:db\/dev\}"/);
+  const yml = root("services/job/sovkora-job-service/src/main/resources/application.yml");
+  assert.match(yml, /locations: \$\{DATABASE_JOB_MIGRATIONS_LOCATIONS:classpath:db\/migration\}/);
+});
+
+test("the dev route migration puts the chat default on the hosted per-token provider and nothing else is a chat default", () => {
+  const sql = root("services/job/sovkora-job-service/src/main/resources/db/dev/R__dev_chat_route.sql");
+  assert.match(sql, /'mistral-3-14B'[\s\S]*'do-inference'/);
+  assert.match(sql, /UPDATE orazaka_models SET is_default = \(model_name = 'mistral-3-14B'\) WHERE category = 'chat'/);
+});

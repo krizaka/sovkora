@@ -27,7 +27,7 @@ jobs:
           persist-credentials: false
           repository: krizaka/sovkora
           ref: main
-      - uses: krizaka/krizaka-rust/.github/actions/film@fb4645cc9f08cd197b347f58678f0487636b6eb8 # main
+      - uses: krizaka/krizaka-rust/.github/actions/film@93bea431627746b80325384f7571786d5d900449 # main
         id: film
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -43,7 +43,7 @@ jobs:
       - name: Build the app with its test driver
         working-directory: apps/desktop
         run: |
-          pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile --filter .
           pnpm sidecar
           pnpm exec tauri build --debug --no-bundle --features webdriver
       - name: Run the journey, filmed

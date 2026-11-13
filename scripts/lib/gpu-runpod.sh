@@ -226,7 +226,7 @@ runpod() {
     count) runpod_count ;;
     logs) runpod_logs ;;
     batch) shift; runpod_batch "$@" ;;
-    # The spend guard (ADR-078): ends a pod idle GPU_IDLE_MINUTES (20) or older than GPU_MAX_HOURS (6), once or in a loop.
+    # The spend guard (SOV-096): ends a pod idle GPU_IDLE_MINUTES (20) or older than GPU_MAX_HOURS (6), once or in a loop.
     once|loop)
       AI_GPU_RUNPOD_API_KEY="${AI_GPU_RUNPOD_API_KEY:-$(rp_key)}" python3 "$ROOT/scripts/runpod-guard.py" "$1" "${@:2}" ;;
     *) echo "usage: scripts/gpu-dev.sh runpod start [gpu] | measure [gpu] | stop | status | count | logs | batch FILE | once | loop" >&2; exit 2 ;;

@@ -3,7 +3,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
   PROOF_TEST,
+  chatAnswerVerdict,
+  chatRouteVerdict,
+  chatTurnText,
+  PROOF_JOB,
   loginVerdict,
+  proofJobConclusion,
+  lastRunWhereProofRan,
   report,
   rollbackVerdict,
   toolPathVerdict,
@@ -143,8 +149,148 @@ describe("the free proof that a streamed turn emits a tool-call event", () => {
   });
 });
 
+describe("the CI job that judges the tool-call proof", () => {
+  const job = (name, conclusion) => ({ name, conclusion });
+  it("is Java reactor, the job that runs ToolCallStreamPathTest", () => {
+    assert.equal(PROOF_JOB, "Java reactor");
+  });
+  it("is success when Java reactor passed although Web app failed (the stale-recordings guard)", () => {
+    const conclusion = proofJobConclusion({ jobs: [job("Web app", "failure"), job("Java reactor", "success")] });
+    assert.equal(conclusion, "success");
+    assert.equal(
+      toolPathVerdict(
+        { ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+        false,
+      ).ok,
+      true,
+    );
+  });
+  it("is refused when Java reactor failed, or is missing", () => {
+    for (const payload of [
+      { jobs: [job("Web app", "success"), job("Java reactor", "failure")] },
+      { jobs: [job("Web app", "success")] },
+      { jobs: [] },
+      null,
+    ]) {
+      const conclusion = proofJobConclusion(payload);
+      assert.notEqual(conclusion, "success");
+      const v = toolPathVerdict(
+        { ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+        false,
+      );
+      assert.equal(v.ok, false);
+      assert.match(v.message, /Java reactor/);
+    }
+  });
+});
+
+describe("the last main run where the proof's job really ran", () => {
+  const jobsOf = (byRun) => async (id) => ({ jobs: [{ name: "Java reactor", conclusion: byRun[id] }] });
+  const runs = (...ids) => ids.map((id) => ({ id }));
+  it("skips a newer run whose Java reactor was skipped and names the older run that passed", async () => {
+    const found = await lastRunWhereProofRan(runs(3, 2, 1), jobsOf({ 3: "skipped", 2: "success", 1: "failure" }));
+    assert.deepEqual(found, { runId: 2, conclusion: "success" });
+    const v = toolPathVerdict(
+      {
+        ciConclusion: found.conclusion,
+        ciRunId: found.runId,
+        proofCommittedAt: "2026-10-29T18:00:00Z",
+        coreDeployedAt: null,
+      },
+      false,
+    );
+    assert.equal(v.ok, true);
+    assert.match(v.message, /run 2/);
+  });
+  it("refuses when the newest run where it ran failed, even if an older one passed", async () => {
+    const found = await lastRunWhereProofRan(runs(3, 2, 1), jobsOf({ 3: "cancelled", 2: "failure", 1: "success" }));
+    assert.deepEqual(found, { runId: 2, conclusion: "failure" });
+    assert.equal(
+      toolPathVerdict(
+        {
+          ciConclusion: found.conclusion,
+          ciRunId: found.runId,
+          proofCommittedAt: "2026-10-29T18:00:00Z",
+          coreDeployedAt: null,
+        },
+        false,
+      ).ok,
+      false,
+    );
+  });
+  it("finds nothing, and the proof is refused with a clear message, when no run of the page ran it", async () => {
+    const found = await lastRunWhereProofRan(runs(2, 1), jobsOf({ 2: "skipped", 1: undefined }));
+    assert.equal(found, null);
+    const v = toolPathVerdict(
+      { ciConclusion: null, ciRunId: null, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+      false,
+    );
+    assert.equal(v.ok, false);
+    assert.match(v.message, /no recent main run/);
+  });
+});
+
 describe("the tool-call proof it looks for", () => {
   it("is a file of this repository (it was looked up in a repository that no longer exists)", () => {
     assert.ok(existsSync(new URL(`../../../${PROOF_TEST}`, import.meta.url)), PROOF_TEST);
+  });
+});
+
+const model = (modelName, providerName, isDefault, category = "chat") => ({
+  modelName,
+  providerName,
+  isDefault,
+  category,
+});
+
+describe("the default chat route (ADR-095: dev chats on the hosted per-token provider, never a GPU)", () => {
+  it("passes when the default chat model is on do-inference", () => {
+    const v = chatRouteVerdict([
+      model("tinyllama:latest", "ollama", false),
+      model("mistral-3-14B", "do-inference", true),
+    ]);
+    assert.equal(v.ok, true);
+    assert.match(v.message, /mistral-3-14B.*do-inference/);
+  });
+  it("fails, naming the route, when the default is the GPU relay's ollama (the 2026-11-12 drift)", () => {
+    const v = chatRouteVerdict([
+      model("tinyllama:latest", "ollama", true),
+      model("mistral-3-14B", "do-inference", false),
+    ]);
+    assert.equal(v.ok, false);
+    assert.match(v.message, /tinyllama:latest.*ollama.*do-inference/);
+  });
+  it("ignores the defaults of the other categories, and fails without a chat default or a list", () => {
+    assert.equal(chatRouteVerdict([model("zinc", "ollama", true, "theme")]).ok, false);
+    assert.equal(chatRouteVerdict([]).ok, false);
+    assert.equal(chatRouteVerdict({ error: 1 }).ok, false);
+  });
+});
+
+const sse = (...events) => events.map(([event, data]) => `id:x\nevent:${event}\ndata:${data}\n\n`).join("");
+
+describe("the chat answer", () => {
+  it("collects the text of a turn, ignoring the pipeline events", () => {
+    const text = chatTurnText(
+      sse(
+        ["pipeline-ack", '{"pipelineId":"default"}'],
+        ["pipeline-step", '{"interceptorId":"X"}'],
+        ["message", '{"content":"Hel"}'],
+        ["message", '{"content":"lo."}'],
+      ),
+    );
+    assert.equal(text, "Hello.");
+  });
+  it("passes on a non-empty answer", () => {
+    assert.equal(chatAnswerVerdict("Hello.", "do-inference").ok, true);
+  });
+  it("fails, naming the route, on an empty turn (pipeline events only: the GPU relay answered nothing)", () => {
+    const v = chatAnswerVerdict(chatTurnText(sse(["pipeline-step", '{"interceptorId":"X"}'])), "ollama");
+    assert.equal(v.ok, false);
+    assert.match(v.message, /ollama/);
+    assert.match(v.message, /no answer/);
+  });
+  it("fails on a whitespace-only answer", () => {
+    assert.equal(chatAnswerVerdict("  \n", "do-inference").ok, false);
   });
 });
