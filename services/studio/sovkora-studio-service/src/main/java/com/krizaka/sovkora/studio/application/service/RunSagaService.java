@@ -24,7 +24,6 @@ import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.studio.infrastructure.support.OutputContractException;
 import com.krizaka.sovkora.studio.infrastructure.support.RunMeasureRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -603,21 +602,17 @@ public class RunSagaService {
             Double.class,
             run.id(),
             stepId)
-        .forEach(seconds -> measures.started(secondsToDuration(seconds)));
+        .forEach(measures::started);
   }
 
   /** How long ago the run was created, read on the database's clock. */
-  private Duration runAge(UUID runId) {
+  private double runAge(UUID runId) {
     Double seconds =
         jdbcTemplate.queryForObject(
             "SELECT EXTRACT(EPOCH FROM (now() - started_at)) FROM studio_run WHERE id = ?",
             Double.class,
             runId);
-    return secondsToDuration(seconds == null ? 0.0 : seconds);
-  }
-
-  private static Duration secondsToDuration(double seconds) {
-    return Duration.ofMillis(Math.max(0L, Math.round(seconds * 1000)));
+    return seconds == null ? 0.0 : seconds;
   }
 
   /**

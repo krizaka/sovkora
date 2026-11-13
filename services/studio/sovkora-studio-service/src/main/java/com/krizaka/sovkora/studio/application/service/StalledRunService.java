@@ -4,7 +4,6 @@ import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
 import com.krizaka.sovkora.studio.infrastructure.support.RunMeasureRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -104,7 +103,9 @@ public class StalledRunService {
     }
     logger.warn("Run {} dispatched no step — failing it and releasing its hold", run.id());
     settlementService.releaseAbandoned(run.holdId(), "swept: no step was dispatched");
-    measures.failed(Duration.between(run.startedAt(), Instant.now()), FailureCause.TIMEOUT);
+    measures.failed(
+        (Instant.now().toEpochMilli() - run.startedAt().toEpochMilli()) / 1000.0,
+        FailureCause.TIMEOUT);
     runAuditService.recordFinished(
         run.id(), run.actorId(), run.studioKey(), false, FailureCause.TIMEOUT);
     outboxService.append(
