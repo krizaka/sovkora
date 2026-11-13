@@ -1,5 +1,6 @@
 #cloud-config
-# Orazaka dev broker - RabbitMQ on a small Droplet in the tor1 VPC (docs/DEPLOY_DEV.md section Broker).
+# The Sovkora broker - RabbitMQ on a small Droplet in a tor1 VPC (docs/DEPLOY_DEV.md section Broker). Dev and the prod
+# pilot boot from this same file; prod differs only by the values of prod.json (docs/DEPLOY_PROD.md, ADR SOV-105).
 # TLS only (5671), bound to the private interface, reachable from the VPC alone (cloud firewall).
 # Rendered by `node scripts/dev-deploy.mjs broker`; certificates and the users' passwords come from the
 # maintainer's local files, never from the repository.

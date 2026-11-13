@@ -1,5 +1,5 @@
 -- ============================================================================
--- ORAZAKA — Local DB bootstrap (AGENTS.md §5) · 00 — RESET
+-- SOVKORA — Local DB bootstrap (AGENTS.md §5) · 00 — RESET
 -- ----------------------------------------------------------------------------
 -- The bootstrap is one initdb directory, one file per bounded context / future
 -- service owner (strangler-fig data seam audit, Phase 0):

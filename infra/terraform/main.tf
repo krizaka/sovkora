@@ -1,4 +1,4 @@
-# orazaka-deploy/terraform/main.tf
+# infra/terraform/main.tf
 
 # ==============================================================================
 # STEP 1: Provision Serverless GPU Workers

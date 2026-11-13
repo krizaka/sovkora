@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Orazaka dev runtime — starts the JVM services of the image side by side (docs/DEPLOY_DEV.md).
+# Sovkora runtime — starts the JVM services of the image side by side (docs/DEPLOY_DEV.md).
 # One container, several JVMs: the cheapest way to run the platform in dev. If one JVM exits, the
 # others are stopped and the container exits non-zero, so App Platform restarts the whole set.
 # Each JVM gets its own heap (ORAZAKA_HEAP_<NAME>, MiB) inside the container's memory; the rest is

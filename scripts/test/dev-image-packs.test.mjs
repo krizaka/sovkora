@@ -17,3 +17,10 @@ test("a pack worker starts from <app>/orazaka-packs/<pack>/worker, two levels un
   const starts = [...runServices.matchAll(/cd "\$\{ORAZAKA_APP_DIR:-\/app\}\/orazaka-packs\/([\w-]+)\/worker"/g)];
   assert.ok(starts.length >= 1, "the validation worker is started from its pack's worker directory");
 });
+
+test("the prod pilot installs document-validation only: /app/packs-pilot holds that one pack (krizaka-internal#2132)", () => {
+  const copied = [...dockerfile.matchAll(/cp -r packs\/([\w-]+) \/out\/packs-pilot\//g)].map((m) => m[1]);
+  assert.deepEqual(copied, ["document-validation"]);
+  const prod = readFileSync(new URL("../../infra/deploy/sovkora-prod.app.yaml", import.meta.url), "utf8");
+  assert.match(prod, /_PACKS_SOURCES, scope: RUN_TIME, value: \/app\/packs-pilot \}/);
+});

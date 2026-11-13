@@ -1,0 +1,15 @@
+{
+  "$comment": "The prod broker of the Verikora pilot (ADR SOV-105, krizaka-internal#2132): only the values that differ from dev. The Droplet boots from the same cloud-init.yaml; the infrastructure slice (OpenTofu, krizaka-infra stacks/prod) reads this file. Not created: nothing here is applied by any tool of this repository.",
+  "name": "sovkora-broker-prod",
+  "tag": "sovkora-broker-prod",
+  "region": "tor1",
+  "size": "s-1vcpu-512mb-10gb",
+  "image": "ubuntu-24-04-x64",
+  "vpc": "sovkora-prod-tor1",
+  "host": "broker-prod.sovkora.com",
+  "port": 5671,
+  "inbound": [{ "protocol": "tcp", "ports": "5671", "from": "vpc" }],
+  "users": { "sovkora": ".*" },
+  "volumes": [],
+  "backups": false
+}

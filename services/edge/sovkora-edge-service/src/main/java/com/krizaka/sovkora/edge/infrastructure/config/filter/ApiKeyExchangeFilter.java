@@ -27,6 +27,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * header, so downstream services only ever see JWTs. An invalid key is rejected here with 401 — it
  * never reaches a backend.
  *
+ * <p>A key of another environment is refused here too (krizaka-internal#2132): the edge serves one
+ * environment ({@code AUTH_API_KEY_ENVIRONMENT}) and a key states its own ({@link
+ * ApiKeyEnvironment}), so a dev key never reaches the prod engine. Every refusal is a coded problem
+ * ({@link ApiKeyRefusal}).
+ *
  * <p>Deliberately uncached: API-key revocation must take effect immediately (the api-keys contract
  * asserts it). A revocation-aware cache can come later with an {@code evt.apikey.revoked}
  * invalidation.
@@ -38,6 +43,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
   private static final String BEARER_PREFIX = "Bearer ";
   private static final String API_KEY_PREFIX = "oz_";
   private static final String APPLICATION_JSON = "application/json";
+  private static final String QUOTA_DETAIL = "The key's calls of this UTC day are spent.";
   private static final String AUTHORIZATION_HEADER = "Authorization";
 
   private final RestClient identityClient;
@@ -48,6 +54,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
 
   private final ApiKeyDailyQuota quota;
   private final ApiKeyRateLimiter rateLimiter;
+  private final ApiKeyEnvironment environment;
 
   ApiKeyExchangeFilter(RestClient proxyRestClient, EdgeIdentityProperties properties) {
     this(proxyRestClient, properties, ApiKeyDailyQuota.unlimited());
@@ -64,6 +71,21 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
       EdgeIdentityProperties properties,
       ApiKeyDailyQuota quota,
       ApiKeyRateLimiter rateLimiter) {
+    this(
+        proxyRestClient,
+        properties,
+        quota,
+        rateLimiter,
+        ApiKeyEnvironment.of(properties.apiKeyEnvironment()));
+  }
+
+  ApiKeyExchangeFilter(
+      RestClient proxyRestClient,
+      EdgeIdentityProperties properties,
+      ApiKeyDailyQuota quota,
+      ApiKeyRateLimiter rateLimiter,
+      ApiKeyEnvironment environment) {
+    this.environment = environment;
     this.quota = Objects.requireNonNull(quota, "ApiKeyDailyQuota cannot be null");
     this.rateLimiter = Objects.requireNonNull(rateLimiter, "ApiKeyRateLimiter cannot be null");
     Objects.requireNonNull(properties, "EdgeIdentityProperties cannot be null");
@@ -94,15 +116,22 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
       exchanged = exchange(apiKey);
     } catch (ResourceAccessException e) {
       logger.warn("API-key exchange unreachable", e);
-      response.setStatus(502);
-      response.setContentType(APPLICATION_JSON);
-      response.getWriter().write("{\"error\": \"Bad Gateway\"}");
+      ApiKeyRefusal.EXCHANGE_UNREACHABLE.write(
+          response, "The identity service cannot exchange the key.");
       return;
     }
     if (exchanged == null) {
-      response.setStatus(401);
-      response.setContentType(APPLICATION_JSON);
-      response.getWriter().write("{\"error\": \"Invalid API key\"}");
+      ApiKeyRefusal.INVALID.write(response, "The key is unknown or revoked.");
+      return;
+    }
+    if (!environment.admits(exchanged.scopes())) {
+      logger.warn(
+          "API key of another environment refused by the {} edge: {} {}",
+          environment,
+          request.getMethod(),
+          request.getRequestURI());
+      ApiKeyRefusal.WRONG_ENVIRONMENT.write(
+          response, "This key does not belong to the environment of this address.");
       return;
     }
     // A scoped key is held to its scopes here: the minted JWT is the owner's, so nothing
@@ -113,9 +142,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
           exchanged.scopes(),
           request.getMethod(),
           request.getRequestURI());
-      response.setStatus(403);
-      response.setContentType(APPLICATION_JSON);
-      response.getWriter().write("{\"error\": \"API key scope does not allow this request\"}");
+      ApiKeyRefusal.SCOPE_DENIED.write(response, "The key's scopes do not name this request.");
       return;
     }
     if (refusedByRateLimit(request, response, apiKey, exchanged)) {
@@ -124,10 +151,9 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
     if (!quota.tryAcquire(apiKey)) {
       logger.warn(
           "API key over its daily quota: {} {}", request.getMethod(), request.getRequestURI());
-      response.setStatus(429);
-      response.setHeader("Retry-After", String.valueOf(quota.secondsUntilReset()));
-      response.setContentType(APPLICATION_JSON);
-      response.getWriter().write("{\"error\": \"Daily quota of this API key is reached\"}");
+      long retryAfter = quota.secondsUntilReset();
+      response.setHeader("Retry-After", String.valueOf(retryAfter));
+      ApiKeyRefusal.QUOTA_EXCEEDED.write(response, QUOTA_DETAIL, retryAfter);
       return;
     }
     filterChain.doFilter(
@@ -158,15 +184,9 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
           decision.allowed() ? " — observed, not refused" : "");
     }
     if (!decision.allowed()) {
-      response.setStatus(429);
       response.setHeader("Retry-After", String.valueOf(decision.retryAfterSeconds()));
-      response.setContentType(APPLICATION_JSON);
-      response
-          .getWriter()
-          .write(
-              "{\"error\": \"Rate limit of this API key is reached\", \"retryAfterSeconds\": "
-                  + decision.retryAfterSeconds()
-                  + "}");
+      ApiKeyRefusal.RATE_LIMITED.write(
+          response, "The key's requests per minute are spent.", decision.retryAfterSeconds());
       return true;
     }
     return false;

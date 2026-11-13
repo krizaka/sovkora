@@ -1,4 +1,4 @@
-# orazaka-deploy/compute-nodes/modal_app.py
+# infra/compute-nodes/modal_app.py
 # Serverless GPU LLM inference wrapper running on Modal labs
 
 import modal
@@ -36,7 +36,7 @@ class ModelServer:
 
     @modal.method()
     def generate(self, prompt: str, max_tokens: int = 512) -> str:
-        # Execution method called by Orazaka Java orchestrator
+        # Execution method called by the Sovkora Java orchestrator
         inputs = self.tokenizer(prompt, return_tensors="pt").to("cuda")
         outputs = self.model.generate(**inputs, max_new_tokens=max_tokens)
         return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
