@@ -27,7 +27,8 @@ def test_there_are_20_to_30_cases_each_with_its_source_and_no_party_name():
         assert c["source"]["kind"] in ("decision", "tal-guidance", "control"), c["id"]
         if c["source"]["kind"] != "control":
             assert c["source"]["url"], c["id"]
-        assert c["clauseIdea"] and c["clause"], c["id"]
+        assert c["clauseIdea"], c["id"]
+        assert c["clause"], c["id"]
         assert c["expect"] or c["source"]["kind"] == "control" or "uncoveredBy" in c, c["id"]
         assert " c. " not in json.dumps(c, ensure_ascii=False), f"{c['id']} names parties"
 
