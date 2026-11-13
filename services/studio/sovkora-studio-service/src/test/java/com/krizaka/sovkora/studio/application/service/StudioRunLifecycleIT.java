@@ -1836,11 +1836,7 @@ class StudioRunLifecycleIT {
     jdbcTemplate.update(
         "UPDATE studio_run SET finished_at = now() - INTERVAL '200 days' WHERE id = ?", run.id());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(runService.find(run.id(), ACTOR).isEmpty());
     assertEquals(
@@ -1855,11 +1851,7 @@ class StudioRunLifecycleIT {
     RunDetail run = startRun();
     runService.cancel(run.id(), ACTOR);
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(runService.find(run.id(), ACTOR).isPresent());
   }
@@ -1878,11 +1870,7 @@ class StudioRunLifecycleIT {
     jdbcTemplate.update(
         "UPDATE studio_run SET data_class = 'SENSITIVE' WHERE id = ?", protectedRun.id());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(
         runService.find(standard.id(), ACTOR).isPresent(),
@@ -1927,11 +1915,7 @@ class StudioRunLifecycleIT {
   }
 
   private void sweep() {
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
   }
 
   private void setInstallationRetention(java.util.UUID runId, int days) {

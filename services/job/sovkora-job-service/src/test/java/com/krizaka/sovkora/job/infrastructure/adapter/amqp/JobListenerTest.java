@@ -15,7 +15,6 @@ import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
-import com.krizaka.sovkora.test.support.leak.LeakProbe;
 import com.krizaka.users.domain.model.User;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.nio.file.Files;
@@ -233,54 +232,39 @@ class JobListenerTest {
 
   @Test
   void onMessage_strategyThrowsException_failsJob() throws Exception {
-    String jobId = "job-123";
-    String userId = UUID.randomUUID().toString();
-    JobCommand msg =
-        new JobCommand(
-            jobId,
-            userId,
-            "orazaka.core.chat.text",
-            "default",
-            Map.of("prompt", "Hello test"),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
-
-    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
+    JobCommand msg = helloCommand("orazaka.core.chat.text");
+    when(userDirectoryService.getUser(msg.userId())).thenReturn(activeUser(msg.userId()));
     when(chatStrategy.execute(eq(msg), any()))
         .thenThrow(new JobExecutionException("Strategy failed"));
 
-    // Call listener
     listener.onMessage(msg, null);
 
-    // Verify status updates
-    verify(jobPersistenceProvider).updateJobStatus(jobId, "PROCESSING", null, null);
-    verify(jobPersistenceProvider)
-        .updateJobStatus(
-            jobId,
-            "FAILED",
-            null,
-            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException");
+    verifyFailedWithTheTypeOnly(msg.jobId());
   }
 
   @Test
   void onMessage_unsupportedFeature_failsJob() {
-    String jobId = "job-123";
-    String userId = UUID.randomUUID().toString();
-    JobCommand msg =
-        new JobCommand(
-            jobId,
-            userId,
-            "unsupported.feature",
-            "default",
-            Map.of("prompt", "Hello test"),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
-
-    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
+    JobCommand msg = helloCommand("unsupported.feature");
+    when(userDirectoryService.getUser(msg.userId())).thenReturn(activeUser(msg.userId()));
     when(capabilityManager.findByFeatureKey("unsupported.feature")).thenReturn(Optional.empty());
 
-    // Call listener
     listener.onMessage(msg, null);
 
-    // Verify status updates
+    verifyFailedWithTheTypeOnly(msg.jobId());
+  }
+
+  private static JobCommand helloCommand(String featureKey) {
+    return new JobCommand(
+        "job-123",
+        UUID.randomUUID().toString(),
+        featureKey,
+        "default",
+        Map.of("prompt", "Hello test"),
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+  }
+
+  /** The status says what failed by type, never by the exception's text (#3376). */
+  private void verifyFailedWithTheTypeOnly(String jobId) {
     verify(jobPersistenceProvider).updateJobStatus(jobId, "PROCESSING", null, null);
     verify(jobPersistenceProvider)
         .updateJobStatus(
@@ -714,7 +698,8 @@ class JobListenerTest {
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
     when(userDirectoryService.getUser("user-m"))
         .thenThrow(new IllegalStateException("cannot parse: " + mark));
-    LeakProbe probe = LeakProbe.open();
+    com.krizaka.sovkora.test.support.leak.LeakProbe probe =
+        com.krizaka.sovkora.test.support.leak.LeakProbe.open();
     try (probe) {
       listener.onMessage(msg, null);
     }
