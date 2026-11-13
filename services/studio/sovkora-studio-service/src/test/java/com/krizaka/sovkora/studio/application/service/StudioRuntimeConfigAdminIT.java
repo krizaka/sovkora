@@ -161,6 +161,22 @@ class StudioRuntimeConfigAdminIT {
   }
 
   @Test
+  @DisplayName("[SOV-105 d] the re-issue maximum is a bounded setting: out of range is refused")
+  void theReissueMaximumIsBounded() throws Exception {
+    assertThatThrownBy(() -> service.update("run.step-max-reissues", JSON.readTree("6"), "admin-1"))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(
+            () -> service.update("run.step-max-reissues", JSON.readTree("-1"), "admin-1"))
+        .isInstanceOf(IllegalArgumentException.class);
+    assertThat(service.intValue("run.step-max-reissues", 99)).isEqualTo(2);
+
+    assertThat(service.update("run.step-max-reissues", JSON.readTree("0"), "admin-1").value())
+        .isEqualTo(0);
+    assertThat(service.update("run.step-max-reissues", JSON.readTree("5"), "admin-1").value())
+        .isEqualTo(5);
+  }
+
+  @Test
   @DisplayName("Typed booleans and bounded string lists are stored in the runtime representation")
   void supportsBooleanAndListValues() throws Exception {
     service.update("marketplace.third-party-enabled", JSON.readTree("true"), "admin-1");

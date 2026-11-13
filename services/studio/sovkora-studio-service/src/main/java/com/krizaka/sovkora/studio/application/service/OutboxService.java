@@ -87,6 +87,48 @@ public class OutboxService implements OutboxStore {
   }
 
   /**
+   * Announces a failed run the way every producer of one does.
+   *
+   * @param run the failed run's identity, as the event carries it
+   */
+  public void appendRunFailed(
+      java.util.UUID runId,
+      String actorId,
+      String studioKey,
+      String blueprintVersion,
+      String correlationId) {
+    append(
+        runId.toString(),
+        "evt.studio.run.failed",
+        java.util.Map.of(
+            "runId", runId.toString(),
+            "actorId", actorId,
+            "studioKey", studioKey,
+            "blueprintVersion", blueprintVersion,
+            "correlationId", correlationId));
+  }
+
+  /**
+   * Appends again the newest command carried under a message id — same exchange, same routing key,
+   * same body, same {@code messageId}.
+   *
+   * <p>The state of a step lives in the database and the message is a copy of the order: when the
+   * broker lost the copy, this writes another from the row the dispatch left. The consumer dedups
+   * on the message id, so a copy that arrives beside a live one runs nothing twice.
+   *
+   * @param messageId the job id the command was appended with
+   * @return whether a command was found and appended
+   */
+  public boolean repeatCommand(String messageId) {
+    return jdbcTemplate.update(
+            "INSERT INTO studio_outbox (aggregate_id, event_type, exchange, message_id, payload)"
+                + " SELECT aggregate_id, event_type, exchange, message_id, payload FROM studio_outbox"
+                + " WHERE message_id = ? ORDER BY created_at DESC LIMIT 1",
+            messageId)
+        > 0;
+  }
+
+  /**
    * Claims the due rows, oldest first. {@code event_type} is the routing key.
    *
    * @param batchSize the most rows to claim
