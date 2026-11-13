@@ -5,11 +5,11 @@
 // COPIES lists the workers still carrying their own loop, each to be moved onto worker_loop.run; a moved worker must leave
 // the list (a stale entry fails), so it can only shrink.
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative } from "node:path";
 import { test } from "node:test";
+import { PACKS, packWorkerFiles } from "./pack-worker-files.mjs";
 
-const PACKS = new URL("..", import.meta.url).pathname;
 const BROKER_CODE = /\b(basic_consume|exchange_declare)\b/;
 const REFERENCE_WORKERS = new Set(["echo-toolkit"]);
 
@@ -21,24 +21,16 @@ export const COPIES = [
   "tenant-screening-qc/worker/screening_worker.py",
 ];
 
-/** Every non-test Python file of a pack worker, as `pack/worker/file.py` (worker-common is not under a `worker/` folder). */
-function workerSources() {
-  const files = [];
-  for (const entry of readdirSync(PACKS, { withFileTypes: true })) {
-    const dir = join(PACKS, entry.name, "worker");
-    if (!entry.isDirectory() || REFERENCE_WORKERS.has(entry.name) || !existsSync(dir)) continue;
-    for (const file of readdirSync(dir)) {
-      if (file.endsWith(".py") && !file.startsWith("test_")) files.push(`${entry.name}/worker/${file}`);
-    }
-  }
-  return files;
-}
-
-const carriers = () => workerSources().filter((f) => BROKER_CODE.test(readFileSync(join(PACKS, f), "utf8")));
+/** `pack/worker/file.py` of every pack worker file (the reference worker apart) that declares or consumes on the broker. */
+const carriers = () =>
+  packWorkerFiles(REFERENCE_WORKERS)
+    .filter((f) => BROKER_CODE.test(readFileSync(f, "utf8")))
+    .map((f) => relative(PACKS, f));
 
 test("a pack worker has no AMQP loop of its own, but the listed copies", () => {
   const unexpected = carriers().filter((f) => !COPIES.includes(f));
-  assert.deepEqual(unexpected, [], `declare nothing on the broker here: run on worker-common/worker_loop.run\n${unexpected.join("\n")}`);
+  const advice = "declare nothing on the broker here: run on worker-common/worker_loop.run";
+  assert.deepEqual(unexpected, [], `${advice}\n${unexpected.join("\n")}`);
 });
 
 test("every listed copy still carries broker code (a moved worker leaves the list)", () => {
