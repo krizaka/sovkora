@@ -25,17 +25,6 @@ import {
   UPDATE_URL,
 } from "../discovery";
 
-// krizaka-internal#2684: the screens draw the commercial mark; the code-named one never appears.
-jest.mock("@krizaka/ui/native", () => {
-  const { View } = jest.requireActual("react-native");
-  const actual = jest.requireActual("@krizaka/ui/native");
-  return {
-    ...actual,
-    SovkoraMark: () => <View testID="sovkora-mark" />,
-    OrazakaMark: () => <View testID="orazaka-mark" />,
-  };
-});
-
 jest.mock("expo-secure-store", () => ({
   getItemAsync: jest.fn(async () => null),
   setItemAsync: jest.fn(async () => undefined),

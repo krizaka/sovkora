@@ -8,17 +8,6 @@ import { answerFetch } from "./test-api";
 import login from "../__fixtures__/api/auth-login.local-demo.json";
 
 const mockLogin = login;
-// krizaka-internal#2684: the screens draw the commercial mark; the code-named one never appears.
-jest.mock("@krizaka/ui/native", () => {
-  const { View } = jest.requireActual("react-native");
-  const actual = jest.requireActual("@krizaka/ui/native");
-  return {
-    ...actual,
-    SovkoraMark: () => <View testID="sovkora-mark" />,
-    OrazakaMark: () => <View testID="orazaka-mark" />,
-  };
-});
-
 jest.mock("expo-secure-store", () => ({
   getItemAsync: async () => JSON.stringify(mockLogin),
   setItemAsync: async () => undefined,
