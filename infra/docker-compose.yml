@@ -1,5 +1,5 @@
 # ==============================================================================
-# ORAZAKA — Local stateful infrastructure (AGENTS.md §1 / §0, local_dev.md §1)
+# SOVKORA — Local stateful infrastructure (AGENTS.md §1 / §0, local_dev.md §1)
 # ------------------------------------------------------------------------------
 # Docker hosts ONLY stateful infra: PostgreSQL+pgvector, Redis, RabbitMQ.
 #   • AI inference (Ollama / stable-diffusion / media MLX) runs NATIVELY on macOS

@@ -16,7 +16,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -66,22 +65,18 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
     this(proxyRestClient, properties, quota, ApiKeyRateLimiter.off());
   }
 
-  ApiKeyExchangeFilter(
-      RestClient proxyRestClient,
-      EdgeIdentityProperties properties,
-      ApiKeyDailyQuota quota,
-      ApiKeyRateLimiter rateLimiter) {
-    this(proxyRestClient, properties, quota, rateLimiter, ApiKeyEnvironment.DEV);
-  }
-
   @Autowired
   ApiKeyExchangeFilter(
       RestClient proxyRestClient,
       EdgeIdentityProperties properties,
       ApiKeyDailyQuota quota,
-      ApiKeyRateLimiter rateLimiter,
-      @Value("${orazaka.edge.api-key-environment}") String environment) {
-    this(proxyRestClient, properties, quota, rateLimiter, ApiKeyEnvironment.of(environment));
+      ApiKeyRateLimiter rateLimiter) {
+    this(
+        proxyRestClient,
+        properties,
+        quota,
+        rateLimiter,
+        ApiKeyEnvironment.of(properties.apiKeyEnvironment()));
   }
 
   ApiKeyExchangeFilter(

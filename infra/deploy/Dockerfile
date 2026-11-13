@@ -47,17 +47,21 @@ RUN echo "core build ${CORE_REBUILD}" \
  && cp services/knowledge/sovkora-knowledge-service/target/sovkora-knowledge-service-*[0-9T].jar /out/knowledge.jar \
  && cp services/automation/sovkora-automation-service/target/sovkora-automation-service-*[0-9T].jar /out/automation.jar \
  && cp -r packs /out/orazaka-packs \
+ && mkdir -p /out/packs-pilot \
+ && cp -r packs/document-validation /out/packs-pilot/ \
  && cp -r workers/media /out/orazaka-worker-media \
  && find /workspace /krizaka-java -type d -name target -prune -exec rm -rf {} + \
  && rm -rf /root/.m2/repository
 # ^ the jars are in /out: the builder snapshots this layer, and with the eighth service its size (every target/ and the
 #   local Maven repository) made the snapshot run out of memory (build exit -1). Nothing after this stage reads them.
+# /app/packs-pilot holds a copy of the prod pilot's one pack, for the Studio service to install (the pack source of
+#   infra/deploy/sovkora-prod.app.yaml): document-validation and nothing else. Its worker still runs from the whole tree.
 # The runtime folders keep their names (/app/orazaka-packs, ORAZAKA_PACKS_SOURCES on dev): runtime names move in
 # krizaka-internal#2872, with the dev environment's keys.
 
 # ── 3. Runtime: a JRE, the jars, one supervisor ──────────────────────────────
 FROM eclipse-temurin:21-jre@sha256:ccbad9e7cb84c27092b12c40a4143e5733e050db9c3784d84f632dcf423fb2ef
-# The document-validation worker (orazaka-packs, Tier-W, Python): it drains job.validation.* for the document
+# The document-validation worker (packs/, Tier-W, Python): it drains job.validation.* for the document
 # Studios. Its venv is built here with the pack's pinned dependencies; run-services.sh starts it beside the JVMs.
 RUN export DEBIAN_FRONTEND=noninteractive \
  && apt-get update \

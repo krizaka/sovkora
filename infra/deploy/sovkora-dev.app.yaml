@@ -197,7 +197,7 @@ services:
       - { key: BILLING_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://__DATABASE_HOST__:25061/pool-billing?sslmode=require&prepareThreshold=0" }
       - { key: BILLING_DB_USERNAME, scope: RUN_TIME, value: krizaka_billing_db }
       - { key: BILLING_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "__DATABASE_PASSWORD_KRIZAKA_BILLING_DB__" }
-      # Identity events on the Orazaka exchanges (as locally), Orazaka's reserved preference prefix.
+      # Identity events on the engine's exchanges (as locally), the engine's reserved preference prefix.
       - { key: EVENTS_EXCHANGE, scope: RUN_TIME, value: orazaka.events }
       - { key: DLX_EXCHANGE, scope: RUN_TIME, value: orazaka.dlx }
       - { key: USERS_RESERVED_PREFERENCE_PREFIXES, scope: RUN_TIME, value: "orazaka." }

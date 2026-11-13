@@ -55,6 +55,7 @@ models) is generated from the code into [`_generated/`](_generated/) and never w
 | [DevX, environments and lifecycle](DEVEX_LIFECYCLE.md) | the local loop, from clone to running stack |
 | [Integration and E2E tests](END2END_TEST.md) | Testcontainers, the hermetic journeys |
 | [Dev environment](DEPLOY_DEV.md) and [Dev database](DEV_DATABASE.md) | dev.sovkora.com on App Platform, the shared cluster, migrations |
+| [Prod pilot](DEPLOY_PROD.md) | api.sovkora.com for the Verikora pilot: declared as code, not deployed (ADR SOV-105) |
 | [Delivery](DELIVERY.md) and [Infrastructure portability](INFRA_PORTABILITY.md) | packaging and signing; moving providers |
 | Measurements and evaluations | [`measurements/`](measurements/), [`evaluations/`](evaluations/) |
 

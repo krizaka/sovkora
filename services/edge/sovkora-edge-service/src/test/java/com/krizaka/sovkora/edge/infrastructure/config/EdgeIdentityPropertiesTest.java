@@ -31,4 +31,18 @@ class EdgeIdentityPropertiesTest {
                 new EdgeIdentityProperties(
                     URI.create("/relative"), "sovkora-test-secret-at-least-32-characters!"));
   }
+
+  @Test
+  @DisplayName(
+      "[2132] the edge's key environment is declared; a blank one fails at start, the short form is dev")
+  void apiKeyEnvironmentIsDeclared() {
+    URI identity = URI.create("http://localhost:8083");
+    String secret = "sovkora-test-secret-at-least-32-characters!";
+    assertThat(new EdgeIdentityProperties(identity, secret, "prod").apiKeyEnvironment())
+        .isEqualTo("prod");
+    assertThat(new EdgeIdentityProperties(identity, secret).apiKeyEnvironment()).isEqualTo("dev");
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new EdgeIdentityProperties(identity, secret, " "))
+        .withMessageContaining("api-key-environment");
+  }
 }

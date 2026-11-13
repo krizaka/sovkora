@@ -11,7 +11,7 @@
 #   scripts/gpu-dev.sh logs              the droplet's setup and container logs (ssh, read-only)
 #   scripts/gpu-dev.sh mac               write the env file to run the Mac's worker against the same queue
 #   scripts/gpu-dev.sh relay-secret      create the relay credential in the secrets file if it is missing
-#   scripts/gpu-dev.sh smoke [small|mac] the sovereign smoke: start small, assert our engines through Orazaka, destroy
+#   scripts/gpu-dev.sh smoke [small|mac] the sovereign smoke: start small, assert our engines through Sovkora, destroy
 #   scripts/gpu-dev.sh runpod once|loop          the RunPod spend guard: stop the idle/too-old pods once, or keep watching (SOV-096)
 #   scripts/gpu-dev.sh user-data big F   render the droplet's cloud-init into F (0600) and create nothing
 #
@@ -325,7 +325,7 @@ logs() {
     'journalctl -t orazaka-gpu -t orazaka-gpu-watchdog --no-pager -n 60; for c in sd-server worker relay; do echo "== $c"; docker logs --tail 25 $c 2>&1; done; nvidia-smi --query-gpu=name,utilization.gpu,memory.used,memory.total --format=csv'
 }
 
-# The sovereign smoke (scripts/gpu-smoke.mjs): our engines, through Orazaka's routing, asserted — then destroyed.
+# The sovereign smoke (scripts/gpu-smoke.mjs): our engines, through Sovkora's routing, asserted — then destroyed.
 wait_ready() {
   local ip="$1" deadline=$(( $(date +%s) + ${GPU_READY_MINUTES:-75} * 60 ))
   while (( $(date +%s) < deadline )); do

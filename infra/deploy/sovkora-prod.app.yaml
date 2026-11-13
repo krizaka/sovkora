@@ -1,0 +1,183 @@
+# Sovkora prod — the Verikora pilot's engine on api.sovkora.com (DigitalOcean App Platform). docs/DEPLOY_PROD.md.
+# krizaka-internal#2132, ADR SOV-105. NOT DEPLOYED: the prod gate waits for the prod team (krizaka-internal#2138), and the
+# infrastructure this spec names (the prod VPC, the cluster krizaka-prod-pg, the broker Droplet) is a later slice
+# (OpenTofu, krizaka-infra stacks/prod). Checked by scripts/check-prod-spec.mjs (scripts/test/prod-app-spec.test.mjs).
+#
+# Secrets: none is written here. A database password is a bindable reference to the cluster (`${<db>.PASSWORD}`), filled
+# by App Platform; every other secret is a double-underscored placeholder, filled at apply from the operator's vault and
+# sent as a SECRET (the dev pattern, docs/DEPLOY_DEV.md). A plain value fails the check.
+#
+# What is deliberately ABSENT, and why (SOV-105 §1, #2132):
+#   - the web app and the operator console: the pilot is server to server; no page, no HTML, no sign-in screen;
+#   - every host but api.sovkora.com: no www, no admin, never a development address. A prod product never calls one,
+#     and a key minted for one is refused here (AUTH_API_KEY_ENVIRONMENT=prod: a key that does not carry the scope
+#     env:prod gets 401 API_KEY_WRONG_ENVIRONMENT);
+#   - the GPU relay, the image and video engines, Ollama and the hosted video worker: the pilot pack runs none of them;
+#   - every pack but document-validation (the pack source /app/packs-pilot holds that one pack);
+#   - the knowledge and automation services (no recommender, no webhook, no schedule in the pilot) and notifications;
+#   - a remote media store: the Bunny zone is in New York, and personal data stays in Canada (SOV-105 §4, Law 25);
+#   - the job service's chat route for development (its second migration location): only db/migration runs here.
+name: sovkora-prod
+region: tor
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+domains:
+  - domain: api.sovkora.com
+    type: PRIMARY
+# The prod VPC in tor1 (created by the infrastructure slice): core reaches the broker Droplet over it, never the Internet.
+vpc:
+  id: __PROD_VPC_ID__
+ingress:
+  rules:
+    # The edge is the only routed component: every path of api.sovkora.com goes to it, and it proxies to core inside the app.
+    - component:
+        name: edge
+      match:
+        path:
+          prefix: /
+# The prod cluster, one database and one role per context (AGENTS.md §5), named by reference: App Platform fills the host,
+# port, user and password of each from the cluster (bindable variables), so no value of them is ever in this file.
+databases:
+  - name: engine-db
+    engine: PG
+    production: true
+    cluster_name: krizaka-prod-pg
+    db_name: orazaka_db
+    db_user: orazaka_db
+  - name: users-db
+    engine: PG
+    production: true
+    cluster_name: krizaka-prod-pg
+    db_name: krizaka_users_db
+    db_user: krizaka_users_db
+  - name: billing-db
+    engine: PG
+    production: true
+    cluster_name: krizaka-prod-pg
+    db_name: krizaka_billing_db
+    db_user: krizaka_billing_db
+  - name: studio-db
+    engine: PG
+    production: true
+    cluster_name: krizaka-prod-pg
+    db_name: orazaka_studio_db
+    db_user: orazaka_studio_db
+services:
+  # The engine: five JVMs and the document-validation worker in one container (infra/deploy/Dockerfile + run-services.sh),
+  # users :8083, billing :8095, job :8090, conversation :8080, studio :8096. Not routed: only the edge reaches it.
+  # 1 GiB (ORG-036 step 2): whether it holds the five JVMs and the worker is check (3) of #2132, measured before a paid file.
+  - name: core
+    github:
+      repo: krizaka/sovkora
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: infra/deploy/Dockerfile
+    source_dir: /
+    http_port: 8080
+    internal_ports: [8083, 8090, 8095, 8096]
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    alerts:
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+    health_check:
+      http_path: /actuator/health
+      initial_delay_seconds: 240
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 9
+    envs:
+      - { key: ORAZAKA_SERVICES, scope: RUN_TIME, value: "users:users.jar:128 billing:billing.jar:96 job:job.jar:192 conversation:conversation.jar:224 studio:studio.jar:128" }
+      - { key: ORAZAKA_WORKERS, scope: RUN_TIME, value: "validation" }
+      - { key: ORAZAKA_PACKS_SOURCES, scope: RUN_TIME, value: /app/packs-pilot }
+      - { key: DATABASE_JOB_MIGRATIONS_LOCATIONS, scope: RUN_TIME, value: classpath:db/migration }
+      # Databases (krizaka-prod-pg, direct connections: the pilot's connection budget is set with the infrastructure slice).
+      - { key: SPRING_DATASOURCE_URL, scope: RUN_TIME, value: "jdbc:postgresql://${engine-db.HOSTNAME}:${engine-db.PORT}/${engine-db.DATABASE}?sslmode=require" }
+      - { key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE, scope: RUN_TIME, value: "3" }
+      - { key: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE, scope: RUN_TIME, value: "0" }
+      - { key: SPRING_DATASOURCE_USERNAME, scope: RUN_TIME, value: "${engine-db.USERNAME}" }
+      - { key: SPRING_DATASOURCE_PASSWORD, scope: RUN_TIME, type: SECRET, value: "${engine-db.PASSWORD}" }
+      - { key: IDENTITY_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://${users-db.HOSTNAME}:${users-db.PORT}/${users-db.DATABASE}?sslmode=require" }
+      - { key: IDENTITY_DB_USERNAME, scope: RUN_TIME, value: "${users-db.USERNAME}" }
+      - { key: IDENTITY_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "${users-db.PASSWORD}" }
+      - { key: BILLING_ENABLED, scope: RUN_TIME, value: "true" }
+      - { key: BILLING_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8095" }
+      - { key: BILLING_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://${billing-db.HOSTNAME}:${billing-db.PORT}/${billing-db.DATABASE}?sslmode=require" }
+      - { key: BILLING_DB_USERNAME, scope: RUN_TIME, value: "${billing-db.USERNAME}" }
+      - { key: BILLING_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "${billing-db.PASSWORD}" }
+      - { key: STUDIO_DB_URL, scope: RUN_TIME, value: "jdbc:postgresql://${studio-db.HOSTNAME}:${studio-db.PORT}/${studio-db.DATABASE}?sslmode=require" }
+      - { key: STUDIO_DB_USER, scope: RUN_TIME, value: "${studio-db.USERNAME}" }
+      - { key: STUDIO_DB_PASSWORD, scope: RUN_TIME, type: SECRET, value: "${studio-db.PASSWORD}" }
+      - { key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http://localhost:8096" }
+      # Broker: the prod RabbitMQ Droplet (infra/deploy/broker/cloud-init.yaml, prod values in docs/DEPLOY_PROD.md), TLS only,
+      # VPC only; its private name resolves to its private IP. No data volume (SOV-105): the job's state is in the database.
+      - { key: RABBITMQ_HOST, scope: RUN_TIME, value: broker-prod.sovkora.com }
+      - { key: RABBITMQ_PORT, scope: RUN_TIME, value: "5671" }
+      - { key: RABBITMQ_USER, scope: RUN_TIME, value: sovkora }
+      - { key: RABBITMQ_PASS, scope: RUN_TIME, type: SECRET, value: "__PROD_RABBITMQ_PASS__" }
+      - { key: RABBITMQ_CA_CERT_BASE64, scope: RUN_TIME, value: "__PROD_RABBITMQ_CA_CERT_BASE64__" }
+      - { key: SPRING_RABBITMQ_SSL_ENABLED, scope: RUN_TIME, value: "true" }
+      - { key: SPRING_RABBITMQ_SSL_BUNDLE, scope: RUN_TIME, value: broker }
+      - { key: SPRING_SSL_BUNDLE_PEM_BROKER_TRUSTSTORE_CERTIFICATE, scope: RUN_TIME, value: "file:/app/var/broker-ca.pem" }
+      # Identity and crypto: prod's own values, never another environment's.
+      - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__PROD_IDENTITY_JWT_SECRET__" }
+      - { key: CRYPTO_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_CRYPTO_KEY__" }
+      - { key: CRYPTO_SALT, scope: RUN_TIME, type: SECRET, value: "__PROD_CRYPTO_SALT__" }
+      - { key: MEDIA_ENCRYPTION_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_MEDIA_ENCRYPTION_KEY__" }
+      - { key: MEDIA_RETENTION_DAYS, scope: RUN_TIME, value: "7" }
+      - { key: AUTH_SIGNUP_ENABLED, scope: RUN_TIME, value: "false" }
+      - { key: EMAIL_VERIFICATION_ENABLED, scope: RUN_TIME, value: "false" }
+      # Server to server: no browser origin is allowed.
+      - { key: CORS_ALLOWED_ORIGINS, scope: RUN_TIME, value: "https://api.sovkora.com" }
+      - { key: EVENTS_EXCHANGE, scope: RUN_TIME, value: orazaka.events }
+      - { key: DLX_EXCHANGE, scope: RUN_TIME, value: orazaka.dlx }
+      - { key: USERS_RESERVED_PREFERENCE_PREFIXES, scope: RUN_TIME, value: "orazaka." }
+      # Models: serverless inference with prod's own model access key. The pilot's monthly spend cap is an admin setting
+      # (krizaka-internal#3368); this daily ceiling is the engine's backstop under it.
+      - { key: ORAZAKA_CORE_DEFAULT_PROVIDER, scope: RUN_TIME, value: do-inference }
+      - { key: AI_INFERENCE_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_AI_INFERENCE_KEY__" }
+      - { key: AI_SPEND_DAILY_BUDGET_USD, scope: RUN_TIME, value: "1" }
+      - { key: MANAGEMENT_TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
+      - { key: TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
+
+  # The edge alone (the same image, one JVM): the only public port, api.sovkora.com → core inside the app. It exchanges
+  # each product's oz_ key, refuses a key of another environment, and holds the key to its rate limit (its owner's tier,
+  # a row of the users database) and to its daily quota.
+  - name: edge
+    github:
+      repo: krizaka/sovkora
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: infra/deploy/Dockerfile
+    source_dir: /
+    http_port: 8088
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    alerts:
+      - rule: RESTART_COUNT
+        operator: GREATER_THAN
+        value: 2
+        window: FIVE_MINUTES
+    health_check:
+      # The edge's own actuator is on its management port: the main port proxies everything to core.
+      port: 8089
+      http_path: /actuator/health
+    envs:
+      - { key: ORAZAKA_SERVICES, scope: RUN_TIME, value: "edge:edge.jar:80" }
+      - { key: ORAZAKA_WORKERS, scope: RUN_TIME, value: "" }
+      - { key: AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "prod" }
+      - { key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce }
+      - { key: AUTH_API_KEY_DAILY_REQUESTS, scope: RUN_TIME, value: "2000" }
+      - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__PROD_IDENTITY_JWT_SECRET__" }
+      - { key: IDENTITY_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8083" }
+      - { key: ROUTER_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8080" }
+      - { key: STUDIO_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8096" }
+      - { key: BILLING_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8095" }
+      - { key: TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }

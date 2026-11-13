@@ -6,7 +6,7 @@
 # CUDA image of orazaka-worker-media (private on GHCR) is not pulled: this script builds the same runtime in place from the
 # worker's public repository — the venv of Dockerfile.cuda, the requirements, the code at WORKER_REF — then fetches the
 # weights ONCE onto the network volume (/models: a restart does not download them again), opens the chisel tunnel to the
-# relay of www.orazaka.com and runs the consumer. Nothing listens publicly but sshd (the key of this machine only).
+# relay of dev.sovkora.com and runs the consumer. Nothing listens publicly but sshd (the key of this machine only).
 #
 # Settings come from the environment gpu-dev.sh gives the pod (credentials included, never printed): WORKER_REF, PROFILE,
 # RELAY_URL, RELAY_AUTH, RABBIT_PASSWORD, SERVICE_TOKEN, BROKER_CA_B64, IDLE_MINUTES, MAX_HOURS (and HF_TOKEN, optional).

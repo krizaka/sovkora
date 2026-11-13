@@ -7,7 +7,7 @@
 #   3. checks Docker reaches the GPU (installs the NVIDIA container toolkit if the image lacks it);
 #   4. fetches the profile's weights onto the volume, once (python -m app.fetch_models);
 #   5. starts, on a private bridge network: sd-server (images), the media worker (video), Ollama (chat,
-#      vision) and the chisel client that dials OUT to the relay of www.orazaka.com — the droplet opens no
+#      vision) and the chisel client that dials OUT to the relay of dev.sovkora.com — the droplet opens no
 #      port; the broker (TLS, private CA) is reached through it and verified end to end;
 #   0. first of all, arms the watchdog (every minute): 30 min without a job, or the hard lifetime, and it destroys
 #      the droplet through the API. A stopped droplet is still billed; this one never stops, it ends.

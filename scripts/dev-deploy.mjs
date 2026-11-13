@@ -464,7 +464,7 @@ function seedPersona(name) {
   console.log(`seeded the persona ${persona.username} (${persona.email}) — credentials stored in @dev (APP_QA_ORAZAKA_${persona.secret}_*), never printed`);
 }
 
-// ── Service accounts: a Krizaka product calling Orazaka (products consume AI only through Orazaka) ──
+// ── Service accounts: a Krizaka product calling Sovkora (products consume AI only through Sovkora) ──
 const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 
 /** The account a product calls Orazaka with: a plain ROLE_USER, never an admin, on the `service` rate-limit tier (ADR-083). */
