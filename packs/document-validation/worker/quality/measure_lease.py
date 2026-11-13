@@ -98,7 +98,12 @@ def judge(result: dict, thresholds: dict) -> list:
 
 def summary(result: dict, refusals: list) -> dict:
     cases = result["cases"]
-    return {**result, "unmeasuredCases": sorted(c["id"] for c in cases if c["unmeasured"]), "refused": bool(refusals), "refusals": refusals}
+    return {
+        **result,
+        "unmeasuredCases": sorted(c["id"] for c in cases if c["unmeasured"]),
+        "refused": bool(refusals),
+        "refusals": refusals,
+    }
 
 
 def main() -> int:

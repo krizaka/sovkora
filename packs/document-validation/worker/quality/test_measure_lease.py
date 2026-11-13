@@ -51,7 +51,10 @@ def test_the_committed_results_are_the_current_measure():
 
 
 def test_a_complete_result_passes_the_threshold():
-    cases = [{"id": c["id"], "found": [e["ruleId"] for e in c["expect"]], "missed": [], "wrong": [], "unmeasured": False} for c in CASES]
+    cases = [
+        {"id": c["id"], "found": [e["ruleId"] for e in c["expect"]], "missed": [], "wrong": [], "unmeasured": False}
+        for c in CASES
+    ]
     result = {"cases": cases, "rules": m.per_rule(cases)}
     assert m.judge(result, THRESHOLDS) == []
 
