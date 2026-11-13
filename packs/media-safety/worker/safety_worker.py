@@ -3,21 +3,15 @@
 
 import json
 import os
-import time
 
-import pika
-import yaml
-
-import broker
+import broker  # noqa: F401  (puts worker-common on the path)
 import rules
 import worker_failure
+import worker_loop
+import yaml
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECLARATION = yaml.safe_load(open(os.path.join(HERE, "worker.yaml"), encoding="utf-8"))
-JOBS_EXCHANGE, EVENTS_EXCHANGE, DLX_EXCHANGE = "orazaka.jobs", "orazaka.events", "orazaka.dlx"
-QUEUE = f"orazaka.jobs.{DECLARATION['family']}"
-DLQ = f"{QUEUE}.dlq"
-SEEN: set = set()
 FRAMES_OUT_OF_RANGE, EXPECTS_SPEECH_NOT_BOOLEAN = "FRAMES_OUT_OF_RANGE", "EXPECTS_SPEECH_NOT_BOOLEAN"
 
 
@@ -43,66 +37,11 @@ def _assess(payload: dict) -> dict:
 
 
 HANDLERS = {"job.safety.assess": _assess}
-
-
-def _handle(routing_key: str, job: dict) -> tuple:
-    handler = HANDLERS.get(routing_key)
-    if handler is None:
-        raise ValueError(f"no handler for routing key '{routing_key}'")
-    started = time.monotonic()
-    return handler(job.get("payload") or {}), {"tokens": 0, "gpuSeconds": round(time.monotonic() - started, 3)}
-
-
-def _emit(channel, job_id: str, suffix: str, body: dict) -> None:
-    channel.basic_publish(
-        exchange=EVENTS_EXCHANGE,
-        routing_key=f"job.{job_id}.{suffix}",
-        body=json.dumps(body).encode(),
-        properties=pika.BasicProperties(content_type="application/json", delivery_mode=2),
-    )
-
-
-def _on_message(channel, method, properties, body) -> None:
-    try:
-        job = json.loads(body)
-    except json.JSONDecodeError:
-        channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-        return
-    job_id = job.get("jobId")
-    message_id = properties.message_id or job_id
-    if message_id in SEEN:
-        channel.basic_ack(delivery_tag=method.delivery_tag)
-        return
-    print(f"[safety] {method.routing_key} -> job {job_id}", flush=True)  # job id and routing key only
-    try:
-        result, consumption = _handle(method.routing_key, job)
-        _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except Exception as failure:  # noqa: BLE001
-        worker_failure.report_failure(_emit, channel, "safety", method.routing_key, job_id, failure)
-    SEEN.add(message_id)
-    channel.basic_ack(delivery_tag=method.delivery_tag)
+handle = worker_loop.make_handle(HANDLERS)
 
 
 def main() -> None:
-    params = broker.connection_parameters(broker.credentials_from_environment())
-    print(f"[safety] broker {broker.describe(params)}", flush=True)
-    channel = pika.BlockingConnection(params).channel()
-    channel.exchange_declare(exchange=JOBS_EXCHANGE, exchange_type="topic", durable=True)
-    channel.exchange_declare(exchange=EVENTS_EXCHANGE, exchange_type="topic", durable=True)
-    channel.exchange_declare(exchange=DLX_EXCHANGE, exchange_type="direct", durable=True)
-    channel.queue_declare(
-        queue=QUEUE,
-        durable=True,
-        arguments={"x-dead-letter-exchange": DLX_EXCHANGE, "x-dead-letter-routing-key": QUEUE},
-    )
-    for binding in DECLARATION["bindings"]:
-        channel.queue_bind(queue=QUEUE, exchange=JOBS_EXCHANGE, routing_key=binding)
-    channel.queue_declare(queue=DLQ, durable=True)
-    channel.queue_bind(queue=DLQ, exchange=DLX_EXCHANGE, routing_key=QUEUE)
-    channel.basic_qos(prefetch_count=DECLARATION.get("concurrency", 1))
-    channel.basic_consume(queue=QUEUE, on_message_callback=_on_message)
-    print(f"[safety] consuming {QUEUE}", flush=True)
-    channel.start_consuming()
+    worker_loop.run("safety", DECLARATION, handle)
 
 
 if __name__ == "__main__":

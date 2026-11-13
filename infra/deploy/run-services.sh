@@ -45,6 +45,58 @@ wait_port() {
   return 1
 }
 
+# A worker started inside core receives a CLOSED list of variables, never core's whole environment (krizaka-internal#3295): core
+# carries the database credentials, the identity secret and the SERVICE token, which no worker needs. A worker runs under `env -i`
+# plus the names below; a variable a worker newly reads is added here and fails scripts/test/run-services.test.mjs until it is.
+# Each name is one the worker's code reads (the test reads that code): no other name, and nothing sensitive but the broker password
+# and the hosted-video worker's provider key.
+WORKER_ENV_BASE=(PATH HOME LANG LC_ALL TZ)
+# The broker (packs/worker-common/worker_broker.py, workers/media/app/broker.py); the CA file is set by each worker below.
+WORKER_ENV_BROKER=(RABBITMQ_HOST RABBITMQ_PORT RABBITMQ_USER RABBITMQ_PASS RABBITMQ_SSL_ENABLED RABBITMQ_SSL_SERVER_NAME SPRING_RABBITMQ_SSL_ENABLED SPRING_RABBITMQ_SSL_SERVER_NAME SPRING_RABBITMQ_VIRTUAL_HOST SPRING_RABBITMQ_HEARTBEAT)
+# document-validation: the lecture switch (lecture.py ENV_SWITCH). It calls no provider: no inference key.
+WORKER_ENV_VALIDATION=(AI_LAW_LECTURE_ENABLED)
+# hosted-video: the provider's URL, timeout and spend caps (remote_video.py, spend.py), its queue length, its scratch folder, its liveness files (activity.py).
+# The provider key and the broker mapping are set below; the service token and the identity secret are refused on purpose
+# (registration.py: without them the worker does not register with the job service and still consumes).
+WORKER_ENV_HOSTED_VIDEO=(AI_INFERENCE_URL MEDIA_REMOTE_TIMEOUT_SECONDS AI_SPEND_STATE_FILE AI_VIDEO_DAILY_RUNS AI_SPEND_DAILY_BUDGET_USD BROKER_QUEUE_MAX_LENGTH MEDIA_SCRATCH_DIR MEDIA_ACTIVITY_FILE MEDIA_HEARTBEAT_FILE)
+
+# Fills WORKER_ENV with NAME=value for each name given that core has set; a name core does not carry is not invented.
+worker_env() {
+  local name
+  WORKER_ENV=()
+  for name in "$@"; do
+    if [[ -n "${!name+x}" ]]; then WORKER_ENV+=("$name=${!name}"); fi
+  done
+}
+
+# Runs in the supervisor's own background process (`"$@" &`), so `cd` stays local and `exec` makes the worker that very
+# process: the supervisor's TERM reaches the Python process itself, not a shell around it.
+run_validation_worker() {
+  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-packs/document-validation/worker" || return 1
+  worker_env "${WORKER_ENV_BASE[@]}" "${WORKER_ENV_BROKER[@]}" "${WORKER_ENV_VALIDATION[@]}"
+  exec env -i "${WORKER_ENV[@]}" \
+    SPRING_RABBITMQ_SSL_CA_FILE="${ORAZAKA_APP_DIR:-/app}/var/broker-ca.pem" \
+    "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u validation_worker.py
+}
+
+# The hosted-video worker: the media worker in hosted-only mode — a CPU consumer that calls the provider's API for the models a
+# provider serves (the hosted Wan 2.2), on a queue of its own (job.hostedvideo.*, which the GPU worker never matches). It needs
+# no GPU and no torch (the validation venv carries its lean dependencies), so hosted video runs on dev while the GPU pod or the Mac
+# is off. Its output goes to the job service next door, which seals it with the platform's key, like a GPU worker's.
+run_hosted_video_worker() {
+  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-worker-media" || return 1
+  worker_env "${WORKER_ENV_BASE[@]}" "${WORKER_ENV_BROKER[@]}" "${WORKER_ENV_HOSTED_VIDEO[@]}"
+  exec env -i "${WORKER_ENV[@]}" \
+  MEDIA_WORKER_HOSTED_ONLY=true MEDIA_WORKER_PORT="${ORAZAKA_HOSTED_VIDEO_PORT:-8189}" \
+  MEDIA_ASSET_SINK_URL=http://localhost:8090 JOB_SERVICE_INTERNAL_URL=http://localhost:8090 \
+  UPLOAD_DIR="${ORAZAKA_APP_DIR:-/app}/var/orazaka-uploads" \
+  AI_INFERENCE_KEY="${AI_INFERENCE_KEY_ALL:-${AI_INFERENCE_KEY:-}}" \
+  SPRING_RABBITMQ_HOST="${RABBITMQ_HOST:-}" SPRING_RABBITMQ_PORT="${RABBITMQ_PORT:-}" \
+  SPRING_RABBITMQ_USERNAME="${RABBITMQ_USER:-}" SPRING_RABBITMQ_PASSWORD="${RABBITMQ_PASS:-}" \
+  SPRING_RABBITMQ_SSL_CA_FILE="${ORAZAKA_APP_DIR:-/app}/var/broker-ca.pem" \
+    "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u -m app.consumer
+}
+
 # The library mode of the tests (scripts/test/run-services.test.mjs): define, start nothing.
 if [[ "${RUN_SERVICES_LIB:-}" == "1" ]]; then return 0 2>/dev/null || exit 0; fi
 
@@ -107,30 +159,6 @@ for entry in $SERVICES; do
     job) wait_port localhost 8090 "${ORAZAKA_JOB_READY_TIMEOUT:-240}" || echo "[run-services] the job service did not answer in time; continuing" ;;
   esac
 done
-
-# Runs in the supervisor's own background process (`"$@" &`), so `cd` stays local and `exec` makes the worker that very
-# process: the supervisor's TERM reaches the Python process itself, not a shell around it.
-run_validation_worker() {
-  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-packs/document-validation/worker" || return 1
-  SPRING_RABBITMQ_SSL_CA_FILE="${ORAZAKA_APP_DIR:-/app}/var/broker-ca.pem" \
-    exec "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u validation_worker.py
-}
-
-# The hosted-video worker: the media worker in hosted-only mode — a CPU consumer that calls the provider's API for the models a
-# provider serves (the hosted Wan 2.2), on a queue of its own (job.hostedvideo.*, which the GPU worker never matches). It needs
-# no GPU and no torch (the validation venv carries its lean dependencies), so hosted video runs on dev while the GPU pod or the Mac
-# is off. Its output goes to the job service next door, which seals it with the platform's key, like a GPU worker's.
-run_hosted_video_worker() {
-  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-worker-media" || return 1
-  MEDIA_WORKER_HOSTED_ONLY=true MEDIA_WORKER_PORT="${ORAZAKA_HOSTED_VIDEO_PORT:-8189}" \
-  MEDIA_ASSET_SINK_URL=http://localhost:8090 JOB_SERVICE_INTERNAL_URL=http://localhost:8090 \
-  UPLOAD_DIR="${ORAZAKA_APP_DIR:-/app}/var/orazaka-uploads" \
-  AI_INFERENCE_KEY="${AI_INFERENCE_KEY_ALL:-${AI_INFERENCE_KEY:-}}" \
-  SPRING_RABBITMQ_HOST="${RABBITMQ_HOST:-}" SPRING_RABBITMQ_PORT="${RABBITMQ_PORT:-}" \
-  SPRING_RABBITMQ_USERNAME="${RABBITMQ_USER:-}" SPRING_RABBITMQ_PASSWORD="${RABBITMQ_PASS:-}" \
-  SPRING_RABBITMQ_SSL_CA_FILE="${ORAZAKA_APP_DIR:-/app}/var/broker-ca.pem" \
-    exec "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u -m app.consumer
-}
 
 # The Python workers of the packs, after the JVMs (the job service declares the topology they bind to). The dev broker
 # is TLS only: the worker reads the same RABBITMQ_* and SPRING_RABBITMQ_SSL_ENABLED as the services, and the CA file
