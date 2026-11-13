@@ -66,9 +66,10 @@ TEXT_MISSING = "TEXT_MISSING"
 class InvalidJobPayload(ValueError):
     """This worker checked the payload and found it unusable — the one cause that bills.
 
-    It carries a ``reason`` from :data:`REASONS`, a closed set of codes this worker writes, and nothing else: a free-text
-    reason is refused, because a message built from the job would travel in the event the saga stores. (The pack workers
-    share this rule in ``worker-common/worker_failure.py``; this reference worker links nothing, so it carries the rule.)
+    It carries a ``reason`` from :data:`REASONS`, a closed set of codes this worker writes, and nothing else: a
+    free-text reason is refused, because a message built from the job would travel in the event the saga stores. (The
+    pack workers share this rule in ``worker-common/worker_failure.py``; this reference worker links nothing, so it
+    carries the rule.)
     """
 
     REASONS = frozenset({TEXT_MISSING})
@@ -81,7 +82,7 @@ class InvalidJobPayload(ValueError):
 
 
 def _failure_answer(job_id, failure: Exception) -> dict:
-    """What a failed job says: a coded reason (INPUT_INVALID) or the exception's TYPE NAME (EXECUTOR_FAULT), never a message."""
+    """What a failed job says: a coded reason (INPUT_INVALID) or the exception's TYPE NAME (EXECUTOR_FAULT)."""
     if isinstance(failure, InvalidJobPayload):
         return {"jobId": job_id, "error": failure.reason, "cause": INPUT_INVALID}
     return {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT}

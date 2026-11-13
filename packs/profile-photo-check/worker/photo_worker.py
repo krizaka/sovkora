@@ -55,7 +55,7 @@ FACTS_NOT_INSPECTION = "FACTS_NOT_INSPECTION"
 
 
 class InvalidJobPayload(worker_failure.InvalidJobPayload):
-    """This worker checked the payload and found it unusable — the one cause that bills. Its reason is a code, never a value."""
+    """This worker checked the payload and found it unusable — the one cause that bills. Its reason is a code."""
 
     REASONS = frozenset(
         {
@@ -116,7 +116,7 @@ def _assess(payload: dict) -> dict:
     try:
         facts = json.loads(raw) if isinstance(raw, str) else raw
     except json.JSONDecodeError as bad:
-        # Only the code leaves: the parse error quotes the facts, and the facts are what the vision step read off a photo.
+        # Only the code leaves: the parse error quotes the facts, which the vision step read off a photo.
         raise InvalidJobPayload(FACTS_NOT_JSON) from bad
     if (
         not isinstance(facts, dict)

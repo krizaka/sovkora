@@ -402,9 +402,9 @@ def _on_message(channel, method, properties, body) -> None:
         result, consumption = _handle(method.routing_key, job)
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-        # A refusal (a jurisdiction this pack does not carry, a date no ruleset covers) is the one category that bills for
-        # the steps that already ran: its coded reason. Anything else: the type name. Never a message, which can quote
-        # the document (worker_failure).
+        # A refusal (a jurisdiction this pack does not carry, a date no ruleset covers) is the one category that bills
+        # for the steps that already ran: its coded reason. Anything else: the type name. Never a message, which can
+        # quote the document (worker_failure).
         worker_failure.report_failure(_emit, channel, "validation", method.routing_key, job_id, failure)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)

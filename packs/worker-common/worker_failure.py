@@ -12,7 +12,8 @@ construction. This module imports no broker library: every worker, with its own 
 
 from __future__ import annotations
 
-from typing import Callable, ClassVar
+from collections.abc import Callable
+from typing import ClassVar
 
 INPUT_INVALID = "INPUT_INVALID"
 EXECUTOR_FAULT = "EXECUTOR_FAULT"
@@ -49,6 +50,6 @@ def failure_log(label: str, routing_key: str, job_id: str | None, failure: Excep
 def report_failure(
     emit: Callable, channel, label: str, routing_key: str, job_id: str | None, failure: Exception
 ) -> None:
-    """Log a failed job and publish its ``job.{id}.error`` through the worker's own ``emit(channel, job_id, suffix, body)``."""
+    """Log a failed job and publish its error event through the worker's own ``emit(channel, job_id, suffix, body)``."""
     print(failure_log(label, routing_key, job_id, failure), flush=True)
     emit(channel, job_id, "error", failure_answer(job_id, failure))

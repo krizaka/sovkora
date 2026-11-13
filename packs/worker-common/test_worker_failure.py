@@ -8,9 +8,9 @@ import sys
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import testkit  # noqa: E402
-import worker_failure as failure  # noqa: E402
-import worker_loop as loop  # noqa: E402
+import testkit
+import worker_failure as failure
+import worker_loop as loop
 
 MARK = testkit.MARK
 
@@ -52,7 +52,8 @@ def test_the_loop_never_carries_an_exception_message_into_the_event_or_the_log()
 
     channel, out = _deliver(crash, "j4")
     testkit.assert_failure_leaks_nothing(channel, out, "RuntimeError", "EXECUTOR_FAULT", "j4")
-    assert "job.test.do" in out and channel.acked == [1]
+    assert "job.test.do" in out
+    assert channel.acked == [1]
 
 
 def test_the_loop_answers_a_refusal_with_its_code_and_never_the_input():

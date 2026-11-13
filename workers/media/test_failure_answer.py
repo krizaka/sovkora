@@ -1,7 +1,7 @@
-"""A failed job answers with a coded reason or a type name — never a message that can hold a prompt, a path or a clip's name.
+"""A failed job answers with a coded reason or a type name — never a message that can hold a prompt or a path.
 
-No broker, no GPU: the consumer's callback is driven with ``send_job_error`` replaced, and the speech server's handler with a
-fake request. krizaka-internal#3376.
+No broker, no GPU: the consumer's callback is driven with ``send_job_error`` replaced, and the speech server's
+handler with a fake request. krizaka-internal#3376.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app import speech_server
-from app.failure import CodedReason
+from app.failure import CodedReasonError
 
 MARK = "MARK-8e4f-JOB-TEXT"
 
@@ -44,8 +44,10 @@ def test_an_unexpected_failure_carries_the_type_name_only():
     sent.assert_called_once()
     assert sent.call_args.args[:2] == ("media-fault", "RuntimeError")
     assert sent.call_args.kwargs["cause"] == consumer.EXECUTOR_FAULT
-    assert MARK not in repr(sent.call_args) and MARK not in out
-    assert "media-fault" in out and "RuntimeError" in out
+    assert MARK not in repr(sent.call_args)
+    assert MARK not in out
+    assert "media-fault" in out
+    assert "RuntimeError" in out
 
 
 def test_a_missing_file_carries_the_type_name_never_its_path():
@@ -56,7 +58,8 @@ def test_a_missing_file_carries_the_type_name_never_its_path():
     )
     assert sent.call_args.args[:2] == ("media-missing", "FileNotFoundError")
     assert sent.call_args.kwargs["cause"] == consumer.PLATFORM_UNAVAILABLE
-    assert MARK not in repr(sent.call_args) and MARK not in out
+    assert MARK not in repr(sent.call_args)
+    assert MARK not in out
 
 
 def test_a_refusal_carries_its_code_and_never_what_it_was_refused_for():
@@ -68,7 +71,8 @@ def test_a_refusal_carries_its_code_and_never_what_it_was_refused_for():
     )
     assert sent.call_args.args[:2] == ("media-bad", "ASPECT_UNSUPPORTED")
     assert sent.call_args.kwargs["cause"] == consumer.INPUT_INVALID
-    assert MARK not in repr(sent.call_args) and MARK not in out
+    assert MARK not in repr(sent.call_args)
+    assert MARK not in out
     assert "ASPECT_UNSUPPORTED" in out
 
 
@@ -84,14 +88,15 @@ def test_an_aspect_the_library_refuses_by_quoting_it_leaves_only_as_a_code():
     with pytest.raises(consumer.InvalidJobPayload) as refused:
         consumer._generate_with(job, "/tmp/scratch-unused")  # noqa: S108 — never reached: the aspect is checked first
     assert refused.value.reason == "ASPECT_UNSUPPORTED"
-    assert MARK not in str(refused.value) and MARK not in repr(refused.value)
+    assert MARK not in str(refused.value)
+    assert MARK not in repr(refused.value)
 
 
 def test_a_reason_outside_the_closed_set_is_refused():
     import app.consumer as consumer
 
     for kind in (consumer.InvalidJobPayload, speech_server.SpeechRequestError):
-        assert issubclass(kind, CodedReason)
+        assert issubclass(kind, CodedReasonError)
         with pytest.raises(ValueError, match="closed set") as refused:
             kind(f"free text {MARK}")
         assert MARK not in str(refused.value)
@@ -100,7 +105,8 @@ def test_a_reason_outside_the_closed_set_is_refused():
 def test_a_speech_request_is_refused_with_a_code_and_never_the_model_it_named():
     with pytest.raises(speech_server.SpeechRequestError) as refused:
         speech_server.parse_request(json.dumps({"model": MARK, "input": "x"}).encode())
-    assert refused.value.reason == "MODEL_NOT_SERVED" and MARK not in str(refused.value)
+    assert refused.value.reason == "MODEL_NOT_SERVED"
+    assert MARK not in str(refused.value)
 
 
 def _speech_handler(text):
@@ -111,7 +117,7 @@ def _speech_handler(text):
     handler.sent = []
     handler._send = lambda code, payload, content_type, extra=None: handler.sent.append(
         (code, payload)
-    )  # noqa: SLF001
+    )
     return handler
 
 
@@ -120,5 +126,6 @@ def test_a_speech_failure_answers_with_the_type_name_never_the_text_it_was_readi
     with patch.object(speech_server, "synthesize", side_effect=RuntimeError(f"cannot read {MARK}")):
         handler._speech()
     (code, payload) = handler.sent[0]
-    assert code == 500 and json.loads(payload) == {"error": "speech failed: RuntimeError"}
+    assert code == 500
+    assert json.loads(payload) == {"error": "speech failed: RuntimeError"}
     assert MARK.encode() not in payload

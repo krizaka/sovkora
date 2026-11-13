@@ -53,7 +53,7 @@ from app import (
 )
 from app import cut as film
 from app.composer import compose
-from app.failure import CodedReason
+from app.failure import CodedReasonError
 from app.registration import load_declaration, start_background_registration
 from app.telemetry import (
     EXECUTOR_FAULT,
@@ -775,10 +775,11 @@ FOLEY_MODEL_REQUIRED = "FOLEY_MODEL_REQUIRED"
 JOB_COMMAND_INCOMPLETE = "JOB_COMMAND_INCOMPLETE"
 
 
-class InvalidJobPayload(CodedReason):
+class InvalidJobPayload(CodedReasonError):
     """The payload was positively checked and found unusable (ADR-053 ``INPUT_INVALID``).
 
-    Its reason is a code from :data:`REASONS`, never text taken from the job: the error event is stored and the log outlives it.
+    Its reason is a code from :data:`REASONS`, never text taken from the job: the error event is stored and the log
+    outlives it.
 
     A distinct type rather than a string test, because ``INPUT_INVALID`` is the only cause that
     BILLS the actor for the work a run already did. Raising it is a claim this worker is

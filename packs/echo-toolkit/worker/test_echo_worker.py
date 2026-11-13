@@ -22,7 +22,8 @@ def test_a_failure_carries_the_type_name_only_never_the_text_of_the_exception(mo
     monkeypatch.setattr(worker, "_handle", explode)
     channel, out = _deliver("echo-fault")
     testkit.assert_failure_leaks_nothing(channel, out, "RuntimeError", "EXECUTOR_FAULT", "echo-fault")
-    assert "job.echo.reverse" in out and channel.acked == [1]
+    assert "job.echo.reverse" in out
+    assert channel.acked == [1]
 
 
 def test_a_refused_payload_answers_with_its_code_and_never_the_input(monkeypatch):

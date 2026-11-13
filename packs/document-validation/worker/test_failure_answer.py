@@ -7,8 +7,8 @@ import sys
 from types import SimpleNamespace
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import broker  # noqa: E402,F401  (puts worker-common on the path)
-from testkit import FakeChannel  # noqa: E402
+import broker  # noqa: F401  (puts worker-common on the path)
+from testkit import FakeChannel
 
 MARK = "MARK-7f3a-DOCUMENT-TEXT"
 

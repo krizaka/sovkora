@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import authenticity_worker as worker  # noqa: E402
 import language  # noqa: E402
 import rules  # noqa: E402
-import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
+import testkit  # worker-common, on the path once the worker has imported its broker
 
 RULESET = rules.load_ruleset()
 FR = "Salut ! J’ai vu que tu aimes la randonnée aussi, tu connais le sentier derrière le mont Royal et les petits restos du coin ?"
@@ -92,7 +92,8 @@ def test_protocol_conformance():
     assert d["bindings"] == ["job.authenticity.*"] and "job.authenticity.*" not in src
     assert d["concurrency"] == 1 and set(worker.HANDLERS) == {"job.authenticity.read"}
     assert not re.search(r"orazaka\.message\.|featureKey", src.replace("`featureKey`", ""))
-    assert "worker_failure.report_failure" in src and "str(bad)" not in src
+    assert "worker_failure.report_failure" in src
+    assert "str(bad)" not in src
 
 
 def test_the_worker_writes_nothing_for_anyone():

@@ -52,12 +52,13 @@ def deliver(on_message, routing_key: str, job: dict) -> tuple:
 
 
 def assert_failure_leaks_nothing(channel, out: str, error: str, cause: str, job_id: str) -> None:
-    """The one error event of the job is ``error`` / ``cause``, and the marked text is in neither the event nor the log."""
-    assert channel.published == [(f"job.{job_id}.error", {"jobId": job_id, "error": error, "cause": cause})], (
-        channel.published
-    )
-    assert MARK not in json.dumps(channel.published) and MARK not in out, "the marked text leaked"
-    assert job_id in out and error in out, out
+    """The job's one error event is ``error`` / ``cause``, and the marked text is in neither the event nor the log."""
+    expected = [(f"job.{job_id}.error", {"jobId": job_id, "error": error, "cause": cause})]
+    assert channel.published == expected, channel.published
+    assert MARK not in json.dumps(channel.published), "the marked text reached the event"
+    assert MARK not in out, "the marked text reached the log"
+    assert job_id in out, out
+    assert error in out, out
 
 
 @contextlib.contextmanager
@@ -80,9 +81,10 @@ def assert_free_text_reason_refused(refusal_class) -> None:
     try:
         refusal_class(f"free text {MARK}")
     except ValueError as refused:
-        assert MARK not in str(refused)
-        return
-    raise AssertionError("a free-text reason must be refused at construction")
+        message = str(refused)
+    else:
+        raise AssertionError("a free-text reason must be refused at construction")
+    assert MARK not in message
 
 
 def check_failure_answers(worker, fault: tuple, refusals: list) -> None:

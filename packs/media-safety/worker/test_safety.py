@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import rules  # noqa: E402
 import safety_worker as worker  # noqa: E402
-import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
+import testkit  # worker-common, on the path once the worker has imported its broker
 
 R = rules.load_ruleset()
 CLEAN = json.dumps({"sexual_or_nudity": False, "graphic_violence": False, "minor_in_unsafe_context": False})

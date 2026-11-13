@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "worker-common"))
 import testkit  # noqa: E402
 import identity_worker as worker  # noqa: E402
-import worker_loop  # noqa: E402
-from worker_failure import failure_answer  # noqa: E402
+import worker_loop
+from worker_failure import failure_answer
 
 InvalidJobPayload = worker.InvalidJobPayload
 

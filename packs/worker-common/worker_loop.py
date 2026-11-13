@@ -5,9 +5,9 @@ A worker used to carry its own copy of this (queue declaration, dead-lettering, 
 and their ``worker.yaml`` declaration, nothing else.
 
 ``handle`` raises :class:`InvalidJobPayload` (``worker_failure``: a worker subclasses it with its closed set of coded
-reasons) when it checked the payload and found it unusable — the one cause that bills; any other exception is an executor
-fault. A failure answers with the reason code or the exception's type name and logs the same: never a message, never a
-payload.
+reasons) when it checked the payload and found it unusable — the one cause that bills; any other exception is an
+executor fault. A failure answers with the reason code or the exception's type name and logs the same: never a
+message, never a payload.
 """
 
 from __future__ import annotations

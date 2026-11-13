@@ -28,8 +28,8 @@ REFUSALS = (screening.InvalidInput,)  # ProviderNotEnabled is one
 
 
 class Refusal(worker_failure.InvalidJobPayload):
-    """A refused payload — the one cause that bills. Its reason is a code: the rules' own messages name the stage and the
-    rule the caller wrote, and what the caller wrote is theirs, not the log's nor the saga's."""
+    """A refused payload — the one cause that bills. Its reason is a code: the rules' own messages name the stage and
+    the rule the caller wrote, and what the caller wrote is theirs, not the log's nor the saga's."""
 
     REASONS = frozenset({INPUT_REFUSED, PROVIDER_NOT_ENABLED})
 

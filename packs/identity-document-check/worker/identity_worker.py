@@ -20,10 +20,9 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "worker-common"))
-import worker_failure  # noqa: E402
-import worker_loop  # noqa: E402
-
-import rules  # noqa: E402
+import rules
+import worker_failure
+import worker_loop
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAX_BARCODE_CHARS = 20000

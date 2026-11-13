@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import faces  # noqa: E402
 import photo_worker as worker  # noqa: E402
 import rules  # noqa: E402
-import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
+import testkit  # worker-common, on the path once the worker has imported its broker
 
 FACTS = {"photos": [], "identity": {"status": "NOT_COMPARABLE", "mismatch": [], "compared": 0}}
 
@@ -161,7 +161,8 @@ def test_protocol_conformance():
         worker.PLATFORM_UNAVAILABLE,
         worker.TIMEOUT,
     } == {"GUARD_REFUSAL", "INPUT_INVALID", "EXECUTOR_FAULT", "PLATFORM_UNAVAILABLE", "TIMEOUT"}
-    assert "worker_failure.report_failure" in SOURCE and "str(bad)" not in SOURCE  # the cause comes from one place
+    assert "worker_failure.report_failure" in SOURCE  # the cause comes from one place
+    assert "str(bad)" not in SOURCE
 
 
 def test_the_embedding_vectors_are_not_in_any_output_key():

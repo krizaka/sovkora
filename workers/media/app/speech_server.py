@@ -20,7 +20,7 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-from app.failure import CodedReason
+from app.failure import CodedReasonError
 
 MODEL = "kokoro-82m"
 REPO = "hexgrad/Kokoro-82M"
@@ -39,8 +39,8 @@ INPUT_TOO_LONG = "INPUT_TOO_LONG"
 FORMAT_NOT_SUPPORTED = "FORMAT_NOT_SUPPORTED"
 
 
-class SpeechRequestError(CodedReason):
-    """A request this server positively checked and cannot honour. Its reason is a code: the answer never quotes the request."""
+class SpeechRequestError(CodedReasonError):
+    """A request this server positively checked and cannot honour. Its reason is a code, never a quote of it."""
 
     REASONS = frozenset(
         {NOT_JSON, MODEL_NOT_SERVED, INPUT_EMPTY, INPUT_TOO_LONG, FORMAT_NOT_SUPPORTED}
@@ -161,7 +161,8 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as refused:
             self._send(refused.code, refused.read(), safe_type(refused.headers.get("Content-Type")))
         except OSError as down:
-            self._send(502, json.dumps({"error": f"image engine unreachable: {type(down).__name__}"}).encode(), CONTENT_TYPE_JSON)
+            unreachable = {"error": f"image engine unreachable: {type(down).__name__}"}
+            self._send(502, json.dumps(unreachable).encode(), CONTENT_TYPE_JSON)
 
     def _speech(self) -> None:
         length = int(self.headers.get("Content-Length") or 0)
@@ -175,7 +176,8 @@ class Handler(BaseHTTPRequestHandler):
             body, kind = (to_mp3(wav), "audio/mpeg") if request["format"] == "mp3" else (wav, "audio/wav")
         except Exception as failure:  # noqa: BLE001 — reported, never a silent placeholder
             # The type name only: the synthesiser's message can quote the text it was asked to read.
-            self._send(500, json.dumps({"error": f"speech failed: {type(failure).__name__}"}).encode(), CONTENT_TYPE_JSON)
+            failed = {"error": f"speech failed: {type(failure).__name__}"}
+            self._send(500, json.dumps(failed).encode(), CONTENT_TYPE_JSON)
             return
         # The voice is not echoed in a header (a header is never built from a request's value); the model is a constant.
         self._send(200, body, kind, {"X-Orazaka-Speech-Model": MODEL})
