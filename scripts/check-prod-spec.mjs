@@ -25,7 +25,7 @@ const looksLikeCredential = (value) => KEY_PREFIX.test(value) || value.split(/[^
 const DEV = /(^|[^a-z])dev([^a-z]|$)/i;
 /** What the pilot must never run (SOV-105 §1): the web app, the video worker, the GPU relay and its engines. */
 const FORBIDDEN = [
-  [/apps\/web|^\s+- name: web$/m, "the web app"],
+  [/apps\/web|^ +- name: web$/m, "the web app"],
   [/hosted-video|VIDEO_GENERATION|IMAGE_GENERATION|AI_INFERENCE_KEY_ALL/, "the video worker or an image engine"],
   [/gpu-relay|OLLAMA/, "the GPU relay"],
 ];
@@ -52,7 +52,7 @@ function componentProblems(body) {
   for (const section of ["static_sites", "workers", "jobs", "functions"].filter((sec) => new RegExp(`^${sec}:`, "m").test(body))) {
     problems.push(`a ${section} section is not part of the pilot`);
   }
-  for (const [pattern, what] of FORBIDDEN.filter(([pattern]) => pattern.test(body))) {
+  for (const [, what] of FORBIDDEN.filter(([pattern]) => pattern.test(body))) {
     problems.push(`${what} is not part of the pilot`);
   }
   return problems;
