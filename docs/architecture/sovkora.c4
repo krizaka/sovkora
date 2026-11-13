@@ -207,9 +207,9 @@ model {
       #planned
       description 'Media jobs at zero idle cost, triggered from the job lanes; adopted only if cheaper per clip than the guarded pod.'
       technology 'RunPod serverless, the media worker image'
-      link https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/sovkora/ADR-078-runpod-serverless-workers-at-zero-idle.md 'sovkora ADR-078 (serverless GPU)'
+      link https://github.com/krizaka/krizaka-internal/blob/main/docs/adr/sovkora/ADR-096-runpod-serverless-workers-at-zero-idle.md 'sovkora SOV-096 (serverless GPU)'
       metadata {
-        adr 'sovkora ADR-078'
+        adr 'sovkora SOV-096'
       }
     }
   }
@@ -275,7 +275,7 @@ model {
   sovkora.job -> sovkora.serverless 'triggers media jobs at zero idle' {
     #planned
     metadata {
-      adr 'sovkora ADR-078'
+      adr 'sovkora SOV-096'
     }
   }
   sovkora.desktop -> github 'reads an issue, pushes a branch, opens the pull request (the user approves each write)' {

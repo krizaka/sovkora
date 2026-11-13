@@ -10,7 +10,7 @@ order: 22
 > Study ORAZAKA-INFRA-STUDY, 2026-10-21. Documentation only: no code, no paid resource. Two watchwords from the
 > founder: (1) **portability, optimised for on-premises (local)**; (2) **cost in the cloud, with minimal latency and the
 > smoothest experience**. Every number marked *(est.)* is an estimate to be replaced by a measurement; the others come
-> from ADR-078 and `docs/measurements/`.
+> from SOV-096 and `docs/measurements/`.
 
 ## 1. How Sovkora runs today (read from the code)
 
@@ -23,7 +23,7 @@ order: 22
 | Video | worker `:8188`, MLX / AnimateDiff (`mps`) | Wan 2.x, LTX on a RunPod H100 pod | `orazaka-worker-media/models.yaml` |
 | Model routing | `DynamicModelRouter` over `ai_providers` + `orazaka_models` (DB), client cached per (base-url, model) | same DB | ADR-030, `DynamicModelRouter.java` |
 | Worker contract | AMQP `job.video.*` / `job.compose.*` / `job.sound.*`, declared in `worker.yaml` | same, through the chisel relay (`gpu-relay`) | ADR-038, ADR-077 |
-| GPU lifecycle | n/a | `scripts/gpu-dev.sh runpod`, boot `infra/gpu/runpod-bootstrap.sh`, pod watchdog, launchd spend guard (idle 20 min, max 6 h) | ADR-078 |
+| GPU lifecycle | n/a | `scripts/gpu-dev.sh runpod`, boot `infra/gpu/runpod-bootstrap.sh`, pod watchdog, launchd spend guard (idle 20 min, max 6 h) | SOV-096 |
 
 What is already portable, and should be protected: the **queue contract** (the worker sees routing keys, never a
 product), the **catalogue as data** (`orazaka_models` names the model, `models.yaml` says how a worker runs it, and
@@ -33,12 +33,12 @@ weights kept off the image (`/models`).
 ## 2. Where the latency and the money go
 
 1. **Idle GPU.** The H100 pod bills $3.99/h whether or not it renders. Measured 2026-10-16: 25 clips in 5 h, 2.8 h
-   rendering, 2.2 h waiting, so $0.80 per clip against $0.19 for a busy pod (ADR-078). Idle is the largest single line.
+   rendering, 2.2 h waiting, so $0.80 per clip against $0.19 for a busy pod (SOV-096). Idle is the largest single line.
 2. **Cold start.** Pod boot builds the venv in place (about 15 min of billed GPU when the volume has none, see
    `runpod-bootstrap.sh`), then loads weights: 129 s for the 57 GB A14B from the network volume. `apt-get` and
    `pip install` run at boot.
 3. **Weight I/O.** A 200 GB network volume ($14/month) holds 120 GB of weights; network-volume reads are the load time.
-   Re-downloading from Hugging Face costs $1-2 of pod time each time (ADR-078).
+   Re-downloading from Hugging Face costs $1-2 of pod time each time (SOV-096).
 4. **Relay hop.** Every pod job crosses chisel (core to `gpu-relay` to pod), plus a sealed hand-over of outputs. It adds
    little latency per job but one more moving part and a fixed-port limit (orazaka#205: a second pod cannot join).
 5. **Generation itself** is not the lever: 175 s per 5 s clip on the 5B. It is paid once; idle and load are paid again.
@@ -58,7 +58,7 @@ client's Mac or Linux/NVIDIA box). Numbers *(est.)* unless cited.
 
 | Option | Cost | Latency (cold / warm) | On-prem fit | Verdict |
 |:---|:---|:---|:---|:---|
-| RunPod Serverless, flex + FlashBoot | per second, $0 idle; H100 about $0.0016/s (ADR-078, to confirm); active workers cheaper | RunPod claims sub-200 ms container start with FlashBoot; model load is ours (60-130 s from volume) | Medium: same image, handler adapter only | **Spike first** (ADR-078 item 2): our vendor, volume and region already in place |
+| RunPod Serverless, flex + FlashBoot | per second, $0 idle; H100 about $0.0016/s (SOV-096, to confirm); active workers cheaper | RunPod claims sub-200 ms container start with FlashBoot; model load is ours (60-130 s from volume) | Medium: same image, handler adapter only | **Spike first** (SOV-096 item 2): our vendor, volume and region already in place |
 | Modal | per second, $0 idle | GPU memory snapshots reported 118 s to 12 s cold start for a 3B LLM (alpha, Modal's own figure) | Low: proprietary SDK | Comparator only (orazaka#324), not adopted |
 | Replicate-style (per prediction) | per second plus margin | minutes on custom models *(est.)* | Low | Refused: loses control of weights and licences |
 | Provider-served inference (DO) | per token / per clip ($0.60 A14B 832x480) | no cold start | None | Keep as a **route** in the DB, not as the platform |
@@ -133,7 +133,7 @@ router, offline model bundle (OCI) with `orazaka models pack/import`.
 **Phase 3 - volume (when measured traffic asks).** vLLM provider type with FP8/AWQ for self-served LLMs, spot pods for
 checkpointed batches, multi-LoRA. **Phase 4 - watch**: GPU snapshot/restore, lazy weight streaming.
 
-Expected effect if the spike confirms ADR-078's arithmetic *(est.)*: cost per clip from about $0.80 (guarded pod, mixed
+Expected effect if the spike confirms SOV-096's arithmetic *(est.)*: cost per clip from about $0.80 (guarded pod, mixed
 use) to $0.28-0.49, GPU at $0 at rest without a local guard; cold start visible instead of silent; an on-prem client
 runs the same image with no cloud account.
 
@@ -160,7 +160,7 @@ clip), then 7.4 (cache), then the rest. Every figure below is an estimate *(est.
 What the worker really runs today (`models.yaml`, read 2026-10-21): **Wan 2.2 TI2V 5B** and **Wan 2.1 T2V 1.3B**
 (diffusers, BF16, Apache-2.0), **FLUX.2 [klein] 4B** (GGUF Q8_0 + Qwen3-4B GGUF through `sd-server`, Apache-2.0),
 AnimateDiff on the Mac (MPS). Wan 2.1 14B and Wan 2.2 A14B are **not** in the worker: A14B (the 57 GB / 129 s case of
-ADR-078) is a provider-served route. The Wan-AI repositories hold no FP8 file (checked on the Hub), so the FP8
+SOV-096) is a provider-served route. The Wan-AI repositories hold no FP8 file (checked on the Hub), so the FP8
 checkpoints are **produced by us** (Apache-2.0 allows derivatives), digest-pinned, and published in the model store.
 
 | Lever | What | Hardware | Licence (read in its repository, 2026-10-21) |
@@ -185,7 +185,7 @@ resident exactly as long as the idle window.
 Economic target *(est.)*: cost per clip = (load + n x render + idle) x price per second / n. With the H100 pod price
 ($3.99/h = $0.00111/s), FP8 + NVMe load 12 s, render about 70-80 s with TeaCache and SageAttention, idle 60 s: a lone
 clip about $0.17, a burst of 3 about $0.11, a burst of 5 about $0.10. Target **under $0.12-0.15 per clip** on bursts,
-against $0.80 mixed today. The serverless price per second (ADR-078's $0.0016/s) is unconfirmed and moves these figures.
+against $0.80 mixed today. The serverless price per second (SOV-096's $0.0016/s) is unconfirmed and moves these figures.
 
 ### 7.3 Deterministic real-time progress (worker-media#64)
 
