@@ -116,7 +116,7 @@ def test_one_picture_arrives_as_one_answer_not_a_list():
 
 
 def test_the_worker_holds_no_broker_code_it_runs_on_the_shared_loop():
-    src = open(os.path.join(worker.HERE, "safety_worker.py")).read()
+    src = Path(worker.HERE, "safety_worker.py").read_text(encoding="utf-8")
     assert not re.search(r"basic_consume|exchange_declare|queue_declare|BlockingConnection|import pika", src)
     assert "worker_loop.run(" in src and "worker_loop.make_handle(" in src
 
