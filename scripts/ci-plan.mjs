@@ -5,7 +5,8 @@
  *   node scripts/ci-plan.mjs --event pull_request [--files a,b,c | --diff HEAD^1]
  *
  * A pull request needs the reactor compiled and the tests of what it touches: the changed Maven modules and their
- * dependents (`-pl <changed> -amd`). The full reactor (every unit test and Testcontainers IT) runs on merge_group, main,
+ * dependents (`-pl <changed> -amd`), plus every module's `*GovernanceTest` (ci.yml: the rules that read the whole tree
+ * live in one module and judge all the others). The full reactor (every unit test and Testcontainers IT) runs on merge_group, main,
  * the nightly and dispatch, and whenever the pull request touches what every module shares (the root pom, the parent,
  * .mvn, infra, the module catalogue, this tooling, the workflow). It fails open: unknown means full.
  *
