@@ -94,6 +94,9 @@ class ErrorCode(StrEnum):
     GENERATION_FAILED = "generation_failed"
 
 
+#: What `_answer` writes for the characters HTML gives a meaning to: their JSON escapes, which decode to themselves.
+_JSON_HTML_ESCAPES = str.maketrans({"<": "\\u003c", ">": "\\u003e", "&": "\\u0026"})
+
 #: The fixed ``detail`` of each code. A refusal of the request itself (INVALID_REQUEST) says the
 #: worker's own reason instead, HTML-escaped; an exception or provider message is only ever logged.
 _FIXED_DETAIL: dict[ErrorCode, str] = {
@@ -103,6 +106,15 @@ _FIXED_DETAIL: dict[ErrorCode, str] = {
     ErrorCode.CANCELLED: "the job was cancelled by its owner",
     ErrorCode.GENERATION_FAILED: "the video could not be made; the worker's log has the cause",
 }
+
+
+def registered_model(name: object) -> str | None:
+    """The registry's own name for ``name``, or None when it is not registered.
+
+    The name used afterwards is the registry's key, never the caller's string: the model a request
+    named is parsed into one of the worker's own values at the edge (krizaka-internal#3390).
+    """
+    return next((known for known in MODEL_REGISTRY if known == name), None)
 
 
 def preflight_memory_guard(model_name: str) -> None:
@@ -416,19 +428,22 @@ def run_remote(
         output_path = payload.get("output_path")
         if not output_path:
             return {"data": [{"b64_json": base64.b64encode(video).decode("ascii")}], "metrics": metrics}
-        safe_output_path = _write_inside_uploads(validate_safe_path(output_path), video)
+        _write_inside_uploads(validate_safe_path(output_path), video)
         measured = remote_video.probe_duration(video)
         if measured:
             metrics["durationSeconds"] = measured
         if job_id:
             send_progress_update(job_id, 100, phase="uploading")
-        return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+        return {"status": "success", "metrics": metrics}
 
 
 class VideoInferenceHandler(BaseHTTPRequestHandler):
     def _answer(self, status: int, body: dict[str, Any]) -> None:
-        """The one way this handler answers: a JSON body, its charset, and no content sniffing."""
-        content = json.dumps(body).encode("utf-8")
+        """The one way this handler answers: a JSON body, its charset, and no content sniffing.
+
+        ``<``, ``>`` and ``&`` leave as JSON escapes: the bytes never hold markup, the decoded data is the same.
+        """
+        content = json.dumps(body).translate(_JSON_HTML_ESCAPES).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("X-Content-Type-Options", "nosniff")
@@ -492,8 +507,8 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
             return
 
         payload = self._read_payload()
-        model_name = payload.get("model") or video_models.default_model_name()
-        if not isinstance(model_name, str) or model_name not in MODEL_REGISTRY:
+        model_name = registered_model(payload.get("model") or video_models.default_model_name())
+        if model_name is None:
             self._refuse(400, ErrorCode.MODEL_NOT_REGISTERED)
             return
 
@@ -512,7 +527,6 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
             with _media_semaphore, resource_guard(process) as metrics:
                 seed_val, generator = self._resolve_seed(payload)
                 job_id = payload.get("job_id")
-                model_name = payload.get("model") or video_models.default_model_name()
                 family = MODEL_REGISTRY[model_name]
 
                 # Host-memory preflight: refuse oversized models BEFORE loading any
@@ -801,7 +815,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     if job_id:
                         send_progress_update(job_id, 100, phase="upscaling")
                     apply_upscale(payload, safe_output_path, metrics)
-                    return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+                    return {"status": "success", "metrics": metrics}
             raise PermissionError(f"Access to path '{output_path}' is denied (outside allowed directories).")
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
             tmp_path = tmp.name
