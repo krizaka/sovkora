@@ -135,6 +135,14 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
+        <!-- The observability starter: meters tagged product/service/version, ECS logs redacted before
+             export, OTLP traces, metrics and logs to Grafana Cloud when OBSERVABILITY_OTLP_ENDPOINT is
+             set (krizaka-internal#3437). -->
+        <dependency>
+            <groupId>com.krizaka</groupId>
+            <artifactId>krizaka-spring-boot-starter-observability</artifactId>
+        </dependency>
+
         <!-- Distributed tracing (OTLP/HTTP → Jaeger); AMQP observation propagates traceparent. -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -202,6 +210,24 @@
     </dependencies>
 
     <build>
+        <!-- "@project.version@" in application.yml (krizaka.observability.version); "${...}"
+             placeholders are left to Spring. -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>application.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>application.yml</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

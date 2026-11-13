@@ -33,6 +33,25 @@ public class SpendMetrics {
         .increment(usd.doubleValue());
   }
 
+  /** The tokens of one priced turn, input and output apart. */
+  public void tokens(SpendScope scope, String capability, String model, int input, int output) {
+    tokenCounter(scope, capability, model, "input").increment(input);
+    tokenCounter(scope, capability, model, "output").increment(output);
+  }
+
+  private Counter tokenCounter(SpendScope scope, String capability, String model, String type) {
+    return registry.counter(
+        "ai.tokens",
+        "product",
+        scope.productKey(),
+        "capability",
+        capability,
+        "model",
+        model,
+        "type",
+        type);
+  }
+
   /** The month's spend of a scope and how much of its cap that is. */
   public void level(SpendScope scope, BigDecimal spentUsd, double ratio) {
     gauge("spend.month.usd", spends, scope).set(spentUsd.doubleValue());

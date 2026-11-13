@@ -138,6 +138,7 @@ orazaka:
 
 # ── Krizaka platform kit ──────────────────────────────────────────────────────
 krizaka:
+  observability: { product: sovkora, service: studio, version: "@project.version@" }
   billing:
     # Producer-side billing wiring (krizaka-billing-client): a run takes one hold.
     # With billing disabled the NoOp adapter is selected and no call site branches.

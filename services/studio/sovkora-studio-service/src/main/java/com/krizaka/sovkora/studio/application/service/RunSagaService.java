@@ -22,7 +22,9 @@ import com.krizaka.sovkora.studio.domain.port.StepExecutionClient;
 import com.krizaka.sovkora.studio.infrastructure.support.CitationContract;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.studio.infrastructure.support.OutputContractException;
+import com.krizaka.sovkora.studio.infrastructure.support.RunMeasureRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -80,6 +82,7 @@ public class RunSagaService {
   private final OutboxService outboxService;
   private final ColumnValueResolver columns;
   private final MeterRegistry meterRegistry;
+  private final RunMeasureRegistry measures;
   private final RunAuditService runAuditService;
 
   /**
@@ -131,6 +134,7 @@ public class RunSagaService {
     this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
     this.columns = Objects.requireNonNull(columns, "ColumnValueResolver required");
     this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry required");
+    this.measures = new RunMeasureRegistry(meterRegistry);
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
     this.runs = Objects.requireNonNull(runs, "StudioRunService provider required");
   }
@@ -579,7 +583,41 @@ public class RunSagaService {
           // the deadline starts, so the ceiling that applies is the lane the platform held when
           // the work was sent (ADR-067).
           laneOf(step));
+      noteFirstDispatch(run, step.id(), ordinal);
     }
+  }
+
+  /**
+   * Times how long a top-level run waited for its first step to be handed to an executor: the step
+   * just written is the only one the run has.
+   */
+  private void noteFirstDispatch(RunRow run, String stepId, int ordinal) {
+    if (run.parentRunId() != null || ordinal != 0) {
+      return;
+    }
+    jdbcTemplate
+        .queryForList(
+            "SELECT EXTRACT(EPOCH FROM (now() - r.started_at)) FROM studio_run r WHERE r.id = ?"
+                + " AND NOT EXISTS (SELECT 1 FROM studio_run_step s WHERE s.run_id = r.id"
+                + " AND s.step_id <> ?)",
+            Double.class,
+            run.id(),
+            stepId)
+        .forEach(seconds -> measures.started(secondsToDuration(seconds)));
+  }
+
+  /** How long ago the run was created, read on the database's clock. */
+  private Duration runAge(UUID runId) {
+    Double seconds =
+        jdbcTemplate.queryForObject(
+            "SELECT EXTRACT(EPOCH FROM (now() - started_at)) FROM studio_run WHERE id = ?",
+            Double.class,
+            runId);
+    return secondsToDuration(seconds == null ? 0.0 : seconds);
+  }
+
+  private static Duration secondsToDuration(double seconds) {
+    return Duration.ofMillis(Math.max(0L, Math.round(seconds * 1000)));
   }
 
   /**
@@ -916,6 +954,9 @@ public class RunSagaService {
     if (run.parentRunId() == null) {
       settlementService.settleSucceeded(run.id(), run.holdId(), settledRuns(run, blueprint));
     }
+    if (run.parentRunId() == null) {
+      measures.succeeded(runAge(run.id()));
+    }
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), true, null);
     outboxService.append(run.id().toString(), "evt.studio.run.succeeded", runEvent(run));
     if (run.parentRunId() != null) {
@@ -1005,6 +1046,10 @@ public class RunSagaService {
             "cause",
             declared.name())
         .increment();
+
+    if (run.parentRunId() == null) {
+      measures.failed(runAge(run.id()), declared);
+    }
 
     // The category, never the reason: `reason` is the failed step's message, which for a refusal is
     // the pack's reviewed answer — a crisis response on a REGULATED pack (ADR-065).
