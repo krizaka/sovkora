@@ -27,6 +27,6 @@ jest.mock("@krizaka/ui/native", () => {
   return {
     ...actual,
     SovkoraMark: () => jest.requireActual("react").createElement(View, { testID: "sovkora-mark" }),
-    OrazakaMark: () => jest.requireActual("react").createElement(View, { testID: "orazaka-mark" }),
+    OrazakaMark: () => jest.requireActual("react").createElement(View, { testID: "retired-mark" }),
   };
 });

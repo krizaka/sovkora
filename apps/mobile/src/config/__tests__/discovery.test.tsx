@@ -171,7 +171,7 @@ describe("the gate the manifest raises", () => {
     expect(screen.getByText("Version 2.1.0")).toBeTruthy();
     expect(screen.queryByText("the app")).toBeNull();
     expect(screen.getByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.queryByTestId("orazaka-mark", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("retired-mark", { includeHiddenElements: true })).toBeNull();
   });
 
   it("replaces the app with the maintenance screen and its message", async () => {

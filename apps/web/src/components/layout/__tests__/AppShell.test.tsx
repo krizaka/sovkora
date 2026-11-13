@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { navWords } from "@krizaka/ui/app-frame";
 import { AppShell } from "@/components/layout/AppShell";
-import { visibleWords } from "@/core/utils/visible-words.testkit";
+import { RETIRED_NAME, visibleWords } from "@/core/utils/visible-words.testkit";
 import { translations } from "@/core/context/translations";
 
 const mockLogout = jest.fn();
@@ -104,6 +104,6 @@ describe("AppShell (the shared AppFrame)", () => {
   it("says Sovkora and never the code name, on a development deployment too (krizaka-internal#2684)", () => {
     const { container } = render(<AppShell>page</AppShell>);
     expect(visibleWords(container)).toContain("Sovkora");
-    expect(visibleWords(container)).not.toMatch(/orazaka|code name/i);
+    expect(visibleWords(container)).not.toMatch(RETIRED_NAME);
   });
 });

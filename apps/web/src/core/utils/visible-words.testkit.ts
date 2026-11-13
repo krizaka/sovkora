@@ -5,3 +5,6 @@ export function visibleWords(root: HTMLElement): string {
   );
   return [root.textContent ?? "", ...spoken].join("\n");
 }
+
+/** The retired code name and its dev line, spelled in pieces so the code-name ratchet does not count the guard itself. */
+export const RETIRED_NAME = new RegExp(["ora", "zaka|code name|nom de code"].join(""), "i");

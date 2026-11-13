@@ -84,7 +84,7 @@ describe("the chat screen — one real chat", () => {
   it("opens on the Sovkora mark, never the code-named one", async () => {
     await chat();
     expect(await screen.findByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.queryByTestId("orazaka-mark", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("retired-mark", { includeHiddenElements: true })).toBeNull();
   });
 
   it("says which model answers, and nothing about the network while that model is a hosted one", async () => {

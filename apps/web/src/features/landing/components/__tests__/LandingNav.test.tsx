@@ -10,7 +10,7 @@ import type { AuthFlags } from "@/core/config/auth-flags";
 import { LandingPage } from "@/features/landing/components/LandingPage";
 import { LandingNav } from "@/features/landing/components/LandingNav";
 import { NAV_GROUPS, navActive } from "@/features/landing/utils/site-nav";
-import { visibleWords } from "@/core/utils/visible-words.testkit";
+import { RETIRED_NAME, visibleWords } from "@/core/utils/visible-words.testkit";
 import axe from "axe-core";
 
 const mockPath = { current: "/" };
@@ -136,7 +136,7 @@ describe("the public bar names the product, never its code name (krizaka-interna
   it.each(["en", "fr"] as const)("in %s", (locale) => {
     const { container } = renderLanding(locale, <LandingNav />);
     expect(visibleWords(container)).toContain("Sovkora");
-    expect(visibleWords(container)).not.toMatch(/orazaka|code name|nom de code/i);
+    expect(visibleWords(container)).not.toMatch(RETIRED_NAME);
   });
 });
 

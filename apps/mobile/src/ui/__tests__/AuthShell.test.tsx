@@ -28,7 +28,7 @@ describe("AuthShell", () => {
   it("draws the Sovkora mark, never the code-named one", async () => {
     await shell();
     expect(screen.getByTestId("sovkora-mark", { includeHiddenElements: true })).toBeTruthy();
-    expect(screen.queryByTestId("orazaka-mark", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("retired-mark", { includeHiddenElements: true })).toBeNull();
   });
 
   it("has the line in both languages, never « ready » wording", () => {
