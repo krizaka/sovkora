@@ -1749,7 +1749,8 @@ class StudioRunLifecycleIT {
             jdbcTemplate,
             context.getBean(RunSettlementService.class),
             context.getBean(RunAuditService.class),
-            context.getBean(OutboxService.class))
+            context.getBean(OutboxService.class),
+            new io.micrometer.core.instrument.simple.SimpleMeterRegistry())
         .failUndispatched(java.time.Instant.now().minus(timeout), limit);
   }
 

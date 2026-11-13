@@ -160,6 +160,7 @@ orazaka:
 
 # ── Krizaka platform kit ──────────────────────────────────────────────────────
 krizaka:
+  observability: { product: sovkora, service: job, version: "@project.version@" }
   billing:
     # Bootstrap switch only — the enforcement mode is a row owned by the billing
     # service. Default OFF wires the no-op adapter, so this service behaves

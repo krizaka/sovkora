@@ -11,7 +11,7 @@
     <parent>
         <groupId>com.krizaka</groupId>
         <artifactId>krizaka-parent</artifactId>
-        <version>0.12.0</version>
+        <version>0.16.0</version>
         <relativePath/>
     </parent>
 
@@ -45,7 +45,7 @@
         <krizaka.security.tomcat.version>11.0.27</krizaka.security.tomcat.version>
         <!-- The Krizaka artifacts (build, platform kit, users, notifications, billing) Sovkora
              is built on — one version, imported through krizaka-bom below. -->
-        <krizaka.version>0.12.0</krizaka.version>
+        <krizaka.version>0.16.0</krizaka.version>
 
         <!-- ADR-029 N1/N2: the product of every module's coordinates (the enforcer rules below). -->
         <krizaka.product>sovkora</krizaka.product>
