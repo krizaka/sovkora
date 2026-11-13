@@ -342,22 +342,13 @@ public class RunSagaService {
           declarations.forDispatch(run.studioKey(), run.installationId());
       jobId =
           stepExecutionClient.submit(
-              new StepDispatch(
-                  run.id(),
-                  step.id(),
+              dispatchOf(
+                  run,
+                  step,
                   ref.ordinal(),
-                  step.featureKey(),
-                  step.connectorType(),
                   resolved,
-                  run.actorId(),
-                  run.correlationId(),
                   effectiveConfig(run, blueprint, ref.installationConfig()),
-                  stepDeclarations.scopeGuard(),
-                  stepDeclarations.crisisTerms(),
-                  stepDeclarations.crisisResponse(),
-                  declarations.guardSubject(run.inputs()),
-                  run.dataClass(),
-                  run.productKey()));
+                  stepDeclarations));
     } catch (UnroutableCapabilityException e) {
       // A retry of a step whose capability has since lost its route is not a retry, it is a run
       // that can no longer finish. Reporting "not resubmitted" lets the caller fail it as the
@@ -446,6 +437,32 @@ public class RunSagaService {
   }
 
   /** The fan-out element a given ordinal was dispatched with, so a retry re-renders identically. */
+  /** The step as the job plane is asked to run it: the run's identity, declarations and product. */
+  private StepDispatch dispatchOf(
+      RunRow run,
+      BlueprintStep step,
+      int ordinal,
+      Map<String, Object> resolved,
+      Map<String, String> config,
+      StepDeclarationService.DispatchDeclarations stepDeclarations) {
+    return new StepDispatch(
+        run.id(),
+        step.id(),
+        ordinal,
+        step.featureKey(),
+        step.connectorType(),
+        resolved,
+        run.actorId(),
+        run.correlationId(),
+        config,
+        stepDeclarations.scopeGuard(),
+        stepDeclarations.crisisTerms(),
+        stepDeclarations.crisisResponse(),
+        declarations.guardSubject(run.inputs()),
+        run.dataClass(),
+        run.productKey());
+  }
+
   private Object itemFor(BlueprintStep step, RunScope scope, int ordinal) {
     if (step.forEach() == null) {
       return null;
@@ -595,22 +612,7 @@ public class RunSagaService {
       try {
         jobId =
             stepExecutionClient.submit(
-                new StepDispatch(
-                    run.id(),
-                    step.id(),
-                    ordinal,
-                    step.featureKey(),
-                    step.connectorType(),
-                    resolved,
-                    run.actorId(),
-                    run.correlationId(),
-                    effectiveConfig,
-                    stepDeclarations.scopeGuard(),
-                    stepDeclarations.crisisTerms(),
-                    stepDeclarations.crisisResponse(),
-                    declarations.guardSubject(run.inputs()),
-                    run.dataClass(),
-                    run.productKey()));
+                dispatchOf(run, step, ordinal, resolved, effectiveConfig, stepDeclarations));
       } catch (UnroutableCapabilityException e) {
         // Caught, not propagated: letting it out of an @Transactional method rolls the run back to
         // whatever it was and leaves it in flight for the sweeper to time out an hour later. The

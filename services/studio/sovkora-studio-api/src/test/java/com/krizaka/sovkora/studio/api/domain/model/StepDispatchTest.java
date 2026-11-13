@@ -18,22 +18,8 @@ class StepDispatchTest {
   private static final String ACTOR = "550e8400-e29b-41d4-a716-446655440002";
 
   private static StepDispatch dispatch(String featureKey) {
-    return new StepDispatch(
-        RUN,
-        "describe",
-        0,
-        featureKey,
-        null,
-        Map.of("assetId", "a1"),
-        ACTOR,
-        "intention-42",
-        Map.of("tone", "premium"),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty(),
-        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD,
-        Optional.empty());
+    return plain(
+        RUN, "describe", 0, featureKey, null, Map.of("assetId", "a1"), ACTOR, "intention-42");
   }
 
   /** A dispatch with no brand context, declarations or product: only the identity fields vary. */
