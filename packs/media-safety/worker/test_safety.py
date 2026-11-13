@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import rules  # noqa: E402
 import safety_worker as worker  # noqa: E402
+import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
 
 R = rules.load_ruleset()
 CLEAN = json.dumps({"sexual_or_nudity": False, "graphic_violence": False, "minor_in_unsafe_context": False})
@@ -109,6 +110,19 @@ def test_one_picture_arrives_as_one_answer_not_a_list():
     assert rules.assess(R, DIRTY, 1, None, False)["blockers"] == ["SEXUAL_CONTENT"]
     # with several pictures a bare answer is still not a list: the missing ones stay unread
     assert rules.assess(R, one, 2, None, False)["verdict"] == "UNREADABLE"
+
+
+def test_a_failure_answers_with_a_code_or_a_type_name_never_the_text_of_the_job():
+    key = "job.safety.assess"
+    mark = testkit.MARK
+    testkit.check_failure_answers(
+        worker,
+        fault=(key, {"looks": mark}),
+        refusals=[
+            (key, {"frames": mark, "expectsSpeech": False}, "FRAMES_OUT_OF_RANGE"),
+            (key, {"frames": 1, "expectsSpeech": mark}, "EXPECTS_SPEECH_NOT_BOOLEAN"),
+        ],
+    )
 
 
 if __name__ == "__main__":

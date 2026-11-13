@@ -9,7 +9,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "worker-common"))
 import testkit  # noqa: E402
 import identity_worker as worker  # noqa: E402
-from worker_loop import InvalidJobPayload  # noqa: E402
+import worker_loop  # noqa: E402
+from worker_failure import failure_answer  # noqa: E402
+
+InvalidJobPayload = worker.InvalidJobPayload
 
 TD3 = ["P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<", "L898902C36UTO7408122F1204159ZE184226B<<<<<10"]
 READING = {
@@ -82,6 +85,37 @@ def test_the_barcode_text_is_optional_and_bounded():
     except InvalidJobPayload:
         return
     raise AssertionError("an oversized barcode text must be refused")
+
+
+def _deliver(job_id, payload):
+    on_message = worker_loop.make_on_message("identity", worker.handle, set())
+    return testkit.deliver(on_message, "job.identity.verify", {"jobId": job_id, "payload": payload})
+
+
+def test_a_failure_carries_the_type_name_only_never_the_text_of_the_exception():
+    def explode(payload):
+        raise RuntimeError(f"cannot read: {testkit.MARK}")
+
+    handle = worker_loop.make_handle({"job.identity.verify": explode})
+    on_message = worker_loop.make_on_message("identity", handle, set())
+    channel, out = testkit.deliver(on_message, "job.identity.verify", {"jobId": "id-fault", "payload": {}})
+    testkit.assert_failure_leaks_nothing(channel, out, "RuntimeError", "EXECUTOR_FAULT", "id-fault")
+
+
+def test_a_refused_payload_answers_with_a_code_and_never_the_value_that_was_refused():
+    channel, out = _deliver("id-asof", {"reading": json.dumps(READING), "asOf": testkit.MARK})
+    testkit.assert_failure_leaks_nothing(channel, out, "AS_OF_NOT_A_DAY", "INPUT_INVALID", "id-asof")
+    channel, out = _deliver("id-reading", {"reading": f"{{not json {testkit.MARK}", "asOf": "2011-06-01"})
+    testkit.assert_failure_leaks_nothing(channel, out, "READING_INVALID", "INPUT_INVALID", "id-reading")
+    channel, out = _deliver("id-age", {"reading": json.dumps(READING), "minimumAge": testkit.MARK})
+    testkit.assert_failure_leaks_nothing(channel, out, "MINIMUM_AGE_OUT_OF_RANGE", "INPUT_INVALID", "id-age")
+    channel, out = _deliver("id-code", {"reading": json.dumps(READING), "barcodeText": testkit.MARK * 20000})
+    testkit.assert_failure_leaks_nothing(channel, out, "BARCODE_TOO_LONG", "INPUT_INVALID", "id-code")
+
+
+def test_a_reason_outside_the_closed_set_is_refused():
+    testkit.assert_free_text_reason_refused(InvalidJobPayload)
+    assert failure_answer("j", InvalidJobPayload("READING_INVALID"))["error"] == "READING_INVALID"
 
 
 if __name__ == "__main__":

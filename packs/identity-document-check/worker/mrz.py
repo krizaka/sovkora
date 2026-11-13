@@ -32,7 +32,9 @@ def _value(char: str) -> int:
         return ord(char) - 55
     if char == FILLER:
         return 0
-    raise ValueError(f"{char!r} is not an MRZ character (0-9, A-Z, <)")
+    raise ValueError(
+        "a character outside the zone's alphabet (0-9, A-Z, <)"
+    )  # never the character: it is the document's
 
 
 def check_digit(field: str) -> int:

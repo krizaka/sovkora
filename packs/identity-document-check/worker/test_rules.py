@@ -176,6 +176,14 @@ def test_lines_that_are_not_a_zone_are_a_warning_not_a_crash():
     assert "MRZ_UNREADABLE" in _codes(report, "WARN") and report["status"] == "REVIEW"
 
 
+def test_an_unreadable_zone_names_the_rule_never_the_characters_of_the_document():
+    line = "P<UTO" + "#" * 39  # the right shape, with a character the alphabet does not have
+    report = _report(_read(mrzLines=[line, line]))
+    finding = next(f for f in report["findings"] if f["code"] == "MRZ_UNREADABLE")
+    assert "#" not in __import__("json").dumps(finding)
+    assert "alphabet" in finding["evidence"]["value"]
+
+
 def test_the_barcode_is_compared_with_the_printed_fields():
     text = "@\n\x1e\rANSI 636026\nDAQ L8989-02C3\nDCSERIKSSON\nDACANNA\nDBB19740812\nDBA20120415\n"
     ok = _report(barcode_text=text)

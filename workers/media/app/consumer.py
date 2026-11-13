@@ -53,6 +53,7 @@ from app import (
 )
 from app import cut as film
 from app.composer import compose
+from app.failure import CodedReason
 from app.registration import load_declaration, start_background_registration
 from app.telemetry import (
     EXECUTOR_FAULT,
@@ -293,7 +294,7 @@ def _starting_image(job: dict, payload: dict, scratch: str):
     elif os.path.isabs(named) and os.path.isfile(named):
         return _materialise(named, scratch)
     # Named but not there: a run that quietly ignored its photo is not the run that was asked for (§12).
-    raise InvalidJobPayload("the starting image the job names is not readable on this host")
+    raise InvalidJobPayload(STARTING_IMAGE_UNREADABLE)
 
 
 def _generate(job: dict) -> tuple:
@@ -319,7 +320,7 @@ def _generate_with(job: dict, scratch: str) -> tuple:
         # Checked before a GPU second is spent: an aspect nobody can make is the caller's to fix.
         video_models.normalise_aspect(payload.get("aspect"))
     except video_models.UnsupportedAspect as bad:
-        raise InvalidJobPayload(str(bad)) from bad
+        raise InvalidJobPayload(ASPECT_UNSUPPORTED) from bad
 
     output_path, public_url = _output_paths(job["userId"], job_id)
     request_body = _build_generation_request(job, job_id, payload, prompt, output_path, scratch)
@@ -351,9 +352,8 @@ def _build_generation_request(
     if photo:
         request_body["image_path"] = photo
     model = _requested_model(payload, job)
-    refusal = hosted_refusal(model)
-    if refusal:
-        raise InvalidJobPayload(refusal)
+    if hosted_refusal(model):
+        raise InvalidJobPayload(MODEL_NOT_HOSTED)
     if model:
         request_body["model"] = model
     else:
@@ -378,7 +378,8 @@ def _call_local_pipeline(job_id: str, request_body: dict) -> dict:
         if refused.code == 400:
             # The pipeline positively checked the request and refused it (unknown model, an aspect
             # the model cannot make, a starting image for a text-to-video model): the caller's.
-            raise InvalidJobPayload(refused.read().decode("utf-8", "replace")[:300]) from refused
+            # Only the code leaves: the pipeline's own answer can quote the request (a prompt, a model, a path).
+            raise InvalidJobPayload(PIPELINE_REFUSED_REQUEST) from refused
         raise
 
 
@@ -471,11 +472,11 @@ def _cut(job: dict) -> tuple:
     payload = job.get("payload") or {}
     references = _as_list(payload.get("clips"))
     if not references:
-        raise InvalidJobPayload("the cut has no clips")
+        raise InvalidJobPayload(CUT_HAS_NO_CLIPS)
     try:
         edit = film.parse_edit(payload.get("edit") or "{}", len(references))
     except film.EditError as bad:
-        raise InvalidJobPayload(str(bad)) from bad
+        raise InvalidJobPayload(CUT_EDIT_INVALID) from bad
     upload_root = _upload_root()
     user_id = job.get("userId")
     output_path, public_url = _output_paths(job["userId"], job["jobId"])
@@ -492,7 +493,7 @@ def _cut(job: dict) -> tuple:
             else:
                 found = _resolve_owned_output(upload_root, user_id, reference, scratch)
             if not found:
-                raise InvalidJobPayload(f"clip {i} was not found among your files")
+                raise InvalidJobPayload(CLIP_NOT_FOUND)
             readable.append(_materialise(found, scratch))
         send_progress_update(job["jobId"], 10, phase="cutting")
         metrics = film.cut(readable, edit, output_path, provenance={"clips": len(readable)})
@@ -630,7 +631,7 @@ def _seed(payload: dict):
     try:
         return int(str(raw).strip()) if raw not in (None, "") else None
     except ValueError:
-        raise InvalidJobPayload("seed must be a whole number") from None
+        raise InvalidJobPayload(SEED_NOT_WHOLE_NUMBER) from None
 
 
 def _sound(job: dict) -> tuple:
@@ -651,16 +652,16 @@ def _sound(job: dict) -> tuple:
         reference = payload.get("video")
         video = _resolve_owned_output(upload_root, user_id, str(reference), scratch) if reference else None
         if not video:
-            raise InvalidJobPayload("the video to give sound to was not found among your files")
+            raise InvalidJobPayload(VIDEO_NOT_FOUND)
         voice_ref = payload.get("voice") or None
         voice = _resolve_owned_output(upload_root, user_id, str(voice_ref), scratch) if voice_ref else None
         if voice_ref and not voice:
-            raise InvalidJobPayload("the voice-over was not found among your files")
+            raise InvalidJobPayload(VOICE_OVER_NOT_FOUND)
 
         foley_prompt = (payload.get("foley") or "").strip()
         music_prompt = (payload.get("music") or "").strip()
         if not (foley_prompt or music_prompt or voice):
-            raise InvalidJobPayload("describe a foley, a music bed, or bring a voice-over")
+            raise InvalidJobPayload(SOUND_NOTHING_REQUESTED)
         seed = _seed(payload)
         foley_model, music_model = _resolve_sound_models(foley_prompt, music_prompt, payload)
 
@@ -673,7 +674,7 @@ def _sound(job: dict) -> tuple:
         try:
             measured = sound.add_sound(readable, sound.Tracks(**tracks), output_path)
         except sound.SoundError as bad:
-            raise InvalidJobPayload(str(bad)) from bad
+            raise InvalidJobPayload(SOUND_INVALID) from bad
         stages["mix"] = {"wallSeconds": round(time.time() - started, 1)}
 
         silent_path = measured.pop("silentPath")
@@ -703,13 +704,13 @@ def _resolve_sound_models(foley_prompt: str, music_prompt: str, payload: dict):
     try:
         foley_model = sound_generators.resolve("foley", payload.get("foleyModel")) if foley_prompt else None
         music_model = sound_generators.resolve("music", payload.get("musicModel")) if music_prompt else None
+    except sound_generators.NonCommercialWeightRefused as refused:
+        raise InvalidJobPayload(SOUND_MODEL_NOT_LICENSED) from refused
     except sound_generators.UnknownSoundModel as unknown:
-        raise InvalidJobPayload(str(unknown)) from unknown
+        raise InvalidJobPayload(SOUND_MODEL_UNKNOWN) from unknown
     if foley_prompt and foley_model is None:
-        raise InvalidJobPayload(
-            "no commercially licensed foley model is installed: ask for one by name with foleyModel "
-            "(a non-commercial model is refused unless MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS=true) or leave foley empty"
-        )
+        # No commercially licensed foley model is installed: ask for one by name (foleyModel) or leave foley empty.
+        raise InvalidJobPayload(FOLEY_MODEL_REQUIRED)
     return foley_model, music_model
 
 
@@ -756,14 +757,55 @@ def _is_sound(routing_key: str) -> bool:
     return bool(routing_key) and routing_key.startswith(SOUND_PREFIX)
 
 
-class InvalidJobPayload(ValueError):
+STARTING_IMAGE_UNREADABLE = "STARTING_IMAGE_UNREADABLE"
+ASPECT_UNSUPPORTED = "ASPECT_UNSUPPORTED"
+MODEL_NOT_HOSTED = "MODEL_NOT_HOSTED"
+PIPELINE_REFUSED_REQUEST = "PIPELINE_REFUSED_REQUEST"
+CUT_HAS_NO_CLIPS = "CUT_HAS_NO_CLIPS"
+CUT_EDIT_INVALID = "CUT_EDIT_INVALID"
+CLIP_NOT_FOUND = "CLIP_NOT_FOUND"
+SEED_NOT_WHOLE_NUMBER = "SEED_NOT_WHOLE_NUMBER"
+VIDEO_NOT_FOUND = "VIDEO_NOT_FOUND"
+VOICE_OVER_NOT_FOUND = "VOICE_OVER_NOT_FOUND"
+SOUND_NOTHING_REQUESTED = "SOUND_NOTHING_REQUESTED"
+SOUND_INVALID = "SOUND_INVALID"
+SOUND_MODEL_UNKNOWN = "SOUND_MODEL_UNKNOWN"
+SOUND_MODEL_NOT_LICENSED = "SOUND_MODEL_NOT_LICENSED"
+FOLEY_MODEL_REQUIRED = "FOLEY_MODEL_REQUIRED"
+JOB_COMMAND_INCOMPLETE = "JOB_COMMAND_INCOMPLETE"
+
+
+class InvalidJobPayload(CodedReason):
     """The payload was positively checked and found unusable (ADR-053 ``INPUT_INVALID``).
+
+    Its reason is a code from :data:`REASONS`, never text taken from the job: the error event is stored and the log outlives it.
 
     A distinct type rather than a string test, because ``INPUT_INVALID`` is the only cause that
     BILLS the actor for the work a run already did. Raising it is a claim this worker is
     accountable for, and a bare ``except`` must never be able to make that claim by accident —
     ADR-046 §2's counter-example was our own defect wearing a user's fault.
     """
+
+    REASONS = frozenset(
+        {
+            STARTING_IMAGE_UNREADABLE,
+            ASPECT_UNSUPPORTED,
+            MODEL_NOT_HOSTED,
+            PIPELINE_REFUSED_REQUEST,
+            CUT_HAS_NO_CLIPS,
+            CUT_EDIT_INVALID,
+            CLIP_NOT_FOUND,
+            SEED_NOT_WHOLE_NUMBER,
+            VIDEO_NOT_FOUND,
+            VOICE_OVER_NOT_FOUND,
+            SOUND_NOTHING_REQUESTED,
+            SOUND_INVALID,
+            SOUND_MODEL_UNKNOWN,
+            SOUND_MODEL_NOT_LICENSED,
+            FOLEY_MODEL_REQUIRED,
+            JOB_COMMAND_INCOMPLETE,
+        }
+    )
 
 
 def _hold_id(job: dict):
@@ -830,7 +872,7 @@ def _on_message(channel, method, _properties, body) -> None:
             return  # acknowledged by the finally below, once
         hold_id = _hold_id(job)
         if not job_id or not job.get("userId"):
-            raise InvalidJobPayload("JobCommand is missing jobId or userId")
+            raise InvalidJobPayload(JOB_COMMAND_INCOMPLETE)
         if job_control.is_cancelled(job_id):
             # Its owner stopped it while it waited in the queue: drop it before a GPU second is spent.
             print(f"[consumer] job {job_id} was cancelled while queued: dropped", flush=True)
@@ -848,23 +890,27 @@ def _on_message(channel, method, _properties, body) -> None:
         if job_id:
             send_job_cancelled(job_id, hold_id=hold_id)
     except InvalidJobPayload as bad:
-        print(f"[consumer] job {job_id} rejected: {bad}", flush=True)
+        print(f"[consumer] job {job_id} rejected: {bad.reason}", flush=True)
         if job_id:
-            send_job_error(job_id, str(bad), hold_id=hold_id, cause=INPUT_INVALID)
+            send_job_error(job_id, bad.reason, hold_id=hold_id, cause=INPUT_INVALID)
     except (ConnectionError, FileNotFoundError) as missing:
         # Something this worker depends on was not there — a socket, a binary. Not our logic being
         # wrong and not the user's payload: it releases, and the audit trail says which morning
         # this was rather than lumping it in with our defects.
-        print(f"[consumer] job {job_id} could not run: {missing}", flush=True)
+        # The type name only: a missing file's message is a path, which carries the owner's id and file names.
+        print(f"[consumer] job {job_id} could not run: {type(missing).__name__}", flush=True)
         if job_id:
-            send_job_error(job_id, str(missing), hold_id=hold_id, cause=PLATFORM_UNAVAILABLE)
+            send_job_error(
+                job_id, type(missing).__name__, hold_id=hold_id, cause=PLATFORM_UNAVAILABLE
+            )
     except Exception as e:  # honest failure: report and ack — a bad job never succeeds on retry
-        print(f"[consumer] job {job_id} failed: {e}", flush=True)
+        # The type name only: the message of an exception raised while reading a prompt or a clip can quote it.
+        print(f"[consumer] job {job_id} failed: {type(e).__name__}", flush=True)
         if job_id:
             # EXECUTOR_FAULT, not a guess at the user's fault: anything reaching here is something
             # this worker did not anticipate, and not anticipating it is ours by definition. The
             # hold is carried so billing releases it.
-            send_job_error(job_id, str(e), hold_id=hold_id, cause=EXECUTOR_FAULT)
+            send_job_error(job_id, type(e).__name__, hold_id=hold_id, cause=EXECUTOR_FAULT)
     finally:
         heartbeat.stop()
         stages.release(job_id)
@@ -876,7 +922,10 @@ def _on_message(channel, method, _properties, body) -> None:
                 functools.partial(channel.basic_ack, delivery_tag=method.delivery_tag)
             )
         except pika.exceptions.AMQPError as lost:
-            print(f"[consumer] could not acknowledge job {job_id} (the connection is gone): {lost}", flush=True)
+            print(
+                f"[consumer] could not acknowledge job {job_id} (the connection is gone): {type(lost).__name__}",
+                flush=True,
+            )
 
 
 def _dispatch_job(job: dict, routing_key: str) -> tuple:

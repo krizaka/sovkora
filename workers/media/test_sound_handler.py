@@ -72,7 +72,7 @@ def test_music_bed_gives_the_clip_sound_and_keeps_a_silent_variant(world):
 def test_a_job_naming_non_commercial_weights_is_refused_in_production(world, monkeypatch):
     _, calls = world
     monkeypatch.delenv("MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS", raising=False)
-    with pytest.raises(consumer.InvalidJobPayload, match="non-commercial"):
+    with pytest.raises(consumer.InvalidJobPayload, match="SOUND_MODEL_NOT_LICENSED"):
         consumer._sound(
             job(
                 {
@@ -88,7 +88,7 @@ def test_a_job_naming_non_commercial_weights_is_refused_in_production(world, mon
 def test_foley_needs_the_non_commercial_model_by_name(world, monkeypatch):
     monkeypatch.setenv("MEDIA_ALLOW_NON_COMMERCIAL_WEIGHTS", "true")
     _, calls = world
-    with pytest.raises(consumer.InvalidJobPayload, match="foleyModel"):
+    with pytest.raises(consumer.InvalidJobPayload, match="FOLEY_MODEL_REQUIRED"):
         consumer._sound(job({"video": "/uploads/u1/jobA/output/video.mp4", "foley": "tea pouring"}))
     assert calls == []
     consumer._sound(
@@ -100,9 +100,9 @@ def test_foley_needs_the_non_commercial_model_by_name(world, monkeypatch):
 
 
 def test_another_actors_output_is_not_found(world):
-    with pytest.raises(consumer.InvalidJobPayload, match="not found"):
+    with pytest.raises(consumer.InvalidJobPayload, match="VIDEO_NOT_FOUND"):
         consumer._sound(job({"video": "/uploads/u2/jobB/output/video.mp4", "music": "x"}))
-    with pytest.raises(consumer.InvalidJobPayload, match="not found"):
+    with pytest.raises(consumer.InvalidJobPayload, match="VIDEO_NOT_FOUND"):
         consumer._sound(job({"video": "/uploads/u1/../u2/jobB/output/video.mp4", "music": "x"}))
 
 
@@ -114,7 +114,7 @@ def test_nothing_to_add_is_refused_before_any_model_runs(world):
 
 
 def test_unknown_model_is_refused_by_name(world):
-    with pytest.raises(consumer.InvalidJobPayload, match="musicgen"):
+    with pytest.raises(consumer.InvalidJobPayload, match="SOUND_MODEL_UNKNOWN"):
         consumer._sound(job({"video": "/uploads/u1/jobA/output/video.mp4", "music": "x", "musicModel": "musicgen"}))
 
 
@@ -155,7 +155,7 @@ def test_on_a_host_without_the_platform_disk_the_clip_is_read_back_from_the_job_
 
 
 def test_another_actors_asset_url_is_not_found(world):
-    with pytest.raises(consumer.InvalidJobPayload, match="not found"):
+    with pytest.raises(consumer.InvalidJobPayload, match="VIDEO_NOT_FOUND"):
         consumer._sound(job({"video": "/api/v1/assets/jobB/video.mp4", "music": "x"}))
 
 

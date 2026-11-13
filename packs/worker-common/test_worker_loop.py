@@ -58,12 +58,16 @@ def test_a_handled_job_publishes_done_with_its_consumption_and_is_acknowledged()
     assert channel.acked == [7] and channel.nacked == []
 
 
+class ReadingInvalid(loop.InvalidJobPayload):
+    REASONS = frozenset({"READING_NOT_JSON"})
+
+
 def test_an_unusable_payload_is_the_billable_cause_and_the_message_is_still_acknowledged():
     def refuse(key, job):
-        raise loop.InvalidJobPayload("'reading' is not JSON")
+        raise ReadingInvalid("READING_NOT_JSON")
 
     channel = _deliver(refuse, json.dumps({"jobId": "j2"}).encode())
-    assert channel.published[0][2] == {"jobId": "j2", "error": "'reading' is not JSON", "cause": "INPUT_INVALID"}
+    assert channel.published[0][2] == {"jobId": "j2", "error": "READING_NOT_JSON", "cause": "INPUT_INVALID"}
     assert channel.acked == [7]
 
 

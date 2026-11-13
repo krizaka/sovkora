@@ -700,6 +700,36 @@ class Shell(unittest.TestCase):
         self.assertEqual(causes, ["INPUT_INVALID", "EXECUTOR_FAULT"])
         self.assertEqual(self.channel.acked, [1, 2])
 
+    def test_a_refusal_answers_with_a_code_and_never_what_the_caller_wrote(self):
+        mark = "MARK-3b9c-TENANT-TEXT"
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.deliver("job.screening.plan", {"jobId": "j-7", "payload": dict(applicant(), cutoffs={mark: []})})
+        self.assertEqual(
+            self.channel.published,
+            [("orazaka.events", "job.j-7.error", {"jobId": "j-7", "error": "INPUT_REFUSED", "cause": "INPUT_INVALID"})],
+        )
+        self.assertNotIn(mark, json.dumps(self.channel.published) + out.getvalue())
+        self.assertIn("INPUT_REFUSED", out.getvalue())
+
+    def test_a_crash_answers_with_the_type_name_and_never_the_text_of_the_exception(self):
+        mark = "MARK-3b9c-TENANT-TEXT"
+        out = io.StringIO()
+        with mock.patch.object(handlers, "handle", side_effect=RuntimeError(f"cannot read {mark}")):
+            with redirect_stdout(out):
+                self.deliver("job.screening.plan", {"jobId": "j-8", "payload": {}})
+        self.assertEqual(
+            self.channel.published[0][2], {"jobId": "j-8", "error": "RuntimeError", "cause": "EXECUTOR_FAULT"}
+        )
+        self.assertNotIn(mark, json.dumps(self.channel.published) + out.getvalue())
+
+    def test_a_reason_outside_the_closed_set_is_refused(self):
+        import screening_worker
+
+        with self.assertRaises(ValueError):
+            screening_worker.Refusal("free text")
+        self.assertEqual(screening_worker.Refusal.of(screening.ProviderNotEnabled("x")).reason, "PROVIDER_NOT_ENABLED")
+
     def test_a_replayed_message_is_acknowledged_and_not_run_twice(self):
         job = {"jobId": "j-4", "payload": {"purpose": "CREDIT", "consentedPurposes": ["CREDIT"]}}
         self.deliver("job.screening.consent", job)

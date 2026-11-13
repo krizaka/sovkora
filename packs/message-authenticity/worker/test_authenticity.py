@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import authenticity_worker as worker  # noqa: E402
 import language  # noqa: E402
 import rules  # noqa: E402
+import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
 
 RULESET = rules.load_ruleset()
 FR = "Salut ! J’ai vu que tu aimes la randonnée aussi, tu connais le sentier derrière le mont Royal et les petits restos du coin ?"
@@ -91,7 +92,7 @@ def test_protocol_conformance():
     assert d["bindings"] == ["job.authenticity.*"] and "job.authenticity.*" not in src
     assert d["concurrency"] == 1 and set(worker.HANDLERS) == {"job.authenticity.read"}
     assert not re.search(r"orazaka\.message\.|featureKey", src.replace("`featureKey`", ""))
-    assert src.count('"cause": INPUT_INVALID') == 1
+    assert "worker_failure.report_failure" in src and "str(bad)" not in src
 
 
 def test_the_worker_writes_nothing_for_anyone():
@@ -100,6 +101,15 @@ def test_the_worker_writes_nothing_for_anyone():
         + open(os.path.join(worker.HERE, "classifier.py")).read()
     )
     assert not re.search(r"\.generate\(|AutoModelForCausalLM|AutoModelForSeq2SeqLM|chat\.completions", src)
+
+
+def test_a_failure_answers_with_a_code_or_a_type_name_never_the_text_of_the_job():
+    key = "job.authenticity.read"
+    testkit.check_failure_answers(
+        worker,
+        fault=(key, {"text": testkit.MARK}),
+        refusals=[(key, {"text": testkit.MARK * 1000}, "TEXT_TOO_LONG"), (key, {"text": "   "}, "TEXT_MISSING")],
+    )
 
 
 if __name__ == "__main__":

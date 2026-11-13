@@ -23,6 +23,7 @@ import yaml
 import broker
 import faces
 import rules
+import worker_failure
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECLARATION = yaml.safe_load(open(os.path.join(HERE, "worker.yaml"), encoding="utf-8"))
@@ -44,8 +45,29 @@ PLATFORM_UNAVAILABLE = "PLATFORM_UNAVAILABLE"
 TIMEOUT = "TIMEOUT"
 
 
-class InvalidJobPayload(ValueError):
-    """This worker checked the payload and found it unusable — the one cause that bills."""
+COUNT_OUT_OF_RANGE = "COUNT_OUT_OF_RANGE"
+PHOTOS_NOT_A_LIST = "PHOTOS_NOT_A_LIST"
+TOO_MANY_PHOTOS = "TOO_MANY_PHOTOS"
+COMPARE_FACES_NOT_BOOLEAN = "COMPARE_FACES_NOT_BOOLEAN"
+PHOTO_UNREADABLE = "PHOTO_UNREADABLE"
+FACTS_NOT_JSON = "FACTS_NOT_JSON"
+FACTS_NOT_INSPECTION = "FACTS_NOT_INSPECTION"
+
+
+class InvalidJobPayload(worker_failure.InvalidJobPayload):
+    """This worker checked the payload and found it unusable — the one cause that bills. Its reason is a code, never a value."""
+
+    REASONS = frozenset(
+        {
+            COUNT_OUT_OF_RANGE,
+            PHOTOS_NOT_A_LIST,
+            TOO_MANY_PHOTOS,
+            COMPARE_FACES_NOT_BOOLEAN,
+            PHOTO_UNREADABLE,
+            FACTS_NOT_JSON,
+            FACTS_NOT_INSPECTION,
+        }
+    )
 
 
 _ENGINE = None
@@ -64,27 +86,27 @@ def _count(payload: dict, key: str, low: int, high: int) -> int:
     if isinstance(value, str) and value.strip().isdigit():  # a blueprint renders a lone number as text
         value = int(value)
     if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
-        raise InvalidJobPayload(f"'{key}' must be an integer between {low} and {high}")
+        raise InvalidJobPayload(COUNT_OUT_OF_RANGE)
     return value
 
 
 def _inspect(payload: dict, engine=None) -> dict:
     photos = payload.get("photosBase64")
     if not isinstance(photos, list) or not photos:
-        raise InvalidJobPayload("'photosBase64' must be a non-empty list")
+        raise InvalidJobPayload(PHOTOS_NOT_A_LIST)
     if len(photos) > MAX_PHOTOS_PER_JOB:
-        raise InvalidJobPayload(f"at most {MAX_PHOTOS_PER_JOB} photos per check")
+        raise InvalidJobPayload(TOO_MANY_PHOTOS)
     # A blueprint renders a lone boolean placeholder as text: "true" / "false" are read as the booleans they stand for.
     compare = payload.get("compareFaces", True)
     if isinstance(compare, str) and compare.strip().lower() in ("true", "false"):
         compare = compare.strip().lower() == "true"
     if not isinstance(compare, bool):
-        raise InvalidJobPayload("'compareFaces' must be true or false")
+        raise InvalidJobPayload(COMPARE_FACES_NOT_BOOLEAN)
     ruleset = rules.load_ruleset()
     try:
         facts = faces.inspect_photos(photos, engine or _engine(ruleset), ruleset, compare)
     except faces.UnreadableImage as bad:
-        raise InvalidJobPayload(str(bad)) from bad
+        raise InvalidJobPayload(PHOTO_UNREADABLE) from bad
     # `factsJson` exists because a blueprint addresses a step's FIELDS, not its whole output as data (ADR-052 §6).
     return dict(facts, factsJson=json.dumps(facts))
 
@@ -94,13 +116,14 @@ def _assess(payload: dict) -> dict:
     try:
         facts = json.loads(raw) if isinstance(raw, str) else raw
     except json.JSONDecodeError as bad:
-        raise InvalidJobPayload(f"'facts' is not JSON ({bad}); received: {str(raw)[:120]!r}") from bad
+        # Only the code leaves: the parse error quotes the facts, and the facts are what the vision step read off a photo.
+        raise InvalidJobPayload(FACTS_NOT_JSON) from bad
     if (
         not isinstance(facts, dict)
         or not isinstance(facts.get("photos"), list)
         or not isinstance(facts.get("identity"), dict)
     ):
-        raise InvalidJobPayload("'facts' is not the output of the inspection step")
+        raise InvalidJobPayload(FACTS_NOT_INSPECTION)
     counts = {
         "minPhotos": _count(payload, "minPhotos", 1, 12),
         "maxPhotos": _count(payload, "maxPhotos", 1, 12),
@@ -152,12 +175,8 @@ def _on_message(channel, method, properties, body) -> None:
     try:
         result, consumption = _handle(method.routing_key, job)
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except InvalidJobPayload as bad:
-        print(f"[photo] job {job_id} rejected: {bad}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-        print(f"[photo] job {job_id} failed: {type(failure).__name__}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
+        worker_failure.report_failure(_emit, channel, "photo", method.routing_key, job_id, failure)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

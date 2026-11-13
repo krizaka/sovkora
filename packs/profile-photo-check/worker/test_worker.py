@@ -15,6 +15,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import faces  # noqa: E402
 import photo_worker as worker  # noqa: E402
 import rules  # noqa: E402
+import testkit  # noqa: E402  (worker-common, on the path once the worker has imported its broker)
+
+FACTS = {"photos": [], "identity": {"status": "NOT_COMPARABLE", "mismatch": [], "compared": 0}}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SOURCE = open(os.path.join(HERE, "photo_worker.py"), encoding="utf-8").read()
@@ -158,14 +161,26 @@ def test_protocol_conformance():
         worker.PLATFORM_UNAVAILABLE,
         worker.TIMEOUT,
     } == {"GUARD_REFUSAL", "INPUT_INVALID", "EXECUTOR_FAULT", "PLATFORM_UNAVAILABLE", "TIMEOUT"}
-    assert (
-        "INPUT_INVALID" in SOURCE and SOURCE.count('cause": INPUT_INVALID') == 1
-    )  # only from the checked-payload branch
+    assert "worker_failure.report_failure" in SOURCE and "str(bad)" not in SOURCE  # the cause comes from one place
 
 
 def test_the_embedding_vectors_are_not_in_any_output_key():
     out = worker._inspect({"photosBase64": photos("face-a", "face-b")}, engine=Engine())
     assert "[1.0" not in out["factsJson"] and "0.0, 1.0" not in out["factsJson"]
+
+
+def test_a_failure_answers_with_a_code_or_a_type_name_never_the_text_of_the_job():
+    inspect, assess = "job.photo.inspect", "job.photo.assess"
+    mark = testkit.MARK
+    testkit.check_failure_answers(
+        worker,
+        fault=(assess, {"facts": mark}),
+        refusals=[
+            (assess, {"facts": f"{{not json {mark}", "minPhotos": 4}, "FACTS_NOT_JSON"),
+            (inspect, {"photosBase64": mark}, "PHOTOS_NOT_A_LIST"),
+            (assess, {"facts": json.dumps(FACTS), "minPhotos": mark}, "COUNT_OUT_OF_RANGE"),
+        ],
+    )
 
 
 if __name__ == "__main__":
