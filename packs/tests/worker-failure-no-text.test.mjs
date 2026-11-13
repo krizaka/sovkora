@@ -9,11 +9,11 @@
 // ALLOWED lists the sites still tolerated, as `file:rule`; each must still be hit (a fixed site must leave the list), so it
 // can only shrink.
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { test } from "node:test";
+import { PACKS, packWorkerFiles } from "./pack-worker-files.mjs";
 
-const PACKS = new URL("..", import.meta.url).pathname;
 const REPO = join(PACKS, "..");
 
 /** `file:rule` pairs still tolerated, each with its reason. */
@@ -24,12 +24,7 @@ export const ALLOWED = [
 ];
 
 function workerSources() {
-  const files = [];
-  for (const entry of readdirSync(PACKS, { withFileTypes: true })) {
-    const dir = join(PACKS, entry.name, "worker");
-    if (!entry.isDirectory() || !existsSync(dir)) continue;
-    for (const f of readdirSync(dir)) if (f.endsWith(".py") && !f.startsWith("test_")) files.push(join(dir, f));
-  }
+  const files = packWorkerFiles();
   files.push(join(PACKS, "worker-common", "worker_loop.py"), join(PACKS, "worker-common", "worker_failure.py"));
   for (const f of ["consumer.py", "speech_server.py"]) files.push(join(REPO, "workers", "media", "app", f));
   return files.filter((f) => existsSync(f));
