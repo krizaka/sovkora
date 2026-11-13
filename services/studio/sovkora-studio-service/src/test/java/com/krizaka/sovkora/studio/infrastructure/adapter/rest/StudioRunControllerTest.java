@@ -2,6 +2,8 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,9 +36,18 @@ class StudioRunControllerTest {
       Jwt.withTokenValue("t").header("alg", "HS256").subject(ACTOR).build();
 
   private final StudioRunService runService = mock(StudioRunService.class);
+  private final IdempotentRunStartService starter = mock(IdempotentRunStartService.class);
   private final StudioRunController controller =
-      new StudioRunController(
-          runService, mock(IdempotentRunStartService.class), mock(RunEventService.class));
+      new StudioRunController(runService, starter, mock(RunEventService.class));
+
+  /** The starter runs the start it is given, as it does when the request carries no key. */
+  private void starterRunsTheStart() {
+    when(starter.start(any(), any(), any(), any(), any()))
+        .thenAnswer(
+            call ->
+                new IdempotentRunStartService.Started(
+                    ((java.util.function.Supplier<RunDetail>) call.getArgument(4)).get(), false));
+  }
 
   private static RunDetail run(RunStatus status) {
     return new RunDetail(
@@ -52,7 +63,8 @@ class StudioRunControllerTest {
         null,
         List.of(),
         null,
-        null);
+        null,
+        java.math.BigDecimal.ZERO);
   }
 
   @Test
@@ -107,5 +119,29 @@ class StudioRunControllerTest {
 
     assertThatThrownBy(() -> controller.deny(RUN, null, ACTOR_JWT))
         .isInstanceOf(RunNotFoundException.class);
+  }
+
+  @Test
+  @DisplayName("[3368] the product the edge declared is the one the run is started under")
+  void theDeclaredProductStartsTheRun() {
+    starterRunsTheStart();
+    when(runService.start(eq("trade-showcase"), eq(ACTOR), any(), any()))
+        .thenReturn(run(RunStatus.RUNNING));
+
+    controller.startStudio("trade-showcase", null, null, "verikora", ACTOR_JWT);
+
+    verify(runService).start("trade-showcase", ACTOR, java.util.Map.of(), Optional.of("verikora"));
+  }
+
+  @Test
+  @DisplayName("[3368] a request that declares no product starts a run counted as unattributed")
+  void noProductStartsAnUnattributedRun() {
+    starterRunsTheStart();
+    when(runService.start(eq("trade-showcase"), eq(ACTOR), any(), any()))
+        .thenReturn(run(RunStatus.RUNNING));
+
+    controller.startStudio("trade-showcase", null, null, " ", ACTOR_JWT);
+
+    verify(runService).start("trade-showcase", ACTOR, java.util.Map.of(), Optional.empty());
   }
 }

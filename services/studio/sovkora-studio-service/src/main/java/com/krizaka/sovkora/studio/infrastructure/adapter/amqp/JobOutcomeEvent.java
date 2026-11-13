@@ -2,6 +2,7 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.amqp;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -26,6 +27,8 @@ import java.util.Map;
  * @param cause why it failed, <b>declared</b> by the executor that failed it (ADR-053). Read
  *     through {@link #failureCause()} and never off {@code error}: a producer that says nothing is
  *     an executor fault, which releases the hold and blames nobody
+ * @param costUsd what the step's provider calls cost, priced by the job plane from the price table;
+ *     {@code null} when it priced nothing (a model with no price row, a step with no provider call)
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record JobOutcomeEvent(
@@ -34,7 +37,8 @@ public record JobOutcomeEvent(
     Map<String, Object> consumption,
     String model,
     String error,
-    String cause) {
+    String cause,
+    BigDecimal costUsd) {
 
   /**
    * The declared cause, or {@link FailureCause#EXECUTOR_FAULT} when none was declared.
@@ -48,6 +52,13 @@ public record JobOutcomeEvent(
    */
   public FailureCause failureCause() {
     return FailureCause.of(cause);
+  }
+
+  /**
+   * @return what the step cost, never null — a step that priced nothing adds nothing to the run
+   */
+  public BigDecimal costOrZero() {
+    return costUsd == null ? BigDecimal.ZERO : costUsd;
   }
 
   /**

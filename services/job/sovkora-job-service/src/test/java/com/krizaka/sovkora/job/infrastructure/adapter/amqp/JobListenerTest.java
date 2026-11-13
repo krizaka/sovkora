@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.krizaka.messaging.dedup.MessageDedup;
+import com.krizaka.sovkora.engine.interceptors.governance.SpendScope;
 import com.krizaka.sovkora.job.application.service.ContextService;
 import com.krizaka.sovkora.job.infrastructure.adapter.checks.ExternalCheckStrategy;
 import com.krizaka.sovkora.job.infrastructure.adapter.checks.MockProviderKeyStore;
@@ -62,7 +63,8 @@ class JobListenerTest {
   private final com.krizaka.billing.domain.port.UnmeteredTurnRepository unmeteredTurns =
       recordedTurns::add;
 
-  private final RunningJobs runningJobs = new RunningJobs();
+  private final RunningJobs runningJobs =
+      new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
 
   private JobListener listener;
   private ObjectMapper objectMapper = new ObjectMapper();
@@ -210,7 +212,8 @@ class JobListenerTest {
 
     org.mockito.ArgumentCaptor<Map<String, Object>> consumption =
         org.mockito.ArgumentCaptor.forClass(Map.class);
-    verify(jobEventPublisher).emitDone(eq(jobId), any(), eq("llama"), any(), consumption.capture());
+    verify(jobEventPublisher)
+        .emitDone(eq(jobId), any(), eq("llama"), any(), consumption.capture(), any());
     assertEquals(
         42, consumption.getValue().get("tokens"), "a measurement in the vocabulary crosses");
     assertFalse(consumption.getValue().containsKey("invented"), "a key outside it does not");
@@ -218,6 +221,65 @@ class JobListenerTest {
         consumption.getValue().get("gpuSeconds") instanceof java.math.BigDecimal,
         "gpuSeconds is the listener's measurement, not the executor's: "
             + consumption.getValue().get("gpuSeconds"));
+  }
+
+  @Test
+  void aStepThatNamesItsProduct_isCountedUnderThatProduct() throws Exception {
+    // krizaka-internal#3368: the studio stamps the product of the run's key on the step; the job
+    // plane makes it the engine's own declaration, so the ledger counts the step's calls under it.
+    String jobId = "job-product";
+    String userId = UUID.randomUUID().toString();
+    JobCommand msg =
+        new JobCommand(
+            jobId,
+            userId,
+            "chat.text",
+            "default",
+            Map.of("prompt", "Hello test", JobCommand.SPEND_PRODUCT_KEY, "verikora"),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
+    when(chatStrategy.execute(eq(msg), any()))
+        .thenReturn(JobExecutionResult.of(Map.of("content", "ok")));
+
+    listener.onMessage(msg, null);
+
+    org.mockito.ArgumentCaptor<com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext>
+        context =
+            org.mockito.ArgumentCaptor.forClass(
+                com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext.class);
+    verify(chatStrategy).execute(eq(msg), context.capture());
+    assertEquals(
+        "verikora",
+        context.getValue().preferences().get(SpendScope.PRODUCT_DECLARATION),
+        "the product of the run's key is the engine's declaration");
+  }
+
+  @Test
+  void aStepThatNamesNoProduct_declaresNone() throws Exception {
+    String jobId = "job-no-product";
+    String userId = UUID.randomUUID().toString();
+    JobCommand msg =
+        new JobCommand(
+            jobId,
+            userId,
+            "chat.text",
+            "default",
+            Map.of("prompt", "Hello test"),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
+    when(chatStrategy.execute(eq(msg), any()))
+        .thenReturn(JobExecutionResult.of(Map.of("content", "ok")));
+
+    listener.onMessage(msg, null);
+
+    org.mockito.ArgumentCaptor<com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext>
+        context =
+            org.mockito.ArgumentCaptor.forClass(
+                com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext.class);
+    verify(chatStrategy).execute(eq(msg), context.capture());
+    assertFalse(
+        context.getValue().preferences().containsKey(SpendScope.PRODUCT_DECLARATION),
+        "no declaration: the ledger counts it as unattributed");
   }
 
   private static User activeUser(String userId) {
@@ -1059,7 +1121,8 @@ class JobListenerTest {
     org.mockito.ArgumentCaptor<Map<String, Object>> consumption =
         org.mockito.ArgumentCaptor.forClass(Map.class);
     verify(jobEventPublisher)
-        .emitDone(eq("job-calls-" + calls), eq("hold-68"), any(), any(), consumption.capture());
+        .emitDone(
+            eq("job-calls-" + calls), eq("hold-68"), any(), any(), consumption.capture(), any());
     return consumption.getValue();
   }
 
@@ -1100,7 +1163,7 @@ class JobListenerTest {
 
     verify(chatStrategy, org.mockito.Mockito.times(1)).execute(any(), any());
     verify(jobEventPublisher, org.mockito.Mockito.times(1))
-        .emitDone(eq("job-calls-1"), eq("hold-68"), any(), any(), any());
+        .emitDone(eq("job-calls-1"), eq("hold-68"), any(), any(), any(), any());
   }
 
   /**
@@ -1119,7 +1182,7 @@ class JobListenerTest {
     org.mockito.ArgumentCaptor<Map<String, Object>> consumption =
         org.mockito.ArgumentCaptor.forClass(Map.class);
     verify(jobEventPublisher)
-        .emitDone(eq(jobId), eq("hold-138"), eq("mock"), any(), consumption.capture());
+        .emitDone(eq(jobId), eq("hold-138"), eq("mock"), any(), consumption.capture(), any());
     return consumption.getValue();
   }
 

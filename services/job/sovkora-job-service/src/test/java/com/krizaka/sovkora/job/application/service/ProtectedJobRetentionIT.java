@@ -435,7 +435,8 @@ class ProtectedJobRetentionIT {
         dedup,
         assets,
         turn -> {},
-        new com.krizaka.sovkora.job.infrastructure.adapter.amqp.RunningJobs(),
+        new com.krizaka.sovkora.job.infrastructure.adapter.amqp.RunningJobs(
+            new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally()),
         com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
   }
 

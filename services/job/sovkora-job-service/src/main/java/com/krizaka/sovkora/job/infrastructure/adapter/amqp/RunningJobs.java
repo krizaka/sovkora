@@ -1,5 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.amqp;
 
+import com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -25,16 +27,33 @@ public class RunningJobs {
 
   private static final Logger logger = LoggerFactory.getLogger(RunningJobs.class);
 
+  private final JobSpendTally spend;
   private final Map<String, Thread> running = new ConcurrentHashMap<>();
   private final Map<String, Instant> cancelled = new ConcurrentHashMap<>();
 
+  public RunningJobs(JobSpendTally spend) {
+    this.spend = spend;
+  }
+
   /**
-   * Records that the calling thread is executing the job.
+   * Records that the calling thread is executing the job, and starts collecting what its provider
+   * calls cost.
    *
    * @param jobId the job
    */
   public void bind(String jobId) {
     running.put(jobId, Thread.currentThread());
+    spend.open(jobId);
+  }
+
+  /**
+   * What the provider calls of a running job have cost so far (krizaka-internal#3368).
+   *
+   * @param jobId the job
+   * @return the cost in USD of its priced calls, zero when none was priced
+   */
+  public BigDecimal costSoFar(String jobId) {
+    return spend.spent(jobId);
   }
 
   /**
@@ -45,6 +64,7 @@ public class RunningJobs {
    */
   public void unbind(String jobId) {
     running.remove(jobId);
+    spend.close(jobId);
     // Clears the flag on purpose: the interrupt was meant for this job and has been answered.
     Thread.interrupted();
   }

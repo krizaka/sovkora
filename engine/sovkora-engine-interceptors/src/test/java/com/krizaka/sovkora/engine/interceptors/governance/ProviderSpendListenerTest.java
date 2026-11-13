@@ -21,6 +21,7 @@ class ProviderSpendListenerTest {
 
   private final InMemorySpendLedger ledger = new InMemorySpendLedger();
   private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
+  private final JobSpendTally jobs = new JobSpendTally();
   private ProviderSpendListener listener;
 
   @BeforeEach
@@ -32,7 +33,7 @@ class ProviderSpendListenerTest {
         "big", new ProviderPrice("big", "CHAT", new BigDecimal("2"), new BigDecimal("4")));
     listener =
         new ProviderSpendListener(
-            ledger, new SpendCapProperties("dev"), new SpendMetrics(registry), IN_NOVEMBER);
+            ledger, new SpendCapProperties("dev"), new SpendMetrics(registry), jobs, IN_NOVEMBER);
   }
 
   private static ChatCompletedEvent turn(String model, TokenUsage usage) {
@@ -45,6 +46,49 @@ class ProviderSpendListenerTest {
                 "actor", "conv", Map.of(SpendScope.PRODUCT_DECLARATION, "verikora"), Set.of()));
     return new ChatCompletedEvent(
         request, new InternalChatResponse("hi", "c", usage, Map.of("provider", model)));
+  }
+
+  private static ChatCompletedEvent turnOf(String conversation, Map<String, Object> declarations) {
+    InternalChatRequest request =
+        new InternalChatRequest(
+            "hello", List.of(), null, new Context("actor", conversation, declarations, Set.of()));
+    return new ChatCompletedEvent(
+        request,
+        new InternalChatResponse(
+            "hi",
+            "c",
+            TokenUsage.reported(1_000_000, 500_000, 1_500_000),
+            Map.of("provider", "big")));
+  }
+
+  @Test
+  @DisplayName("[3368] the cost of an open job is the sum of its calls, tokens × price")
+  void openJobCollectsItsCost() {
+    jobs.open("job-1");
+    listener.onChatCompleted(turnOf("job-1", Map.of(SpendScope.PRODUCT_DECLARATION, "verikora")));
+    listener.onChatCompleted(turnOf("job-1", Map.of(SpendScope.PRODUCT_DECLARATION, "verikora")));
+
+    // 2 × (1,000,000 in × 2 + 500,000 out × 4) = 8 USD
+    assertThat(jobs.close("job-1")).isEqualByComparingTo("8");
+    assertThat(jobs.close("job-1")).isZero();
+  }
+
+  @Test
+  @DisplayName("[3368] a turn of no open job leaves nothing behind")
+  void unopenedJobCollectsNothing() {
+    listener.onChatCompleted(turnOf("chat-9", Map.of(SpendScope.PRODUCT_DECLARATION, "verikora")));
+
+    assertThat(jobs.close("chat-9")).isZero();
+  }
+
+  @Test
+  @DisplayName("[3368] a turn that declares no product is counted as unattributed, not elsewhere")
+  void noProductIsUnattributed() {
+    listener.onChatCompleted(turnOf("conv", Map.of()));
+
+    assertThat(registry.get("ai.cost").tags("product", SpendScope.UNATTRIBUTED).counter().count())
+        .isEqualTo(4.0);
+    assertThat(ledger.spentIn(VERIKORA, NOVEMBER)).isZero();
   }
 
   @Test
@@ -122,6 +166,7 @@ class ProviderSpendListenerTest {
             },
             new SpendCapProperties("dev"),
             new SpendMetrics(registry),
+            jobs,
             IN_NOVEMBER);
     failing.onChatCompleted(turn("big", TokenUsage.reported(1_000_000, 0, 1_000_000)));
 
