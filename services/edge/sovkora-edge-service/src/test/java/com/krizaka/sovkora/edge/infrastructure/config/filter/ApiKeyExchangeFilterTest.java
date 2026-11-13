@@ -40,8 +40,15 @@ class ApiKeyExchangeFilterTest {
           exchangeHits.incrementAndGet();
           String body =
               new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-          boolean valid = body.contains("oz_valid") || body.contains("oz_scoped");
-          String scopes = body.contains("oz_scoped") ? "[\"ai:embed\"]" : "[]";
+          boolean valid =
+              body.contains("oz_valid") || body.contains("oz_scoped") || body.contains("oz_prod");
+          // oz_prod… keys declare their environment (#2132); oz_prodembed is also scoped ai:embed.
+          String scopes =
+              body.contains("oz_scoped")
+                  ? "[\"ai:embed\"]"
+                  : body.contains("oz_prodembed")
+                      ? "[\"env:prod\",\"ai:embed\"]"
+                      : body.contains("oz_prod") ? "[\"env:prod\"]" : "[]";
           // The identity service sends the owner's tier with the exchange; a key named
           // oz_valid_rpm<N> belongs to a tier of N requests per minute.
           String tier =
@@ -364,5 +371,115 @@ class ApiKeyExchangeFilterTest {
 
     assertThat(refused.getStatus()).isEqualTo(429);
     assertThat(Long.parseLong(refused.getHeader("Retry-After"))).isBetween(1L, 86_400L);
+  }
+
+  private ApiKeyExchangeFilter inEnvironment(ApiKeyEnvironment environment) {
+    return new ApiKeyExchangeFilter(
+        RestClient.builder().build(),
+        new EdgeIdentityProperties(
+            URI.create("http://127.0.0.1:" + stub.getAddress().getPort()),
+            "sovkora-test-secret-at-least-32-characters!"),
+        ApiKeyDailyQuota.unlimited(),
+        ApiKeyRateLimiter.off(),
+        environment);
+  }
+
+  private static MockHttpServletResponse call(
+      ApiKeyExchangeFilter filter, String key, String method, String path, AtomicInteger reached)
+      throws Exception {
+    MockHttpServletRequest request = new MockHttpServletRequest(method, path);
+    request.addHeader("Authorization", "Bearer " + key);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter.doFilter(
+        request,
+        response,
+        new MockFilterChain(
+            new jakarta.servlet.http.HttpServlet() {
+              @Override
+              protected void service(
+                  HttpServletRequest req, jakarta.servlet.http.HttpServletResponse res) {
+                reached.incrementAndGet();
+              }
+            }));
+    return response;
+  }
+
+  @Test
+  @DisplayName("[2132] a prod edge refuses a dev key with a coded 401; it never reaches a backend")
+  void prodEdgeRefusesADevKey() throws Exception {
+    AtomicInteger reached = new AtomicInteger();
+
+    MockHttpServletResponse refused =
+        call(
+            inEnvironment(ApiKeyEnvironment.PROD),
+            "oz_valid_dev",
+            "GET",
+            "/api/v1/studios",
+            reached);
+
+    assertThat(refused.getStatus()).isEqualTo(401);
+    assertThat(refused.getContentType()).isEqualTo("application/problem+json");
+    assertThat(refused.getContentAsString()).contains("\"code\":\"API_KEY_WRONG_ENVIRONMENT\"");
+    assertThat(reached).hasValue(0);
+  }
+
+  @Test
+  @DisplayName("[2132] a prod edge lets a key that declares env:prod through with the minted JWT")
+  void prodEdgeAdmitsAProdKey() throws Exception {
+    AtomicInteger reached = new AtomicInteger();
+
+    MockHttpServletResponse response =
+        call(inEnvironment(ApiKeyEnvironment.PROD), "oz_prod_a", "GET", "/api/v1/studios", reached);
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(reached).hasValue(1);
+  }
+
+  @Test
+  @DisplayName("[2132] a dev edge refuses a prod key: a prod key that leaks is not usable on dev")
+  void devEdgeRefusesAProdKey() throws Exception {
+    AtomicInteger reached = new AtomicInteger();
+
+    MockHttpServletResponse refused =
+        call(inEnvironment(ApiKeyEnvironment.DEV), "oz_prod_b", "GET", "/api/v1/studios", reached);
+
+    assertThat(refused.getStatus()).isEqualTo(401);
+    assertThat(refused.getContentAsString()).contains("API_KEY_WRONG_ENVIRONMENT");
+    assertThat(reached).hasValue(0);
+  }
+
+  @Test
+  @DisplayName("[2132] env:prod is not a route scope: a prod key scoped ai:embed is held to it")
+  void environmentScopeDoesNotWidenOrNarrowTheRoutes() throws Exception {
+    ApiKeyExchangeFilter prod = inEnvironment(ApiKeyEnvironment.PROD);
+    AtomicInteger reached = new AtomicInteger();
+
+    assertThat(call(prod, "oz_prodembed", "POST", "/api/v1/embeddings", reached).getStatus())
+        .isEqualTo(200);
+    assertThat(call(prod, "oz_prodembed", "GET", "/api/v1/studios", reached).getStatus())
+        .isEqualTo(403);
+    assertThat(ApiKeyScopes.permits(java.util.List.of("env:prod"), "GET", "/api/v1/studios"))
+        .isTrue();
+  }
+
+  @Test
+  @DisplayName("[2132] a key over its daily quota gets a coded 429 problem, not a bare message")
+  void dailyQuotaRefusalIsCoded() throws Exception {
+    ApiKeyExchangeFilter filter =
+        new ApiKeyExchangeFilter(
+            RestClient.builder().build(),
+            new EdgeIdentityProperties(
+                URI.create("http://127.0.0.1:" + stub.getAddress().getPort()),
+                "sovkora-test-secret-at-least-32-characters!"),
+            new ApiKeyDailyQuota(1, java.time.Clock.systemUTC()));
+
+    call(filter, "oz_valid_coded");
+    MockHttpServletResponse refused = call(filter, "oz_valid_coded");
+
+    assertThat(refused.getStatus()).isEqualTo(429);
+    assertThat(refused.getContentType()).isEqualTo("application/problem+json");
+    assertThat(refused.getContentAsString())
+        .contains("\"code\":\"API_KEY_QUOTA_EXCEEDED\"")
+        .contains("\"status\":429");
   }
 }

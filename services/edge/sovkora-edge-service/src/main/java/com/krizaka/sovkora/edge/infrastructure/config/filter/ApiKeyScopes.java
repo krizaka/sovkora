@@ -8,7 +8,8 @@ import java.util.Map;
  * What each API-key scope allows through the facade. A key with no scope keeps the full rights of
  * its owner; a key with scopes may only make the requests its scopes name. The minted JWT is the
  * owner's, so this is the one place a scoped key is held to its scopes — and a scope the edge does
- * not know grants nothing (fail closed).
+ * not know grants nothing (fail closed). The environment scope ({@code env:…}, {@link
+ * ApiKeyEnvironment}) is not a route scope: it neither opens nor restricts a route.
  */
 final class ApiKeyScopes {
 
@@ -47,10 +48,16 @@ final class ApiKeyScopes {
 
   /** {@code true} when the key may make this request. An empty scope set is unrestricted. */
   static boolean permits(Collection<String> scopes, String method, String path) {
-    if (scopes == null || scopes.isEmpty()) {
+    List<String> routeScopes =
+        scopes == null
+            ? List.of()
+            : scopes.stream()
+                .filter(scope -> !ApiKeyEnvironment.isEnvironmentScope(scope))
+                .toList();
+    if (routeScopes.isEmpty()) {
       return true;
     }
-    return scopes.stream()
+    return routeScopes.stream()
         .flatMap(scope -> RULES.getOrDefault(scope, List.of()).stream())
         .anyMatch(rule -> rule.method().equalsIgnoreCase(method) && rule.path().equals(path));
   }
