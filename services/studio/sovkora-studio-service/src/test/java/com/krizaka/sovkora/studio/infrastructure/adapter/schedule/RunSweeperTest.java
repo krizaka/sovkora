@@ -43,12 +43,11 @@ class RunSweeperTest {
           outboxService,
           meters);
 
-  @Test
-  @DisplayName("A stalled run is failed AND its hold released — releasing is the whole point")
-  void releasesTheHoldOfAStalledRun() {
-    when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
-    java.util.UUID runId = java.util.UUID.randomUUID();
-    when(jdbcTemplate.query(
+  /** The stub of the stale-step query: three lane strings, then the two ceilings and the cap. */
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private org.mockito.stubbing.OngoingStubbing<List> staleQuery() {
+    return when(
+        jdbcTemplate.query(
             anyString(),
             any(RowMapper.class),
             anyString(),
@@ -56,8 +55,15 @@ class RunSweeperTest {
             anyString(),
             anyInt(),
             anyInt(),
-            anyInt()))
-        .thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
+            anyInt()));
+  }
+
+  @Test
+  @DisplayName("A stalled run is failed AND its hold released — releasing is the whole point")
+  void releasesTheHoldOfAStalledRun() {
+    when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
+    java.util.UUID runId = java.util.UUID.randomUUID();
+    staleQuery().thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
 
     sweeper.sweep();
 
@@ -68,16 +74,7 @@ class RunSweeperTest {
   @DisplayName("Nothing stalled means nothing released")
   void quietWhenNothingIsStalled() {
     when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
-    when(jdbcTemplate.query(
-            anyString(),
-            any(RowMapper.class),
-            anyString(),
-            anyString(),
-            anyString(),
-            anyInt(),
-            anyInt(),
-            anyInt()))
-        .thenReturn(List.of());
+    staleQuery().thenReturn(List.of());
 
     sweeper.sweep();
 
@@ -93,16 +90,7 @@ class RunSweeperTest {
     when(runtimeConfigService.intValue("run.step-timeout-seconds.interactive", 300))
         .thenReturn(120);
     when(runtimeConfigService.intValue("run.step-timeout-seconds.batch", 1800)).thenReturn(3600);
-    when(jdbcTemplate.query(
-            anyString(),
-            any(RowMapper.class),
-            anyString(),
-            anyString(),
-            anyString(),
-            anyInt(),
-            anyInt(),
-            anyInt()))
-        .thenReturn(List.of());
+    staleQuery().thenReturn(List.of());
 
     sweeper.sweep();
 
@@ -125,16 +113,7 @@ class RunSweeperTest {
         .thenReturn(300);
     when(runtimeConfigService.intValue("run.step-timeout-seconds.batch", 1800)).thenReturn(1800);
     java.util.UUID runId = java.util.UUID.randomUUID();
-    when(jdbcTemplate.query(
-            anyString(),
-            any(RowMapper.class),
-            anyString(),
-            anyString(),
-            anyString(),
-            anyInt(),
-            anyInt(),
-            anyInt()))
-        .thenAnswer(invocation -> List.of(stale(runId, "INTERACTIVE")));
+    staleQuery().thenAnswer(invocation -> List.of(stale(runId, "INTERACTIVE")));
 
     sweeper.sweep();
 
@@ -168,15 +147,7 @@ class RunSweeperTest {
     when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
     when(runtimeConfigService.intValue("run.step-max-reissues", 2)).thenReturn(0);
     java.util.UUID runId = java.util.UUID.randomUUID();
-    when(jdbcTemplate.query(
-            anyString(),
-            any(RowMapper.class),
-            anyString(),
-            anyString(),
-            anyString(),
-            anyInt(),
-            anyInt(),
-            anyInt()))
+    staleQuery()
         .thenAnswer(
             invocation -> {
               RowMapper<?> mapper = invocation.getArgument(1);
@@ -212,16 +183,7 @@ class RunSweeperTest {
     when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
     when(runtimeConfigService.intValue("run.step-max-reissues", 2)).thenReturn(2);
     java.util.UUID runId = java.util.UUID.randomUUID();
-    when(jdbcTemplate.query(
-            anyString(),
-            any(RowMapper.class),
-            anyString(),
-            anyString(),
-            anyString(),
-            anyInt(),
-            anyInt(),
-            anyInt()))
-        .thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
+    staleQuery().thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
 
     sweeper.sweep();
 
@@ -233,7 +195,9 @@ class RunSweeperTest {
             eq("compliance-check"),
             eq(false),
             eq(com.krizaka.sovkora.jobs.api.domain.model.FailureCause.PLATFORM_UNAVAILABLE));
-    verify(outboxService).append(eq(runId.toString()), eq("evt.studio.run.failed"), any());
+    verify(outboxService)
+        .appendRunFailed(
+            eq(runId), eq("actor-7"), eq("compliance-check"), eq("1.0.0"), eq("corr-7"));
     assertThat(meters.counter("sovkora.studio.run.past_bound", "bound", "step_ceiling").count())
         .isEqualTo(1.0);
   }

@@ -1677,10 +1677,7 @@ class StudioRunLifecycleIT {
 
     sweeper().sweep();
 
-    RunDetail swept = runService.find(run.id(), ACTOR).orElseThrow();
-    assertEquals(RunStatus.FAILED, swept.status());
-    assertNotNull(swept.finishedAt());
-    assertTrue(credits.released.contains("hold-1"), "a stranded run must not strand its credits");
+    assertSweptAndReleased(run, "a stranded run must not strand its credits");
   }
 
   @Test
@@ -1696,10 +1693,7 @@ class StudioRunLifecycleIT {
 
     sweeper().sweep();
 
-    RunDetail swept = runService.find(run.id(), ACTOR).orElseThrow();
-    assertEquals(RunStatus.FAILED, swept.status());
-    assertNotNull(swept.finishedAt());
-    assertTrue(credits.released.contains("hold-1"), "its credits come back");
+    assertSweptAndReleased(run, "its credits come back");
   }
 
   @Test
@@ -1726,6 +1720,13 @@ class StudioRunLifecycleIT {
   }
 
   /** The relay's part: what was appended reaches the broker and is marked published. */
+  private void assertSweptAndReleased(RunDetail run, String why) {
+    RunDetail swept = runService.find(run.id(), ACTOR).orElseThrow();
+    assertEquals(RunStatus.FAILED, swept.status());
+    assertNotNull(swept.finishedAt());
+    assertTrue(credits.released.contains("hold-1"), why);
+  }
+
   private void relayPublished(RunDetail run) {
     jdbcTemplate.update(
         "UPDATE studio_outbox SET published_at = now() WHERE aggregate_id = ?"

@@ -87,6 +87,28 @@ public class OutboxService implements OutboxStore {
   }
 
   /**
+   * Announces a failed run the way every producer of one does.
+   *
+   * @param run the failed run's identity, as the event carries it
+   */
+  public void appendRunFailed(
+      java.util.UUID runId,
+      String actorId,
+      String studioKey,
+      String blueprintVersion,
+      String correlationId) {
+    append(
+        runId.toString(),
+        "evt.studio.run.failed",
+        java.util.Map.of(
+            "runId", runId.toString(),
+            "actorId", actorId,
+            "studioKey", studioKey,
+            "blueprintVersion", blueprintVersion,
+            "correlationId", correlationId));
+  }
+
+  /**
    * Appends again the newest command carried under a message id — same exchange, same routing key,
    * same body, same {@code messageId}.
    *

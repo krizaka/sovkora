@@ -2,7 +2,6 @@ package com.krizaka.sovkora.studio.application.service;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -38,9 +37,9 @@ public class StepReissueService {
 
   public StepReissueService(
       JdbcTemplate jdbcTemplate, OutboxService outboxService, MeterRegistry meterRegistry) {
-    this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
-    this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
-    this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry required");
+    this.jdbcTemplate = jdbcTemplate;
+    this.outboxService = outboxService;
+    this.meterRegistry = meterRegistry;
   }
 
   /**

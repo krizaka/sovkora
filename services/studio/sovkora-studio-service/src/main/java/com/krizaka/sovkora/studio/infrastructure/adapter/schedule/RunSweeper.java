@@ -10,7 +10,6 @@ import com.krizaka.sovkora.studio.application.service.StepReissueService;
 import com.krizaka.sovkora.studio.application.service.StudioRuntimeConfigService;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.slf4j.Logger;
@@ -124,15 +123,7 @@ public class RunSweeper {
                 + " AND (s.reissues >= ? OR COALESCE((SELECT o.published_at IS NULL"
                 + "   FROM studio_outbox o WHERE o.message_id = s.job_id"
                 + "   ORDER BY o.created_at DESC LIMIT 1), TRUE))",
-            (rs, rowNum) ->
-                new StaleRun(
-                    rs.getObject("id", UUID.class),
-                    rs.getString("hold_id"),
-                    rs.getString("actor_id"),
-                    rs.getString("studio_key"),
-                    rs.getString("blueprint_version"),
-                    rs.getString("correlation_id"),
-                    rs.getString("lane")),
+            (rs, rowNum) -> StaleRun.of(rs, rs.getString("lane")),
             DEFAULT_LANE,
             RunStepStatus.RUNNING.name(),
             DEFAULT_LANE,
@@ -171,15 +162,7 @@ public class RunSweeper {
                 + " FROM studio_run"
                 + " WHERE finished_at IS NULL AND status = ?"
                 + " AND started_at < now() - make_interval(secs => ?)",
-            (rs, rowNum) ->
-                new StaleRun(
-                    rs.getObject("id", UUID.class),
-                    rs.getString("hold_id"),
-                    rs.getString("actor_id"),
-                    rs.getString("studio_key"),
-                    rs.getString("blueprint_version"),
-                    rs.getString("correlation_id"),
-                    "RUN"),
+            (rs, rowNum) -> StaleRun.of(rs, "RUN"),
             RunStatus.RUNNING.name(),
             maxSeconds);
     for (StaleRun run : overdue) {
@@ -225,15 +208,8 @@ public class RunSweeper {
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), false, cause);
     // The failure is announced the way every other failed run is, so what follows runs by their
     // events hears this one too.
-    outboxService.append(
-        run.id().toString(),
-        "evt.studio.run.failed",
-        Map.of(
-            "runId", run.id().toString(),
-            "actorId", run.actorId(),
-            "studioKey", run.studioKey(),
-            "blueprintVersion", run.blueprintVersion(),
-            "correlationId", run.correlationId()));
+    outboxService.appendRunFailed(
+        run.id(), run.actorId(), run.studioKey(), run.blueprintVersion(), run.correlationId());
     meterRegistry.counter("sovkora.studio.run.past_bound", "bound", bound).increment();
   }
 
@@ -245,5 +221,17 @@ public class RunSweeper {
       String studioKey,
       String blueprintVersion,
       String correlationId,
-      String lane) {}
+      String lane) {
+
+    static StaleRun of(java.sql.ResultSet rs, String lane) throws java.sql.SQLException {
+      return new StaleRun(
+          rs.getObject("id", UUID.class),
+          rs.getString("hold_id"),
+          rs.getString("actor_id"),
+          rs.getString("studio_key"),
+          rs.getString("blueprint_version"),
+          rs.getString("correlation_id"),
+          lane);
+    }
+  }
 }
