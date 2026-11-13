@@ -398,7 +398,9 @@ class ProtectedJobRetentionIT {
         assets,
         turn -> {},
         new com.krizaka.sovkora.job.infrastructure.adapter.amqp.RunningJobs(),
-        com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
+        com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
+        org.mockito.Mockito.mock(
+            com.krizaka.sovkora.job.application.service.JobLeaseService.class));
   }
 
   private EncryptedAssetService assets() {

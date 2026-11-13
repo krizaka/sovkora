@@ -95,6 +95,8 @@ the service's `application.yml` or environment.
 | `engine` | `InfrastructureProber.probeImageInfrastructure` | every 5 s (`orazaka.core.image.probing.interval-ms`) | Periodically pings the configured image port to check if the image inference engine (Stable Diffusion) is responsive. |
 | `engine` | `LawWatchJob.run` | cron `0 0 6 * * MON` (`orazaka.law.watcher.cron`) | The scheduled run of the law watcher. |
 | `engine` | `SandboxEvictionScheduler.evictExpiredSandboxes` | every 60 s | Scheduled eviction process — prunes expired or orphaned jobId sandbox contexts from memory. |
+| `job` | `JobLeaseSweeper.renew` | every #{@jobLeasePolicy.renewInterval().toMillis()} | Renews the lease of every job running in this process. |
+| `job` | `JobLeaseSweeper.recover` | every 30 s (`orazaka.jobs.worker-sweeper-interval`) | Takes back the jobs whose lease expired. |
 | `job` | `JobRetentionSweeper.sweep` | every 60 s (`orazaka.jobs.retention-sweep-interval`) | Purges expired jobs, then deletes any purged job's directory that came back. |
 | `job` | `JobRetentionSweeper.sweepUploads` | every 3600 s (`orazaka.jobs.upload-retention-interval`) | Deletes uploads older than the ordinary retention window; hourly, listing is not free. |
 | `job` | `WorkerHeartbeatSweeper.markStaleWorkers` | every 30 s (`orazaka.jobs.worker-sweeper-interval`) | Marks workers that have stopped heartbeating as `STALE`. |

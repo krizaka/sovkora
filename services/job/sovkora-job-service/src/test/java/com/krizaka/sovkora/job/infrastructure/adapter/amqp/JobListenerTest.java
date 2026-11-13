@@ -41,6 +41,8 @@ class JobListenerTest {
   private final com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService assets =
       testAssets();
 
+  @Mock private com.krizaka.sovkora.job.application.service.JobLeaseService jobLeaseService;
+
   @Mock private JobPersistenceProvider jobPersistenceProvider;
 
   @Mock private JobEventPublisher jobEventPublisher;
@@ -128,7 +130,8 @@ class JobListenerTest {
             assets,
             unmeteredTurns,
             runningJobs,
-            com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
+            com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
+            jobLeaseService);
   }
 
   @Test
@@ -164,6 +167,8 @@ class JobListenerTest {
     // Verify status updates
     verify(jobPersistenceProvider).updateJobStatus(jobId, "PROCESSING", null, null);
     verify(jobPersistenceProvider).updateJobStatus(jobId, "COMPLETED", expectedResult, null);
+    // The worker took its lease on the job it started (krizaka-internal#669).
+    verify(jobLeaseService).claim(msg);
 
     // Check that files were written
     Path inputJson = tempDir.resolve(userId).resolve(jobId).resolve("input").resolve("input.json");
@@ -414,7 +419,9 @@ class JobListenerTest {
               assets,
               unmeteredTurns,
               runningJobs,
-              com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
+              com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
+              org.mockito.Mockito.mock(
+                  com.krizaka.sovkora.job.application.service.JobLeaseService.class));
 
       when(userDirectoryService.getUser(userId))
           .thenAnswer(
@@ -466,7 +473,9 @@ class JobListenerTest {
               assets,
               unmeteredTurns,
               runningJobs,
-              com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
+              com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
+              org.mockito.Mockito.mock(
+                  com.krizaka.sovkora.job.application.service.JobLeaseService.class));
 
       lenient()
           .when(userDirectoryService.getUser(userId))
@@ -1202,7 +1211,9 @@ class JobListenerTest {
         assets,
         unmeteredTurns,
         runningJobs,
-        com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
+        com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
+        org.mockito.Mockito.mock(
+            com.krizaka.sovkora.job.application.service.JobLeaseService.class));
   }
 
   private void whenAUserExists(String userId) {

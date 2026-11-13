@@ -126,6 +126,13 @@ orazaka:
   # Async job execution lifecycle (job-level timeout).
   jobs:
     execution-timeout: ${JOBS_TIMEOUT_SECONDS:1800}
+    # A running job's lease: the worker renews it every renew-interval-seconds (at most a third of
+    # the lease); a job whose lease expired is re-enqueued max-retries times, then failed
+    # JOB_WORKER_LOST. Bounds are enforced at boot (JobLeasePolicy).
+    lease:
+      lease-seconds: ${JOBS_LEASE_SECONDS:120}
+      renew-interval-seconds: ${JOBS_LEASE_RENEW_SECONDS:30}
+      max-retries: ${JOBS_LEASE_MAX_RETRIES:2}
 
   # sovkora-messaging (RabbitMQ broker wiring) — the executor declares the same
   # orazaka.jobs topology (JobsTopologyConfig) the conversation service publishes to,

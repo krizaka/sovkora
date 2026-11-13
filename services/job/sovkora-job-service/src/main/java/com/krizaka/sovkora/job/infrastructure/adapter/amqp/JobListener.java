@@ -12,6 +12,7 @@ import com.krizaka.sovkora.engine.core.domain.model.Authority;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.job.application.service.ContextService;
+import com.krizaka.sovkora.job.application.service.JobLeaseService;
 import com.krizaka.sovkora.job.durable.DurableMirror;
 import com.krizaka.sovkora.job.infrastructure.config.JobsProperties;
 import com.krizaka.sovkora.job.infrastructure.support.AssetFileResolver;
@@ -120,6 +121,7 @@ public class JobListener {
   private final MessageDedup messageDedupService;
   private final EncryptedAssetService encryptedAssetService;
   private final DurableMirror durableMirror;
+  private final JobLeaseService jobLeaseService;
   private final UnmeteredTurnRepository unmeteredTurnRepository;
   private final RunningJobs runningJobs;
 
@@ -138,6 +140,7 @@ public class JobListener {
    * @param contextService The orchestration-context resolver.
    * @param unmeteredTurnRepository Records a completed job whose unit could not be measured.
    * @param runningJobs The jobs running here and the ones their owner cancelled.
+   * @param jobLeaseService Takes this worker's lease on each job it starts.
    */
   public JobListener(
       JobPersistenceProvider jobPersistenceProvider,
@@ -155,7 +158,8 @@ public class JobListener {
       EncryptedAssetService encryptedAssetService,
       UnmeteredTurnRepository unmeteredTurnRepository,
       RunningJobs runningJobs,
-      DurableMirror durableMirror) {
+      DurableMirror durableMirror,
+      JobLeaseService jobLeaseService) {
     this.jobPersistenceProvider =
         Objects.requireNonNull(jobPersistenceProvider, "JobPersistenceProvider cannot be null");
     this.jobEventPublisher =
@@ -196,6 +200,8 @@ public class JobListener {
         Objects.requireNonNull(unmeteredTurnRepository, "UnmeteredTurnRepository cannot be null");
     this.runningJobs = Objects.requireNonNull(runningJobs, "RunningJobs cannot be null");
     this.durableMirror = Objects.requireNonNull(durableMirror, "DurableMirror cannot be null");
+    this.jobLeaseService =
+        Objects.requireNonNull(jobLeaseService, "JobLeaseService cannot be null");
 
     logger.info(
         "Initialized JobListener with {} executors: {}",
@@ -265,6 +271,8 @@ public class JobListener {
 
     adoptIfUnknown(message);
     jobPersistenceProvider.updateJobStatus(message.jobId(), "PROCESSING", null, null);
+    // The worker's claim: renewed while it lives, expired if it dies (krizaka-internal#669).
+    jobLeaseService.claim(message);
     jobEventPublisher.emitProgress(message.jobId(), 0, "generating");
     // Before anything reads the payload: turn an assetId into the filePath the executors need.
     // A producer that dispatches from a blueprint has no upload root to resolve it with, so
