@@ -81,7 +81,8 @@ export function parentOf(pom) {
  * `ARTIFACT_REPOSITORY_URL`, set once in the workflow), then Maven Central, which keeps only the public releases.
  */
 export function repositories(env = process.env) {
-  const own = env.ARTIFACT_REPOSITORY_URL?.trim().replace(/\/+$/, "");
+  let own = env.ARTIFACT_REPOSITORY_URL?.trim() ?? "";
+  while (own.endsWith("/")) own = own.slice(0, -1);
   return own ? [own, MAVEN_CENTRAL] : [MAVEN_CENTRAL];
 }
 
