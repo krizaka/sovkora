@@ -8,9 +8,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from types import SimpleNamespace
+
 import rules  # noqa: E402
 import safety_worker as worker  # noqa: E402
 import testkit  # worker-common, on the path once the worker has imported its broker
+import worker_loop
 
 R = rules.load_ruleset()
 CLEAN = json.dumps({"sexual_or_nudity": False, "graphic_violence": False, "minor_in_unsafe_context": False})
@@ -112,11 +115,21 @@ def test_one_picture_arrives_as_one_answer_not_a_list():
     assert rules.assess(R, one, 2, None, False)["verdict"] == "UNREADABLE"
 
 
+def test_the_worker_holds_no_broker_code_it_runs_on_the_shared_loop():
+    src = open(os.path.join(worker.HERE, "safety_worker.py")).read()
+    assert not re.search(r"basic_consume|exchange_declare|queue_declare|BlockingConnection|import pika", src)
+    assert "worker_loop.run(" in src and "worker_loop.make_handle(" in src
+
+
 def test_a_failure_answers_with_a_code_or_a_type_name_never_the_text_of_the_job():
     key = "job.safety.assess"
     mark = testkit.MARK
     testkit.check_failure_answers(
-        worker,
+        SimpleNamespace(
+            _on_message=worker_loop.make_on_message("safety", worker.handle, set()),
+            HANDLERS=worker.HANDLERS,
+            InvalidJobPayload=worker.InvalidJobPayload,
+        ),
         fault=(key, {"looks": mark}),
         refusals=[
             (key, {"frames": mark, "expectsSpeech": False}, "FRAMES_OUT_OF_RANGE"),
