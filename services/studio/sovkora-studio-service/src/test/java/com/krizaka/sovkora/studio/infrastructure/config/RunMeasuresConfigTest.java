@@ -1,42 +1,40 @@
 package com.krizaka.sovkora.studio.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.sql.Timestamp;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import java.time.*;
+import org.junit.jupiter.api.*;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @DisplayName("RunMeasuresConfig — the stuck-runs gauge")
 class RunMeasuresConfigTest {
 
   private static final Instant NOW = Instant.parse("2026-11-13T12:00:00Z");
+  private static final Timestamp CUTOFF = Timestamp.from(NOW.minus(Duration.ofMinutes(30)));
 
-  @Test
-  @DisplayName(
-      "sovkora.run.stuck is the count of runs still RUNNING past the declared age, with no label")
-  void stuckGauge() {
-    JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    Timestamp cutoff = Timestamp.from(NOW.minus(Duration.ofMinutes(30)));
-    when(jdbc.queryForObject(any(String.class), eq(Long.class), eq("RUNNING"), eq(cutoff)))
-        .thenReturn(2L);
-    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+  private final JdbcTemplate jdbc = mock(JdbcTemplate.class);
+  private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
+  private void bind() {
     new RunMeasuresConfig()
         .stuckRunsMeter(
             jdbc,
             new RunMeasuresProperties(Duration.ofMinutes(30)),
             Clock.fixed(NOW, ZoneOffset.UTC))
         .bindTo(registry);
+  }
+
+  @Test
+  @DisplayName("sovkora.run.stuck counts the runs still RUNNING past the declared age, no label")
+  void stuckGauge() {
+    when(jdbc.queryForObject(anyString(), eq(Long.class), eq("RUNNING"), eq(CUTOFF)))
+        .thenReturn(2L);
+
+    bind();
 
     assertThat(registry.get("sovkora.run.stuck").gauge().value()).isEqualTo(2.0);
     assertThat(registry.get("sovkora.run.stuck").gauge().getId().getTags()).isEmpty();
@@ -45,17 +43,10 @@ class RunMeasuresConfigTest {
   @Test
   @DisplayName("a database that cannot answer reads as no data, never as zero stuck runs")
   void unreadableIsNotZero() {
-    JdbcTemplate jdbc = mock(JdbcTemplate.class);
-    when(jdbc.queryForObject(any(String.class), eq(Long.class), any(), any()))
-        .thenThrow(new org.springframework.dao.DataAccessResourceFailureException("down"));
-    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    when(jdbc.queryForObject(anyString(), eq(Long.class), any(), any()))
+        .thenThrow(new DataAccessResourceFailureException("down"));
 
-    new RunMeasuresConfig()
-        .stuckRunsMeter(
-            jdbc,
-            new RunMeasuresProperties(Duration.ofMinutes(30)),
-            Clock.fixed(NOW, ZoneOffset.UTC))
-        .bindTo(registry);
+    bind();
 
     assertThat(registry.get("sovkora.run.stuck").gauge().value()).isNaN();
   }

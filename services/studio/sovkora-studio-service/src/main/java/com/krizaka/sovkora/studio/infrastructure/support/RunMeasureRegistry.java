@@ -40,27 +40,34 @@ public final class RunMeasureRegistry {
   }
 
   /** A run's first step was dispatched {@code delay} after the run was created. */
-  public void started(Duration delay) {
-    Timer.builder(START_DELAY).publishPercentileHistogram().register(registry).record(delay);
+  public void started(double seconds) {
+    Timer.builder(START_DELAY)
+        .publishPercentileHistogram()
+        .register(registry)
+        .record(toDuration(seconds));
   }
 
-  /** A run succeeded after {@code duration}. */
-  public void succeeded(Duration duration) {
+  /** A run succeeded after {@code seconds}. */
+  public void succeeded(double seconds) {
     registry.counter(ENDED, OUTCOME, SUCCEEDED).increment();
-    duration(SUCCEEDED, duration);
+    duration(SUCCEEDED, seconds);
   }
 
-  /** A run failed after {@code duration}, for the declared {@code cause}. */
-  public void failed(Duration duration, FailureCause cause) {
+  /** A run failed after {@code seconds}, for the declared {@code cause}. */
+  public void failed(double seconds, FailureCause cause) {
     registry.counter(ENDED, OUTCOME, FAILED, CAUSE, cause.name()).increment();
-    duration(FAILED, duration);
+    duration(FAILED, seconds);
   }
 
-  private void duration(String outcome, Duration duration) {
+  private void duration(String outcome, double seconds) {
     Timer.builder(DURATION)
         .tag(OUTCOME, outcome)
         .publishPercentileHistogram()
         .register(registry)
-        .record(duration);
+        .record(toDuration(seconds));
+  }
+
+  private static Duration toDuration(double seconds) {
+    return Duration.ofMillis(Math.max(0L, Math.round(seconds * 1000)));
   }
 }

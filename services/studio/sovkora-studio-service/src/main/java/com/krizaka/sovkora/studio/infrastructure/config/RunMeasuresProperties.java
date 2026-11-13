@@ -1,8 +1,6 @@
 package com.krizaka.sovkora.studio.infrastructure.config;
 
 import java.time.Duration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * When a run still {@code RUNNING} is called stuck ({@code sovkora.studio.measures},
@@ -11,8 +9,10 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *
  * @param stuckAfter the age past which an unfinished run is stuck
  */
-@ConfigurationProperties(prefix = "sovkora.studio.measures")
-public record RunMeasuresProperties(@DefaultValue("PT30M") Duration stuckAfter) {
+@org.springframework.boot.context.properties.ConfigurationProperties(
+    prefix = "sovkora.studio.measures")
+public record RunMeasuresProperties(
+    @org.springframework.boot.context.properties.bind.DefaultValue("PT30M") Duration stuckAfter) {
 
   static final Duration MIN_STUCK_AFTER = Duration.ofMinutes(1);
   static final Duration MAX_STUCK_AFTER = Duration.ofHours(4);
