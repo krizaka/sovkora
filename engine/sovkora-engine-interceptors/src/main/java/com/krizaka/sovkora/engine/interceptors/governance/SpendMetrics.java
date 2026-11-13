@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SpendMetrics {
 
   private static final String SCOPE = "scope";
+  private static final String MODEL = "model";
 
   private final MeterRegistry registry;
   private final Map<String, AtomicReference<Double>> ratios = new ConcurrentHashMap<>();
@@ -29,7 +30,7 @@ public class SpendMetrics {
   /** The cost of one turn, once its tokens are priced. */
   public void cost(SpendScope scope, String capability, String model, BigDecimal usd) {
     registry
-        .counter("ai.cost", "product", scope.productKey(), "capability", capability, "model", model)
+        .counter("ai.cost", "product", scope.productKey(), "capability", capability, MODEL, model)
         .increment(usd.doubleValue());
   }
 
@@ -46,7 +47,7 @@ public class SpendMetrics {
         scope.productKey(),
         "capability",
         capability,
-        "model",
+        MODEL,
         model,
         "type",
         type);
@@ -77,7 +78,7 @@ public class SpendMetrics {
 
   /** A turn on a model with no price row: its cost is unknown, and that is visible. */
   public void unpriced(String model) {
-    registry.counter("ai.cost.unpriced", "model", model).increment();
+    registry.counter("ai.cost.unpriced", MODEL, model).increment();
   }
 
   /** A turn whose cost could not be written to the ledger. */
