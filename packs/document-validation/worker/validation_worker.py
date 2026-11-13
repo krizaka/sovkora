@@ -75,7 +75,7 @@ def _screen(payload: dict) -> dict:
     if payload.get("resolved"):
         resolved = _json_field(payload, "resolved")
         if resolved.get("outcome") != identify.CHECK:
-            raise InvalidJobPayload(f"rien à contrôler : le document est {resolved.get('outcome')}")
+            raise InvalidJobPayload(NOT_CHECKABLE)
         as_of = resolved["identification"]["asOf"]
         return _screened(rules.resolve(resolved["ruleset"]["id"], as_of), text, as_of)
 
@@ -87,19 +87,14 @@ def _screen(payload: dict) -> dict:
     if jurisdiction not in known:
         # A jurisdiction this pack does not carry is refused by name. Falling back to another
         # country's law would produce a confident report against rules that do not apply.
-        raise InvalidJobPayload(
-            f"aucun corpus de règles pour la juridiction '{jurisdiction}'; disponibles: {', '.join(sorted(known))}"
-        )
+        raise InvalidJobPayload(UNKNOWN_JURISDICTION)
     ruleset_id = known[jurisdiction]
     named = str(payload.get("ruleset") or "").strip()
     if named:
         # A document type other than the jurisdiction's lease (an invoice): chosen by name, and only among
         # the rulesets this pack ships FOR THAT jurisdiction — never another country's law.
         if named not in rules.rulesets_by_jurisdiction().get(jurisdiction, []):
-            raise InvalidJobPayload(
-                f"le corpus '{named}' n'existe pas pour la juridiction '{jurisdiction}'; "
-                f"disponibles: {', '.join(rules.rulesets_by_jurisdiction().get(jurisdiction, []))}"
-            )
+            raise InvalidJobPayload(UNKNOWN_RULESET)
         ruleset_id = named
     # A 1.x call without asOf is judged on today's law: never reused on another day (orazaka-studio#80).
     return dict(_screened(rules.resolve(ruleset_id, as_of), text, as_of), resultCacheable=bool(given))
@@ -157,9 +152,8 @@ def _json_field(payload: dict, name: str) -> dict:
         try:
             value = json.loads(value)
         except json.JSONDecodeError as bad:
-            # Say what arrived. A parse error whose message is only "line 1 column 1" tells the
-            # pack author nothing about which side of the seam failed.
-            raise InvalidJobPayload(f"le champ '{name}' n'est pas du JSON ({bad}); reçu: {value[:200]!r}") from bad
+            # Only the code leaves: what arrived is document text, and a parse error quotes it.
+            raise InvalidJobPayload(FIELD_NOT_JSON) from bad
     return value or {}
 
 
@@ -205,15 +199,13 @@ def _signals(payload: dict) -> dict:
     """
     encoded = str(payload.get("documentBase64") or "")
     if not encoded:
-        raise InvalidJobPayload("aucun document fourni : documentBase64 est vide")
+        raise InvalidJobPayload(DOCUMENT_MISSING)
     try:
         report = authenticity.analyse_base64(
-            encoded,
-            str(payload.get("expectedIssuer") or ""),
-            document_type=str(payload.get("documentType") or ""),
+            encoded, str(payload.get("expectedIssuer") or ""), document_type=str(payload.get("documentType") or "")
         )
     except authenticity.UnreadableDocument as unreadable:
-        raise InvalidJobPayload(str(unreadable)) from unreadable
+        raise InvalidJobPayload(DOCUMENT_UNREADABLE) from unreadable
     return {
         "report": report,
         "reportText": authenticity.render(report),
@@ -232,7 +224,7 @@ def _identify(payload: dict) -> dict:
     """
     text = str(payload.get("document") or "")
     if not text.strip():
-        raise InvalidJobPayload("aucun document fourni : le champ 'document' est vide")
+        raise InvalidJobPayload(DOCUMENT_MISSING)
     jurisdiction = str(payload.get("jurisdiction") or "").strip()
     try:
         found = identify.identify(
@@ -244,9 +236,9 @@ def _identify(payload: dict) -> dict:
             ruleset=str(payload.get("ruleset") or ""),
         )
     except identify.UnknownRuleset as unknown:
-        raise InvalidJobPayload(str(unknown)) from unknown
+        raise InvalidJobPayload(UNKNOWN_RULESET) from unknown
     except ValueError as bad:
-        raise InvalidJobPayload(f"asOf doit être une date ISO (AAAA-MM-JJ): {bad}") from bad
+        raise InvalidJobPayload(AS_OF_NOT_ISO) from bad
     prompt = compliance.classify_prompt(found, text)
     # A blueprint step addresses FIELDS, not a nested value: the whole identification is also given as JSON text.
     return dict(
@@ -267,7 +259,7 @@ def _resolve(payload: dict) -> dict:
         )
     except rules.RulesetNotFound as missing:
         # A date no version of the kind's ruleset covers: said by name, never the closest version.
-        raise InvalidJobPayload(str(missing)) from missing
+        raise InvalidJobPayload(NO_RULESET_FOR_DATE) from missing
     out = {"outcome": resolved["outcome"], "resolvedJson": json.dumps(resolved, ensure_ascii=False)}
     out.update(_lecture_request(resolved, payload))
     return out
@@ -348,8 +340,41 @@ PLATFORM_UNAVAILABLE = "PLATFORM_UNAVAILABLE"
 TIMEOUT = "TIMEOUT"
 
 
+# Why a payload was refused, as a closed set the pack writes. Never text taken from the job: the event is stored by the
+# saga and the line goes to the log, and both outlive the document (krizaka-internal#3376).
+NOT_CHECKABLE = "NOT_CHECKABLE"
+UNKNOWN_JURISDICTION = "UNKNOWN_JURISDICTION"
+UNKNOWN_RULESET = "UNKNOWN_RULESET"
+FIELD_NOT_JSON = "FIELD_NOT_JSON"
+DOCUMENT_MISSING = "DOCUMENT_MISSING"
+DOCUMENT_UNREADABLE = "DOCUMENT_UNREADABLE"
+AS_OF_NOT_ISO = "AS_OF_NOT_ISO"
+NO_RULESET_FOR_DATE = "NO_RULESET_FOR_DATE"
+INVALID_REASONS = frozenset(
+    {
+        NOT_CHECKABLE,
+        UNKNOWN_JURISDICTION,
+        UNKNOWN_RULESET,
+        FIELD_NOT_JSON,
+        DOCUMENT_MISSING,
+        DOCUMENT_UNREADABLE,
+        AS_OF_NOT_ISO,
+        NO_RULESET_FOR_DATE,
+    }
+)
+
+
 class InvalidJobPayload(ValueError):
-    """This worker checked the payload and found it unusable — the one cause that bills."""
+    """This worker checked the payload and found it unusable — the one cause that bills.
+
+    It carries a ``reason`` from :data:`INVALID_REASONS` and nothing else: a free-text reason is refused.
+    """
+
+    def __init__(self, reason: str) -> None:
+        if reason not in INVALID_REASONS:
+            raise ValueError("an invalid-payload reason is one of INVALID_REASONS")
+        super().__init__(reason)
+        self.reason = reason
 
 
 def _emit(channel, job_id: str, routing_suffix: str, body: dict) -> None:
@@ -382,11 +407,12 @@ def _on_message(channel, method, properties, body) -> None:
     except InvalidJobPayload as bad:
         # A jurisdiction this pack does not carry, or a date no ruleset covers: the pack checked
         # and says so. This is the one category that bills for the steps that already ran.
-        print(f"[validation] job {job_id} rejected: {bad}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
+        print(f"[validation] {method.routing_key} -> job {job_id} rejected: {bad.reason}", flush=True)
+        _emit(channel, job_id, "error", {"jobId": job_id, "error": bad.reason, "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-        print(f"[validation] job {job_id} failed: {failure}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(failure), "cause": EXECUTOR_FAULT})
+        # The type name and the cause only: the message of an exception raised while reading a document can quote it.
+        print(f"[validation] {method.routing_key} -> job {job_id} failed: {type(failure).__name__}", flush=True)
+        _emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 
