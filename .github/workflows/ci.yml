@@ -66,7 +66,9 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "22"
-      - name: The com.krizaka versions are on Maven Central
+      - name: The com.krizaka versions are on the repository our builds publish to
+        env:
+          ARTIFACT_REPOSITORY_URL: ${{ vars.ARTIFACT_REPOSITORY_URL }}
         run: node scripts/check-krizaka-versions.mjs
       # The platform bootstrap and the Krizaka services Sovkora runs beside its own (users, billing) are krizaka-java's: the
       # integration tests read them from a checkout of the release sovkora-parent imports (the dev image builds the same).
