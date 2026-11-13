@@ -1,10 +1,7 @@
 package com.krizaka.sovkora.edge.infrastructure.adapter.breaker;
 
-import com.krizaka.sovkora.edge.infrastructure.config.EdgeBackendProperties;
-import com.krizaka.sovkora.edge.infrastructure.config.EdgeRoutesProperties;
-import com.krizaka.sovkora.edge.infrastructure.support.BackendAdmission;
-import com.krizaka.sovkora.edge.infrastructure.support.BackendBreaker;
-import com.krizaka.sovkora.edge.infrastructure.support.BackendCall;
+import com.krizaka.sovkora.edge.infrastructure.config.*;
+import com.krizaka.sovkora.edge.infrastructure.support.*;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig.SlidingWindowType;
