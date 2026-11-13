@@ -27,10 +27,10 @@ public record ApiKeyProduct(String key) {
   public static final String ATTRIBUTE = ApiKeyProduct.class.getName() + ".key";
 
   private static final String SCOPE_PREFIX = "product:";
-  private static final Pattern KEY = Pattern.compile("[a-z][a-z0-9-]{0,62}");
+  private static final Pattern KEY_SHAPE = Pattern.compile("[a-z][a-z0-9-]{0,62}");
 
   public ApiKeyProduct {
-    if (key == null || !KEY.matcher(key).matches()) {
+    if (key == null || !KEY_SHAPE.matcher(key).matches()) {
       throw new IllegalArgumentException("a product key is lower-case letters, digits and hyphens");
     }
   }
