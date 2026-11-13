@@ -28,7 +28,7 @@ class PsqlFailuresTest {
     String log =
         INIT_SHUTDOWN
             + "\npsql:30-jobs.sql:12: ERROR:  syntax error at or near \"x\"\n"
-            + "FATAL:  password authentication failed for user \"orazaka_app\"\n";
+            + "FATAL:  password authentication failed for user \"app_user\"\n";
 
     assertThat(PsqlFailures.in(log))
         .contains("syntax error")
