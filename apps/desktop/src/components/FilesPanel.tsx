@@ -254,7 +254,7 @@ function PreviewPane({ entry, preview, onSend, message }: { entry: Entry | null;
     } else if (pdfUrl) {
       previewContent = <iframe title={preview.name} src={pdfUrl} className="h-full w-full" />;
     } else {
-      previewContent = <p className="p-3 text-sm text-fg-secondary">{preview.size > 12 * 1024 * 1024 ? t("files.tooLarge") : t("files.binary")}</p>;
+      previewContent = <p className="p-3 text-sm text-fg-secondary">{(preview.kind === "pdf" || preview.kind === "image") && preview.data === null ? t("files.tooLarge") : t("files.binary")}</p>;
     }
   }
 

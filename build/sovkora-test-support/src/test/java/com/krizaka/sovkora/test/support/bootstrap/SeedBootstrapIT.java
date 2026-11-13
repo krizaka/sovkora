@@ -528,18 +528,8 @@ class SeedBootstrapIT {
     return grants;
   }
 
-  /**
-   * The lines psql wrote that report a failure — the message a broken seed file deserves.
-   *
-   * <p>{@code ERROR}/{@code FATAL} only: psql prefixes its {@code NOTICE}s the same way, and a
-   * bootstrap that drops what does not exist yet emits dozens of them on an empty volume.
-   */
   private static String psqlFailures() {
-    return CONTAINER_LOG
-        .toString()
-        .lines()
-        .filter(line -> line.contains("ERROR:") || line.contains("FATAL:"))
-        .reduce("", (all, line) -> all.isEmpty() ? line : all + "\n" + line);
+    return PsqlFailures.in(CONTAINER_LOG.toString());
   }
 
   private static String jdbcUrl(String database) {

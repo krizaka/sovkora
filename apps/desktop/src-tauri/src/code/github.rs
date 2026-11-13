@@ -1,14 +1,14 @@
 //! Slice 4 of ADR-093: the connection to GitHub, by the OAuth device flow of the GitHub App « Orazaka for Mac ».
 //!
-//! The flow, the refresh and the Keychain vault are the kit's (`krizaka_tauri_kit::device_flow`); this module holds what
+//! The flow, the refresh and the Keychain vault are the kit's (`krizaka_rust::device_flow`); this module holds what
 //! is Orazaka's: the App's public client id (a settings row, so a firm on GitHub Enterprise registers its own), the HTTP
 //! transport, and the state the page polls. The tokens stay on the Rust side: the page sees `connected` and, while a
 //! sign-in waits, the code to type and where. No client secret exists on the Mac.
 
-use krizaka_tauri_kit::device_flow::{
-    self, DeviceCode, Failure, Provider, Session, TokenVault, Tokens, Transport,
+use krizaka_rust::device_flow::{
+    self, DeviceCode, Failure, Provider, Session, TokenVault, Tokens, Transport, TransportError,
 };
-use krizaka_tauri_kit::secrets::SecretStore;
+use krizaka_rust::secrets::SecretStore;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::fs;
@@ -80,18 +80,20 @@ impl GithubConfig {
 pub struct HttpTransport;
 
 impl Transport for HttpTransport {
-    fn post_form(&self, url: &str, fields: &[(&str, &str)]) -> Result<Value, String> {
+    fn post_form(&self, url: &str, fields: &[(&str, &str)]) -> Result<Value, TransportError> {
         let result = ureq::post(url)
             .timeout(HTTP_TIMEOUT)
             .set("Accept", "application/json")
             .send_form(fields);
         match result {
-            Ok(resp) => resp.into_json::<Value>().map_err(|e| e.to_string()),
+            Ok(resp) => resp
+                .into_json::<Value>()
+                .map_err(|e| TransportError(e.to_string())),
             // an HTTP error still carries GitHub's `error` code
-            Err(ureq::Error::Status(_, resp)) => {
-                resp.into_json::<Value>().map_err(|e| e.to_string())
-            }
-            Err(e) => Err(e.to_string()),
+            Err(ureq::Error::Status(_, resp)) => resp
+                .into_json::<Value>()
+                .map_err(|e| TransportError(e.to_string())),
+            Err(e) => Err(TransportError(e.to_string())),
         }
     }
 }
@@ -126,7 +128,9 @@ fn unix_now() -> u64 {
 impl Connection {
     pub fn status(&self, store: &dyn SecretStore) -> Result<GithubStatus, String> {
         let flow = self.0.lock().map_err(|e| e.to_string())?;
-        let Session { connected } = TokenVault::new(store, VAULT_PREFIX).session()?;
+        let Session { connected } = TokenVault::new(store, VAULT_PREFIX)
+            .session()
+            .map_err(|e| e.to_string())?;
         Ok(GithubStatus {
             connected,
             pending: flow.pending.clone(),
@@ -181,7 +185,10 @@ impl Connection {
             return; // signed out, or replaced by a newer sign-in: this one writes nothing
         }
         let failure = match outcome {
-            Ok(tokens) => TokenVault::new(store, VAULT_PREFIX).save(&tokens).err(),
+            Ok(tokens) => TokenVault::new(store, VAULT_PREFIX)
+                .save(&tokens)
+                .err()
+                .map(|e| e.to_string()),
             Err(f) => Some(f.to_string()),
         };
         if let Ok(mut flow) = self.0.lock() {
@@ -197,7 +204,9 @@ impl Connection {
             flow.cancelled.store(true, Ordering::SeqCst);
             *flow = Flow::default();
         }
-        TokenVault::new(store, VAULT_PREFIX).sign_out()
+        TokenVault::new(store, VAULT_PREFIX)
+            .sign_out()
+            .map_err(|e| e.to_string())
     }
 
     /// A valid user-to-server token for a GitHub call (refreshed when it is about to expire). Rust side only.
@@ -207,20 +216,22 @@ impl Connection {
         store: &dyn SecretStore,
         config: &GithubConfig,
     ) -> Result<Option<String>, String> {
-        TokenVault::new(store, VAULT_PREFIX).access_token(transport, &config.provider(), unix_now())
+        TokenVault::new(store, VAULT_PREFIX)
+            .access_token(transport, &config.provider(), unix_now())
+            .map_err(|e| e.to_string())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use krizaka_tauri_kit::secrets::{Checked, MemorySecrets};
+    use krizaka_rust::secrets::{Checked, MemorySecrets};
     use serde_json::json;
 
     /// A mocked GitHub: device endpoint, then the token endpoint's queued answers. No real token anywhere.
     struct FakeGithub(Mutex<Vec<Value>>);
     impl Transport for FakeGithub {
-        fn post_form(&self, _url: &str, _fields: &[(&str, &str)]) -> Result<Value, String> {
+        fn post_form(&self, _url: &str, _fields: &[(&str, &str)]) -> Result<Value, TransportError> {
             Ok(self.0.lock().unwrap().remove(0))
         }
     }

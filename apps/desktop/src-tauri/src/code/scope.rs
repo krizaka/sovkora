@@ -1,7 +1,7 @@
 //! A granted repository folder and the path resolution every code tool goes through (ADR-093 §4.5).
 
 use super::visibility;
-use krizaka_tauri_kit::scope::ScopeStore;
+use krizaka_rust::scope::ScopeStore;
 use serde::Serialize;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
