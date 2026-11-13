@@ -1398,6 +1398,22 @@ class TestTheWorkerAnswersJsonOnly(unittest.TestCase):
         assert self._json(headers, raw)["error"] == "not_found"
         assert b"script" not in raw
 
+    def test_a_success_body_never_carries_a_raw_html_character(self):
+        answer = {"status": "success", "metrics": {"provider": "<b>a & b</b>"}}
+        with patch.object(video_worker, "run_remote", return_value=answer):
+            status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "wan2-2-t2v-a14b"})
+        assert status == 200
+        assert self._json(headers, raw) == answer, "the escaping changes the bytes, never the data"
+        assert not {b"<", b">", b"&"} & {raw[i : i + 1] for i in range(len(raw))}
+
+    def test_the_model_served_is_the_registrys_own_name_not_the_callers_string(self):
+        asked = "".join(["wan2-2-", "t2v-a14b"])  # built at run time: a string the registry does not hold
+        registered = next(known for known in video_worker.MODEL_REGISTRY if known == asked)
+        with patch.object(video_worker, "run_remote", return_value={"status": "success", "metrics": {}}) as served:
+            status, _, _ = self._exchange("POST", self.GENERATE, {"model": asked})
+        assert status == 200
+        assert served.call_args.args[1] is registered
+
     def test_the_status_route_is_json_with_nosniff(self):
         status, headers, raw = self._exchange("GET", "/")
         assert status == 200
@@ -1484,6 +1500,23 @@ class TestEncoderParsesItsInputsBeforeFfmpeg(unittest.TestCase):
         with open(out, "rb") as landed:
             assert landed.read() == b"MP4"
         assert not os.path.exists(work)
+
+
+class TestTheSuccessBodyEchoesNoRequestValue(unittest.TestCase):
+    """A 200 answer says what the worker did, never what the caller sent (krizaka-internal#3390, S5131)."""
+
+    def test_registered_model_answers_only_for_a_registered_name(self):
+        assert video_worker.registered_model("wan2-2-t2v-a14b") == "wan2-2-t2v-a14b"
+        for refused in ("<script>", "", None, ["wan2-2-t2v-a14b"], 7):
+            with self.subTest(refused):
+                assert video_worker.registered_model(refused) is None
+
+    def test_an_encoded_clip_answers_without_the_output_path(self):
+        handler = video_worker.VideoInferenceHandler.__new__(video_worker.VideoInferenceHandler)
+        out = os.path.join(tempfile.mkdtemp(), "clip.mp4")
+        with patch.object(video_worker, "export_frames_to_video"):
+            body = handler._encode_output({}, [Image.new("RGB", (8, 8))], 14, out, None, {"frames": 1})
+        assert body == {"status": "success", "metrics": {"frames": 1}}
 
 
 if __name__ == "__main__":

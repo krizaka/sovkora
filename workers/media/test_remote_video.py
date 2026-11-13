@@ -130,6 +130,7 @@ class TestRun(unittest.TestCase):
             (metrics["width"], metrics["height"], metrics["fps"], metrics["seed"], metrics["aspect"]),
         )
         self.assertEqual("do-inference", metrics["provider"])
+        assert "output_path" not in body, "the answer says what the worker did, never the caller's path (#3390)"
 
     def test_a_starting_image_is_refused_not_ignored(self):
         with self.assertRaises(video_models.InvalidVideoRequest):
