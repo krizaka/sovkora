@@ -190,30 +190,56 @@ export function proofJobConclusion(payload) {
   return payload?.jobs?.find((j) => j.name === PROOF_JOB)?.conclusion ?? null;
 }
 
+// How many recent completed main runs of ci.yml are searched for one where the proof's job really ran (path filters skip it).
+export const PROOF_RUNS_PAGE_SIZE = 20;
+
+/**
+ * The newest run, in the page (newest first), where the proof's job concluded success or failure; skipped, cancelled or
+ * missing never count. Null when no run of the page ran it.
+ * @param {{ id: number }[]} runs
+ * @param {(id: number) => Promise<object | null>} getJobs the payload of `actions/runs/{id}/jobs`
+ * @returns {Promise<{ runId: number, conclusion: "success" | "failure" } | null>}
+ */
+export async function lastRunWhereProofRan(runs, getJobs) {
+  for (const { id } of runs) {
+    const conclusion = proofJobConclusion(await getJobs(id));
+    if (conclusion === "success" || conclusion === "failure") {
+      return { runId: id, conclusion };
+    }
+  }
+  return null;
+}
+
 /**
  * The free proof that a streamed turn emits a `tool-call` event (orazaka-ai-engine#169): three paid runs came back without one,
  * so no paid run starts until this test is green on main and dev runs a build made after it.
- * @param {{ ciConclusion: string | null, proofCommittedAt: string | null, coreDeployedAt: string | null }} facts
+ * @param {{ ciConclusion: string | null, ciRunId?: number | null, proofCommittedAt: string | null, coreDeployedAt: string | null }} facts
  * @param {boolean} required refuse when the deploy time could not be read
  * @returns {{ ok: boolean, message: string }}
  */
-export function toolPathVerdict({ ciConclusion, proofCommittedAt, coreDeployedAt }, required) {
+export function toolPathVerdict({ ciConclusion, ciRunId = null, proofCommittedAt, coreDeployedAt }, required) {
   if (!proofCommittedAt) {
     return {
       ok: false,
       message: "the tool-call proof (ToolCallStreamPathTest) is not on main of conversation-service",
     };
   }
+  if (ciConclusion === null) {
+    return {
+      ok: false,
+      message: `no recent main run of ci.yml ran the ${PROOF_JOB} job (or the runs are unreadable): the tool-call proof is not green`,
+    };
+  }
   if (ciConclusion !== "success") {
     return {
       ok: false,
-      message: `the ${PROOF_JOB} CI job on main is ${ciConclusion ?? "unreadable"}, not success: the tool-call proof is not green`,
+      message: `the ${PROOF_JOB} CI job on main is ${ciConclusion} (run ${ciRunId}), not success: the tool-call proof is not green`,
     };
   }
   if (!coreDeployedAt) {
     return {
       ok: !required,
-      message: `tool-call proof green on main; the build dev runs NOT VERIFIED (no DigitalOcean access)${required ? ": refused" : ""}`,
+      message: `tool-call proof green on main (run ${ciRunId}); the build dev runs NOT VERIFIED (no DigitalOcean access)${required ? ": refused" : ""}`,
     };
   }
   if (Date.parse(coreDeployedAt) < Date.parse(proofCommittedAt)) {
@@ -222,7 +248,10 @@ export function toolPathVerdict({ ciConclusion, proofCommittedAt, coreDeployedAt
       message: `dev's core was deployed (${coreDeployedAt}) before the tool-call proof (${proofCommittedAt}): redeploy first`,
     };
   }
-  return { ok: true, message: "the tool-call proof is green on main and dev runs a build made after it" };
+  return {
+    ok: true,
+    message: `the tool-call proof is green on main (${PROOF_JOB}, run ${ciRunId}) and dev runs a build made after it`,
+  };
 }
 
 /** What the GitHub API says about the proof; null fields when it cannot be read. */
@@ -238,12 +267,16 @@ async function toolPathFacts(coreDeployedAt) {
     }
   };
   const commits = await get(`commits?sha=main&per_page=1&path=${encodeURIComponent(PROOF_TEST)}`);
-  const runs = await get("actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=1");
-  const runId = runs?.workflow_runs?.[0]?.id;
-  const jobs = runId ? await get(`actions/runs/${runId}/jobs?per_page=100`) : null;
+  const runs = await get(
+    `actions/workflows/ci.yml/runs?branch=main&event=push&status=completed&per_page=${PROOF_RUNS_PAGE_SIZE}`,
+  );
+  const ran = await lastRunWhereProofRan(runs?.workflow_runs ?? [], (id) =>
+    get(`actions/runs/${id}/jobs?per_page=100`),
+  );
   return {
     proofCommittedAt: commits?.[0]?.commit?.committer?.date ?? null,
-    ciConclusion: proofJobConclusion(jobs),
+    ciConclusion: ran?.conclusion ?? null,
+    ciRunId: ran?.runId ?? null,
     coreDeployedAt,
   };
 }

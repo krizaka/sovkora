@@ -9,6 +9,7 @@ import {
   PROOF_JOB,
   loginVerdict,
   proofJobConclusion,
+  lastRunWhereProofRan,
   report,
   rollbackVerdict,
   toolPathVerdict,
@@ -157,8 +158,10 @@ describe("the CI job that judges the tool-call proof", () => {
     const conclusion = proofJobConclusion({ jobs: [job("Web app", "failure"), job("Java reactor", "success")] });
     assert.equal(conclusion, "success");
     assert.equal(
-      toolPathVerdict({ ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null }, false)
-        .ok,
+      toolPathVerdict(
+        { ciConclusion: conclusion, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+        false,
+      ).ok,
       true,
     );
   });
@@ -178,6 +181,52 @@ describe("the CI job that judges the tool-call proof", () => {
       assert.equal(v.ok, false);
       assert.match(v.message, /Java reactor/);
     }
+  });
+});
+
+describe("the last main run where the proof's job really ran", () => {
+  const jobsOf = (byRun) => async (id) => ({ jobs: [{ name: "Java reactor", conclusion: byRun[id] }] });
+  const runs = (...ids) => ids.map((id) => ({ id }));
+  it("skips a newer run whose Java reactor was skipped and names the older run that passed", async () => {
+    const found = await lastRunWhereProofRan(runs(3, 2, 1), jobsOf({ 3: "skipped", 2: "success", 1: "failure" }));
+    assert.deepEqual(found, { runId: 2, conclusion: "success" });
+    const v = toolPathVerdict(
+      {
+        ciConclusion: found.conclusion,
+        ciRunId: found.runId,
+        proofCommittedAt: "2026-10-29T18:00:00Z",
+        coreDeployedAt: null,
+      },
+      false,
+    );
+    assert.equal(v.ok, true);
+    assert.match(v.message, /run 2/);
+  });
+  it("refuses when the newest run where it ran failed, even if an older one passed", async () => {
+    const found = await lastRunWhereProofRan(runs(3, 2, 1), jobsOf({ 3: "cancelled", 2: "failure", 1: "success" }));
+    assert.deepEqual(found, { runId: 2, conclusion: "failure" });
+    assert.equal(
+      toolPathVerdict(
+        {
+          ciConclusion: found.conclusion,
+          ciRunId: found.runId,
+          proofCommittedAt: "2026-10-29T18:00:00Z",
+          coreDeployedAt: null,
+        },
+        false,
+      ).ok,
+      false,
+    );
+  });
+  it("finds nothing, and the proof is refused with a clear message, when no run of the page ran it", async () => {
+    const found = await lastRunWhereProofRan(runs(2, 1), jobsOf({ 2: "skipped", 1: undefined }));
+    assert.equal(found, null);
+    const v = toolPathVerdict(
+      { ciConclusion: null, ciRunId: null, proofCommittedAt: "2026-10-29T18:00:00Z", coreDeployedAt: null },
+      false,
+    );
+    assert.equal(v.ok, false);
+    assert.match(v.message, /no recent main run/);
   });
 });
 
