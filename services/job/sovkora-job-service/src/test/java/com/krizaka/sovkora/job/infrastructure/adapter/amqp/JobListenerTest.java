@@ -420,8 +420,7 @@ class JobListenerTest {
               unmeteredTurns,
               runningJobs,
               com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
-              org.mockito.Mockito.mock(
-                  com.krizaka.sovkora.job.application.service.JobLeaseService.class));
+              jobLeaseService);
 
       when(userDirectoryService.getUser(userId))
           .thenAnswer(
@@ -474,8 +473,7 @@ class JobListenerTest {
               unmeteredTurns,
               runningJobs,
               com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
-              org.mockito.Mockito.mock(
-                  com.krizaka.sovkora.job.application.service.JobLeaseService.class));
+              jobLeaseService);
 
       lenient()
           .when(userDirectoryService.getUser(userId))
@@ -1212,8 +1210,7 @@ class JobListenerTest {
         unmeteredTurns,
         runningJobs,
         com.krizaka.sovkora.job.durable.DurableMirror.localOnly(),
-        org.mockito.Mockito.mock(
-            com.krizaka.sovkora.job.application.service.JobLeaseService.class));
+        jobLeaseService);
   }
 
   private void whenAUserExists(String userId) {
