@@ -3,10 +3,8 @@ package com.krizaka.sovkora.edge.infrastructure.config.filter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import java.util.List;
-import java.util.Optional;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import java.util.*;
+import org.junit.jupiter.api.*;
 
 /** The product a key declares (a {@code product:} scope), the one a run is counted under. */
 class ApiKeyProductTest {

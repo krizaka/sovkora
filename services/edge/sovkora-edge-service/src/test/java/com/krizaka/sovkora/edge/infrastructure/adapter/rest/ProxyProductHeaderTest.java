@@ -9,9 +9,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,33 +75,7 @@ class ProxyProductHeaderTest {
     RouteResolver resolver =
         new RouteResolver(
             new EdgeRoutesProperties(List.of(new EdgeRoutesProperties.Route("/", base))));
-    return new ProxyController(RestClient.builder().build(), resolver, new ClosedBreaker());
-  }
-
-  private static final class ClosedBreaker implements BackendBreaker, BackendCall {
-    @Override
-    public BackendAdmission admit(URI backend) {
-      return new BackendAdmission.Granted(this);
-    }
-
-    @Override
-    public Duration retryAfter(URI backend) {
-      return Duration.ofSeconds(1);
-    }
-
-    @Override
-    public void answered(int status) {
-      // the outcome is not what this test looks at
-    }
-
-    @Override
-    public void failed(Throwable cause) {
-      // the outcome is not what this test looks at
-    }
-
-    @Override
-    public void released() {
-      // the outcome is not what this test looks at
-    }
+    return new ProxyController(
+        RestClient.builder().build(), resolver, new ProxyClientClosedTest.ClosedBreaker());
   }
 }

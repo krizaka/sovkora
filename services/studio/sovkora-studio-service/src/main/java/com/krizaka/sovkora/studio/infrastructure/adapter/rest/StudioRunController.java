@@ -107,19 +107,13 @@ class StudioRunController {
       @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey,
       @RequestHeader(value = PRODUCT_HEADER, required = false) String product,
       @AuthenticationPrincipal Jwt actor) {
-    RunRequest resolved = request == null ? new RunRequest(null) : request;
-    return accepted(
-        starter.start(
-            "installation:" + installationId,
-            actor.getSubject(),
-            resolved.inputs(),
-            idempotencyKey,
-            () ->
-                runService.start(
-                    installationId,
-                    actor.getSubject(),
-                    resolved.inputs(),
-                    declaredProduct(product))));
+    return startRun(
+        "installation:" + installationId,
+        request,
+        idempotencyKey,
+        actor,
+        inputs ->
+            runService.start(installationId, actor.getSubject(), inputs, declaredProduct(product)));
   }
 
   /**
@@ -143,16 +137,13 @@ class StudioRunController {
       @RequestHeader(value = IDEMPOTENCY_KEY, required = false) String idempotencyKey,
       @RequestHeader(value = PRODUCT_HEADER, required = false) String product,
       @AuthenticationPrincipal Jwt actor) {
-    RunRequest resolved = request == null ? new RunRequest(null) : request;
-    return accepted(
-        starter.start(
-            "studio:" + studioKey,
-            actor.getSubject(),
-            resolved.inputs(),
-            idempotencyKey,
-            () ->
-                runService.start(
-                    studioKey, actor.getSubject(), resolved.inputs(), declaredProduct(product))));
+    return startRun(
+        "studio:" + studioKey,
+        request,
+        idempotencyKey,
+        actor,
+        inputs ->
+            runService.start(studioKey, actor.getSubject(), inputs, declaredProduct(product)));
   }
 
   /**
@@ -426,6 +417,22 @@ class StudioRunController {
   ResponseEntity<Void> cancel(@PathVariable UUID runId, @AuthenticationPrincipal Jwt actor) {
     runService.cancel(runId, actor.getSubject());
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  private ResponseEntity<RunResponse> startRun(
+      String scope,
+      RunRequest request,
+      String idempotencyKey,
+      Jwt actor,
+      java.util.function.Function<Map<String, Object>, RunDetail> start) {
+    RunRequest resolved = request == null ? new RunRequest(null) : request;
+    return accepted(
+        starter.start(
+            scope,
+            actor.getSubject(),
+            resolved.inputs(),
+            idempotencyKey,
+            () -> start.apply(resolved.inputs())));
   }
 
   /** The declared product, empty when the request came with none (a session, or a key without). */

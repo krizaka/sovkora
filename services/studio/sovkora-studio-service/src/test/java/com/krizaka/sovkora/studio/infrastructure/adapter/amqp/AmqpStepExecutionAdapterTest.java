@@ -298,7 +298,7 @@ class AmqpStepExecutionAdapterTest {
         Optional.empty(),
         Optional.empty(),
         com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE,
-        java.util.Optional.empty());
+        Optional.empty());
   }
 
   private AmqpStepExecutionAdapter withQueues(Map<String, String> queueByModel) {

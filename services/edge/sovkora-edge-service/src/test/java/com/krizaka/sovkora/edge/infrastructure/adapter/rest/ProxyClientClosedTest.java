@@ -119,7 +119,7 @@ class ProxyClientClosedTest {
   }
 
   /** A circuit that is always closed and records nothing: this test is about the client leaving. */
-  private static final class ClosedBreaker implements BackendBreaker, BackendCall {
+  static final class ClosedBreaker implements BackendBreaker, BackendCall {
     @Override
     public BackendAdmission admit(URI backend) {
       return new BackendAdmission.Granted(this);

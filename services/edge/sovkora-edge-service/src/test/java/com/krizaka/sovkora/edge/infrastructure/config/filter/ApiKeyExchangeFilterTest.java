@@ -114,16 +114,22 @@ class ApiKeyExchangeFilterTest {
     assertThat(exchangeHits.get()).isEqualTo(2);
   }
 
+  /** Sends one request bearing this key through the filter. */
+  private MockHttpServletResponse send(MockHttpServletRequest request, String key)
+      throws Exception {
+    request.addHeader("Authorization", "Bearer " + key);
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter().doFilter(request, response, new MockFilterChain());
+    return response;
+  }
+
   @Test
   @DisplayName("[3368] the product a key declares is set on the request for the proxy")
   void declaredProductIsSet() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
-    request.addHeader("Authorization", "Bearer oz_product");
-    MockHttpServletResponse response = new MockHttpServletResponse();
 
-    filter().doFilter(request, response, new MockFilterChain());
+    assertThat(send(request, "oz_product").getStatus()).isEqualTo(200);
 
-    assertThat(response.getStatus()).isEqualTo(200);
     assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isEqualTo("verikora");
   }
 
@@ -131,9 +137,8 @@ class ApiKeyExchangeFilterTest {
   @DisplayName("[3368] a key with no product declares none: nothing is set")
   void noProductNothingSet() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
-    request.addHeader("Authorization", "Bearer oz_valid_key");
 
-    filter().doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+    send(request, "oz_valid_key");
 
     assertThat(request.getAttribute(ApiKeyProduct.ATTRIBUTE)).isNull();
   }
@@ -142,10 +147,8 @@ class ApiKeyExchangeFilterTest {
   @DisplayName("[3368] a key that declares two products is refused with a coded problem")
   void twoProductsRefused() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/studios/x/runs");
-    request.addHeader("Authorization", "Bearer oz_product2");
-    MockHttpServletResponse response = new MockHttpServletResponse();
 
-    filter().doFilter(request, response, new MockFilterChain());
+    MockHttpServletResponse response = send(request, "oz_product2");
 
     assertThat(response.getStatus()).isEqualTo(401);
     assertThat(response.getContentAsString()).contains("API_KEY_PRODUCT_INVALID");
