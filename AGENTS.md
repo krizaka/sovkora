@@ -87,6 +87,7 @@ Every module is a **folder of this repository**. [`modules.json`](modules.json) 
 - **Rules that read the whole tree** (pack purity, executor coherence, one settlement author…) run in this repository and are **skipped — never passed** — in a copy of one module (`Workspace.require`, sovkora-test-support).
 - Versions move together: every module is at the version of `sovkora-parent`; every Krizaka artifact at `krizaka.version`, which `scripts/check-krizaka-versions.mjs` holds to what Maven Central carries.
 - **Cross-cutting code has one author** (ADR-073): the security baseline, session JWT, service tokens, message dedup and the outbox relay come from krizaka-java's service kit; `[KIT-001]`…`[KIT-004]` fail on a local copy.
+- **The retired code names only fall** (krizaka-internal#2684): `scripts/check-code-names.mjs` (CI) counts them per top-level folder against `scripts/code-names.ratchet.json`; a rise fails. After a rename, `node scripts/check-code-names.mjs --update` lowers the ratchet (never raises it); what is kept on purpose is in `docs/NAMING.md`.
 - **The licence boundary is the folder**: FSL-1.1-ALv2 at the root, Apache-2.0 in `build/`, `contracts/`, `services/edge/`, `apps/cli/` and `packs/` (NOTICE).
 
 `business`/`core`/`interceptors`/`tools` stay **libraries** (*layer ≠ process*): the same `business → core` path is packaged into every service and every worker. A worker is a **host**, not an orchestrator — downstream it is the same path.

@@ -1,0 +1,46 @@
+{
+  "paths": [
+    {
+      "glob": "infra/migrations/*.sql",
+      "reason": "Applied migrations are never edited; a changed byte is a different migration.",
+      "row": "K1"
+    },
+    {
+      "glob": "services/*/*/src/main/resources/db/migration/V1__*.sql",
+      "reason": "Flyway V1 baselines are never rewritten: the checksum is recorded in every database that ran them.",
+      "row": "K2"
+    },
+    {
+      "glob": "engine/*/src/main/resources/db/*/V1__*.sql",
+      "reason": "Flyway V1 baseline of the governance context: same checksum rule.",
+      "row": "K2"
+    },
+    {
+      "glob": "scripts/check-code-names.mjs",
+      "reason": "The guard names the retired names it looks for.",
+      "row": "K5"
+    },
+    {
+      "glob": "scripts/test/code-names.test.mjs",
+      "reason": "The guard's tests plant retired names on purpose.",
+      "row": "K5"
+    },
+    {
+      "glob": "docs/NAMING.md",
+      "reason": "The mapping table lists the retired names and what is kept.",
+      "row": "K5"
+    }
+  ],
+  "tokens": [
+    {
+      "token": "orazaka_models",
+      "reason": "A live database table name (the model catalogue); renamed only by a forward migration of krizaka-internal#2684, never by editing the queries that read it.",
+      "row": "K2"
+    },
+    {
+      "token": "orazaka#508",
+      "reason": "An old issue link of the archived repositories (history).",
+      "row": "K4"
+    }
+  ]
+}
