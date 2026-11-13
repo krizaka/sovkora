@@ -22,6 +22,8 @@ const base: Snapshot = {
   appVersion: "0.1.0",
 };
 
+const fileEntry = (name: string, kind = "txt") => ({ name, path: `/Users/a/Clients/${name}`, isDir: false, size: 10, modified: 0, kind });
+
 let client = createQueryClient({ maxRetries: 0 });
 const wrap = (ui: React.ReactNode, locale: "en" | "fr" = "en") => (
   <QueryClientProvider client={client}>
@@ -106,10 +108,9 @@ describe("FilesPanel", () => {
   });
 
   it("shows the preview of the file clicked last, whatever the order the answers come back in (race)", async () => {
-    const entry = (name: string) => ({ name, path: `/Users/a/Clients/${name}`, isDir: false, size: 10, modified: 0, kind: "txt" });
     let answerA: (v: unknown) => void = () => undefined;
     invoke.mockImplementation(async (cmd: string, args?: { path?: string }) => {
-      if (cmd === "list_dir") return { truncated: false, entries: [entry("a.txt"), entry("b.txt")] };
+      if (cmd === "list_dir") return { truncated: false, entries: [fileEntry("a.txt"), fileEntry("b.txt")] };
       if (cmd === "preview_file" && args?.path?.endsWith("a.txt")) return new Promise((resolve) => { answerA = resolve; });
       if (cmd === "preview_file") return { name: "b.txt", size: 10, mime: "text/plain", kind: "txt", text: "content of B", data: null };
       return undefined;
@@ -126,9 +127,8 @@ describe("FilesPanel", () => {
   });
 
   it("says « too large » for a PDF the kit did not embed (its limit, not a size written in the page), « no preview » for a binary", async () => {
-    const entry = (name: string, kind: string) => ({ name, path: `/Users/a/Clients/${name}`, isDir: false, size: 99_000_000, modified: 0, kind });
     invoke.mockImplementation(async (cmd: string, args?: { path?: string }) => {
-      if (cmd === "list_dir") return { truncated: false, entries: [entry("big.pdf", "pdf"), entry("tool.bin", "file")] };
+      if (cmd === "list_dir") return { truncated: false, entries: [fileEntry("big.pdf", "pdf"), fileEntry("tool.bin", "file")] };
       if (cmd === "preview_file" && args?.path?.endsWith("big.pdf")) return { name: "big.pdf", size: 99_000_000, mime: "application/pdf", kind: "pdf", text: null, data: null };
       if (cmd === "preview_file") return { name: "tool.bin", size: 99_000_000, mime: "application/octet-stream", kind: "file", text: null, data: null };
       return undefined;
