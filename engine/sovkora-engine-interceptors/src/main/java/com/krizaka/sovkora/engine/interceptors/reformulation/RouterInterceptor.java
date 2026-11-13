@@ -5,6 +5,7 @@ import com.krizaka.sovkora.engine.core.domain.model.PromptContext;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineMessage;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ProviderChatClient;
 import com.krizaka.sovkora.engine.core.infrastructure.config.CoreProperties;
+import com.krizaka.sovkora.engine.interceptors.governance.SpendCapInterceptor;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,6 +48,11 @@ public class RouterInterceptor implements PromptContextInterceptor {
   @Override
   public PromptContext intercept(PromptContext context) {
     if (!isRouterConfigured()) {
+      return context;
+    }
+    if (Boolean.TRUE.equals(context.systemMetadata().get(SpendCapInterceptor.DOWNGRADED_MARKER))) {
+      // The monthly spend cap already chose a cheaper provider for this turn (declared by the cap
+      // interceptor): routing would undo it.
       return context;
     }
     if (context.carriesMedia()) {

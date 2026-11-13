@@ -89,6 +89,8 @@ administrator's token (through the edge, `http://localhost:8088` locally).
 
 | Method | Path | Summary |
 |:---|:---|:---|
+| GET | `/api/v1/admin/spend-caps` | Every cap, with the actions on offer and the price table. |
+| PUT | `/api/v1/admin/spend-caps/{environment}/{productKey}` | Creates or changes the cap of one environment and product key. |
 | PUT | `/api/v1/features/{featureKey}` | Admin: toggles an existing capability's enabled state. |
 | GET | `/api/v1/features/all` | Admin: all capabilities (enabled or not) from the database. |
 | GET | `/api/v1/jobs/active-connections` | Retrieves the current active SSE connection count. |

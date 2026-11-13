@@ -50,6 +50,18 @@ class RouterInterceptorTest {
   }
 
   @Test
+  void intercept_whenTheSpendCapChoseTheProvider_leavesItAlone() {
+    routerConfigured("router", null);
+    var downgraded =
+        new PromptContext("q", Map.of())
+            .withRoutedProvider("small")
+            .withSystemMetadata(Map.of("orazaka.spend.downgraded", true));
+
+    assertSame(downgraded, interceptor().intercept(downgraded));
+    verifyNoInteractions(chatClient);
+  }
+
+  @Test
   void isAiDependent_returnsTrue() {
     assertTrue(interceptor().isAiDependent());
   }

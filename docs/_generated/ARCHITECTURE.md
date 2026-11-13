@@ -194,6 +194,7 @@ Who calls whom while the platform runs: HTTP (UI defaults, the edge route table,
 | Order | Interceptor | Enabled | Implemented |
 |:--|:---|:--|:--|
 | 4 | `EntitlementInterceptor` | ✅ | ✅ |
+| 4 | `SpendCapInterceptor` | ✅ | ✅ |
 | 5 | `McpInterceptor` | ✅ | ✅ |
 | 6 | `BrandContextInterceptor` | ✅ | ✅ |
 | 7 | `MemoryInterceptor` | ✅ | ✅ |

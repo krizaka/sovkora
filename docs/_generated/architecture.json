@@ -1934,6 +1934,15 @@
       "summary": "Gates the synchronous chat path on what the actor may do and can afford (ADR-033 §6.2)."
     },
     {
+      "interceptor": "SpendCapInterceptor",
+      "order": 4,
+      "enabled": true,
+      "phase": "dynamic",
+      "implemented": true,
+      "concern": "governance",
+      "summary": "Applies the monthly provider-spend cap of the turn's scope (environment and product key) before the turn reaches a model."
+    },
+    {
       "interceptor": "McpInterceptor",
       "order": 5,
       "enabled": true,
