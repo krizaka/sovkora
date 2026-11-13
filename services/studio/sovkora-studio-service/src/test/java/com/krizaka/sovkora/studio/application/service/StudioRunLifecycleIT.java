@@ -1675,12 +1675,7 @@ class StudioRunLifecycleIT {
         run.id(),
         RunStepStatus.RUNNING.name());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper(
-            jdbcTemplate,
-            context.getBean(RunSettlementService.class),
-            context.getBean(StudioRuntimeConfigService.class),
-            context.getBean(RunAuditService.class))
-        .sweep();
+    sweeper().sweep();
 
     RunDetail swept = runService.find(run.id(), ACTOR).orElseThrow();
     assertEquals(RunStatus.FAILED, swept.status());
@@ -1699,12 +1694,7 @@ class StudioRunLifecycleIT {
     jdbcTemplate.update(
         "UPDATE studio_run SET started_at = now() - INTERVAL '5 hours' WHERE id = ?", run.id());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper(
-            jdbcTemplate,
-            context.getBean(RunSettlementService.class),
-            context.getBean(StudioRuntimeConfigService.class),
-            context.getBean(RunAuditService.class))
-        .sweep();
+    sweeper().sweep();
 
     RunDetail swept = runService.find(run.id(), ACTOR).orElseThrow();
     assertEquals(RunStatus.FAILED, swept.status());
@@ -1718,15 +1708,202 @@ class StudioRunLifecycleIT {
     RunDetail run = startRun();
     credits.released.clear();
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper(
-            jdbcTemplate,
-            context.getBean(RunSettlementService.class),
-            context.getBean(StudioRuntimeConfigService.class),
-            context.getBean(RunAuditService.class))
-        .sweep();
+    sweeper().sweep();
 
     assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
     assertTrue(credits.released.isEmpty());
+  }
+
+  private com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper sweeper() {
+    return new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper(
+        jdbcTemplate,
+        context.getBean(RunSettlementService.class),
+        context.getBean(StudioRuntimeConfigService.class),
+        context.getBean(RunAuditService.class),
+        context.getBean(StepReissueService.class),
+        context.getBean(OutboxService.class),
+        context.getBean(io.micrometer.core.instrument.MeterRegistry.class));
+  }
+
+  /** The relay's part: what was appended reaches the broker and is marked published. */
+  private void relayPublished(RunDetail run) {
+    jdbcTemplate.update(
+        "UPDATE studio_outbox SET published_at = now() WHERE aggregate_id = ?"
+            + " AND published_at IS NULL AND message_id IS NOT NULL",
+        run.id().toString());
+  }
+
+  // ── krizaka-internal#2132 (ADR SOV-105 §2): a silent step is re-issued, then failed ──────────
+
+  /**
+   * What the job adapter writes at dispatch — the command, in the saga's transaction — and what the
+   * relay then does: the row is published. A broker that loses its queue afterwards loses the copy
+   * on the wire, never this row.
+   */
+  private void dispatchedAndPublished(RunDetail run) {
+    OutboxService outbox = context.getBean(OutboxService.class);
+    for (String job : jobsInFlight(run)) {
+      outbox.appendCommand(
+          run.id().toString(), "orazaka.jobs", "job.text.generate", job, Map.of("jobId", job));
+    }
+    jdbcTemplate.update(
+        "UPDATE studio_outbox SET published_at = now() WHERE aggregate_id = ?",
+        run.id().toString());
+  }
+
+  /** The step's ceiling long past: nothing came back after the dispatch. */
+  private void goSilent(RunDetail run) {
+    jdbcTemplate.update(
+        "UPDATE studio_run_step SET started_at = now() - INTERVAL '2 hours',"
+            + " reissued_at = NULL WHERE run_id = ? AND status = ?",
+        run.id(),
+        RunStepStatus.RUNNING.name());
+  }
+
+  private int commandsOf(String jobId) {
+    return jdbcTemplate.queryForObject(
+        "SELECT COUNT(*) FROM studio_outbox WHERE message_id = ?", Integer.class, jobId);
+  }
+
+  @Test
+  @DisplayName(
+      "[SOV-105 a] the queue's messages are dropped after dispatch: the step is re-issued with"
+          + " the same job id and the run completes")
+  void aSilentStepIsReissuedWithTheSameJobIdAndTheRunCompletes() {
+    RunDetail run = startRun();
+    credits.released.clear();
+    dispatchedAndPublished(run);
+    List<String> jobs = jobsInFlight(run);
+    goSilent(run);
+
+    sweeper().sweep();
+
+    assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
+    assertTrue(credits.released.isEmpty(), "a re-issued step keeps its run's hold");
+    assertEquals(jobs, jobsInFlight(run), "the same job ids, not new ones");
+    for (String job : jobs) {
+      assertEquals(2, commandsOf(job), "one copy of the order appended through the outbox");
+      assertEquals(
+          1,
+          jdbcTemplate.queryForObject(
+              "SELECT COUNT(*) FROM studio_outbox WHERE message_id = ? AND published_at IS NULL",
+              Integer.class,
+              job),
+          "the new copy waits for the relay");
+      assertEquals(
+          1,
+          jdbcTemplate.queryForObject(
+              "SELECT reissues FROM studio_run_step WHERE job_id = ?", Integer.class, job));
+    }
+
+    for (int round = 0; round < 10; round++) {
+      RunDetail now = runService.find(run.id(), ACTOR).orElseThrow();
+      if (now.status() != RunStatus.RUNNING) {
+        break;
+      }
+      jobsInFlight(run)
+          .forEach(
+              job ->
+                  sagaService.applyOutcome(
+                      job, Map.of("content", "ok", "url", "/media/img-1.png"), null));
+    }
+    assertEquals(RunStatus.SUCCEEDED, runService.find(run.id(), ACTOR).orElseThrow().status());
+  }
+
+  @Test
+  @DisplayName(
+      "[SOV-105 b] dropped past the last re-issue: the run fails PLATFORM_UNAVAILABLE and its hold"
+          + " is released")
+  void aStepSilentPastItsLastReissueFailsTheRunWithATypedCause() {
+    RunDetail run = startRun();
+    credits.released.clear();
+    dispatchedAndPublished(run);
+    int max =
+        context.getBean(StudioRuntimeConfigService.class).intValue("run.step-max-reissues", 2);
+
+    for (int pass = 0; pass <= max; pass++) {
+      goSilent(run);
+      sweeper().sweep();
+      relayPublished(run);
+    }
+
+    RunDetail failed = runService.find(run.id(), ACTOR).orElseThrow();
+    assertEquals(RunStatus.FAILED, failed.status());
+    assertEquals(
+        "PLATFORM_UNAVAILABLE",
+        jdbcTemplate.queryForObject(
+            "SELECT failure_cause FROM studio_run WHERE id = ?", String.class, run.id()));
+    assertTrue(credits.released.contains("hold-1"), "the hold is released");
+    assertEquals(
+        1,
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM studio_outbox WHERE aggregate_id = ?"
+                + " AND event_type = 'evt.studio.run.failed'",
+            Integer.class,
+            run.id().toString()),
+        "the failure is announced the usual way");
+    for (String job : jobsFailed(run)) {
+      assertEquals(max, reissuesOf(job), "never re-issued past the setting");
+    }
+  }
+
+  private List<String> jobsFailed(RunDetail run) {
+    return jdbcTemplate.queryForList(
+        "SELECT job_id FROM studio_run_step WHERE run_id = ? AND job_id IS NOT NULL",
+        String.class,
+        run.id());
+  }
+
+  private int reissuesOf(String jobId) {
+    return jdbcTemplate.queryForObject(
+        "SELECT reissues FROM studio_run_step WHERE job_id = ?", Integer.class, jobId);
+  }
+
+  @Test
+  @DisplayName("[SOV-105 c] a late duplicate outcome after a re-issue is applied once")
+  void aLateDuplicateOutcomeAfterAReissueIsAppliedOnce() {
+    RunDetail run = startRun();
+    dispatchedAndPublished(run);
+    String job = jobsInFlight(run).getFirst();
+    goSilent(run);
+    sweeper().sweep();
+
+    sagaService.applyOutcome(job, Map.of("content", "first"), null);
+    sagaService.applyOutcome(job, Map.of("content", "second"), null);
+
+    assertEquals(
+        "first",
+        jdbcTemplate.queryForObject(
+            "SELECT output->>'content' FROM studio_run_step WHERE job_id = ?", String.class, job));
+  }
+
+  @Test
+  @DisplayName("[SOV-105 e] a step another sweeper holds is skipped, never re-issued twice")
+  void aStepAnotherSweeperHoldsIsSkipped() throws Exception {
+    RunDetail run = startRun();
+    dispatchedAndPublished(run);
+    String job = jobsInFlight(run).getFirst();
+    goSilent(run);
+
+    try (java.sql.Connection other = jdbcTemplate.getDataSource().getConnection()) {
+      other.setAutoCommit(false);
+      try (java.sql.PreparedStatement lock =
+          other.prepareStatement("SELECT 1 FROM studio_run_step WHERE job_id = ? FOR UPDATE")) {
+        lock.setString(1, job);
+        lock.executeQuery();
+        sweeper().sweep();
+        assertEquals(0, reissuesOf(job), "the locked step is the other sweeper's to re-issue");
+        assertEquals(1, commandsOf(job));
+        assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
+      } finally {
+        other.rollback();
+      }
+    }
+
+    sweeper().sweep();
+    sweeper().sweep();
+    assertEquals(1, reissuesOf(job), "the second sweep finds it fresh: one re-issue in all");
+    assertEquals(2, commandsOf(job));
   }
 
   // ── krizaka-internal#263: a run that never dispatched a step ──────────────
@@ -2072,6 +2249,19 @@ class StudioRunLifecycleIT {
     @Bean
     OutboxService outboxService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
       return new OutboxService(jdbcTemplate, objectMapper);
+    }
+
+    @Bean
+    io.micrometer.core.instrument.MeterRegistry reissueMeterRegistry() {
+      return new SimpleMeterRegistry();
+    }
+
+    @Bean
+    StepReissueService stepReissueService(
+        JdbcTemplate jdbcTemplate,
+        OutboxService outboxService,
+        io.micrometer.core.instrument.MeterRegistry reissueMeterRegistry) {
+      return new StepReissueService(jdbcTemplate, outboxService, reissueMeterRegistry);
     }
 
     @Bean

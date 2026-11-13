@@ -27,8 +27,21 @@ class RunSweeperTest {
       mock(StudioRuntimeConfigService.class);
   private final com.krizaka.sovkora.studio.application.service.RunAuditService runAuditService =
       mock(com.krizaka.sovkora.studio.application.service.RunAuditService.class);
+  private final com.krizaka.sovkora.studio.application.service.StepReissueService reissueService =
+      mock(com.krizaka.sovkora.studio.application.service.StepReissueService.class);
+  private final com.krizaka.sovkora.studio.application.service.OutboxService outboxService =
+      mock(com.krizaka.sovkora.studio.application.service.OutboxService.class);
+  private final io.micrometer.core.instrument.simple.SimpleMeterRegistry meters =
+      new io.micrometer.core.instrument.simple.SimpleMeterRegistry();
   private final RunSweeper sweeper =
-      new RunSweeper(jdbcTemplate, settlementService, runtimeConfigService, runAuditService);
+      new RunSweeper(
+          jdbcTemplate,
+          settlementService,
+          runtimeConfigService,
+          runAuditService,
+          reissueService,
+          outboxService,
+          meters);
 
   @Test
   @DisplayName("A stalled run is failed AND its hold released — releasing is the whole point")
@@ -41,6 +54,7 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             anyString(),
+            anyInt(),
             anyInt(),
             anyInt()))
         .thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
@@ -60,6 +74,7 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             anyString(),
+            anyInt(),
             anyInt(),
             anyInt()))
         .thenReturn(List.of());
@@ -85,6 +100,7 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             anyInt(),
+            anyInt(),
             anyInt()))
         .thenReturn(List.of());
 
@@ -98,7 +114,8 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             eq(120),
-            eq(3600));
+            eq(3600),
+            anyInt());
   }
 
   @Test
@@ -114,6 +131,7 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             anyString(),
+            anyInt(),
             anyInt(),
             anyInt()))
         .thenAnswer(invocation -> List.of(stale(runId, "INTERACTIVE")));
@@ -138,13 +156,17 @@ class RunSweeperTest {
             "com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper$StaleRun");
     var constructor = type.getDeclaredConstructors()[0];
     constructor.setAccessible(true);
-    return constructor.newInstance(runId, "hold-7", "actor-7", "compliance-check", lane);
+    return constructor.newInstance(
+        runId, "hold-7", "actor-7", "compliance-check", "1.0.0", "corr-7", lane);
   }
 
   @Test
-  @DisplayName("[ADR-053] a swept run declares TIMEOUT and appears in the protected trail")
+  @DisplayName(
+      "[ADR-053] with the re-issue guard off a swept run declares TIMEOUT and appears in the"
+          + " protected trail")
   void declaresItsCauseAndWritesTheTrail() {
     when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
+    when(runtimeConfigService.intValue("run.step-max-reissues", 2)).thenReturn(0);
     java.util.UUID runId = java.util.UUID.randomUUID();
     when(jdbcTemplate.query(
             anyString(),
@@ -152,6 +174,7 @@ class RunSweeperTest {
             anyString(),
             anyString(),
             anyString(),
+            anyInt(),
             anyInt(),
             anyInt()))
         .thenAnswer(
@@ -162,6 +185,8 @@ class RunSweeperTest {
               when(rs.getString("hold_id")).thenReturn("hold-7");
               when(rs.getString("actor_id")).thenReturn("actor-7");
               when(rs.getString("studio_key")).thenReturn("compliance-check");
+              when(rs.getString("blueprint_version")).thenReturn("1.0.0");
+              when(rs.getString("correlation_id")).thenReturn("corr-7");
               when(rs.getString("lane")).thenReturn("BATCH");
               return java.util.List.of(mapper.mapRow(rs, 0));
             });
@@ -177,5 +202,39 @@ class RunSweeperTest {
             eq("compliance-check"),
             eq(false),
             eq(com.krizaka.sovkora.jobs.api.domain.model.FailureCause.TIMEOUT));
+  }
+
+  @Test
+  @DisplayName(
+      "[SOV-105] a step silent past its last re-issue declares PLATFORM_UNAVAILABLE, is counted and"
+          + " is announced")
+  void aLostDispatchDeclaresPlatformUnavailable() throws Exception {
+    when(runtimeConfigService.intValue(anyString(), anyInt())).thenReturn(900);
+    when(runtimeConfigService.intValue("run.step-max-reissues", 2)).thenReturn(2);
+    java.util.UUID runId = java.util.UUID.randomUUID();
+    when(jdbcTemplate.query(
+            anyString(),
+            any(RowMapper.class),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyInt(),
+            anyInt(),
+            anyInt()))
+        .thenAnswer(invocation -> List.of(stale(runId, "BATCH")));
+
+    sweeper.sweep();
+
+    verify(reissueService).reissueSilentSteps(900, 900, 2);
+    verify(runAuditService)
+        .recordFinished(
+            eq(runId),
+            eq("actor-7"),
+            eq("compliance-check"),
+            eq(false),
+            eq(com.krizaka.sovkora.jobs.api.domain.model.FailureCause.PLATFORM_UNAVAILABLE));
+    verify(outboxService).append(eq(runId.toString()), eq("evt.studio.run.failed"), any());
+    assertThat(meters.counter("sovkora.studio.run.past_bound", "bound", "step_ceiling").count())
+        .isEqualTo(1.0);
   }
 }
