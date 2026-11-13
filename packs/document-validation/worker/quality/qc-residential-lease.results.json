@@ -4,9 +4,7 @@
   "cases": [
     {
       "id": "deposit-security-one-month",
-      "found": [
-        "QC-LEASE-004"
-      ],
+      "found": ["QC-LEASE-004"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -14,26 +12,20 @@
     {
       "id": "deposit-key",
       "found": [],
-      "missed": [
-        "QC-LEASE-004"
-      ],
+      "missed": ["QC-LEASE-004"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "deposit-two-months-advance",
       "found": [],
-      "missed": [
-        "QC-LEASE-004"
-      ],
+      "missed": ["QC-LEASE-004"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "deposit-pet",
-      "found": [
-        "QC-LEASE-004"
-      ],
+      "found": ["QC-LEASE-004"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -41,26 +33,20 @@
     {
       "id": "deposit-guarantee-wording",
       "found": [],
-      "missed": [
-        "QC-LEASE-004"
-      ],
+      "missed": ["QC-LEASE-004"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "deposit-damages",
-      "found": [
-        "QC-LEASE-004"
-      ],
+      "found": ["QC-LEASE-004"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "postdated-cheques-plain",
-      "found": [
-        "QC-LEASE-005"
-      ],
+      "found": ["QC-LEASE-005"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -68,17 +54,13 @@
     {
       "id": "postdated-cheques-paraphrase",
       "found": [],
-      "missed": [
-        "QC-LEASE-005"
-      ],
+      "missed": ["QC-LEASE-005"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "children-refused-plain",
-      "found": [
-        "QC-LEASE-006"
-      ],
+      "found": ["QC-LEASE-006"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -86,17 +68,13 @@
     {
       "id": "children-refused-paraphrase",
       "found": [],
-      "missed": [
-        "QC-LEASE-006"
-      ],
+      "missed": ["QC-LEASE-006"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "stay-waiver-plain",
-      "found": [
-        "QC-LEASE-007"
-      ],
+      "found": ["QC-LEASE-007"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -104,17 +82,13 @@
     {
       "id": "stay-waiver-paraphrase",
       "found": [],
-      "missed": [
-        "QC-LEASE-007"
-      ],
+      "missed": ["QC-LEASE-007"],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "increase-waiver",
-      "found": [
-        "QC-LEASE-009"
-      ],
+      "found": ["QC-LEASE-009"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -156,27 +130,21 @@
     },
     {
       "id": "visits-forbidden-plain",
-      "found": [
-        "QC-LEASE-012"
-      ],
+      "found": ["QC-LEASE-012"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "guest-needs-consent",
-      "found": [
-        "QC-LEASE-012"
-      ],
+      "found": ["QC-LEASE-012"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
     },
     {
       "id": "termination-one-late-payment-plain",
-      "found": [
-        "QC-LEASE-013"
-      ],
+      "found": ["QC-LEASE-013"],
       "missed": [],
       "wrong": [],
       "unmeasured": false
@@ -184,9 +152,7 @@
     {
       "id": "termination-one-late-payment-paraphrase",
       "found": [],
-      "missed": [
-        "QC-LEASE-013"
-      ],
+      "missed": ["QC-LEASE-013"],
       "wrong": [],
       "unmeasured": false
     },

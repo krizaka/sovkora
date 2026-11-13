@@ -13,13 +13,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-etat-logement",
         "citationStatus": "neutral-citation-read"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "A security deposit equal to one month is collected at signing.",
-      "clause": [
-        "La locataire verse à la signature une somme de 1 120 $ à titre de dépôt de sécurité."
-      ],
+      "clause": ["La locataire verse à la signature une somme de 1 120 $ à titre de dépôt de sécurité."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -40,13 +36,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/etre-locataire/paiement-du-loyer",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "A refundable sum is collected for the keys.",
-      "clause": [
-        "Le locataire remet 75 $ de dépôt pour les clés, remboursable à la fin du bail."
-      ],
+      "clause": ["Le locataire remet 75 $ de dépôt pour les clés, remboursable à la fin du bail."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -66,13 +58,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-etat-logement",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "More than the first month is collected in advance.",
-      "clause": [
-        "Deux mois de loyer sont payables d'avance à la signature du bail."
-      ],
+      "clause": ["Deux mois de loyer sont payables d'avance à la signature du bail."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -92,13 +80,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-animaux-compagnie",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "A sum is collected to allow a pet.",
-      "clause": [
-        "Un dépôt de 300 $ est exigé pour la garde d'un animal."
-      ],
+      "clause": ["Un dépôt de 300 $ est exigé pour la garde d'un animal."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -118,13 +102,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-reprise-logement",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "A sum is collected as a guarantee, worded without the word deposit.",
-      "clause": [
-        "Une somme de 500 $ est versée à titre de garantie lors de la remise des clés."
-      ],
+      "clause": ["Une somme de 500 $ est versée à titre de garantie lors de la remise des clés."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -144,13 +124,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-etat-logement",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "A security sum is received at signing to cover damage.",
-      "clause": [
-        "Le locataire remet, au moment de signer, un dépôt pour dommages de 600 $."
-      ],
+      "clause": ["Le locataire remet, au moment de signer, un dépôt pour dommages de 600 $."],
       "expect": [
         {
           "ruleId": "QC-LEASE-004",
@@ -170,13 +146,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/etre-locataire/paiement-du-loyer",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "Post-dated cheques are required for the term.",
-      "clause": [
-        "Le locataire remet douze chèques postdatés au locateur."
-      ],
+      "clause": ["Le locataire remet douze chèques postdatés au locateur."],
       "expect": [
         {
           "ruleId": "QC-LEASE-005",
@@ -197,13 +169,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/etre-locataire/paiement-du-loyer",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1904"
-      ],
+      "articles": ["1904"],
       "clauseIdea": "Cheques dated in advance are required for each month.",
-      "clause": [
-        "Le locataire doit remettre à la signature l'ensemble de ses chèques mensuels, datés d'avance."
-      ],
+      "clause": ["Le locataire doit remettre à la signature l'ensemble de ses chèques mensuels, datés d'avance."],
       "expect": [
         {
           "ruleId": "QC-LEASE-005",
@@ -223,13 +191,9 @@
         "url": "https://citoyens.soquij.qc.ca/php/decision.php?ID=6DDECC372A59153E0B7DF8C022B8904E",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1899"
-      ],
+      "articles": ["1899"],
       "clauseIdea": "Children are barred from the dwelling.",
-      "clause": [
-        "Il est interdit d'avoir des enfants dans le logement."
-      ],
+      "clause": ["Il est interdit d'avoir des enfants dans le logement."],
       "expect": [
         {
           "ruleId": "QC-LEASE-006",
@@ -250,13 +214,9 @@
         "url": "https://citoyens.soquij.qc.ca/php/decision.php?ID=6DDECC372A59153E0B7DF8C022B8904E",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1899"
-      ],
+      "articles": ["1899"],
       "clauseIdea": "Households with young children are not accepted.",
-      "clause": [
-        "Les familles avec de jeunes enfants ne sont pas acceptées dans cet immeuble."
-      ],
+      "clause": ["Les familles avec de jeunes enfants ne sont pas acceptées dans cet immeuble."],
       "expect": [
         {
           "ruleId": "QC-LEASE-006",
@@ -276,14 +236,9 @@
         "url": "https://www.tal.gouv.qc.ca/sites/default/files/ajustement-bail-verbal.pdf",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1936",
-        "1893"
-      ],
+      "articles": ["1936", "1893"],
       "clauseIdea": "The tenant gives up in advance the right to remain after the term.",
-      "clause": [
-        "Le locataire renonce à son droit au maintien dans les lieux à la fin du bail."
-      ],
+      "clause": ["Le locataire renonce à son droit au maintien dans les lieux à la fin du bail."],
       "expect": [
         {
           "ruleId": "QC-LEASE-007",
@@ -304,10 +259,7 @@
         "url": "https://www.tal.gouv.qc.ca/sites/default/files/ajustement-bail-verbal.pdf",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1936",
-        "1893"
-      ],
+      "articles": ["1936", "1893"],
       "clauseIdea": "The tenant agrees in advance that the lease will not be renewed.",
       "clause": [
         "Le locataire déclare qu'il ne demandera aucune reconduction de son bail et renonce à rester dans le logement."
@@ -331,15 +283,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/reconduction-du-bail-et-fixation-de-loyer/modification-d-une-condition-du-bail",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1942",
-        "1943",
-        "1893"
-      ],
+      "articles": ["1942", "1943", "1893"],
       "clauseIdea": "The tenant agrees in advance to any increase.",
-      "clause": [
-        "Le locataire accepte d'avance toute augmentation de loyer décidée par le locateur."
-      ],
+      "clause": ["Le locataire accepte d'avance toute augmentation de loyer décidée par le locateur."],
       "expect": [
         {
           "ruleId": "QC-LEASE-009",
@@ -359,15 +305,9 @@
         "url": "https://citoyens.soquij.qc.ca/php/decision.php?ID=BDD4A4523C2D7A053D86856AC8B077BE",
         "citationStatus": "neutral-citation-read"
       },
-      "articles": [
-        "1903",
-        "1904",
-        "1906"
-      ],
+      "articles": ["1903", "1904", "1906"],
       "clauseIdea": "The rent varies with the electricity consumed during the lease.",
-      "clause": [
-        "L'électricité est incluse jusqu'à 200 $ par mois; le locataire paie le surplus."
-      ],
+      "clause": ["L'électricité est incluse jusqu'à 200 $ par mois; le locataire paie le surplus."],
       "expect": [],
       "uncoveredBy": "no rule on a rent that varies during the lease (QC-LEASE-020 judgment only)"
     },
@@ -382,14 +322,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resume-conditions-du-bail",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1903",
-        "1906"
-      ],
+      "articles": ["1903", "1906"],
       "clauseIdea": "A rent discount depends on paying before the first of the month.",
-      "clause": [
-        "Un rabais de 50 $ s'applique si le loyer est payé avant le premier jour du mois."
-      ],
+      "clause": ["Un rabais de 50 $ s'applique si le loyer est payé avant le premier jour du mois."],
       "expect": [],
       "uncoveredBy": "no rule on a conditional rent (QC-LEASE-020 judgment only)"
     },
@@ -404,14 +339,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resumes-decisions-etat-logement",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1900",
-        "1893"
-      ],
+      "articles": ["1900", "1893"],
       "clauseIdea": "The tenant bears extermination costs for an infestation found soon after moving in.",
-      "clause": [
-        "Le locataire paie les frais d'extermination de punaises constatées dans les six premiers mois."
-      ],
+      "clause": ["Le locataire paie les frais d'extermination de punaises constatées dans les six premiers mois."],
       "expect": [],
       "uncoveredBy": "no rule on liability clauses (QC-LEASE-020 judgment only)"
     },
@@ -426,10 +356,7 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resume-conditions-du-bail",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1894",
-        "1942"
-      ],
+      "articles": ["1894", "1942"],
       "clauseIdea": "A liability-insurance duty is added through building rules, as a disguised increase.",
       "clause": [
         "Le règlement de l'immeuble oblige le locataire à souscrire une assurance responsabilité de 2 000 000 $."
@@ -448,13 +375,9 @@
         "url": "https://citoyens.soquij.qc.ca/php/decision.php?ID=A814C2B69C84B0CE7CCA0FC47818B8EE",
         "citationStatus": "neutral-citation-read"
       },
-      "articles": [
-        "1901"
-      ],
+      "articles": ["1901"],
       "clauseIdea": "A blanket pet ban, abusive as applied to a tenant who needs the animal.",
-      "clause": [
-        "Aucun animal n'est toléré dans le logement."
-      ],
+      "clause": ["Aucun animal n'est toléré dans le logement."],
       "expect": [],
       "uncoveredBy": "a pet ban is judged case by case (QC-LEASE-020 judgment only)"
     },
@@ -469,14 +392,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resume-conditions-du-bail",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1901",
-        "1931"
-      ],
+      "articles": ["1901", "1931"],
       "clauseIdea": "Visits are banned after a fixed hour.",
-      "clause": [
-        "Les visites sont interdites après 22 heures."
-      ],
+      "clause": ["Les visites sont interdites après 22 heures."],
       "expect": [
         {
           "ruleId": "QC-LEASE-012",
@@ -496,13 +414,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/resume-conditions-du-bail",
         "citationStatus": "listed-on-tal-summary-page-no-neutral-citation-read"
       },
-      "articles": [
-        "1901"
-      ],
+      "articles": ["1901"],
       "clauseIdea": "Lodging a third person needs the landlord's written consent.",
-      "clause": [
-        "Le locataire ne peut héberger un tiers sans l'autorisation écrite du locateur."
-      ],
+      "clause": ["Le locataire ne peut héberger un tiers sans l'autorisation écrite du locateur."],
       "expect": [
         {
           "ruleId": "QC-LEASE-012",
@@ -522,14 +436,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/etre-locataire/paiement-du-loyer",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1971",
-        "1893"
-      ],
+      "articles": ["1971", "1893"],
       "clauseIdea": "One late payment ends the lease without any step.",
-      "clause": [
-        "Le bail est résilié de plein droit en cas de retard dans le paiement du loyer."
-      ],
+      "clause": ["Le bail est résilié de plein droit en cas de retard dans le paiement du loyer."],
       "expect": [
         {
           "ruleId": "QC-LEASE-013",
@@ -550,14 +459,9 @@
         "url": "https://www.tal.gouv.qc.ca/fr/etre-locataire/paiement-du-loyer",
         "citationStatus": "official-guidance-not-a-decision"
       },
-      "articles": [
-        "1971",
-        "1893"
-      ],
+      "articles": ["1971", "1893"],
       "clauseIdea": "If rent is not received on the due day, the landlord ends the lease without formality.",
-      "clause": [
-        "Si le loyer n'est pas reçu le jour convenu, le locateur met fin au bail sans autre formalité."
-      ],
+      "clause": ["Si le loyer n'est pas reçu le jour convenu, le locateur met fin au bail sans autre formalité."],
       "expect": [
         {
           "ruleId": "QC-LEASE-013",
@@ -579,9 +483,7 @@
       },
       "articles": [],
       "clauseIdea": "A lease that states what the landlord may not ask.",
-      "clause": [
-        "Aucun dépôt n'est demandé; le loyer est payé par virement le premier du mois."
-      ],
+      "clause": ["Aucun dépôt n'est demandé; le loyer est payé par virement le premier du mois."],
       "expect": []
     },
     {
@@ -597,9 +499,7 @@
       },
       "articles": [],
       "clauseIdea": "Children and a pet are welcome.",
-      "clause": [
-        "Les enfants sont les bienvenus; un chien ou un chat peut être gardé."
-      ],
+      "clause": ["Les enfants sont les bienvenus; un chien ou un chat peut être gardé."],
       "expect": []
     },
     {
