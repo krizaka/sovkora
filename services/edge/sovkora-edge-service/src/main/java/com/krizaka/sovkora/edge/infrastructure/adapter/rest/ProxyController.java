@@ -10,6 +10,7 @@ import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpTimeoutException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
@@ -86,11 +87,22 @@ public class ProxyController {
     URI backend = routeResolver.resolve(request.getRequestURI());
     URI target = buildTargetUri(backend, request);
     BackendAdmission admission = backendBreaker.admit(backend);
-    if (admission instanceof BackendAdmission.Refused refused) {
-      BackendRefusal.UNAVAILABLE.write(response, refused.retryAfter());
-      return;
+    switch (admission) {
+      case BackendAdmission.Refused(Duration retryAfter) ->
+          BackendRefusal.UNAVAILABLE.write(response, retryAfter);
+      case BackendAdmission.Granted(BackendCall call) ->
+          forward(request, response, backend, target, call);
     }
-    BackendCall call = ((BackendAdmission.Granted) admission).call();
+  }
+
+  /** Forwards one admitted call and reports its outcome to the backend's circuit. */
+  private void forward(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      URI backend,
+      URI target,
+      BackendCall call)
+      throws IOException {
     try {
       RestClient.RequestBodySpec spec =
           proxyRestClient

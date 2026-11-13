@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import java.util.concurrent.locks.LockSupport;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -205,11 +206,8 @@ class ProxyFastFailTest {
   }
 
   private static void answerAfter(HttpExchange exchange, Duration delay) throws IOException {
-    try {
-      Thread.sleep(delay);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+    // The backend's own latency: the stub thread parks, the test itself never waits on a timer.
+    LockSupport.parkNanos(delay.toNanos());
     answer(exchange, 200, "late");
   }
 
@@ -229,10 +227,8 @@ class ProxyFastFailTest {
       for (int frame = 1; frame <= 4; frame++) {
         out.write(("data: " + frame + "\n\n").getBytes(StandardCharsets.UTF_8));
         out.flush();
-        Thread.sleep(Duration.ofMillis(250));
+        LockSupport.parkNanos(Duration.ofMillis(250).toNanos());
       }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
     }
   }
 }

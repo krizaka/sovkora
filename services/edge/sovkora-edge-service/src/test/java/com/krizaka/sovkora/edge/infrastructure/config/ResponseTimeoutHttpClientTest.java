@@ -10,6 +10,7 @@ import java.net.http.*;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 import org.junit.jupiter.api.*;
 
 class ResponseTimeoutHttpClientTest {
@@ -82,11 +83,8 @@ class ResponseTimeoutHttpClientTest {
         .build();
   }
 
+  /** The backend's own pace: the stub thread parks, the test itself never waits on a timer. */
   private static void pause(Duration duration) {
-    try {
-      Thread.sleep(duration);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
+    LockSupport.parkNanos(duration.toNanos());
   }
 }

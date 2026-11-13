@@ -62,30 +62,30 @@ public record EdgeBackendProperties(Timeouts timeouts, Breaker breaker, Duration
       int halfOpenCalls) {
 
     public Breaker {
-      requireBetween("breaker.failure-rate-percent", failureRatePercent, 1, 100);
+      requireCount("breaker.failure-rate-percent", failureRatePercent, 1, 100);
       requireBetween(
           "breaker.slow-call-threshold",
           slowCallThreshold,
           Duration.ofMillis(100),
           Duration.ofMinutes(10));
-      requireBetween("breaker.slow-call-rate-percent", slowCallRatePercent, 1, 100);
-      requireBetween("breaker.window-calls", windowCalls, 2, 1000);
-      requireBetween("breaker.minimum-calls", minimumCalls, 1, windowCalls);
+      requireCount("breaker.slow-call-rate-percent", slowCallRatePercent, 1, 100);
+      requireCount("breaker.window-calls", windowCalls, 2, 1000);
+      requireCount("breaker.minimum-calls", minimumCalls, 1, windowCalls);
       requireBetween(
           "breaker.open-duration", openDuration, Duration.ofSeconds(1), Duration.ofMinutes(10));
-      requireBetween("breaker.half-open-calls", halfOpenCalls, 1, 50);
+      requireCount("breaker.half-open-calls", halfOpenCalls, 1, 50);
+    }
+
+    private static void requireCount(String name, int value, int min, int max) {
+      if (value < min || value > max) {
+        throw new IllegalArgumentException(
+            "sovkora.edge.backend." + name + " must be between " + min + " and " + max);
+      }
     }
   }
 
   private static void requireBetween(String name, Duration value, Duration min, Duration max) {
     if (value == null || value.compareTo(min) < 0 || value.compareTo(max) > 0) {
-      throw new IllegalArgumentException(
-          "sovkora.edge.backend." + name + " must be between " + min + " and " + max);
-    }
-  }
-
-  private static void requireBetween(String name, int value, int min, int max) {
-    if (value < min || value > max) {
       throw new IllegalArgumentException(
           "sovkora.edge.backend." + name + " must be between " + min + " and " + max);
     }
