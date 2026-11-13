@@ -40,6 +40,7 @@ import compliance
 import identify
 import lecture
 import rules
+import worker_failure
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECLARATION = yaml.safe_load(open(os.path.join(HERE, "worker.yaml"), encoding="utf-8"))
@@ -364,17 +365,13 @@ INVALID_REASONS = frozenset(
 )
 
 
-class InvalidJobPayload(ValueError):
+class InvalidJobPayload(worker_failure.InvalidJobPayload):
     """This worker checked the payload and found it unusable — the one cause that bills.
 
     It carries a ``reason`` from :data:`INVALID_REASONS` and nothing else: a free-text reason is refused.
     """
 
-    def __init__(self, reason: str) -> None:
-        if reason not in INVALID_REASONS:
-            raise ValueError("an invalid-payload reason is one of INVALID_REASONS")
-        super().__init__(reason)
-        self.reason = reason
+    REASONS = INVALID_REASONS
 
 
 def _emit(channel, job_id: str, routing_suffix: str, body: dict) -> None:
@@ -404,15 +401,11 @@ def _on_message(channel, method, properties, body) -> None:
     try:
         result, consumption = _handle(method.routing_key, job)
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except InvalidJobPayload as bad:
-        # A jurisdiction this pack does not carry, or a date no ruleset covers: the pack checked
-        # and says so. This is the one category that bills for the steps that already ran.
-        print(f"[validation] {method.routing_key} -> job {job_id} rejected: {bad.reason}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": bad.reason, "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-        # The type name and the cause only: the message of an exception raised while reading a document can quote it.
-        print(f"[validation] {method.routing_key} -> job {job_id} failed: {type(failure).__name__}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
+        # A refusal (a jurisdiction this pack does not carry, a date no ruleset covers) is the one category that bills
+        # for the steps that already ran: its coded reason. Anything else: the type name. Never a message, which can
+        # quote the document (worker_failure).
+        worker_failure.report_failure(_emit, channel, "validation", method.routing_key, job_id, failure)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

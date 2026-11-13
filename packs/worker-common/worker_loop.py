@@ -4,8 +4,10 @@ A worker used to carry its own copy of this (queue declaration, dead-lettering, 
 ``done`` / ``error`` events). New workers import it: they bring a ``handle(routing_key, job) -> (result, consumption)``
 and their ``worker.yaml`` declaration, nothing else.
 
-``handle`` raises :class:`InvalidJobPayload` when it checked the payload and found it unusable (the one cause that
-bills); any other exception is an executor fault. The log lines are the job id and the routing key — never a payload.
+``handle`` raises :class:`InvalidJobPayload` (``worker_failure``: a worker subclasses it with its closed set of coded
+reasons) when it checked the payload and found it unusable — the one cause that bills; any other exception is an
+executor fault. A failure answers with the reason code or the exception's type name and logs the same: never a
+message, never a payload.
 """
 
 from __future__ import annotations
@@ -17,17 +19,13 @@ from typing import Callable
 import pika
 
 from worker_broker import connection_parameters, credentials_from_environment, describe
+from worker_failure import EXECUTOR_FAULT, INPUT_INVALID, InvalidJobPayload, report_failure
 
 JOBS_EXCHANGE = "orazaka.jobs"
 EVENTS_EXCHANGE = "orazaka.events"
 DLX_EXCHANGE = "orazaka.dlx"
 
-INPUT_INVALID = "INPUT_INVALID"
-EXECUTOR_FAULT = "EXECUTOR_FAULT"
-
-
-class InvalidJobPayload(ValueError):
-    """The worker checked the payload and found it unusable — the one cause that bills."""
+__all__ = ["EXECUTOR_FAULT", "INPUT_INVALID", "InvalidJobPayload", "emit", "make_handle", "make_on_message", "run"]
 
 
 def make_handle(handlers: dict) -> Callable[[str, dict], tuple]:
@@ -72,12 +70,8 @@ def make_on_message(label: str, handle: Callable[[str, dict], tuple], seen: set)
         try:
             result, consumption = handle(method.routing_key, job)
             emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-        except InvalidJobPayload as bad:
-            print(f"[{label}] job {job_id} rejected: {bad}", flush=True)
-            emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
         except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-            print(f"[{label}] job {job_id} failed: {type(failure).__name__}", flush=True)
-            emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
+            report_failure(emit, channel, label, method.routing_key, job_id, failure)
         seen.add(message_id)
         channel.basic_ack(delivery_tag=method.delivery_tag)
 

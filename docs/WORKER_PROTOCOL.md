@@ -120,6 +120,12 @@ from a bare `except`**: an exception that merely happened while user data was in
 to be your own defect, and the reference worker enforces this structurally — `INPUT_INVALID` is
 raised only from its own `InvalidJobPayload` type, which the catch-all cannot reach.
 
+**`error` carries a code, never text from the job.** An exception's message can quote the document, the prompt or the file
+it was reading; the saga stores your event and your log outlives the job. So `error` is the **type name** of the exception
+(`EXECUTOR_FAULT`) or a **coded reason from a closed set your worker declares** (`INPUT_INVALID`, e.g. `DOCUMENT_MISSING`);
+a reason that is not in the set is refused when the exception is built. The log line is the routing key, the job id and
+that same word. The shared helper is `packs/worker-common/worker_failure.py`; the reference worker carries the rule itself.
+
 **Say nothing and you say `EXECUTOR_FAULT`.** An absent or unrecognised cause degrades to the
 reading that releases the hold and blames nobody. That is deliberate: a worker that has not been
 taught this contract keeps working and costs its users nothing.

@@ -15,6 +15,7 @@ import yaml
 import broker
 import language
 import rules
+import worker_failure
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECLARATION = yaml.safe_load(open(os.path.join(HERE, "worker.yaml"), encoding="utf-8"))
@@ -27,12 +28,14 @@ DLQ = f"{QUEUE}.dlq"
 SEEN: set = set()
 MAX_CHARS = 5000
 
-INPUT_INVALID = "INPUT_INVALID"
-EXECUTOR_FAULT = "EXECUTOR_FAULT"
+TEXT_MISSING = "TEXT_MISSING"
+TEXT_TOO_LONG = "TEXT_TOO_LONG"
 
 
-class InvalidJobPayload(ValueError):
-    """The payload was checked and is unusable — the one cause that bills."""
+class InvalidJobPayload(worker_failure.InvalidJobPayload):
+    """The payload was checked and is unusable — the one cause that bills. Its reason is a code, never the text."""
+
+    REASONS = frozenset({TEXT_MISSING, TEXT_TOO_LONG})
 
 
 _CLASSIFIER = None
@@ -50,9 +53,9 @@ def _classifier(ruleset: dict):
 def _read(payload: dict, classifier=None) -> dict:
     text = payload.get("text")
     if not isinstance(text, str) or not text.strip():
-        raise InvalidJobPayload("'text' must be a non-empty string")
+        raise InvalidJobPayload(TEXT_MISSING)
     if len(text) > MAX_CHARS:
-        raise InvalidJobPayload(f"'text' is longer than {MAX_CHARS} characters")
+        raise InvalidJobPayload(TEXT_TOO_LONG)
     ruleset = rules.load_ruleset()
     lang = language.detect(text)
     words = len(text.split())
@@ -100,11 +103,8 @@ def _on_message(channel, method, properties, body) -> None:
     try:
         result, consumption = _handle(method.routing_key, job)
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except InvalidJobPayload as bad:
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga
-        print(f"[authenticity] job {job_id} failed: {type(failure).__name__}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
+        worker_failure.report_failure(_emit, channel, "authenticity", method.routing_key, job_id, failure)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

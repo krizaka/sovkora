@@ -20,6 +20,8 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from app.failure import CodedReasonError
+
 MODEL = "kokoro-82m"
 REPO = "hexgrad/Kokoro-82M"
 REVISION = "f3ff3571791e39611d31c381e3a41a3af07b4987"
@@ -30,30 +32,39 @@ VOICES = {"af_heart", "af_bella", "af_nicole", "af_sarah", "am_michael", "am_fen
 MAX_CHARS = 5000
 
 
-class SpeechRequestError(ValueError):
-    """A request this server positively checked and cannot honour."""
+NOT_JSON = "NOT_JSON"
+MODEL_NOT_SERVED = "MODEL_NOT_SERVED"
+INPUT_EMPTY = "INPUT_EMPTY"
+INPUT_TOO_LONG = "INPUT_TOO_LONG"
+FORMAT_NOT_SUPPORTED = "FORMAT_NOT_SUPPORTED"
+
+
+class SpeechRequestError(CodedReasonError):
+    """A request this server positively checked and cannot honour. Its reason is a code, never a quote of it."""
+
+    REASONS = frozenset({NOT_JSON, MODEL_NOT_SERVED, INPUT_EMPTY, INPUT_TOO_LONG, FORMAT_NOT_SUPPORTED})
 
 
 def parse_request(raw: bytes) -> dict:
     """The speech request, checked (pure): model, text, voice, format."""
     try:
         body = json.loads(raw or b"{}")
-    except json.JSONDecodeError as bad:
-        raise SpeechRequestError(f"not JSON ({bad.msg})") from None
+    except json.JSONDecodeError:
+        raise SpeechRequestError(NOT_JSON) from None
     model = str(body.get("model") or MODEL)
     if model != MODEL:
-        raise SpeechRequestError(f"model '{model}' is not served here ({MODEL})")
+        raise SpeechRequestError(MODEL_NOT_SERVED)
     text = " ".join(str(body.get("input") or "").split())
     if not text:
-        raise SpeechRequestError("input is empty")
+        raise SpeechRequestError(INPUT_EMPTY)
     if len(text) > MAX_CHARS:
-        raise SpeechRequestError(f"input is longer than {MAX_CHARS} characters")
+        raise SpeechRequestError(INPUT_TOO_LONG)
     voice = str(body.get("voice") or DEFAULT_VOICE)
     if voice not in VOICES:
         voice = DEFAULT_VOICE  # a catalogue voice name of another engine ("alloy") falls back to the default, said in the header
     fmt = str(body.get("response_format") or "mp3").lower()
     if fmt not in ("mp3", "wav"):
-        raise SpeechRequestError("response_format must be mp3 or wav")
+        raise SpeechRequestError(FORMAT_NOT_SUPPORTED)
     speed = float(body.get("speed") or 1.0)
     return {"text": text, "voice": voice, "format": fmt, "speed": max(0.7, min(1.3, speed))}
 
@@ -148,20 +159,23 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as refused:
             self._send(refused.code, refused.read(), safe_type(refused.headers.get("Content-Type")))
         except OSError as down:
-            self._send(502, json.dumps({"error": f"image engine unreachable: {down}"}).encode(), CONTENT_TYPE_JSON)
+            unreachable = {"error": f"image engine unreachable: {type(down).__name__}"}
+            self._send(502, json.dumps(unreachable).encode(), CONTENT_TYPE_JSON)
 
     def _speech(self) -> None:
         length = int(self.headers.get("Content-Length") or 0)
         try:
             request = parse_request(self.rfile.read(length))
         except SpeechRequestError as bad:
-            self._send(400, json.dumps({"error": str(bad)}).encode(), CONTENT_TYPE_JSON)
+            self._send(400, json.dumps({"error": bad.reason}).encode(), CONTENT_TYPE_JSON)
             return
         try:
             wav = synthesize(request["text"], request["voice"], request["speed"])
             body, kind = (to_mp3(wav), "audio/mpeg") if request["format"] == "mp3" else (wav, "audio/wav")
         except Exception as failure:  # noqa: BLE001 — reported, never a silent placeholder
-            self._send(500, json.dumps({"error": f"speech failed: {failure}"}).encode(), CONTENT_TYPE_JSON)
+            # The type name only: the synthesiser's message can quote the text it was asked to read.
+            failed = {"error": f"speech failed: {type(failure).__name__}"}
+            self._send(500, json.dumps(failed).encode(), CONTENT_TYPE_JSON)
             return
         # The voice is not echoed in a header (a header is never built from a request's value); the model is a constant.
         self._send(200, body, kind, {"X-Orazaka-Speech-Model": MODEL})

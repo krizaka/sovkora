@@ -7,19 +7,10 @@ import sys
 from types import SimpleNamespace
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import broker  # noqa: F401  (puts worker-common on the path)
+from testkit import FakeChannel
 
 MARK = "MARK-7f3a-DOCUMENT-TEXT"
-
-
-class FakeChannel:
-    def __init__(self):
-        self.published, self.acked = [], []
-
-    def basic_publish(self, exchange, routing_key, body, properties):
-        self.published.append((routing_key, json.loads(body)))
-
-    def basic_ack(self, delivery_tag):
-        self.acked.append(delivery_tag)
 
 
 def _deliver(job_id):
@@ -83,6 +74,6 @@ def test_a_reason_outside_the_closed_set_is_refused():
     import pytest
     import validation_worker
 
-    with pytest.raises(ValueError, match="INVALID_REASONS") as refused:
+    with pytest.raises(ValueError, match="closed set") as refused:
         validation_worker.InvalidJobPayload(f"free text {MARK}")
     assert MARK not in str(refused.value)

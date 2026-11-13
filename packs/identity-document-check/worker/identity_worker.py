@@ -20,13 +20,24 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "worker-common"))
-import worker_loop  # noqa: E402
-from worker_loop import InvalidJobPayload  # noqa: E402
-
-import rules  # noqa: E402
+import rules
+import worker_failure
+import worker_loop
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MAX_BARCODE_CHARS = 20000
+
+AS_OF_NOT_A_DAY = "AS_OF_NOT_A_DAY"
+AS_OF_NOT_REAL = "AS_OF_NOT_REAL"
+MINIMUM_AGE_OUT_OF_RANGE = "MINIMUM_AGE_OUT_OF_RANGE"
+READING_INVALID = "READING_INVALID"
+BARCODE_TOO_LONG = "BARCODE_TOO_LONG"
+
+
+class InvalidJobPayload(worker_failure.InvalidJobPayload):
+    """The payload was checked and is unusable — the one cause that bills. Its reason is a code, never a value."""
+
+    REASONS = frozenset({AS_OF_NOT_A_DAY, AS_OF_NOT_REAL, MINIMUM_AGE_OUT_OF_RANGE, READING_INVALID, BARCODE_TOO_LONG})
 
 
 def today() -> str:
@@ -38,11 +49,11 @@ def _as_of(payload: dict) -> str:
     if value in (None, ""):
         return today()
     if not isinstance(value, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-        raise InvalidJobPayload("'asOf' must be a day, YYYY-MM-DD")
+        raise InvalidJobPayload(AS_OF_NOT_A_DAY)
     try:
         dt.date.fromisoformat(value)
     except ValueError as bad:
-        raise InvalidJobPayload("'asOf' is not a real day") from bad
+        raise InvalidJobPayload(AS_OF_NOT_REAL) from bad
     return value
 
 
@@ -53,7 +64,7 @@ def _minimum_age(payload: dict):
     if isinstance(value, str) and value.strip().isdigit():  # a blueprint renders a lone number as text
         value = int(value.strip())
     if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value <= 120:
-        raise InvalidJobPayload("'minimumAge' must be a whole number of years between 0 and 120")
+        raise InvalidJobPayload(MINIMUM_AGE_OUT_OF_RANGE)
     return value
 
 
@@ -61,17 +72,17 @@ def _verify(payload: dict) -> dict:
     try:
         reading = rules.parse_reading(payload.get("reading"))
     except rules.InvalidReading as bad:
-        raise InvalidJobPayload(str(bad)) from bad
+        raise InvalidJobPayload(READING_INVALID) from bad
     barcode = payload.get("barcodeText") or ""
     if not isinstance(barcode, str) or len(barcode) > MAX_BARCODE_CHARS:
-        raise InvalidJobPayload(f"'barcodeText' must be text of at most {MAX_BARCODE_CHARS} characters")
+        raise InvalidJobPayload(BARCODE_TOO_LONG)
     as_of = _as_of(payload)
     try:
         report = rules.assess(
             rules.load_ruleset(), reading, as_of, minimum_age=_minimum_age(payload), barcode_text=barcode
         )
     except rules.InvalidReading as bad:
-        raise InvalidJobPayload(str(bad)) from bad
+        raise InvalidJobPayload(READING_INVALID) from bad
     return {"report": report, "reportJson": json.dumps(report), "status": report["status"]}
 
 

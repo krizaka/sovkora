@@ -13,6 +13,7 @@ import yaml
 import broker
 import handlers
 import screening
+import worker_failure
 
 with open(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "worker.yaml"), encoding="utf-8"
@@ -21,9 +22,20 @@ with open(
 DLX_EXCHANGE = "orazaka.dlx"
 EXCHANGES = {"orazaka.jobs": "topic", "orazaka.events": "topic", DLX_EXCHANGE: "direct"}
 QUEUE = f"orazaka.jobs.{DECLARATION['family']}"
-#: What a refused payload is called (the one cause that bills) and what any other failure is called (refunded).
-CAUSES = {"refused": "INPUT_INVALID", "fault": "EXECUTOR_FAULT"}
+INPUT_REFUSED = "INPUT_REFUSED"
+PROVIDER_NOT_ENABLED = "PROVIDER_NOT_ENABLED"
 REFUSALS = (screening.InvalidInput,)  # ProviderNotEnabled is one
+
+
+class Refusal(worker_failure.InvalidJobPayload):
+    """A refused payload — the one cause that bills. Its reason is a code: the rules' own messages name the stage and
+    the rule the caller wrote, and what the caller wrote is theirs, not the log's nor the saga's."""
+
+    REASONS = frozenset({INPUT_REFUSED, PROVIDER_NOT_ENABLED})
+
+    @classmethod
+    def of(cls, bad: "screening.InvalidInput") -> "Refusal":
+        return cls(PROVIDER_NOT_ENABLED if isinstance(bad, screening.ProviderNotEnabled) else INPUT_REFUSED)
 
 
 class Consumer:
@@ -46,12 +58,14 @@ class Consumer:
             result, used = handlers.handle(key, job.get("payload"))
             self.tell(job_id, "done", {"result": result, "consumption": used})
         except REFUSALS as bad:
-            self.tell(
-                job_id, "error", {"error": str(bad), "cause": CAUSES["refused"]}
-            )  # names a field and a rule, never a value
+            self.fail(key, job_id, Refusal.of(bad))
         except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-            print(f"[screening] job {job_id} failed: {type(failure).__name__}", flush=True)
-            self.tell(job_id, "error", {"error": type(failure).__name__, "cause": CAUSES["fault"]})
+            self.fail(key, job_id, failure)
+
+    def fail(self, key: str, job_id, failure: Exception) -> None:
+        """A coded reason or a type name, in the event and in the log: never a message."""
+        print(worker_failure.failure_log("screening", key, job_id, failure), flush=True)
+        self.tell(job_id, "error", worker_failure.failure_answer(job_id, failure))
 
     def __call__(self, channel, method, properties, body) -> None:
         try:

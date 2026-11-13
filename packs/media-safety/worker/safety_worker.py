@@ -10,6 +10,7 @@ import yaml
 
 import broker
 import rules
+import worker_failure
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DECLARATION = yaml.safe_load(open(os.path.join(HERE, "worker.yaml"), encoding="utf-8"))
@@ -17,11 +18,13 @@ JOBS_EXCHANGE, EVENTS_EXCHANGE, DLX_EXCHANGE = "orazaka.jobs", "orazaka.events",
 QUEUE = f"orazaka.jobs.{DECLARATION['family']}"
 DLQ = f"{QUEUE}.dlq"
 SEEN: set = set()
-INPUT_INVALID, EXECUTOR_FAULT = "INPUT_INVALID", "EXECUTOR_FAULT"
+FRAMES_OUT_OF_RANGE, EXPECTS_SPEECH_NOT_BOOLEAN = "FRAMES_OUT_OF_RANGE", "EXPECTS_SPEECH_NOT_BOOLEAN"
 
 
-class InvalidJobPayload(ValueError):
-    """The payload was checked and is unusable — the one cause that bills."""
+class InvalidJobPayload(worker_failure.InvalidJobPayload):
+    """The payload was checked and is unusable — the one cause that bills. Its reason is a code, never a value."""
+
+    REASONS = frozenset({FRAMES_OUT_OF_RANGE, EXPECTS_SPEECH_NOT_BOOLEAN})
 
 
 def _assess(payload: dict) -> dict:
@@ -29,12 +32,12 @@ def _assess(payload: dict) -> dict:
     if isinstance(frames, str) and frames.strip().isdigit():  # a blueprint renders a lone number as text
         frames = int(frames)
     if isinstance(frames, bool) or not isinstance(frames, int) or not 0 <= frames <= 8:
-        raise InvalidJobPayload("'frames' must be an integer from 0 to 8")
+        raise InvalidJobPayload(FRAMES_OUT_OF_RANGE)
     expects_speech = payload.get("expectsSpeech")
     if isinstance(expects_speech, str) and expects_speech.strip().lower() in ("true", "false"):
         expects_speech = expects_speech.strip().lower() == "true"
     if not isinstance(expects_speech, bool):
-        raise InvalidJobPayload("'expectsSpeech' must be true or false")
+        raise InvalidJobPayload(EXPECTS_SPEECH_NOT_BOOLEAN)
     report = rules.assess(rules.load_ruleset(), payload.get("looks"), frames, payload.get("heard"), expects_speech)
     return {"report": report, "reportJson": json.dumps(report), "verdict": report["verdict"]}
 
@@ -74,11 +77,8 @@ def _on_message(channel, method, properties, body) -> None:
     try:
         result, consumption = _handle(method.routing_key, job)
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except InvalidJobPayload as bad:
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001
-        print(f"[safety] job {job_id} failed: {type(failure).__name__}", flush=True)
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT})
+        worker_failure.report_failure(_emit, channel, "safety", method.routing_key, job_id, failure)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

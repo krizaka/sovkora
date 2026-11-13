@@ -60,8 +60,32 @@ PLATFORM_UNAVAILABLE = "PLATFORM_UNAVAILABLE"
 TIMEOUT = "TIMEOUT"
 
 
+TEXT_MISSING = "TEXT_MISSING"
+
+
 class InvalidJobPayload(ValueError):
-    """This worker checked the payload and found it unusable — the one cause that bills."""
+    """This worker checked the payload and found it unusable — the one cause that bills.
+
+    It carries a ``reason`` from :data:`REASONS`, a closed set of codes this worker writes, and nothing else: a
+    free-text reason is refused, because a message built from the job would travel in the event the saga stores. (The
+    pack workers share this rule in ``worker-common/worker_failure.py``; this reference worker links nothing, so it
+    carries the rule.)
+    """
+
+    REASONS = frozenset({TEXT_MISSING})
+
+    def __init__(self, reason: str) -> None:
+        if reason not in self.REASONS:
+            raise ValueError("an invalid-payload reason is one code of the worker's closed set (REASONS)")
+        super().__init__(reason)
+        self.reason = reason
+
+
+def _failure_answer(job_id, failure: Exception) -> dict:
+    """What a failed job says: a coded reason (INPUT_INVALID) or the exception's TYPE NAME (EXECUTOR_FAULT)."""
+    if isinstance(failure, InvalidJobPayload):
+        return {"jobId": job_id, "error": failure.reason, "cause": INPUT_INVALID}
+    return {"jobId": job_id, "error": type(failure).__name__, "cause": EXECUTOR_FAULT}
 
 
 def _emit(channel, job_id: str, routing_suffix: str, body: dict) -> None:
@@ -94,10 +118,10 @@ def _on_message(channel, method, properties, body) -> None:
         # wrong costs you a SUCCEEDED run with an empty output and no error anywhere — which is
         # what this reference worker did on its first run, and why it says so here.
         _emit(channel, job_id, "done", {"jobId": job_id, "result": result, "consumption": consumption})
-    except InvalidJobPayload as bad:
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(bad), "cause": INPUT_INVALID})
     except Exception as failure:  # noqa: BLE001 — any failure must reach the saga, not the log alone
-        _emit(channel, job_id, "error", {"jobId": job_id, "error": str(failure), "cause": EXECUTOR_FAULT})
+        answer = _failure_answer(job_id, failure)
+        print(f"[echo] {method.routing_key} -> job {job_id} failed: {answer['error']}", flush=True)
+        _emit(channel, job_id, "error", answer)
     SEEN.add(message_id)
     channel.basic_ack(delivery_tag=method.delivery_tag)
 

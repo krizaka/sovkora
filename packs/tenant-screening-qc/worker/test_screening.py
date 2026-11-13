@@ -17,6 +17,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
+import pytest
 import yaml
 
 import handlers
@@ -699,6 +700,32 @@ class Shell(unittest.TestCase):
         causes = [body["cause"] for _, _, body in self.channel.published]
         self.assertEqual(causes, ["INPUT_INVALID", "EXECUTOR_FAULT"])
         self.assertEqual(self.channel.acked, [1, 2])
+
+    def test_a_refusal_answers_with_a_code_and_never_what_the_caller_wrote(self):
+        mark = "MARK-3b9c-TENANT-TEXT"
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.deliver("job.screening.plan", {"jobId": "j-7", "payload": dict(applicant(), cutoffs={mark: []})})
+        body = {"jobId": "j-7", "error": "INPUT_REFUSED", "cause": "INPUT_INVALID"}
+        assert [(key, sent) for _, key, sent in self.channel.published] == [("job.j-7.error", body)]
+        assert mark not in json.dumps(self.channel.published) + out.getvalue()
+        assert "INPUT_REFUSED" in out.getvalue()
+
+    def test_a_crash_answers_with_the_type_name_and_never_the_text_of_the_exception(self):
+        mark = "MARK-3b9c-TENANT-TEXT"
+        out = io.StringIO()
+        crash = mock.patch.object(handlers, "handle", side_effect=RuntimeError(f"cannot read {mark}"))
+        with crash, redirect_stdout(out):
+            self.deliver("job.screening.plan", {"jobId": "j-8", "payload": {}})
+        assert self.channel.published[0][2] == {"jobId": "j-8", "error": "RuntimeError", "cause": "EXECUTOR_FAULT"}
+        assert mark not in json.dumps(self.channel.published) + out.getvalue()
+
+    def test_a_reason_outside_the_closed_set_is_refused(self):
+        import screening_worker
+
+        with pytest.raises(ValueError, match="closed set"):
+            screening_worker.Refusal("free text")
+        assert screening_worker.Refusal.of(screening.ProviderNotEnabled("x")).reason == "PROVIDER_NOT_ENABLED"
 
     def test_a_replayed_message_is_acknowledged_and_not_run_twice(self):
         job = {"jobId": "j-4", "payload": {"purpose": "CREDIT", "consentedPurposes": ["CREDIT"]}}
