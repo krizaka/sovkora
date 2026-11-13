@@ -9,7 +9,8 @@ import java.util.Map;
  * its owner; a key with scopes may only make the requests its scopes name. The minted JWT is the
  * owner's, so this is the one place a scoped key is held to its scopes — and a scope the edge does
  * not know grants nothing (fail closed). The environment scope ({@code env:…}, {@link
- * ApiKeyEnvironment}) is not a route scope: it neither opens nor restricts a route.
+ * ApiKeyEnvironment}) and the product scope ({@code product:…}, {@link ApiKeyProduct}) are not
+ * route scopes: they neither open nor restrict a route.
  */
 final class ApiKeyScopes {
 
@@ -52,7 +53,10 @@ final class ApiKeyScopes {
         scopes == null
             ? List.of()
             : scopes.stream()
-                .filter(scope -> !ApiKeyEnvironment.isEnvironmentScope(scope))
+                .filter(
+                    scope ->
+                        !ApiKeyEnvironment.isEnvironmentScope(scope)
+                            && !ApiKeyProduct.isProductScope(scope))
                 .toList();
     if (routeScopes.isEmpty()) {
       return true;
