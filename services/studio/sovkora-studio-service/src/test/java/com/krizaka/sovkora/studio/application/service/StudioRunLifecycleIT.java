@@ -1944,6 +1944,144 @@ class StudioRunLifecycleIT {
         runId);
   }
 
+  // ── #3376: after a run of a protected pack ends, no document text remains anywhere ──────────
+
+  @Test
+  @DisplayName(
+      "[#3376] after a SENSITIVE run succeeds and ages out, its text is in no table, no log")
+  void noDocumentTextRemainsAfterASucceededProtectedRun() {
+    assertNoTextRemains(false);
+  }
+
+  @Test
+  @DisplayName("[#3376] after a SENSITIVE run fails and ages out, its text is in no table, no log")
+  void noDocumentTextRemainsAfterAFailedProtectedRun() {
+    assertNoTextRemains(true);
+  }
+
+  /**
+   * Runs document-validation on a text holding a unique mark, lets the run end, ages it past the
+   * protected window, sweeps, and then reads <b>every table</b> of the service's database (each row
+   * as JSON, so every text and JSON column) and every captured log line for the mark.
+   */
+  private void assertNoTextRemains(boolean failed) {
+    String mark = "MARQUE-" + UUID.randomUUID();
+    ch.qos.logback.classic.Logger root =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logs =
+        new ch.qos.logback.core.read.ListAppender<>();
+    logs.start();
+    root.addAppender(logs);
+    try {
+      UUID installation = installationService.install(COMPLIANCE_KEY, ACTOR, Map.of(), "fr").id();
+      RunDetail run =
+          runService.start(
+              installation,
+              ACTOR,
+              Map.of(
+                  "document",
+                  "Bail de logement. " + mark + " Loyer : 950 $.",
+                  "jurisdiction",
+                  "QC"));
+      jdbcTemplate.update("UPDATE studio_run SET data_class = 'SENSITIVE' WHERE id = ?", run.id());
+      // The dispatch command the outbox carried to the executor: the document, as the adapter
+      // appends it.
+      context
+          .getBean(OutboxService.class)
+          .appendCommand(
+              run.id().toString(),
+              "orazaka.jobs",
+              "job.text.process",
+              UUID.randomUUID().toString(),
+              new java.util.HashMap<>(executor.lastInputs));
+      jdbcTemplate.update("UPDATE studio_outbox SET published_at = now()");
+      if (failed) {
+        sagaService.applyOutcome(
+            executor.dispatched.getFirst(),
+            Map.of(),
+            Map.of(),
+            null,
+            "IllegalStateException",
+            FailureCause.EXECUTOR_FAULT);
+      } else {
+        completeEveryStep(run);
+        // What a report quotes of the document it checked.
+        jdbcTemplate.update(
+            "UPDATE studio_run_step SET output = jsonb_build_object('evidence', ?::text)"
+                + " WHERE run_id = ? AND output IS NOT NULL",
+            mark,
+            run.id());
+      }
+      UUID endpoint = UUID.randomUUID();
+      jdbcTemplate.update(
+          "INSERT INTO studio_webhook_endpoint (id, actor_id, url, secret) VALUES (?, ?, ?, ?)",
+          endpoint,
+          ACTOR,
+          "https://example.invalid/hook",
+          "sealed");
+      jdbcTemplate.update(
+          "INSERT INTO studio_webhook_delivery (endpoint_id, run_id, event, payload)"
+              + " VALUES (?, ?, ?, ?)",
+          endpoint,
+          run.id(),
+          failed ? "run.failed" : "run.completed",
+          "{\"runId\":\"" + run.id() + "\",\"inputs\":{\"document\":\"" + mark + "\"}}");
+      assertTrue(
+          tablesHolding(mark).contains("studio_run"),
+          "the scan is not vacuous: the mark is in the run before the purge");
+      assertEquals(
+          failed ? RunStatus.FAILED : RunStatus.SUCCEEDED,
+          runService.find(run.id(), ACTOR).orElseThrow().status());
+
+      jdbcTemplate.update(
+          "UPDATE studio_run SET finished_at = now() - INTERVAL '40 days' WHERE id = ?", run.id());
+      new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
+              jdbcTemplate,
+              context.getBean(StudioRuntimeConfigService.class),
+              new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
+          .purge();
+
+      assertEquals(List.of(), tablesHolding(mark), "tables still holding the document text");
+      assertEquals(
+          List.of(),
+          logs.list.stream()
+              .map(
+                  event ->
+                      event.getFormattedMessage()
+                          + " "
+                          + String.valueOf(
+                              event.getThrowableProxy() == null
+                                  ? ""
+                                  : event.getThrowableProxy().getMessage()))
+              .filter(line -> line.contains(mark))
+              .toList(),
+          "log lines carrying the document text");
+    } finally {
+      root.detachAppender(logs);
+    }
+  }
+
+  /** Every table of the database whose rows, as JSON, contain the text. */
+  private static List<String> tablesHolding(String text) {
+    List<String> hits = new ArrayList<>();
+    for (String table :
+        jdbcTemplate.queryForList(
+            "SELECT table_name FROM information_schema.tables"
+                + " WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY 1",
+            String.class)) {
+      Integer found =
+          jdbcTemplate.queryForObject(
+              "SELECT count(*) FROM \"" + table + "\" t WHERE row_to_json(t)::text LIKE ?",
+              Integer.class,
+              "%" + text + "%");
+      if (found != null && found > 0) {
+        hits.add(table);
+      }
+    }
+    return hits;
+  }
+
   /** Records what the engine submitted, so the DAG's decisions are observable without a broker. */
   static class RecordingStepExecutionClient implements StepExecutionClient {
     final List<String> stopped = new java.util.concurrent.CopyOnWriteArrayList<>();

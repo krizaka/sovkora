@@ -256,7 +256,7 @@ class JobListenerTest {
             jobId,
             "FAILED",
             null,
-            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException: Strategy failed");
+            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException");
   }
 
   @Test
@@ -294,7 +294,7 @@ class JobListenerTest {
             jobId,
             "FAILED",
             null,
-            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException: Unknown capability for feature key: unsupported.feature");
+            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException");
   }
 
   @Test
@@ -703,6 +703,62 @@ class JobListenerTest {
             org.mockito.ArgumentMatchers.eq(
                 com.krizaka.sovkora.jobs.api.domain.model.FailureCause.EXECUTOR_FAULT),
             org.mockito.ArgumentMatchers.anyString());
+  }
+
+  @Test
+  void anExceptionTextNeverReachesTheStatusTheResultTheEventOrTheLog() {
+    // #3376: an exception raised while reading a document can carry the document's words. The
+    // type name and the typed cause travel; the text does not.
+    String mark = "MARQUE-" + UUID.randomUUID();
+    String jobId = "job-text-in-exception";
+    JobCommand msg =
+        new JobCommand(
+            jobId,
+            "user-m",
+            "orazaka.core.chat.text",
+            "default",
+            Map.of(),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
+    when(userDirectoryService.getUser("user-m"))
+        .thenThrow(new IllegalStateException("cannot parse: " + mark));
+    ch.qos.logback.classic.Logger root =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logs =
+        new ch.qos.logback.core.read.ListAppender<>();
+    logs.start();
+    root.addAppender(logs);
+    try {
+      listener.onMessage(msg, null);
+    } finally {
+      root.detachAppender(logs);
+    }
+
+    org.mockito.ArgumentCaptor<String> status = org.mockito.ArgumentCaptor.forClass(String.class);
+    verify(jobPersistenceProvider)
+        .updateJobStatus(eq(jobId), eq("FAILED"), any(), status.capture());
+    org.mockito.ArgumentCaptor<String> event = org.mockito.ArgumentCaptor.forClass(String.class);
+    verify(jobEventPublisher)
+        .emitError(
+            eq(jobId),
+            org.mockito.ArgumentMatchers.isNull(),
+            eq(com.krizaka.sovkora.jobs.api.domain.model.FailureCause.EXECUTOR_FAULT),
+            event.capture());
+    org.assertj.core.api.Assertions.assertThat(status.getValue())
+        .isEqualTo("java.lang.IllegalStateException");
+    org.assertj.core.api.Assertions.assertThat(event.getValue())
+        .isEqualTo("java.lang.IllegalStateException");
+    org.assertj.core.api.Assertions.assertThat(
+            logs.list.stream()
+                .map(
+                    l ->
+                        l.getFormattedMessage()
+                            + (l.getThrowableProxy() == null
+                                ? ""
+                                : l.getThrowableProxy().getMessage()))
+                .filter(line -> line.contains(mark)))
+        .as("log lines carrying the exception text")
+        .isEmpty();
   }
 
   @Test

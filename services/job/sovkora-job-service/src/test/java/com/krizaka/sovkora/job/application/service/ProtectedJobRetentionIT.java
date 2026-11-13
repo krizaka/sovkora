@@ -97,6 +97,9 @@ class ProtectedJobRetentionIT {
   private static JobRetentionService retention;
   private static ExecutorService executor;
 
+  /** When set, the stubbed model call fails with it: a read that dies carrying the text. */
+  private RuntimeException modelFailure;
+
   @TempDir Path uploads;
   @TempDir Path keys;
 
@@ -152,6 +155,7 @@ class ProtectedJobRetentionIT {
   void reset() {
     jdbcTemplate.update("DELETE FROM orazaka_jobs");
     jdbcTemplate.update("DELETE FROM orazaka_job_purge");
+    modelFailure = null;
   }
 
   @Test
@@ -323,6 +327,68 @@ class ProtectedJobRetentionIT {
   }
 
   @Test
+  @DisplayName(
+      "[#3376] a SENSITIVE job whose read fails carrying the text keeps it in no table, no file, no log")
+  void aFailedSensitiveJob_keepsTheExceptionTextInNoTableNoFileNoLog() throws IOException {
+    String mark = "MARQUE-" + UUID.randomUUID();
+    modelFailure = new IllegalStateException("cannot read the document: " + mark);
+    String jobId = UUID.randomUUID().toString();
+    ch.qos.logback.classic.Logger root =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logs =
+        new ch.qos.logback.core.read.ListAppender<>();
+    logs.start();
+    root.addAppender(logs);
+    try {
+      listener().onMessage(command(jobId, DataClass.SENSITIVE), null);
+    } finally {
+      root.detachAppender(logs);
+    }
+    assertThat(status(jobId)).as("the job ended").isEqualTo("FAILED");
+    assertThat(tablesHolding("dormir"))
+        .as("the scan is not vacuous: the user's words are in the row before the purge")
+        .contains("orazaka_jobs");
+
+    retention.purgeExpired(uploads);
+
+    assertThat(tablesHolding(mark)).as("tables holding the exception text").isEmpty();
+    assertThat(tablesHolding("dormir")).as("tables holding the user's words").isEmpty();
+    assertThat(Files.exists(jobDirectory(jobId))).as("the job's files").isFalse();
+    assertThat(
+            logs.list.stream()
+                .map(
+                    l ->
+                        l.getFormattedMessage()
+                            + (l.getThrowableProxy() == null
+                                ? ""
+                                : l.getThrowableProxy().getMessage()))
+                .filter(line -> line.contains(mark) || line.contains("dormir")))
+        .as("log lines carrying the text")
+        .isEmpty();
+  }
+
+  /** Every table of the database whose rows, as JSON, contain the text. */
+  private static List<String> tablesHolding(String text) {
+    return jdbcTemplate
+        .queryForList(
+            "SELECT table_name FROM information_schema.tables"
+                + " WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY 1",
+            String.class)
+        .stream()
+        .filter(
+            table ->
+                jdbcTemplate.queryForObject(
+                        "SELECT count(*) FROM \""
+                            + table
+                            + "\" t WHERE row_to_json(t)::text LIKE ?",
+                        Integer.class,
+                        "%" + text + "%")
+                    > 0)
+        .toList();
+  }
+
+  @Test
   @DisplayName("the schema refuses a job that declares no class")
   void theSchemaRefusesAJobWithNoClass() {
     assertThatThrownBy(
@@ -344,9 +410,13 @@ class ProtectedJobRetentionIT {
     JobExecutor model = mock(JobExecutor.class);
     when(model.handlerKey()).thenReturn("text.generate");
     try {
-      lenient()
-          .when(model.execute(any(), any()))
-          .thenReturn(JobExecutionResult.of(Map.of("content", "Ce que vous décrivez compte.")));
+      if (modelFailure != null) {
+        lenient().when(model.execute(any(), any())).thenThrow(modelFailure);
+      } else {
+        lenient()
+            .when(model.execute(any(), any()))
+            .thenReturn(JobExecutionResult.of(Map.of("content", "Ce que vous décrivez compte.")));
+      }
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

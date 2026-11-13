@@ -6,6 +6,7 @@ import com.krizaka.sovkora.studio.application.service.StudioRuntimeConfigService
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,6 +52,32 @@ public class RetentionSweeper {
   /** Dedup claims outlive their usefulness the moment redelivery is impossible. */
   private static final Duration DEDUP_RETENTION = Duration.ofDays(7);
 
+  private static final String DELETE_RUNS_BEFORE = "WITH gone AS (DELETE FROM studio_run r WHERE ";
+
+  private static final String DELETE_RUNS_AFTER =
+      " RETURNING r.id),"
+          + " deliveries AS (DELETE FROM studio_webhook_delivery"
+          + "   WHERE run_id IN (SELECT id FROM gone)),"
+          + " messages AS (DELETE FROM studio_outbox"
+          + "   WHERE event_type NOT LIKE 'job.cancel.%'"
+          + "   AND aggregate_id IN (SELECT id::text FROM gone))"
+          + " SELECT id FROM gone";
+
+  private static final String STANDARD_RUNS_SQL =
+      DELETE_RUNS_BEFORE
+          + "r.data_class = 'STANDARD' AND r.finished_at IS NOT NULL"
+          + " AND r.finished_at < now() - make_interval(days => ?)"
+          + DELETE_RUNS_AFTER;
+
+  private static final String PROTECTED_RUNS_SQL =
+      DELETE_RUNS_BEFORE
+          + "r.data_class <> 'STANDARD'"
+          + " AND r.finished_at IS NOT NULL"
+          + " AND r.finished_at < now() - make_interval(days => GREATEST(1, LEAST(?,"
+          + "   COALESCE((SELECT (i.config ->> ?)::int FROM studio_installation i"
+          + "              WHERE i.id = r.installation_id), ?))))"
+          + DELETE_RUNS_AFTER;
+
   private final JdbcTemplate jdbcTemplate;
   private final StudioRuntimeConfigService runtimeConfigService;
   private final MessageDedup messageDedup;
@@ -69,12 +96,12 @@ public class RetentionSweeper {
   @Transactional
   public void purge() {
     int runDays = runtimeConfigService.intValue(RUN_RETENTION_KEY, RUN_RETENTION_FALLBACK_DAYS);
-    // studio_run_step cascades on the run, so one delete closes both tables.
-    int runs =
-        jdbcTemplate.update(
-            "DELETE FROM studio_run WHERE data_class = 'STANDARD' AND finished_at IS NOT NULL"
-                + " AND finished_at < now() - make_interval(days => ?)",
-            runDays);
+    // studio_run_step and studio_run_event cascade on the run. The webhook deliveries and the
+    // outbox messages built from a run carry its words (a delivery its payload, a dispatch command
+    // its inputs) and name it by id only, with no foreign key: they go with it, in the same
+    // statement, or the document outlives the run it came from (#3376). A stop command
+    // (job.cancel.*) carries a job id and nothing else, and must still reach the executor.
+    int runs = deleteRuns(STANDARD_RUNS_SQL, runDays);
 
     // Runs of a protected pack age out on their own, shorter window — and on the installation's
     // if its owner chose a shorter one still. GREATEST(1, …) because a window of zero would delete
@@ -82,15 +109,8 @@ public class RetentionSweeper {
     int sensitiveDays =
         runtimeConfigService.intValue(SENSITIVE_RETENTION_KEY, SENSITIVE_RETENTION_FALLBACK_DAYS);
     int sensitive =
-        jdbcTemplate.update(
-            "DELETE FROM studio_run r WHERE r.data_class <> 'STANDARD'"
-                + " AND r.finished_at IS NOT NULL"
-                + " AND r.finished_at < now() - make_interval(days => GREATEST(1, LEAST(?,"
-                + "   COALESCE((SELECT (i.config ->> ?)::int FROM studio_installation i"
-                + "              WHERE i.id = r.installation_id), ?))))",
-            sensitiveDays,
-            INSTALLATION_RETENTION_OVERRIDE,
-            sensitiveDays);
+        deleteRuns(
+            PROTECTED_RUNS_SQL, sensitiveDays, INSTALLATION_RETENTION_OVERRIDE, sensitiveDays);
 
     int installationDays =
         runtimeConfigService.intValue(
@@ -113,5 +133,10 @@ public class RetentionSweeper {
           installations,
           dedup);
     }
+  }
+
+  /** Deletes the runs the statement selects and what was built from them; returns the runs. */
+  private int deleteRuns(String sql, Object... args) {
+    return jdbcTemplate.queryForList(sql, UUID.class, args).size();
   }
 }
