@@ -51,9 +51,7 @@ def api_key(env: dict | None = None) -> str:
     source = os.environ if env is None else env
     key = (source.get("AI_INFERENCE_KEY") or "").strip()
     if not key:
-        raise RemoteVideoError(
-            "AI_INFERENCE_KEY is not set: this model is served by a provider and needs its key"
-        )
+        raise RemoteVideoError("AI_INFERENCE_KEY is not set: this model is served by a provider and needs its key")
     return key
 
 
@@ -70,9 +68,7 @@ def request_body(model: VideoModel, prompt: str, width: int, height: int, seed: 
     return body
 
 
-def _call(
-    method: str, url: str, key: str, body: dict | None = None, timeout: int = 60
-) -> tuple[int, bytes]:
+def _call(method: str, url: str, key: str, body: dict | None = None, timeout: int = 60) -> tuple[int, bytes]:
     data = json.dumps(body).encode("utf-8") if body is not None else None
     request = urllib.request.Request(  # noqa: S310 — the deployment's configured provider, https
         url,
@@ -110,19 +106,13 @@ def generate(
     except spend.SpendRefused as refused:
         raise RemoteVideoError(str(refused)) from refused
     started = clock()
-    _, raw = call(
-        "POST", f"{base}/v1/videos", key, request_body(model, prompt, width, height, seed)
-    )
+    _, raw = call("POST", f"{base}/v1/videos", key, request_body(model, prompt, width, height, seed))
     job = json.loads(raw.decode("utf-8") or "{}")
     job_id = job.get("id") or job.get("job_id")
     if not job_id:
         raise RemoteVideoError("the provider accepted the request but returned no job id")
-    timeout = int(
-        (env or os.environ).get("MEDIA_REMOTE_TIMEOUT_SECONDS") or DEFAULT_TIMEOUT_SECONDS
-    )
-    result = _poll_until_done(
-        job, job_id, timeout, started, clock, sleep, progress, base, key, call
-    )
+    timeout = int((env or os.environ).get("MEDIA_REMOTE_TIMEOUT_SECONDS") or DEFAULT_TIMEOUT_SECONDS)
+    result = _poll_until_done(job, job_id, timeout, started, clock, sleep, progress, base, key, call)
     content_id = result.get("id") or job_id
     video = _download_result(result, content_id, job_id, base, key, call)
     facts = {
@@ -150,23 +140,17 @@ def _poll_until_done(
         if progress:
             progress(min(95, int((clock() - started) / max(timeout, 1) * 100)))
     if status != "completed" and status != "succeeded":
-        raise RemoteVideoError(
-            f"the provider's job {job_id} ended as {status}: {result.get('error')}"
-        )
+        raise RemoteVideoError(f"the provider's job {job_id} ended as {status}: {result.get('error')}")
     return result
 
 
-def _download_result(
-    result: dict, content_id: str, job_id: str, base: str, key: str, call
-) -> bytes:
+def _download_result(result: dict, content_id: str, job_id: str, base: str, key: str, call) -> bytes:
     """Downloads the MP4 from either the presigned URL or the /content endpoint."""
     output = result.get("output") or {}
     url = output.get("url") if isinstance(output, dict) else None
     if url:  # the documented presigned form; the gateway answers null and serves /content instead
         if urllib.parse.urlsplit(str(url)).scheme != "https":
-            raise RemoteVideoError(
-                f"the provider's job {job_id} gave a download link that is not https"
-            )
+            raise RemoteVideoError(f"the provider's job {job_id} gave a download link that is not https")
         with urllib.request.urlopen(str(url), timeout=300) as response:  # noqa: S310 — the provider's presigned https URL, checked above
             video = response.read()
     else:

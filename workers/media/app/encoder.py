@@ -90,8 +90,4 @@ def export_frames_to_video(
 
 
 def _platform_codec() -> command_inputs.VideoCodec:
-    return (
-        command_inputs.VideoCodec.H264_VIDEOTOOLBOX
-        if is_apple_silicon()
-        else command_inputs.VideoCodec.LIBX264
-    )
+    return command_inputs.VideoCodec.H264_VIDEOTOOLBOX if is_apple_silicon() else command_inputs.VideoCodec.LIBX264

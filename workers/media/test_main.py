@@ -77,9 +77,7 @@ with patch.dict(os.environ, {"SPRING_RABBITMQ_HOST": "localhost", "SPRING_RABBIT
         )
         video_worker = importlib.util.module_from_spec(spec)
         # Prevent the top-level pipeline load from running
-        with patch.object(
-            mock_diffusers.StableVideoDiffusionPipeline, "from_pretrained", return_value=mock_pipe
-        ):
+        with patch.object(mock_diffusers.StableVideoDiffusionPipeline, "from_pretrained", return_value=mock_pipe):
             with contextlib.suppress(SystemExit):
                 spec.loader.exec_module(video_worker)
 
@@ -137,12 +135,9 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
                     defined += [
                         f"{node.name}.{item.name}"
                         for item in node.body
-                        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
-                        and item.name.startswith("test")
+                        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith("test")
                     ]
-            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith(
-                "test"
-            ):
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test"):
                 defined.append(node.name)
         return defined
 
@@ -172,9 +167,7 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
 
         import yaml
 
-        with open(
-            os.path.join(self.REPOSITORY, ".github", "workflows", "ci.yml"), encoding="utf-8"
-        ) as handle:
+        with open(os.path.join(self.REPOSITORY, ".github", "workflows", "ci.yml"), encoding="utf-8") as handle:
             jobs = yaml.safe_load(handle)["jobs"]
         run = set()
         for job in jobs.values():
@@ -185,19 +178,13 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
             for entry in entries:
 
                 def resolve(text, entry=entry):
-                    return re.sub(
-                        r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}",
-                        lambda m: str(entry.get(m.group(1), "")),
-                        text,
-                    )
+                    return re.sub(r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}", lambda m: str(entry.get(m.group(1), "")), text)
 
                 directory = resolve(given["working-directory"])
                 for name in re.findall(r"\btest_\w+\.py\b", resolve(given["test-command"])):
                     run.add(os.path.normpath(os.path.join(directory, name)))
         if not run:
-            self.fail(
-                "no Python test command found in ci.yml: this guard would be judging the empty set"
-            )
+            self.fail("no Python test command found in ci.yml: this guard would be judging the empty set")
 
         suites = set()
         for root, directories, files in os.walk(self.REPOSITORY):
@@ -214,9 +201,7 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
             )
         unrun = sorted(suites - run - set(self.UNRUNNABLE))
         if unrun:
-            self.fail(
-                f"Python suites no CI test command runs, so no test in them ever has: {unrun}"
-            )
+            self.fail(f"Python suites no CI test command runs, so no test in them ever has: {unrun}")
 
 
 class TestPreflightMemoryGuard(unittest.TestCase):
@@ -401,9 +386,7 @@ class TestConsumptionMetering(unittest.TestCase):
         rendered = [Image.new("RGB", (512, 320)) for _ in range(16)]
         metrics = {}
 
-        video_worker._record_consumption(
-            metrics, rendered, steps=4, fps=12, req_width=1024, req_height=576
-        )
+        video_worker._record_consumption(metrics, rendered, steps=4, fps=12, req_width=1024, req_height=576)
 
         self.assertEqual(metrics["frames"], 16)
         self.assertEqual(metrics["width"], 512)
@@ -414,9 +397,7 @@ class TestConsumptionMetering(unittest.TestCase):
     def test_record_consumption_never_fails_a_successful_render(self):
         metrics = {}
 
-        video_worker._record_consumption(
-            metrics, ["not-an-image"], steps=4, fps=12, req_width=None, req_height=None
-        )
+        video_worker._record_consumption(metrics, ["not-an-image"], steps=4, fps=12, req_width=None, req_height=None)
 
         # The bad frame is swallowed; an absent measurement releases the hold.
         self.assertNotIn("width", metrics)
@@ -519,9 +500,7 @@ class TestVideoInferenceHandlerRouting(unittest.TestCase):
 
         import urllib.request
 
-        req = urllib.request.Request(
-            f"http://127.0.0.1:{self.port}/unknown", data=b"{}", method="POST"
-        )
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}/unknown", data=b"{}", method="POST")
         try:
             urllib.request.urlopen(req)
             self.fail("Expected HTTP 404")
@@ -560,9 +539,9 @@ class TestModelRegistryValidation(unittest.TestCase):
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
             body = json.loads(e.read().decode("utf-8"))
-            # A coded refusal: the model asked for is the caller's own value and is not echoed back (krizaka-internal#3390).
-            self.assertEqual("model_not_registered", body["error"])
-            self.assertNotIn("nonexistent-model", json.dumps(body))
+            # A coded refusal: the model asked for is the caller's value, never echoed (krizaka-internal#3390).
+            assert body["error"] == "model_not_registered"
+            assert "nonexistent-model" not in json.dumps(body)
 
     def test_valid_model_names_in_registry(self):
         """Verify the 3 registered model names."""
@@ -624,22 +603,16 @@ class TestPathSecurity(unittest.TestCase):
 
         tmp = tempfile.gettempdir()
         safe_tmp = os.path.join(tmp, "some_temp_file.png")
-        self.assertEqual(
-            video_worker.validate_safe_path(safe_tmp), os.path.abspath(os.path.realpath(safe_tmp))
-        )
+        self.assertEqual(video_worker.validate_safe_path(safe_tmp), os.path.abspath(os.path.realpath(safe_tmp)))
 
     def test_every_allowed_root_is_accepted_the_system_temp_directories_included(self):
         """The paths a caller may hand over are the roots the encoder and the upscaler are given: one list."""
         roots = video_worker._allowed_roots()
-        assert (
-            len(roots) > 3
-        )  # cwd, the temp dir, the uploads, and the system temp directories that exist
+        assert len(roots) > 3  # cwd, the temp dir, the uploads, and the system temp directories that exist
         for root in roots:
             inside = os.path.join(root, "clip.mp4")
             with self.subTest(root):
-                assert video_worker.validate_safe_path(inside) == os.path.abspath(
-                    os.path.realpath(inside)
-                )
+                assert video_worker.validate_safe_path(inside) == os.path.abspath(os.path.realpath(inside))
 
     def test_traversal_paths_denied(self):
         """Paths trying to access unauthorized files outside allowed boundaries must raise PermissionError."""
@@ -757,9 +730,7 @@ class TestMemoryCapEnforcement(unittest.TestCase):
         PROCESS_RSS_CAP_MB = 6000.0
         SYSTEM_AVAIL_MIN_MB = 1500.0
 
-        force_fallback = (
-            process_mem_mb > PROCESS_RSS_CAP_MB or available_mem_mb < SYSTEM_AVAIL_MIN_MB
-        )
+        force_fallback = process_mem_mb > PROCESS_RSS_CAP_MB or available_mem_mb < SYSTEM_AVAIL_MIN_MB
         self.assertFalse(force_fallback)
 
 
@@ -796,11 +767,7 @@ class TestConsumerDispatch(unittest.TestCase):
         import pathlib
 
         declaration = pathlib.Path(__file__).parent / "worker.yaml"
-        body = "\n".join(
-            line
-            for line in declaration.read_text().splitlines()
-            if not line.strip().startswith("#")
-        )
+        body = "\n".join(line for line in declaration.read_text().splitlines() if not line.strip().startswith("#"))
         self.assertNotIn("orazaka.core.", body)
         self.assertNotIn("orazaka.studio.", body)
 
@@ -896,9 +863,7 @@ class TestTypedFailureCause(unittest.TestCase):
         from app import telemetry
 
         published = []
-        with patch.object(
-            telemetry, "_publish_job_event", lambda key, body: published.append((key, body))
-        ):
+        with patch.object(telemetry, "_publish_job_event", lambda key, body: published.append((key, body))):
             telemetry.send_job_error("job-1", "boom", hold_id="hold-1", cause=telemetry.TIMEOUT)
         self.assertEqual("TIMEOUT", published[0][1]["cause"])
         self.assertEqual("hold-1", published[0][1]["holdId"])
@@ -907,9 +872,7 @@ class TestTypedFailureCause(unittest.TestCase):
         from app import telemetry
 
         published = []
-        with patch.object(
-            telemetry, "_publish_job_event", lambda key, body: published.append((key, body))
-        ):
+        with patch.object(telemetry, "_publish_job_event", lambda key, body: published.append((key, body))):
             telemetry.send_job_error("job-2", "boom")
         self.assertEqual("EXECUTOR_FAULT", published[0][1]["cause"])
 
@@ -918,9 +881,7 @@ class TestTypedFailureCause(unittest.TestCase):
         from app import telemetry
 
         published = []
-        with patch.object(
-            telemetry, "_publish_job_event", lambda key, body: published.append((key, body))
-        ):
+        with patch.object(telemetry, "_publish_job_event", lambda key, body: published.append((key, body))):
             telemetry.send_job_error("job-3", "boom", cause="BAD_INPUT")
         self.assertEqual("EXECUTOR_FAULT", published[0][1]["cause"])
 
@@ -986,9 +947,7 @@ class TestEnvelopeInterop(unittest.TestCase):
         with open(os.path.join(self.FIXTURE_DIR, "plain.bin"), "rb") as handle:
             expected = handle.read()
         for offset in (0, 1, 4095, 4096, 4097, 3 * 4096 + 100):
-            self.assertEqual(
-                expected[offset:], envelope.decrypt_bytes(sealed, self._keyring(), offset)
-            )
+            self.assertEqual(expected[offset:], envelope.decrypt_bytes(sealed, self._keyring(), offset))
 
     def test_python_writes_a_fixture_java_can_open(self):
         from app import envelope
@@ -1179,9 +1138,7 @@ class TestCompositionDivergenceContract(unittest.TestCase):
 
     def _billed_seconds(self, billed):
         """What billing will price: the duration the composer measured on the file."""
-        self.assertIsNotNone(
-            billed.get("durationSeconds"), f"nothing billable was reported: {billed}"
-        )
+        self.assertIsNotNone(billed.get("durationSeconds"), f"nothing billable was reported: {billed}")
         return billed["durationSeconds"]
 
     def test_a_short_voiceover_bills_the_file_not_the_slideshow(self):
@@ -1214,9 +1171,7 @@ class TestCompositionDivergenceContract(unittest.TestCase):
     def test_the_billed_dimensions_are_the_files(self):
         billed, produced = self._compose(self.short_voiceover)
 
-        self.assertEqual(
-            (billed["width"], billed["height"]), (produced["width"], produced["height"])
-        )
+        self.assertEqual((billed["width"], billed["height"]), (produced["width"], produced["height"]))
 
 
 class AssetIdResolutionTest(unittest.TestCase):
@@ -1256,9 +1211,7 @@ class AssetIdResolutionTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             asset = self._seed(root, "550e8400-e29b-41d4-a716-446655440001")
 
-            self.assertIsNone(
-                _resolve_owned_asset(root, "550e8400-e29b-41d4-a716-446655440002", asset)
-            )
+            self.assertIsNone(_resolve_owned_asset(root, "550e8400-e29b-41d4-a716-446655440002", asset))
 
     def test_traversal_in_an_asset_id_escapes_nothing(self):
         from app.consumer import _resolve_owned_asset
@@ -1338,9 +1291,7 @@ class TestEncoderConfinesItsOutput(unittest.TestCase):
 
         with patch.object(encoder.subprocess, "run") as run:
             with self.assertRaises(ValueError):
-                encoder.export_frames_to_video(
-                    self._frames(), os.path.join(tempfile.gettempdir(), "-y.mp4")
-                )
+                encoder.export_frames_to_video(self._frames(), os.path.join(tempfile.gettempdir(), "-y.mp4"))
             run.assert_not_called()
 
     def test_ffmpeg_receives_an_absolute_output_path(self):
@@ -1366,7 +1317,7 @@ class TestEncoderConfinesItsOutput(unittest.TestCase):
 
 
 class TestTheWorkerAnswersJsonOnly(unittest.TestCase):
-    """Every answer is JSON with ``nosniff``; no request value and no exception message comes back raw (krizaka-internal#3390)."""
+    """Every answer is JSON with ``nosniff``; no request value or exception message comes back raw (#3390)."""
 
     GENERATE = "/v1/videos/generations"
 
@@ -1381,93 +1332,76 @@ class TestTheWorkerAnswersJsonOnly(unittest.TestCase):
         self.server.server_close()
 
     def _exchange(self, method, path, body=None):
-        import urllib.request
+        import http.client
 
-        request = urllib.request.Request(
-            f"http://127.0.0.1:{self.port}{path}",
-            data=None if body is None else json.dumps(body).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method=method,
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=10) as response:
-                return response.status, response.headers, response.read()
-        except urllib.error.HTTPError as answered:
-            return answered.code, answered.headers, answered.read()
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        self.addCleanup(connection.close)
+        data = None if body is None else json.dumps(body).encode("utf-8")
+        connection.request(method, path, body=data, headers={"Content-Type": "application/json"})
+        response = connection.getresponse()
+        return response.status, response.headers, response.read()
 
     def _json(self, headers, raw):
-        self.assertEqual("application/json; charset=utf-8", headers["Content-Type"])
-        self.assertEqual("nosniff", headers["X-Content-Type-Options"])
+        assert headers["Content-Type"] == "application/json; charset=utf-8"
+        assert headers["X-Content-Type-Options"] == "nosniff"
         return json.loads(raw.decode("utf-8"))
 
     def test_an_html_payload_comes_back_escaped_inside_json(self):
-        status, headers, raw = self._exchange(
-            "POST",
-            self.GENERATE,
-            {"model": "animatediff-lightning-mps", "upscale": "<script>alert(1)</script>"},
-        )
-        self.assertEqual(400, status)
+        payload = {"model": "animatediff-lightning-mps", "upscale": "<script>alert(1)</script>"}
+        status, headers, raw = self._exchange("POST", self.GENERATE, payload)
+        assert status == 400
         body = self._json(headers, raw)
-        self.assertEqual("invalid_request", body["error"])
-        self.assertNotIn(b"<script", raw)
-        self.assertIn("&lt;script&gt;", body["detail"])
+        assert body["error"] == "invalid_request"
+        assert b"<script" not in raw
+        assert "&lt;script&gt;" in body["detail"]
 
     def test_an_unregistered_model_is_refused_by_code_and_not_echoed(self):
-        status, headers, raw = self._exchange(
-            "POST", self.GENERATE, {"model": "<img src=x onerror=alert(1)>"}
-        )
-        self.assertEqual(400, status)
-        self.assertEqual("model_not_registered", self._json(headers, raw)["error"])
-        self.assertNotIn(b"onerror", raw)
+        status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "<img src=x onerror=alert(1)>"})
+        assert status == 400
+        assert self._json(headers, raw)["error"] == "model_not_registered"
+        assert b"onerror" not in raw
 
     def test_a_model_that_is_not_a_string_is_refused_not_a_crash(self):
-        status, headers, raw = self._exchange(
-            "POST", self.GENERATE, {"model": ["animatediff-lightning-mps"]}
-        )
-        self.assertEqual(400, status)
-        self.assertEqual("model_not_registered", self._json(headers, raw)["error"])
+        status, headers, raw = self._exchange("POST", self.GENERATE, {"model": ["animatediff-lightning-mps"]})
+        assert status == 400
+        assert self._json(headers, raw)["error"] == "model_not_registered"
 
     def test_a_local_generation_failure_answers_a_fixed_message(self):
         leak = RuntimeError("weights at /models/secret-token-42 <b>failed</b>")
         with patch.object(video_worker.VideoInferenceHandler, "_resolve_seed", side_effect=leak):
-            status, headers, raw = self._exchange(
-                "POST", self.GENERATE, {"model": "animatediff-lightning-mps"}
-            )
-        self.assertEqual(500, status)
-        self.assertEqual("generation_failed", self._json(headers, raw)["error"])
-        self.assertNotIn(b"secret-token-42", raw)
-        self.assertNotIn(b"<b>", raw)
+            status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "animatediff-lightning-mps"})
+        assert status == 500
+        assert self._json(headers, raw)["error"] == "generation_failed"
+        assert b"secret-token-42" not in raw
+        assert b"<b>" not in raw
 
     def test_a_provider_failure_answers_a_fixed_message(self):
         leak = RuntimeError("the provider answered 401: <html>secret-token-42</html>")
         with patch.object(video_worker, "run_remote", side_effect=leak):
-            status, headers, raw = self._exchange(
-                "POST", self.GENERATE, {"model": "wan2-2-t2v-a14b"}
-            )
-        self.assertEqual(500, status)
-        self.assertEqual("generation_failed", self._json(headers, raw)["error"])
-        self.assertNotIn(b"secret-token-42", raw)
+            status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "wan2-2-t2v-a14b"})
+        assert status == 500
+        assert self._json(headers, raw)["error"] == "generation_failed"
+        assert b"secret-token-42" not in raw
 
     def test_a_cancelled_job_answers_a_coded_refusal(self):
         stopped = video_worker.job_control.JobCancelled("job <i>j-1</i> was cancelled")
         with patch.object(video_worker, "run_remote", side_effect=stopped):
-            status, headers, raw = self._exchange(
-                "POST", self.GENERATE, {"model": "wan2-2-t2v-a14b", "job_id": "j-1"}
-            )
-        self.assertEqual(video_worker.CANCELLED_STATUS, status)
-        self.assertEqual("cancelled", self._json(headers, raw)["error"])
-        self.assertNotIn(b"<i>", raw)
+            payload = {"model": "wan2-2-t2v-a14b", "job_id": "j-1"}
+            status, headers, raw = self._exchange("POST", self.GENERATE, payload)
+        assert status == video_worker.CANCELLED_STATUS
+        assert self._json(headers, raw)["error"] == "cancelled"
+        assert b"<i>" not in raw
 
     def test_an_unknown_route_answers_json_without_the_path(self):
         status, headers, raw = self._exchange("GET", "/%3Cscript%3E")
-        self.assertEqual(404, status)
-        self.assertEqual("not_found", self._json(headers, raw)["error"])
-        self.assertNotIn(b"script", raw)
+        assert status == 404
+        assert self._json(headers, raw)["error"] == "not_found"
+        assert b"script" not in raw
 
     def test_the_status_route_is_json_with_nosniff(self):
         status, headers, raw = self._exchange("GET", "/")
-        self.assertEqual(200, status)
-        self.assertEqual({"status": "running"}, self._json(headers, raw))
+        assert status == 200
+        assert self._json(headers, raw) == {"status": "running"}
 
 
 class TestEncoderParsesItsInputsBeforeFfmpeg(unittest.TestCase):
@@ -1487,50 +1421,49 @@ class TestEncoderParsesItsInputsBeforeFfmpeg(unittest.TestCase):
         return calls, run
 
     def _inside(self):
+        import shutil
+
         directory = tempfile.mkdtemp()
-        self.addCleanup(lambda: __import__("shutil").rmtree(directory, ignore_errors=True))
+        self.addCleanup(shutil.rmtree, directory, True)
         return os.path.join(directory, "clip.mp4")
 
     def test_a_path_outside_the_worker_directories_is_refused_before_ffmpeg(self):
         from app import encoder
 
         calls, run = self._runner()
-        for bad in (
-            "/etc/evil.mp4",
-            os.path.join(tempfile.gettempdir(), "..", "..", "etc", "evil.mp4"),
-        ):
-            with self.subTest(bad), self.assertRaises(PermissionError):
+        for bad in ("/etc/evil.mp4", os.path.join(tempfile.gettempdir(), "..", "..", "etc", "evil.mp4")):
+            with self.subTest(bad), pytest.raises(PermissionError):
                 encoder.export_frames_to_video(self._frames(), bad, run=run)
-        self.assertEqual([], calls)
+        assert calls == []
 
     def test_an_input_starting_with_a_dash_is_refused_before_ffmpeg(self):
         from app import encoder
 
         calls, run = self._runner()
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError, match="'-'"):
             encoder.export_frames_to_video(self._frames(), "-y.mp4", run=run)
         for fps in ("-filter_complex", "-1", -1):
-            with self.subTest(fps), self.assertRaises(ValueError):
+            with self.subTest(fps), pytest.raises(ValueError, match=r"frame rate|'-'"):
                 encoder.export_frames_to_video(self._frames(), self._inside(), fps=fps, run=run)
-        self.assertEqual([], calls)
+        assert calls == []
 
     def test_a_codec_off_the_allow_list_is_refused_before_ffmpeg(self):
         from app import encoder
 
         calls, run = self._runner()
         for codec in ("libx265", "libx264 -vf drawtext", "-c:v"):
-            with self.subTest(codec), self.assertRaises(ValueError):
+            with self.subTest(codec), pytest.raises(ValueError, match="codec"):
                 encoder.export_frames_to_video(self._frames(), self._inside(), codec=codec, run=run)
-        self.assertEqual([], calls)
+        assert calls == []
 
     def test_a_frame_rate_that_is_not_a_bounded_number_is_refused_before_ffmpeg(self):
         from app import encoder
 
         calls, run = self._runner()
         for fps in (0, 121, True, float("nan"), "14fps", None):
-            with self.subTest(fps), self.assertRaises(ValueError):
+            with self.subTest(fps), pytest.raises(ValueError, match="frame rate"):
                 encoder.export_frames_to_video(self._frames(), self._inside(), fps=fps, run=run)
-        self.assertEqual([], calls)
+        assert calls == []
 
     def test_a_valid_request_builds_the_same_arguments_and_lands_the_clip(self):
         from app import encoder
@@ -1541,27 +1474,16 @@ class TestEncoderParsesItsInputsBeforeFfmpeg(unittest.TestCase):
         [(cmd, kwargs)] = calls
         work = os.path.dirname(cmd[5])
         codec = "h264_videotoolbox" if encoder.is_apple_silicon() else "libx264"
-        self.assertEqual(
-            [
-                "ffmpeg",
-                "-y",
-                "-framerate",
-                "14",
-                "-i",
-                os.path.join(work, "frame_%04d.png"),
-                "-c:v",
-                codec,
-            ]
-            + ["-b:v", "8M", "-pix_fmt", "yuv420p", "-movflags", "+faststart"],
-            cmd[:-1],
-        )
+        frames = os.path.join(work, "frame_%04d.png")
+        flags = ["-b:v", "8M", "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
+        assert cmd[:-1] == ["ffmpeg", "-y", "-framerate", "14", "-i", frames, "-c:v", codec, *flags]
         # The one file argument is the worker's own: the request's path never reaches the command line.
-        self.assertEqual(work, os.path.dirname(cmd[-1]))
-        self.assertNotIn(out, cmd)
-        self.assertFalse(kwargs.get("shell", False))
+        assert os.path.dirname(cmd[-1]) == work
+        assert out not in cmd
+        assert not kwargs.get("shell", False)
         with open(out, "rb") as landed:
-            self.assertEqual(b"MP4", landed.read())
-        self.assertFalse(os.path.exists(work))
+            assert landed.read() == b"MP4"
+        assert not os.path.exists(work)
 
 
 if __name__ == "__main__":

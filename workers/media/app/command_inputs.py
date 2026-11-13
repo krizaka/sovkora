@@ -53,9 +53,7 @@ def frame_rate(value: object) -> int | float:
     except ValueError as not_a_number:
         raise UnsafeCommandInput("the frame rate is not a number") from not_a_number
     if not math.isfinite(rate) or not MIN_FRAME_RATE <= rate <= MAX_FRAME_RATE:
-        raise UnsafeCommandInput(
-            f"the frame rate must be between {MIN_FRAME_RATE} and {MAX_FRAME_RATE}"
-        )
+        raise UnsafeCommandInput(f"the frame rate must be between {MIN_FRAME_RATE} and {MAX_FRAME_RATE}")
     return int(rate) if rate.is_integer() else rate
 
 

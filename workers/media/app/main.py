@@ -263,10 +263,7 @@ def _generate_flux_image(
     try:
         from mflux import Config, Flux1
 
-        print(
-            f"Initializing FLUX via mflux: model={model_name}, steps={steps}, seed={seed}",
-            flush=True,
-        )
+        print(f"Initializing FLUX via mflux: model={model_name}, steps={steps}, seed={seed}", flush=True)
         flux = Flux1(
             model_alias="schnell",
             quantize=4,
@@ -286,9 +283,7 @@ def _generate_flux_image(
         return [pil_image.copy() for _ in range(num_frames)]
 
     except ImportError as exc:
-        raise RuntimeError(
-            "mflux is not installed. Cannot generate FLUX image without the dependency."
-        ) from exc
+        raise RuntimeError("mflux is not installed. Cannot generate FLUX image without the dependency.") from exc
     except Exception as e:
         raise RuntimeError(f"FLUX inference failed: {e}") from e
 
@@ -396,9 +391,7 @@ def run_remote(
             f"model '{model_name}' makes video from text only; leave the starting image empty"
         )
     prompt = (payload.get("prompt") or "").strip()
-    width, height = model.size_for(
-        payload.get("aspect"), payload.get("width"), payload.get("height")
-    )
+    width, height = model.size_for(payload.get("aspect"), payload.get("width"), payload.get("height"))
     seed_text = str(payload.get("seed") or os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1"))
     try:
         seed_val = int(seed_text)
@@ -414,9 +407,7 @@ def run_remote(
                 job_control.raise_if_cancelled(job_id)
                 send_progress_update(job_id, percent, phase="generating")
 
-        video, facts = generate(
-            model, prompt, width, height, seed_val if seed_val >= 0 else None, progress=progress
-        )
+        video, facts = generate(model, prompt, width, height, seed_val if seed_val >= 0 else None, progress=progress)
         metrics.update(facts)
         metrics["model"] = model_name
         metrics["seed"] = str(seed_val) if seed_val >= 0 else "provider"
@@ -424,10 +415,7 @@ def run_remote(
         metrics["width"], metrics["height"], metrics["fps"] = width, height, model.fps
         output_path = payload.get("output_path")
         if not output_path:
-            return {
-                "data": [{"b64_json": base64.b64encode(video).decode("ascii")}],
-                "metrics": metrics,
-            }
+            return {"data": [{"b64_json": base64.b64encode(video).decode("ascii")}], "metrics": metrics}
         safe_output_path = _write_inside_uploads(validate_safe_path(output_path), video)
         measured = remote_video.probe_duration(video)
         if measured:
@@ -510,9 +498,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            upscale.requested(
-                payload
-            )  # a value nobody can make is refused before a GPU second is spent
+            upscale.requested(payload)  # a value nobody can make is refused before a GPU second is spent
         except video_models.InvalidVideoRequest as bad:
             self._refuse_request(bad)
             return
@@ -538,9 +524,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                 if not is_resident(model_name, _asked_for_an_image(payload)):
                     preflight_memory_guard(model_name)
 
-                steps, fps_render, wan, wan_image = self._resolve_model_params(
-                    payload, model_name, family
-                )
+                steps, fps_render, wan, wan_image = self._resolve_model_params(payload, model_name, family)
 
                 if job_id:
                     job_control.raise_if_cancelled(job_id)
@@ -548,16 +532,12 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
 
                 stage_reporter = stages.reporter_for(job_id, model_name)
 
-                def progress_cb(
-                    pipe_self: Any, step: int, timestep: Any, kwargs: dict[str, Any]
-                ) -> dict[str, Any]:
+                def progress_cb(pipe_self: Any, step: int, timestep: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
                     if job_id:
                         # The step boundary: where a cancelled job ends, within one denoising step.
                         job_control.raise_if_cancelled(job_id)
                         progress = min(int((step + 1) / steps * 100), 100)
-                        send_progress_update(
-                            job_id, progress, phase="generating", step=step + 1, steps=int(steps)
-                        )
+                        send_progress_update(job_id, progress, phase="generating", step=step + 1, steps=int(steps))
                         if stage_reporter:
                             stage_reporter.step(step + 1, int(steps))
                     return kwargs
@@ -578,14 +558,10 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                 )
 
                 _record_consumption(metrics, frames, steps, fps_render, req_width, req_height)
-                _record_provenance(
-                    metrics, model_name, seed_val, payload.get("aspect"), frames, fps_render
-                )
+                _record_provenance(metrics, model_name, seed_val, payload.get("aspect"), frames, fps_render)
                 if family == "Wan" and wan_image is not None:
                     # How much of the starting image the frame kept (a portrait still cut to 16:9 keeps a third): said, never hidden.
-                    metrics["imageKept"] = video_models.kept_fraction(
-                        wan_image, int(req_width), int(req_height)
-                    )
+                    metrics["imageKept"] = video_models.kept_fraction(wan_image, int(req_width), int(req_height))
 
                 output_path = payload.get("output_path")
                 if job_id:
@@ -593,9 +569,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     send_progress_update(job_id, 100, phase="encoding")
                     if stage_reporter:
                         stage_reporter.verify()
-                response_data = self._encode_output(
-                    payload, frames, fps_render, output_path, job_id, metrics
-                )
+                response_data = self._encode_output(payload, frames, fps_render, output_path, job_id, metrics)
 
         except job_control.JobCancelled as stopped:
             print(f"Video generation stopped: {stopped}", flush=True)
@@ -764,9 +738,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
     ):
         """Calls the right generation backend (Wan, FLUX, MLX AnimateDiff, or SVD) and returns the frames list."""
         if wan is not None:
-            ladder = wan.size_ladder(
-                payload.get("aspect"), payload.get("width"), payload.get("height")
-            )
+            ladder = wan.size_ladder(payload.get("aspect"), payload.get("width"), payload.get("height"))
             return generate_wan_frames(
                 model_name=model_name,
                 prompt=payload.get("prompt", ""),
@@ -815,13 +787,7 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
         )
 
     def _encode_output(
-        self,
-        payload: dict[str, Any],
-        frames,
-        fps_render,
-        output_path,
-        job_id,
-        metrics: dict[str, Any],
+        self, payload: dict[str, Any], frames, fps_render, output_path, job_id, metrics: dict[str, Any]
     ) -> dict[str, Any]:
         """Encodes the generated frames to MP4 and returns the response dict (file path or base64)."""
         if output_path:
@@ -835,14 +801,8 @@ class VideoInferenceHandler(BaseHTTPRequestHandler):
                     if job_id:
                         send_progress_update(job_id, 100, phase="upscaling")
                     apply_upscale(payload, safe_output_path, metrics)
-                    return {
-                        "status": "success",
-                        "output_path": safe_output_path,
-                        "metrics": metrics,
-                    }
-            raise PermissionError(
-                f"Access to path '{output_path}' is denied (outside allowed directories)."
-            )
+                    return {"status": "success", "output_path": safe_output_path, "metrics": metrics}
+            raise PermissionError(f"Access to path '{output_path}' is denied (outside allowed directories).")
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp:
             tmp_path = tmp.name
         try:

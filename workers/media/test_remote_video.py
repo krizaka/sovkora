@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import pytest
+
 from app import main, remote_video, video_models
 
 MODEL = "wan2-2-t2v-a14b"
@@ -60,15 +62,11 @@ class TestGenerate(unittest.TestCase):
                 (200, b"MP4BYTES"),
             ]
         )
-        video, facts = remote_video.generate(
-            model, "tea", 832, 480, 20261011, env=ENV, sleep=lambda s: None, call=call
-        )
+        video, facts = remote_video.generate(model, "tea", 832, 480, 20261011, env=ENV, sleep=lambda s: None, call=call)
         self.assertEqual(b"MP4BYTES", video)
         method, url, key, body = call.calls[0]
         self.assertEqual(("POST", "https://provider.test/v1/videos", "k-test"), (method, url, key))
-        self.assertEqual(
-            {"model": MODEL, "prompt": "tea", "size": "832x480", "fps": 16, "seed": 20261011}, body
-        )
+        self.assertEqual({"model": MODEL, "prompt": "tea", "size": "832x480", "fps": 16, "seed": 20261011}, body)
         self.assertEqual("https://provider.test/v1/videos/job_1", call.calls[1][1])
         self.assertEqual("https://provider.test/v1/videos/video_1/content", call.calls[3][1])
         self.assertEqual(
@@ -78,21 +76,11 @@ class TestGenerate(unittest.TestCase):
 
     def test_a_failed_job_raises(self):
         call = Recorder(
-            [
-                (200, {"id": "j", "status": "processing"}),
-                (200, {"id": "j", "status": "failed", "error": "nsfw"}),
-            ]
+            [(200, {"id": "j", "status": "processing"}), (200, {"id": "j", "status": "failed", "error": "nsfw"})]
         )
         with self.assertRaisesRegex(remote_video.RemoteVideoError, "failed"):
             remote_video.generate(
-                video_models.find(MODEL),
-                "x",
-                720,
-                1280,
-                None,
-                env=ENV,
-                sleep=lambda s: None,
-                call=call,
+                video_models.find(MODEL), "x", 720, 1280, None, env=ENV, sleep=lambda s: None, call=call
             )
 
     def test_no_seed_is_not_sent(self):
@@ -101,9 +89,7 @@ class TestGenerate(unittest.TestCase):
 
     def test_a_missing_key_is_refused_before_any_call(self):
         with self.assertRaisesRegex(remote_video.RemoteVideoError, "AI_INFERENCE_KEY"):
-            remote_video.generate(
-                video_models.find(MODEL), "x", 720, 1280, None, env={}, call=Recorder([])
-            )
+            remote_video.generate(video_models.find(MODEL), "x", 720, 1280, None, env={}, call=Recorder([]))
 
     def test_a_job_that_never_ends_times_out(self):
         ticks = iter(range(0, 100000, 400))
@@ -135,33 +121,25 @@ class TestRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root, patch.dict(os.environ, {"UPLOAD_DIR": root}):
             out = os.path.join(root, "u", "j", "output", "video.mp4")
             body = main.run_remote(
-                {"prompt": "tea", "aspect": "16:9", "seed": "7", "output_path": out},
-                MODEL,
-                generate=fake,
+                {"prompt": "tea", "aspect": "16:9", "seed": "7", "output_path": out}, MODEL, generate=fake
             )
             self.assertEqual(b"VIDEO", open(out, "rb").read())
         metrics = body["metrics"]
         self.assertEqual(
             (832, 480, 16, "7", "16:9"),
-            (
-                metrics["width"],
-                metrics["height"],
-                metrics["fps"],
-                metrics["seed"],
-                metrics["aspect"],
-            ),
+            (metrics["width"], metrics["height"], metrics["fps"], metrics["seed"], metrics["aspect"]),
         )
         self.assertEqual("do-inference", metrics["provider"])
 
     def test_a_starting_image_is_refused_not_ignored(self):
         with self.assertRaises(video_models.InvalidVideoRequest):
-            main.run_remote(
-                {"prompt": "x", "image": "abc"}, MODEL, generate=lambda *a, **k: (b"", {})
-            )
+            main.run_remote({"prompt": "x", "image": "abc"}, MODEL, generate=lambda *a, **k: (b"", {}))
 
 
 class TestProbe(unittest.TestCase):
-    """ffprobe only ever reads a file the worker made itself: no request value reaches its arguments (krizaka-internal#3390)."""
+    """ffprobe only reads a file the worker made itself: no request value reaches its arguments (#3390)."""
+
+    FFPROBE = "/usr/bin/ffprobe"
 
     def test_ffprobe_reads_a_copy_the_worker_wrote(self):
         seen = []
@@ -171,41 +149,25 @@ class TestProbe(unittest.TestCase):
                 seen.append((cmd, kwargs, probed.read()))
             return subprocess.CompletedProcess(cmd, 0, stdout="4.04\n", stderr="")
 
-        measured = remote_video.probe_duration(
-            b"VIDEO", run=run, which=lambda name: "/usr/bin/ffprobe"
-        )
-        self.assertEqual(4.04, measured)
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: self.FFPROBE) == 4.04
         [(cmd, kwargs, content)] = seen
-        self.assertEqual(
-            [
-                "/usr/bin/ffprobe",
-                "-v",
-                "error",
-                "-show_entries",
-                "format=duration",
-                "-of",
-                "csv=p=0",
-            ],
-            cmd[:-1],
-        )
-        self.assertTrue(os.path.isabs(cmd[-1]))
-        self.assertEqual(b"VIDEO", content)
-        self.assertFalse(kwargs.get("shell", False))
-        self.assertFalse(os.path.exists(cmd[-1]), "the copy is removed once probed")
+        assert cmd[:-1] == [self.FFPROBE, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0"]
+        assert os.path.isabs(cmd[-1])
+        assert content == b"VIDEO"
+        assert not kwargs.get("shell", False)
+        assert not os.path.exists(cmd[-1]), "the copy is removed once probed"
 
     def test_no_ffprobe_means_no_duration_and_no_call(self):
         def run(cmd, **kwargs):
             raise AssertionError("ffprobe is absent: nothing runs")
 
-        self.assertIsNone(remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: None))
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: None) is None
 
     def test_an_answer_that_is_not_a_duration_is_none(self):
         def run(cmd, **kwargs):
             return subprocess.CompletedProcess(cmd, 0, stdout="N/A\n", stderr="")
 
-        self.assertIsNone(
-            remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: "/usr/bin/ffprobe")
-        )
+        assert remote_video.probe_duration(b"VIDEO", run=run, which=lambda name: self.FFPROBE) is None
 
     def test_a_run_probes_the_clip_bytes_never_the_output_path(self):
         def fake(model, prompt, w, h, seed, progress=None, **_):
@@ -217,30 +179,18 @@ class TestProbe(unittest.TestCase):
             patch.object(remote_video, "probe_duration", return_value=5.0) as probe,
         ):
             out = os.path.join(root, "u", "j", "output", "video.mp4")
-            body = main.run_remote(
-                {"prompt": "tea", "aspect": "16:9", "output_path": out}, MODEL, generate=fake
-            )
-        self.assertEqual(((b"VIDEO",), {}), (probe.call_args.args, probe.call_args.kwargs))
-        self.assertEqual(5.0, body["metrics"]["durationSeconds"])
+            body = main.run_remote({"prompt": "tea", "aspect": "16:9", "output_path": out}, MODEL, generate=fake)
+        assert (probe.call_args.args, probe.call_args.kwargs) == ((b"VIDEO",), {})
+        assert body["metrics"]["durationSeconds"] == 5.0
 
     def test_a_presigned_url_that_is_not_https_is_never_opened(self):
-        call = Recorder(
-            [(200, {"id": "v1", "status": "completed", "output": {"url": "file:///etc/passwd"}})]
-        )
+        call = Recorder([(200, {"id": "v1", "status": "completed", "output": {"url": "file:///etc/passwd"}})])
+        model = video_models.find(MODEL)
         with (
             patch.object(remote_video.urllib.request, "urlopen") as opened,
-            self.assertRaisesRegex(remote_video.RemoteVideoError, "https"),
+            pytest.raises(remote_video.RemoteVideoError, match="https"),
         ):
-            remote_video.generate(
-                video_models.find(MODEL),
-                "x",
-                832,
-                480,
-                None,
-                env=ENV,
-                sleep=lambda s: None,
-                call=call,
-            )
+            remote_video.generate(model, "x", 832, 480, None, env=ENV, sleep=lambda s: None, call=call)
         opened.assert_not_called()
 
 
