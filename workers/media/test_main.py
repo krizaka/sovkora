@@ -539,8 +539,9 @@ class TestModelRegistryValidation(unittest.TestCase):
         except urllib.error.HTTPError as e:
             self.assertEqual(e.code, 400)
             body = json.loads(e.read().decode("utf-8"))
-            self.assertIn("error", body)
-            self.assertIn("nonexistent-model", body["error"])
+            # A coded refusal: the model asked for is the caller's value, never echoed (krizaka-internal#3390).
+            assert body["error"] == "model_not_registered"
+            assert "nonexistent-model" not in json.dumps(body)
 
     def test_valid_model_names_in_registry(self):
         """Verify the 3 registered model names."""
@@ -1296,8 +1297,13 @@ class TestEncoderConfinesItsOutput(unittest.TestCase):
     def test_ffmpeg_receives_an_absolute_output_path(self):
         from app import encoder
 
+        def ffmpeg(cmd, **_):  # a successful ffmpeg writes its output file
+            with open(cmd[-1], "wb") as encoded:
+                encoded.write(b"MP4")
+
         out = os.path.join(tempfile.gettempdir(), "orazaka-enc-ok.mp4")
-        with patch.object(encoder.subprocess, "run") as run:
+        self.addCleanup(lambda: os.path.exists(out) and os.remove(out))
+        with patch.object(encoder.subprocess, "run", side_effect=ffmpeg) as run:
             encoder.export_frames_to_video(self._frames(), out)
         self.assertTrue(os.path.isabs(run.call_args[0][0][-1]))
 
@@ -1308,6 +1314,176 @@ class TestEncoderConfinesItsOutput(unittest.TestCase):
         for path in glob.glob(os.path.join(os.path.dirname(__file__), "app", "*.py")):
             with open(path, encoding="utf-8") as source:
                 self.assertIsNone(re.search(r"shell\s*=\s*True|os\.system\(", source.read()), path)
+
+
+class TestTheWorkerAnswersJsonOnly(unittest.TestCase):
+    """Every answer is JSON with ``nosniff``; no request value or exception message comes back raw (#3390)."""
+
+    GENERATE = "/v1/videos/generations"
+
+    def setUp(self):
+        self.server = HTTPServer(("127.0.0.1", 0), video_worker.VideoInferenceHandler)
+        self.port = self.server.server_address[1]
+        self.thread = Thread(target=self.server.handle_request, daemon=True)
+        self.thread.start()
+
+    def tearDown(self):
+        self.thread.join(timeout=10)
+        self.server.server_close()
+
+    def _exchange(self, method, path, body=None):
+        import http.client
+
+        connection = http.client.HTTPConnection("127.0.0.1", self.port, timeout=10)
+        self.addCleanup(connection.close)
+        data = None if body is None else json.dumps(body).encode("utf-8")
+        connection.request(method, path, body=data, headers={"Content-Type": "application/json"})
+        response = connection.getresponse()
+        return response.status, response.headers, response.read()
+
+    def _json(self, headers, raw):
+        assert headers["Content-Type"] == "application/json; charset=utf-8"
+        assert headers["X-Content-Type-Options"] == "nosniff"
+        return json.loads(raw.decode("utf-8"))
+
+    def test_an_html_payload_comes_back_escaped_inside_json(self):
+        payload = {"model": "animatediff-lightning-mps", "upscale": "<script>alert(1)</script>"}
+        status, headers, raw = self._exchange("POST", self.GENERATE, payload)
+        assert status == 400
+        body = self._json(headers, raw)
+        assert body["error"] == "invalid_request"
+        assert b"<script" not in raw
+        assert "&lt;script&gt;" in body["detail"]
+
+    def test_an_unregistered_model_is_refused_by_code_and_not_echoed(self):
+        status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "<img src=x onerror=alert(1)>"})
+        assert status == 400
+        assert self._json(headers, raw)["error"] == "model_not_registered"
+        assert b"onerror" not in raw
+
+    def test_a_model_that_is_not_a_string_is_refused_not_a_crash(self):
+        status, headers, raw = self._exchange("POST", self.GENERATE, {"model": ["animatediff-lightning-mps"]})
+        assert status == 400
+        assert self._json(headers, raw)["error"] == "model_not_registered"
+
+    def test_a_local_generation_failure_answers_a_fixed_message(self):
+        leak = RuntimeError("weights at /models/secret-token-42 <b>failed</b>")
+        with patch.object(video_worker.VideoInferenceHandler, "_resolve_seed", side_effect=leak):
+            status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "animatediff-lightning-mps"})
+        assert status == 500
+        assert self._json(headers, raw)["error"] == "generation_failed"
+        assert b"secret-token-42" not in raw
+        assert b"<b>" not in raw
+
+    def test_a_provider_failure_answers_a_fixed_message(self):
+        leak = RuntimeError("the provider answered 401: <html>secret-token-42</html>")
+        with patch.object(video_worker, "run_remote", side_effect=leak):
+            status, headers, raw = self._exchange("POST", self.GENERATE, {"model": "wan2-2-t2v-a14b"})
+        assert status == 500
+        assert self._json(headers, raw)["error"] == "generation_failed"
+        assert b"secret-token-42" not in raw
+
+    def test_a_cancelled_job_answers_a_coded_refusal(self):
+        stopped = video_worker.job_control.JobCancelled("job <i>j-1</i> was cancelled")
+        with patch.object(video_worker, "run_remote", side_effect=stopped):
+            payload = {"model": "wan2-2-t2v-a14b", "job_id": "j-1"}
+            status, headers, raw = self._exchange("POST", self.GENERATE, payload)
+        assert status == video_worker.CANCELLED_STATUS
+        assert self._json(headers, raw)["error"] == "cancelled"
+        assert b"<i>" not in raw
+
+    def test_an_unknown_route_answers_json_without_the_path(self):
+        status, headers, raw = self._exchange("GET", "/%3Cscript%3E")
+        assert status == 404
+        assert self._json(headers, raw)["error"] == "not_found"
+        assert b"script" not in raw
+
+    def test_the_status_route_is_json_with_nosniff(self):
+        status, headers, raw = self._exchange("GET", "/")
+        assert status == 200
+        assert self._json(headers, raw) == {"status": "running"}
+
+
+class TestEncoderParsesItsInputsBeforeFfmpeg(unittest.TestCase):
+    """Every value that reaches ffmpeg is a closed type, checked before the runner is called (krizaka-internal#3390)."""
+
+    def _frames(self):
+        return [Image.new("RGB", (8, 8))]
+
+    def _runner(self):
+        calls = []
+
+        def run(cmd, **kwargs):
+            calls.append((cmd, kwargs))
+            with open(cmd[-1], "wb") as encoded:
+                encoded.write(b"MP4")
+
+        return calls, run
+
+    def _inside(self):
+        import shutil
+
+        directory = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, directory, True)
+        return os.path.join(directory, "clip.mp4")
+
+    def test_a_path_outside_the_worker_directories_is_refused_before_ffmpeg(self):
+        from app import encoder
+
+        calls, run = self._runner()
+        for bad in ("/etc/evil.mp4", os.path.join(tempfile.gettempdir(), "..", "..", "etc", "evil.mp4")):
+            with self.subTest(bad), pytest.raises(PermissionError):
+                encoder.export_frames_to_video(self._frames(), bad, run=run)
+        assert calls == []
+
+    def test_an_input_starting_with_a_dash_is_refused_before_ffmpeg(self):
+        from app import encoder
+
+        calls, run = self._runner()
+        with pytest.raises(ValueError, match="'-'"):
+            encoder.export_frames_to_video(self._frames(), "-y.mp4", run=run)
+        for fps in ("-filter_complex", "-1", -1):
+            with self.subTest(fps), pytest.raises(ValueError, match=r"frame rate|'-'"):
+                encoder.export_frames_to_video(self._frames(), self._inside(), fps=fps, run=run)
+        assert calls == []
+
+    def test_a_codec_off_the_allow_list_is_refused_before_ffmpeg(self):
+        from app import encoder
+
+        calls, run = self._runner()
+        for codec in ("libx265", "libx264 -vf drawtext", "-c:v"):
+            with self.subTest(codec), pytest.raises(ValueError, match="codec"):
+                encoder.export_frames_to_video(self._frames(), self._inside(), codec=codec, run=run)
+        assert calls == []
+
+    def test_a_frame_rate_that_is_not_a_bounded_number_is_refused_before_ffmpeg(self):
+        from app import encoder
+
+        calls, run = self._runner()
+        for fps in (0, 121, True, float("nan"), "14fps", None):
+            with self.subTest(fps), pytest.raises(ValueError, match="frame rate"):
+                encoder.export_frames_to_video(self._frames(), self._inside(), fps=fps, run=run)
+        assert calls == []
+
+    def test_a_valid_request_builds_the_same_arguments_and_lands_the_clip(self):
+        from app import encoder
+
+        calls, run = self._runner()
+        out = self._inside()
+        encoder.export_frames_to_video(self._frames(), out, fps=14, run=run)
+        [(cmd, kwargs)] = calls
+        work = os.path.dirname(cmd[5])
+        codec = "h264_videotoolbox" if encoder.is_apple_silicon() else "libx264"
+        frames = os.path.join(work, "frame_%04d.png")
+        flags = ["-b:v", "8M", "-pix_fmt", "yuv420p", "-movflags", "+faststart"]
+        assert cmd[:-1] == ["ffmpeg", "-y", "-framerate", "14", "-i", frames, "-c:v", codec, *flags]
+        # The one file argument is the worker's own: the request's path never reaches the command line.
+        assert os.path.dirname(cmd[-1]) == work
+        assert out not in cmd
+        assert not kwargs.get("shell", False)
+        with open(out, "rb") as landed:
+            assert landed.read() == b"MP4"
+        assert not os.path.exists(work)
 
 
 if __name__ == "__main__":
