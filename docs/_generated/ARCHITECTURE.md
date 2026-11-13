@@ -35,9 +35,9 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 | `sovkora-knowledge-service` | service | `knowledge` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-studio-service` | service | `studio` | 1.0.0-SNAPSHOT | — | — |
 | `worker-media` | service | `worker-media` | — | — | — |
-| `krizaka-billing-service` | service | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-notifications-service` | service | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-users-service` | service | `krizaka-java` | 0.12.0 | — | — |
+| `krizaka-billing-service` | service | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-notifications-service` | service | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-users-service` | service | `krizaka-java` | 0.16.0 | — | — |
 | `sovkora-crypto` | adapter | `contracts` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-architecture` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-assets` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
@@ -45,41 +45,41 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 | `sovkora-engine-persistence-bridge` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-springai` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-studio-client` | adapter | `studio` | 1.0.0-SNAPSHOT | — | — |
-| `krizaka-billing-client` | adapter | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-payments` | adapter | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-quality` | adapter | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-rewrite-style` | adapter | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-users-client` | adapter | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-users-persistence` | adapter | `krizaka-java` | 0.12.0 | — | — |
+| `krizaka-billing-client` | adapter | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-payments` | adapter | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-quality` | adapter | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-rewrite-style` | adapter | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-users-client` | adapter | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-users-persistence` | adapter | `krizaka-java` | 0.16.0 | — | — |
 | `sovkora-engine-business` | application | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-interceptors` | application | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-tools` | application | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-core` | domain | `engine` | 1.0.0-SNAPSHOT | AgentTurns, AiClient, CatalogModelService, ChatSessionService, CitationVerifier, ExternalCheckCapability, JobService, McpService, StepRouter | AccessAudit, AudioGeneratorClient, AudioTranscriber, CapabilityProvider, ChatGeneratorClient, ChatInvocation, ChatMemoryStore, CheckAuditLog, CheckHttp, CheckKeyStore, CheckMeter, CheckProviderCatalog, CheckSubjectPepper, CodeSandboxPort, ConsentRegistry, ControlVerdictRecorder, ConversationMemory, DomainEventPublisher, EmbeddingClient, ExternalCheckConnector, FeatureModelRoutes, ImageGeneratorClient, InfrastructureStatusProvider, KnowledgeService, McpOrchestrator, ModelCatalogProvider, ModelEndpointResolver, OutputJudge, PipelineConfigProvider, PlatformMcpServerProvider, PlatformToolConfigProvider, PromptAssembly, PromptCachePolicy, ProviderChatClient, SemanticClassifierPort, SpeechSynthesis, StepModelRecorder, StepRouteProvider, StructuredOutputBounds, StructuredOutputClient, TestShaperPort, ToolAnswerCodec, ToolLoopBounds, ToolOptions, ToolPermissionProvider, ToolRegistry, ToolResolution, ToolResultCache, UserCredentialsProvider, UserMcpServerProvider, ValidationPipelineRepository |
-| `krizaka-users-core` | domain | `krizaka-java` | 0.12.0 | AdminUserService, ApiKeyService, CredentialGrantService, IdentityReconciliationService, IdentityService, LoginLockoutService, OrganizationService, PasswordPolicyService, PasswordRecoveryService, RateLimitProvider, SocialConnectionService, TokenService, UserProfileProvider | AdminUserRepositoryPort, ApiKeyRepositoryPort, AuthorityRepositoryPort, BreachedPasswordPort, CredentialGrantRepositoryPort, CryptographyPort, LockoutRepositoryPort, OAuth2ProviderVerifier, OrganizationRepositoryPort, PasswordEventPublisher, PasswordResetTokenRepositoryPort, SecretSealPort, SocialConnectionRepositoryPort, UserCredentialRepositoryPort, UserEventPublisher, UserInterceptionRepositoryPort, UserProfileRepositoryPort, UserRepositoryPort, VerificationTokenRepositoryPort |
+| `krizaka-users-core` | domain | `krizaka-java` | 0.16.0 | AdminUserService, ApiKeyService, CredentialGrantService, IdentityReconciliationService, IdentityService, LoginLockoutService, OrganizationService, PasswordPolicyService, PasswordRecoveryService, RateLimitProvider, SocialConnectionService, TokenService, UserProfileProvider | AdminUserRepositoryPort, ApiKeyRepositoryPort, AuthorityRepositoryPort, BreachedPasswordPort, CredentialGrantRepositoryPort, CryptographyPort, LockoutRepositoryPort, OAuth2ProviderVerifier, OrganizationRepositoryPort, PasswordEventPublisher, PasswordResetTokenRepositoryPort, SecretSealPort, SocialConnectionRepositoryPort, UserCredentialRepositoryPort, UserEventPublisher, UserInterceptionRepositoryPort, UserProfileRepositoryPort, UserRepositoryPort, VerificationTokenRepositoryPort |
 | `sovkora-jobs-api` | contract | `contracts` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-persistence-api` | contract | `contracts` | 1.0.0-SNAPSHOT | CapabilityManager, CatalogModelManager, ChatMemoryPersistenceProvider, ChatSessionPersistenceProvider, FeatureCachePolicyManager, FeatureRouteManager, FeatureStructuredBoundManager, FeatureToolBoundManager, JobPersistenceProvider, OutboxStore, PipelineConfigManager, PlatformMcpServerPersistenceProvider, PlatformToolConfigPersistenceProvider, RuntimeConfigProvider, SpeechVoiceManager, UserMcpServerPersistenceProvider, ValidationPipelineManager | — |
 | `sovkora-studio-api` | contract | `studio` | 1.0.0-SNAPSHOT | — | — |
-| `krizaka-billing-api` | contract | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-users-api` | contract | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-app-config` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-idempotency` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-messaging` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-notifications-api` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-observability` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-persistence` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-ratelimit` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-security` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-app-config` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-idempotency` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-observability` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-persistence` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-rabbitmq` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-ratelimit` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-security` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-web` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-spring-boot-starter-webhooks` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-web` | platform | `krizaka-java` | 0.12.0 | — | — |
-| `krizaka-webhooks` | platform | `krizaka-java` | 0.12.0 | — | — |
+| `krizaka-billing-api` | contract | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-users-api` | contract | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-app-config` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-idempotency` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-messaging` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-notifications-api` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-observability` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-persistence` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-ratelimit` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-security` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-app-config` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-idempotency` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-observability` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-persistence` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-rabbitmq` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-ratelimit` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-security` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-web` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-spring-boot-starter-webhooks` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-web` | platform | `krizaka-java` | 0.16.0 | — | — |
+| `krizaka-webhooks` | platform | `krizaka-java` | 0.16.0 | — | — |
 
 ## Dependencies
 
@@ -92,10 +92,10 @@ Build dependencies between the modules above (test scope excluded): who packages
 | `sovkora-edge-service` | `krizaka-security` |
 | `sovkora-job-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api` |
 | `sovkora-knowledge-service` | `krizaka-messaging`, `krizaka-security` |
-| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-studio-api` |
-| `krizaka-billing-service` | `krizaka-billing-api`, `krizaka-messaging`, `krizaka-security` |
-| `krizaka-notifications-service` | `krizaka-messaging`, `krizaka-notifications-api` |
-| `krizaka-users-service` | `krizaka-security`, `krizaka-users-core` |
+| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-spring-boot-starter-observability`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-studio-api` |
+| `krizaka-billing-service` | `krizaka-billing-api`, `krizaka-messaging`, `krizaka-security`, `krizaka-spring-boot-starter-observability` |
+| `krizaka-notifications-service` | `krizaka-messaging`, `krizaka-notifications-api`, `krizaka-spring-boot-starter-observability` |
+| `krizaka-users-service` | `krizaka-security`, `krizaka-spring-boot-starter-observability`, `krizaka-users-core` |
 | `sovkora-engine-architecture` | `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-springai`, `sovkora-engine-tools` |
 | `sovkora-engine-assets` | `sovkora-crypto` |
 | `sovkora-engine-persistence` | `krizaka-messaging`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-persistence-api` |
