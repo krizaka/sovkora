@@ -95,6 +95,15 @@ jobs:
         env:
           MODULES: ${{ steps.plan.outputs.pl }}
         run: ./mvnw -B -ntp verify -pl "$MODULES" -amd
+      # A rule that reads the whole tree (Workspace.require: KIT-*, pack purity, one settlement author…) is hosted by one
+      # module's governance test and judges every other module; with only the changed modules tested, a studio change was
+      # judged by the job service's KIT-003 for the first time in the merge queue (sovkora#700). Every governance test
+      # runs on every pull request: they read classes and sources, no container.
+      - name: Every governance test (the rules that read the whole tree)
+        if: ${{ steps.plan.outputs.mode == 'changed' }}
+        run: >
+          ./mvnw -B -ntp -T 4 test -Dtest='*GovernanceTest' -Dsurefire.failIfNoSpecifiedTests=false
+          -Dspotbugs.skip=true -Dpmd.skip=true -Dcpd.skip=true -Dspotless.check.skip=true -Djacoco.skip=true
       - name: No integration test skipped itself
         if: ${{ steps.plan.outputs.mode == 'full' }}
         run: |
