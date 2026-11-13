@@ -6,7 +6,6 @@ import com.krizaka.sovkora.studio.application.service.StudioRuntimeConfigService
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -137,6 +136,6 @@ public class RetentionSweeper {
 
   /** Deletes the runs the statement selects and what was built from them; returns the runs. */
   private int deleteRuns(String sql, Object... args) {
-    return jdbcTemplate.queryForList(sql, UUID.class, args).size();
+    return jdbcTemplate.queryForList(sql, String.class, args).size();
   }
 }

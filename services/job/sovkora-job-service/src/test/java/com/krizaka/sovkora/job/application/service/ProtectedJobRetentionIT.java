@@ -21,6 +21,7 @@ import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
+import com.krizaka.sovkora.test.support.leak.LeakProbe;
 import com.krizaka.users.domain.model.User;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.io.IOException;
@@ -328,64 +329,31 @@ class ProtectedJobRetentionIT {
 
   @Test
   @DisplayName(
-      "[#3376] a SENSITIVE job whose read fails carrying the text keeps it in no table, no file, no log")
-  void aFailedSensitiveJob_keepsTheExceptionTextInNoTableNoFileNoLog() throws IOException {
+      "[#3376] a SENSITIVE job whose read fails carrying the text keeps it in no table, file, log")
+  void aFailedSensitiveJob_keepsTheExceptionTextInNoTableNoFileNoLog() throws Exception {
     String mark = "MARQUE-" + UUID.randomUUID();
     modelFailure = new IllegalStateException("cannot read the document: " + mark);
     String jobId = UUID.randomUUID().toString();
-    ch.qos.logback.classic.Logger root =
-        (ch.qos.logback.classic.Logger)
-            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logs =
-        new ch.qos.logback.core.read.ListAppender<>();
-    logs.start();
-    root.addAppender(logs);
-    try {
+    try (LeakProbe probe = LeakProbe.open()) {
       listener().onMessage(command(jobId, DataClass.SENSITIVE), null);
-    } finally {
-      root.detachAppender(logs);
+
+      assertThat(status(jobId)).as("the job ended").isEqualTo("FAILED");
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), "dormir"))
+          .as("the scan is not vacuous: the user's words are in the row before the purge")
+          .contains("orazaka_jobs");
+
+      retention.purgeExpired(uploads);
+
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), mark))
+          .as("tables holding the exception text")
+          .isEmpty();
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), "dormir"))
+          .as("tables holding the user's words")
+          .isEmpty();
+      assertThat(Files.exists(jobDirectory(jobId))).as("the job's files").isFalse();
+      assertThat(probe.logLinesHolding(mark)).as("log lines carrying the text").isEmpty();
+      assertThat(probe.logLinesHolding("dormir")).as("log lines carrying the words").isEmpty();
     }
-    assertThat(status(jobId)).as("the job ended").isEqualTo("FAILED");
-    assertThat(tablesHolding("dormir"))
-        .as("the scan is not vacuous: the user's words are in the row before the purge")
-        .contains("orazaka_jobs");
-
-    retention.purgeExpired(uploads);
-
-    assertThat(tablesHolding(mark)).as("tables holding the exception text").isEmpty();
-    assertThat(tablesHolding("dormir")).as("tables holding the user's words").isEmpty();
-    assertThat(Files.exists(jobDirectory(jobId))).as("the job's files").isFalse();
-    assertThat(
-            logs.list.stream()
-                .map(
-                    l ->
-                        l.getFormattedMessage()
-                            + (l.getThrowableProxy() == null
-                                ? ""
-                                : l.getThrowableProxy().getMessage()))
-                .filter(line -> line.contains(mark) || line.contains("dormir")))
-        .as("log lines carrying the text")
-        .isEmpty();
-  }
-
-  /** Every table of the database whose rows, as JSON, contain the text. */
-  private static List<String> tablesHolding(String text) {
-    return jdbcTemplate
-        .queryForList(
-            "SELECT table_name FROM information_schema.tables"
-                + " WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY 1",
-            String.class)
-        .stream()
-        .filter(
-            table ->
-                jdbcTemplate.queryForObject(
-                        "SELECT count(*) FROM \""
-                            + table
-                            + "\" t WHERE row_to_json(t)::text LIKE ?",
-                        Integer.class,
-                        "%" + text + "%")
-                    > 0)
-        .toList();
   }
 
   @Test

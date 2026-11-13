@@ -15,6 +15,7 @@ import com.krizaka.sovkora.jobs.api.domain.model.JobExecutionResult;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
+import com.krizaka.sovkora.test.support.leak.LeakProbe;
 import com.krizaka.users.domain.model.User;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.nio.file.Files;
@@ -220,6 +221,16 @@ class JobListenerTest {
             + consumption.getValue().get("gpuSeconds"));
   }
 
+  private static User activeUser(String userId) {
+    return new User(
+        UUID.fromString(userId),
+        "testuser",
+        "test@example.com",
+        true,
+        Set.of("ROLE_USER"),
+        Map.of());
+  }
+
   @Test
   void onMessage_strategyThrowsException_failsJob() throws Exception {
     String jobId = "job-123";
@@ -233,16 +244,7 @@ class JobListenerTest {
             Map.of("prompt", "Hello test"),
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
 
-    User user =
-        new User(
-            UUID.fromString(userId),
-            "testuser",
-            "test@example.com",
-            true,
-            Set.of("ROLE_USER"),
-            Map.of());
-
-    when(userDirectoryService.getUser(userId)).thenReturn(user);
+    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
     when(chatStrategy.execute(eq(msg), any()))
         .thenThrow(new JobExecutionException("Strategy failed"));
 
@@ -272,16 +274,7 @@ class JobListenerTest {
             Map.of("prompt", "Hello test"),
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
 
-    User user =
-        new User(
-            UUID.fromString(userId),
-            "testuser",
-            "test@example.com",
-            true,
-            Set.of("ROLE_USER"),
-            Map.of());
-
-    when(userDirectoryService.getUser(userId)).thenReturn(user);
+    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
     when(capabilityManager.findByFeatureKey("unsupported.feature")).thenReturn(Optional.empty());
 
     // Call listener
@@ -721,17 +714,9 @@ class JobListenerTest {
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
     when(userDirectoryService.getUser("user-m"))
         .thenThrow(new IllegalStateException("cannot parse: " + mark));
-    ch.qos.logback.classic.Logger root =
-        (ch.qos.logback.classic.Logger)
-            org.slf4j.LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> logs =
-        new ch.qos.logback.core.read.ListAppender<>();
-    logs.start();
-    root.addAppender(logs);
-    try {
+    LeakProbe probe = LeakProbe.open();
+    try (probe) {
       listener.onMessage(msg, null);
-    } finally {
-      root.detachAppender(logs);
     }
 
     org.mockito.ArgumentCaptor<String> status = org.mockito.ArgumentCaptor.forClass(String.class);
@@ -748,15 +733,7 @@ class JobListenerTest {
         .isEqualTo("java.lang.IllegalStateException");
     org.assertj.core.api.Assertions.assertThat(event.getValue())
         .isEqualTo("java.lang.IllegalStateException");
-    org.assertj.core.api.Assertions.assertThat(
-            logs.list.stream()
-                .map(
-                    l ->
-                        l.getFormattedMessage()
-                            + (l.getThrowableProxy() == null
-                                ? ""
-                                : l.getThrowableProxy().getMessage()))
-                .filter(line -> line.contains(mark)))
+    org.assertj.core.api.Assertions.assertThat(probe.logLinesHolding(mark))
         .as("log lines carrying the exception text")
         .isEmpty();
   }
