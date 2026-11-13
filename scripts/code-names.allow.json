@@ -41,6 +41,21 @@
       "token": "orazaka#508",
       "reason": "An old issue link of the archived repositories (history).",
       "row": "K4"
+    },
+    {
+      "token": "orazaka.jobs",
+      "reason": "A live RabbitMQ exchange name (the jobs exchange) and its configuration prefix; renamed only with the broker topology by krizaka-internal#2684, never by editing the code and tests that bind to it.",
+      "row": "K2"
+    },
+    {
+      "token": "orazaka_jobs",
+      "reason": "A live database name (the job plane); renamed only by a forward migration of krizaka-internal#2684, never by editing the queries and tests that read it.",
+      "row": "K2"
+    },
+    {
+      "token": "orazaka.core.chat.text",
+      "reason": "A live routing key of the chat capability, stored in capability rows; renamed only by a data migration of krizaka-internal#2684.",
+      "row": "K2"
     }
   ]
 }
