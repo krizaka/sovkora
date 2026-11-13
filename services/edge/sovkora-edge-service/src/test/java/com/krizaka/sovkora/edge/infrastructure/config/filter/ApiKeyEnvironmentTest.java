@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.edge.infrastructure.config.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -15,11 +15,10 @@ class ApiKeyEnvironmentTest {
   void declaredByName() {
     assertThat(ApiKeyEnvironment.of("prod")).isEqualTo(ApiKeyEnvironment.PROD);
     assertThat(ApiKeyEnvironment.of("dev")).isEqualTo(ApiKeyEnvironment.DEV);
-    assertThatThrownBy(() -> ApiKeyEnvironment.of("staging"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("staging");
-    assertThatThrownBy(() -> ApiKeyEnvironment.of(" "))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> ApiKeyEnvironment.of("staging"))
+        .withMessageContaining("staging");
+    assertThatIllegalArgumentException().isThrownBy(() -> ApiKeyEnvironment.of(" "));
   }
 
   @Test

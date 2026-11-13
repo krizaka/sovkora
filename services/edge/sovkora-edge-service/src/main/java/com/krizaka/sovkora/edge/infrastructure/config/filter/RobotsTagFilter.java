@@ -1,14 +1,15 @@
 package com.krizaka.sovkora.edge.infrastructure.config.filter;
 
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * The edge is an API for servers and apps, never a page: every answer, a refusal included, tells
@@ -17,13 +18,17 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
-class RobotsTagFilter extends OncePerRequestFilter {
+class RobotsTagFilter implements Filter {
+
+  static final String HEADER = "X-Robots-Tag";
+  static final String VALUE = "noindex, nofollow";
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws ServletException, IOException {
-    response.setHeader("X-Robots-Tag", "noindex, nofollow");
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+    if (response instanceof HttpServletResponse http) {
+      http.setHeader(HEADER, VALUE);
+    }
     chain.doFilter(request, response);
   }
 }

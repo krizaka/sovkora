@@ -356,7 +356,7 @@ class ApiKeyExchangeFilterTest {
   }
 
   @Test
-  @DisplayName("[ADR-083] the daily quota's 429 also says when to come back")
+  @DisplayName("[ADR-083][2132] the daily quota's 429 says when to come back, as a coded problem")
   void dailyQuotaAnswersRetryAfter() throws Exception {
     ApiKeyExchangeFilter filter =
         new ApiKeyExchangeFilter(
@@ -371,14 +371,21 @@ class ApiKeyExchangeFilterTest {
 
     assertThat(refused.getStatus()).isEqualTo(429);
     assertThat(Long.parseLong(refused.getHeader("Retry-After"))).isBetween(1L, 86_400L);
+    assertThat(refused.getContentType()).isEqualTo("application/problem+json");
+    assertThat(refused.getContentAsString())
+        .contains("\"code\":\"API_KEY_QUOTA_EXCEEDED\"")
+        .contains("\"status\":429");
   }
 
   private ApiKeyExchangeFilter inEnvironment(ApiKeyEnvironment environment) {
-    return new ApiKeyExchangeFilter(
-        RestClient.builder().build(),
+    EdgeIdentityProperties identity =
         new EdgeIdentityProperties(
             URI.create("http://127.0.0.1:" + stub.getAddress().getPort()),
-            "sovkora-test-secret-at-least-32-characters!"),
+            "sovkora-test-secret-at-least-32-characters!",
+            environment.name().toLowerCase(java.util.Locale.ROOT));
+    return new ApiKeyExchangeFilter(
+        RestClient.builder().build(),
+        identity,
         ApiKeyDailyQuota.unlimited(),
         ApiKeyRateLimiter.off(),
         environment);
@@ -460,26 +467,5 @@ class ApiKeyExchangeFilterTest {
         .isEqualTo(403);
     assertThat(ApiKeyScopes.permits(java.util.List.of("env:prod"), "GET", "/api/v1/studios"))
         .isTrue();
-  }
-
-  @Test
-  @DisplayName("[2132] a key over its daily quota gets a coded 429 problem, not a bare message")
-  void dailyQuotaRefusalIsCoded() throws Exception {
-    ApiKeyExchangeFilter filter =
-        new ApiKeyExchangeFilter(
-            RestClient.builder().build(),
-            new EdgeIdentityProperties(
-                URI.create("http://127.0.0.1:" + stub.getAddress().getPort()),
-                "sovkora-test-secret-at-least-32-characters!"),
-            new ApiKeyDailyQuota(1, java.time.Clock.systemUTC()));
-
-    call(filter, "oz_valid_coded");
-    MockHttpServletResponse refused = call(filter, "oz_valid_coded");
-
-    assertThat(refused.getStatus()).isEqualTo(429);
-    assertThat(refused.getContentType()).isEqualTo("application/problem+json");
-    assertThat(refused.getContentAsString())
-        .contains("\"code\":\"API_KEY_QUOTA_EXCEEDED\"")
-        .contains("\"status\":429");
   }
 }
