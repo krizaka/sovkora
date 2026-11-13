@@ -18,7 +18,8 @@ sign-in screen; every answer of the edge carries `X-Robots-Tag: noindex, nofollo
 | Databases: one per context (engine, users, billing, studio) on the prod cluster `krizaka-prod-pg` | the spec's `databases:` (by reference) | — | (the cluster, ORG-036 step 1) |
 
 **About +21 USD/month** (SOV-105: core and edge +17, the broker +4), list prices before taxes, model spend apart. The pilot's
-model spend has its own monthly cap in the admin settings (krizaka-internal#3368); `AI_SPEND_DAILY_BUDGET_USD=1` is the
+model spend has its own monthly cap in the admin settings, the row of (`prod`, the product's key) that
+`AI_SPEND_ENVIRONMENT=prod` selects (krizaka-internal#3368); `AI_SPEND_DAILY_BUDGET_USD=1` is the
 engine's daily backstop under it.
 
 **Deliberately absent** (the comment block at the top of the spec says why): the web app and the operator console, every

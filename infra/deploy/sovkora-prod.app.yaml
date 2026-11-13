@@ -144,6 +144,8 @@ services:
       - { key: ORAZAKA_CORE_DEFAULT_PROVIDER, scope: RUN_TIME, value: do-inference }
       - { key: AI_INFERENCE_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_AI_INFERENCE_KEY__" }
       - { key: AI_SPEND_DAILY_BUDGET_USD, scope: RUN_TIME, value: "1" }
+      # The monthly provider-spend cap is the row of (this environment, product key): prod's rows, never dev's (#3368).
+      - { key: AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "prod" }
       - { key: MANAGEMENT_TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
       - { key: TRACING_SAMPLING_PROBABILITY, scope: RUN_TIME, value: "0" }
 

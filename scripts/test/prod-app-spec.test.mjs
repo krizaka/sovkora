@@ -42,8 +42,9 @@ test("the web app, the video worker and the GPU relay are refused", () => {
   assert.match(prodSpecProblems(relay).join("\n"), /gpu-relay/);
 });
 
-test("the prod edge declares prod keys only, one address, and is the only routed component", () => {
+test("the prod edge declares prod keys only, one address, and is the only routed component; core reads prod's spend caps", () => {
   assert.match(prodSpecProblems(edited('AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "prod"', 'AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "staging"')).join("\n"), /AUTH_API_KEY_ENVIRONMENT/);
   assert.match(prodSpecProblems(edited("        name: edge\n", "        name: core\n")).join("\n"), /routed/);
   assert.match(prodSpecProblems(edited("region: tor", "region: nyc")).join("\n"), /region/);
+  assert.match(prodSpecProblems(edited('AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "prod"', 'AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "local"')).join("\n"), /AI_SPEND_ENVIRONMENT/);
 });

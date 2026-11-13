@@ -82,6 +82,7 @@ export function prodSpecProblems(text) {
   if (edgeEnv.AUTH_API_KEY_ENVIRONMENT !== "prod") problems.push("the edge declares AUTH_API_KEY_ENVIRONMENT=prod, so a dev key is refused");
   const core = text.split(/^ {2}- name: /m).find((part) => part.startsWith("core\n")) ?? "";
   const coreEnv = Object.fromEntries(core.split("\n").map(envOf).filter(Boolean).map((e) => [e.key, e.value]));
+  if (coreEnv.AI_SPEND_ENVIRONMENT !== "prod") problems.push("core declares AI_SPEND_ENVIRONMENT=prod, so the spend caps read are prod's");
   // The container's worker list (run-services.sh): core runs the pilot's one worker, the edge none.
   const workers = Object.keys(coreEnv).find((key) => key.endsWith("_WORKERS"));
   if (!workers || coreEnv[workers] !== "validation") problems.push("core runs the validation worker, the pilot's one worker, and no other");
