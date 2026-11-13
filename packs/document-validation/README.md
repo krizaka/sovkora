@@ -270,7 +270,7 @@ The grounded step is `onError: SKIP`: without it the report is the same unsuppor
 * **Threshold** (`qc-residential-lease.thresholds.json`), committed before the first run: per rule a minimum found and a maximum wrong, and the critical cases. A version
   is refused under a minimum, over a maximum, or on a miss of a critical case.
 * **Run**: `python3 worker/quality/measure_lease.py` (offline, no model) writes `qc-residential-lease.results.json` (found, missed, wrong per rule, per case) and exits 1 when refused.
-  `--check` does not write. `test_measure_lease.py` (in CI) holds the shape of the cases, that the committed results are the current measure, and that a deliberately
+  `--check` does not write; run `npx prettier --write` on the results after a run (the packs CI checks formatting). `test_measure_lease.py` (in CI) holds the shape of the cases, that the committed results are the current measure, and that a deliberately
   broken ruleset (two checks that never match) is refused.
 * **Today the threshold refuses**: the paraphrased clauses are missed by the deterministic rules (see the results file). That is the finding, not a failure of the harness; the
   gate is a release condition for a pack version bump, not a CI step. The measure on the deployed dev engine (with the model's judgments) is a separate step.
