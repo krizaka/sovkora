@@ -382,7 +382,7 @@
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)",
       "ports": {
         "inbound": [],
@@ -397,7 +397,7 @@
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Notification service — renders templates and delivers them through the channel each request names (e-mail, SMS, webhook); stateless, AMQP-driven",
       "ports": {
         "inbound": [],
@@ -412,7 +412,7 @@
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Identity service — the trust root: authN, RBAC, profile, credentials, API keys (hosts the krizaka-users-core + persistence-identity libraries)",
       "ports": {
         "inbound": [],
@@ -532,7 +532,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists",
       "ports": {
         "inbound": [],
@@ -547,7 +547,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Payments for Java: the same port as @krizaka/payments (products and prices synced by lookup key, Checkout, customer portal, one verified and idempotent webhook), vendor-free; the Stripe adapter over the official stripe-java SDK is the only code that names the vendor. Money in long cents, clock injected, configuration passed in.",
       "ports": {
         "inbound": [],
@@ -562,7 +562,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The PMD ruleset and the SpotBugs filter every Krizaka Java build applies in verify: the local twin of the Sonar Java findings we actually have (ADR-013).",
       "ports": {
         "inbound": [],
@@ -577,7 +577,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The Java code style OpenRewrite applies in every Krizaka repository, so that it never autodetects one: imports are never folded into a star import, static imports first (the layout google-java-format writes).",
       "ports": {
         "inbound": [],
@@ -592,7 +592,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Typed HTTP client of the users service's internal API (UserDirectoryClient): user, profile, provider keys and rate-limit tiers, authenticated with a SERVICE token and cached per entry. A Spring Boot auto-configuration.",
       "ports": {
         "inbound": [],
@@ -607,7 +607,7 @@
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Sovkora User and Identity Persistence Block",
       "ports": {
         "inbound": [],
@@ -744,7 +744,7 @@
       "role": "domain",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Sovkora Identity and Access Management Domain",
       "ports": {
         "inbound": [
@@ -856,7 +856,7 @@
       "role": "contract",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Billing and entitlements contract (ADR-033) — the credit hold/settle ports and DTOs every producer on the hot path depends on; pure JDK, no dependencies",
       "ports": {
         "inbound": [],
@@ -871,7 +871,7 @@
       "role": "contract",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Identity principal contract (the User record) — the only identity type downstream services keep after the Phase 2 extraction; pure JDK, no dependencies",
       "ports": {
         "inbound": [],
@@ -886,7 +886,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Version compatibility between a backend and the apps that call it, written once: a public cached app-config endpoint (minimum and latest version, update mode, maintenance, contract range, store URL, flags, localized message) read from database parameters, a filter that answers 426 Upgrade Required to a client below the minimum, N-1 contract compatibility with Deprecation and Sunset headers, and an audited admin API with rollback.",
       "ports": {
         "inbound": [],
@@ -901,7 +901,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "HTTP Idempotency-Key, written once: an action runs at most once per key, a retry with the same key and request replays the stored response, the same key with another request is a 422 Problem Details; PostgreSQL or in-memory store, observed. Promoted from Sovkora (ADR-083).",
       "ports": {
         "inbound": [],
@@ -916,7 +916,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "At-least-once messaging done right for Spring Boot and RabbitMQ: events published through a transactional outbox with their envelope in AMQP headers, a relay that claims what it publishes, consumer queues with retry and a dead-letter queue by convention, and idempotent consumption (an atomic claim, released when the handler fails).",
       "ports": {
         "inbound": [],
@@ -931,7 +931,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Notification contract — the request a producer publishes, the delivery channels and the AMQP routing it travels on; pure JDK, no dependencies",
       "ports": {
         "inbound": [],
@@ -946,7 +946,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "One observability standard for Spring Boot services: every service names itself (product, service, version) or does not start, its metrics carry those names as common tags, and the defaults every service repeats — ECS JSON console logs, health/info/prometheus exposed, 10% trace sampling — are set once, at the lowest priority.",
       "ports": {
         "inbound": [],
@@ -961,7 +961,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The tables of the kit's JDBC stores (outbox, message claims, idempotency keys, app-config) created and kept up to date by Flyway at startup, in their own history table, only for the stores a service declares; production defaults for the connection pool.",
       "ports": {
         "inbound": [],
@@ -976,7 +976,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "A requests-per-minute limit per key, written once: a token bucket per key (client address by default, or any key you resolve), observe or enforce, 429 with Retry-After as Problem Details, observed. Promoted from the Sovkora edge (ADR-083) and krizaka-users.",
       "ports": {
         "inbound": [],
@@ -991,7 +991,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Stateless JWT security for Spring Boot services: the shared HS256 session-token decoder, the roles-claim authority mapping, one security baseline (CORS preflight, health, error page, SERVICE-only internal surface) and the service-to-service token.",
       "ports": {
         "inbound": [],
@@ -1006,7 +1006,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "App version compatibility in one dependency: krizaka-app-config (the public app-config endpoint, the 426 Upgrade Required filter, N-1 contract compatibility, the audited admin API) with Spring MVC and JDBC.",
       "ports": {
         "inbound": [],
@@ -1021,7 +1021,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "HTTP Idempotency-Key in one dependency: krizaka-idempotency (at most once per key, replay, 422 on reuse, PostgreSQL store) with Spring MVC and JDBC. Add your JDBC driver.",
       "ports": {
         "inbound": [],
@@ -1036,7 +1036,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The Krizaka observability standard in one dependency: krizaka-observability (required service names, common metric tags, ECS logs, exposure and sampling defaults) with Actuator, OpenTelemetry tracing over OTLP and a Prometheus registry.",
       "ports": {
         "inbound": [],
@@ -1051,7 +1051,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The tables of the kit's JDBC stores migrated at startup in one dependency: krizaka-persistence (Flyway, its own history table, only the declared stores, pool defaults) with Spring JDBC and the PostgreSQL driver.",
       "ports": {
         "inbound": [],
@@ -1066,7 +1066,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Events and consumers over RabbitMQ in one dependency: krizaka-messaging (outbox publishing, consumer queues with retry then DLQ, idempotent consumption) with Spring AMQP, JDBC and Jackson. Add your JDBC driver.",
       "ports": {
         "inbound": [],
@@ -1081,7 +1081,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "A requests-per-minute limit per key in one dependency: krizaka-ratelimit (token bucket per key, observe or enforce, 429 with Retry-After as Problem Details) with Spring MVC.",
       "ports": {
         "inbound": [],
@@ -1096,7 +1096,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Stateless JWT security in one dependency: krizaka-security (HS256 session tokens, roles authorities, the security baseline, service tokens) with Spring Security and its OAuth2 resource server.",
       "ports": {
         "inbound": [],
@@ -1111,7 +1111,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "HTTP service baseline in one dependency: krizaka-web (Problem Details, request correlation, Jackson defaults, cursor pagination, declared CORS) with Spring MVC, bean validation and Actuator.",
       "ports": {
         "inbound": [],
@@ -1126,7 +1126,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Signed webhooks in one dependency: krizaka-webhooks (Standard Webhooks signing and sending, verification with a 401 Problem Details, secret rotation) with Spring MVC.",
       "ports": {
         "inbound": [],
@@ -1141,7 +1141,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "The HTTP baseline of a Spring Boot service, written once: RFC 9457 Problem Details with stable error codes, X-Request-Id correlation into the MDC, Jackson 3 defaults, opaque cursor pagination and declared CORS origins.",
       "ports": {
         "inbound": [],
@@ -1156,7 +1156,7 @@
       "role": "platform",
       "layer": "framework",
       "runtime": "jvm",
-      "version": "0.16.0",
+      "version": "0.12.0",
       "description": "Signed webhooks, written once, the Standard Webhooks way: sign and send with a stable id and secret rotation, verify what you receive (signature, constant-time, timestamp tolerance) with a 401 Problem Details otherwise; observed. Promoted from Sovkora (sovkora#189) and krizaka-notifications.",
       "ports": {
         "inbound": [],
@@ -1186,10 +1186,6 @@
       "to": "krizaka-security"
     },
     {
-      "from": "krizaka-billing-service",
-      "to": "krizaka-spring-boot-starter-observability"
-    },
-    {
       "from": "krizaka-idempotency",
       "to": "krizaka-web"
     },
@@ -1200,10 +1196,6 @@
     {
       "from": "krizaka-notifications-service",
       "to": "krizaka-notifications-api"
-    },
-    {
-      "from": "krizaka-notifications-service",
-      "to": "krizaka-spring-boot-starter-observability"
     },
     {
       "from": "krizaka-ratelimit",
@@ -1284,10 +1276,6 @@
     {
       "from": "krizaka-users-service",
       "to": "krizaka-security"
-    },
-    {
-      "from": "krizaka-users-service",
-      "to": "krizaka-spring-boot-starter-observability"
     },
     {
       "from": "krizaka-users-service",
@@ -2543,7 +2531,7 @@
         "repository": "krizaka-java",
         "role": "service",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Billing service — credit ledger, hold/settle authorisation, versioned pricebook and entitlements over its own database (ADR-033)"
       },
       {
@@ -2552,7 +2540,7 @@
         "repository": "krizaka-java",
         "role": "service",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Identity service — the trust root: authN, RBAC, profile, credentials, API keys (hosts the krizaka-users-core + persistence-identity libraries)"
       },
       {
@@ -2561,7 +2549,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Tier-2 SDK — the producer side of the billing contract: a NoOp and an HTTP adapter for CreditAuthorizationClient, selected at bootstrap so no call site ever branches on whether billing exists"
       },
       {
@@ -2570,7 +2558,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "pom",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Bill of materials of the Krizaka JVM artifacts: import it once and every com.krizaka dependency resolves to one coherent release."
       },
       {
@@ -2579,7 +2567,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "pom",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Parent POM of every Krizaka JVM artifact: Maven Central metadata, Java 21 build conventions (formatting, tests, coverage, enforcer) and the signed release to Maven Central."
       },
       {
@@ -2588,7 +2576,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Payments for Java: the same port as @krizaka/payments (products and prices synced by lookup key, Checkout, customer portal, one verified and idempotent webhook), vendor-free; the Stripe adapter over the official stripe-java SDK is the only code that names the vendor. Money in long cents, clock injected, configuration passed in."
       },
       {
@@ -2597,7 +2585,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The PMD ruleset and the SpotBugs filter every Krizaka Java build applies in verify: the local twin of the Sonar Java findings we actually have (ADR-013)."
       },
       {
@@ -2606,7 +2594,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The Java code style OpenRewrite applies in every Krizaka repository, so that it never autodetects one: imports are never folded into a star import, static imports first (the layout google-java-format writes)."
       },
       {
@@ -2615,8 +2603,8 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
-        "description": "Test kit of the Krizaka repositories, for test scope: generic ArchUnit code rules (hexagonal layering, one class per file, constructor injection, private state, unambiguous configuration binding), authorization rules (every @RestController endpoint must carry @PreAuthorize/@Secured/@RolesAllowed), source rules, the infra/initdb locator, MockMvc authorization assertions (401/403/404), and Testcontainers helpers: shared PostgreSQL and RabbitMQ containers for integration tests, and the database role of services that own one."
+        "version": "0.12.0",
+        "description": "Test kit of the Krizaka repositories, for test scope: generic ArchUnit code rules (hexagonal layering, one class per file, constructor injection, private state, unambiguous configuration binding), source rules, the infra/initdb locator, and Testcontainers helpers: shared PostgreSQL and RabbitMQ containers for integration tests, and the database role of services that own one."
       },
       {
         "id": "krizaka-users-client",
@@ -2624,7 +2612,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Typed HTTP client of the users service's internal API (UserDirectoryClient): user, profile, provider keys and rate-limit tiers, authenticated with a SERVICE token and cached per entry. A Spring Boot auto-configuration."
       },
       {
@@ -2633,7 +2621,7 @@
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Sovkora User and Identity Persistence Block"
       },
       {
@@ -2642,7 +2630,7 @@
         "repository": "krizaka-java",
         "role": "domain",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Sovkora Identity and Access Management Domain"
       },
       {
@@ -2651,7 +2639,7 @@
         "repository": "krizaka-java",
         "role": "contract",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Billing and entitlements contract (ADR-033) — the credit hold/settle ports and DTOs every producer on the hot path depends on; pure JDK, no dependencies"
       },
       {
@@ -2660,7 +2648,7 @@
         "repository": "krizaka-java",
         "role": "contract",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Identity principal contract (the User record) — the only identity type downstream services keep after the Phase 2 extraction; pure JDK, no dependencies"
       },
       {
@@ -2669,7 +2657,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "App version compatibility in one dependency: krizaka-app-config (the public app-config endpoint, the 426 Upgrade Required filter, N-1 contract compatibility, the audited admin API) with Spring MVC and JDBC."
       },
       {
@@ -2678,7 +2666,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "HTTP Idempotency-Key in one dependency: krizaka-idempotency (at most once per key, replay, 422 on reuse, PostgreSQL store) with Spring MVC and JDBC. Add your JDBC driver."
       },
       {
@@ -2687,7 +2675,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The Krizaka observability standard in one dependency: krizaka-observability (required service names, common metric tags, ECS logs, exposure and sampling defaults) with Actuator, OpenTelemetry tracing over OTLP and a Prometheus registry."
       },
       {
@@ -2696,7 +2684,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The tables of the kit's JDBC stores migrated at startup in one dependency: krizaka-persistence (Flyway, its own history table, only the declared stores, pool defaults) with Spring JDBC and the PostgreSQL driver."
       },
       {
@@ -2705,7 +2693,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Events and consumers over RabbitMQ in one dependency: krizaka-messaging (outbox publishing, consumer queues with retry then DLQ, idempotent consumption) with Spring AMQP, JDBC and Jackson. Add your JDBC driver."
       },
       {
@@ -2714,7 +2702,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "A requests-per-minute limit per key in one dependency: krizaka-ratelimit (token bucket per key, observe or enforce, 429 with Retry-After as Problem Details) with Spring MVC."
       },
       {
@@ -2723,7 +2711,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Stateless JWT security in one dependency: krizaka-security (HS256 session tokens, roles authorities, the security baseline, service tokens) with Spring Security and its OAuth2 resource server."
       },
       {
@@ -2732,7 +2720,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "HTTP service baseline in one dependency: krizaka-web (Problem Details, request correlation, Jackson defaults, cursor pagination, declared CORS) with Spring MVC, bean validation and Actuator."
       },
       {
@@ -2741,7 +2729,7 @@
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Signed webhooks in one dependency: krizaka-webhooks (Standard Webhooks signing and sending, verification with a 401 Problem Details, secret rotation) with Spring MVC."
       },
       {
@@ -2750,7 +2738,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Version compatibility between a backend and the apps that call it, written once: a public cached app-config endpoint (minimum and latest version, update mode, maintenance, contract range, store URL, flags, localized message) read from database parameters, a filter that answers 426 Upgrade Required to a client below the minimum, N-1 contract compatibility with Deprecation and Sunset headers, and an audited admin API with rollback."
       },
       {
@@ -2759,7 +2747,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "HTTP Idempotency-Key, written once: an action runs at most once per key, a retry with the same key and request replays the stored response, the same key with another request is a 422 Problem Details; PostgreSQL or in-memory store, observed. Promoted from Sovkora (ADR-083)."
       },
       {
@@ -2768,7 +2756,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "At-least-once messaging done right for Spring Boot and RabbitMQ: events published through a transactional outbox with their envelope in AMQP headers, a relay that claims what it publishes, consumer queues with retry and a dead-letter queue by convention, and idempotent consumption (an atomic claim, released when the handler fails)."
       },
       {
@@ -2777,7 +2765,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Notification contract — the request a producer publishes, the delivery channels and the AMQP routing it travels on; pure JDK, no dependencies"
       },
       {
@@ -2786,7 +2774,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Notification service — renders templates and delivers them through the channel each request names (e-mail, SMS, webhook); stateless, AMQP-driven"
       },
       {
@@ -2795,7 +2783,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "One observability standard for Spring Boot services: every service names itself (product, service, version) or does not start, its metrics carry those names as common tags, and the defaults every service repeats — ECS JSON console logs, health/info/prometheus exposed, 10% trace sampling — are set once, at the lowest priority."
       },
       {
@@ -2804,7 +2792,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The tables of the kit's JDBC stores (outbox, message claims, idempotency keys, app-config) created and kept up to date by Flyway at startup, in their own history table, only for the stores a service declares; production defaults for the connection pool."
       },
       {
@@ -2813,7 +2801,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "A requests-per-minute limit per key, written once: a token bucket per key (client address by default, or any key you resolve), observe or enforce, 429 with Retry-After as Problem Details, observed. Promoted from the Sovkora edge (ADR-083) and krizaka-users."
       },
       {
@@ -2822,7 +2810,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Stateless JWT security for Spring Boot services: the shared HS256 session-token decoder, the roles-claim authority mapping, one security baseline (CORS preflight, health, error page, SERVICE-only internal surface) and the service-to-service token."
       },
       {
@@ -2831,7 +2819,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "The HTTP baseline of a Spring Boot service, written once: RFC 9457 Problem Details with stable error codes, X-Request-Id correlation into the MDC, Jackson 3 defaults, opaque cursor pagination and declared CORS origins."
       },
       {
@@ -2840,7 +2828,7 @@
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
-        "version": "0.16.0",
+        "version": "0.12.0",
         "description": "Signed webhooks, written once, the Standard Webhooks way: sign and send with a stable id and secret rotation, verify what you receive (signature, constant-time, timestamp tolerance) with a 401 Problem Details otherwise; observed. Promoted from Sovkora (sovkora#189) and krizaka-notifications."
       }
     ],
@@ -2927,11 +2915,6 @@
       },
       {
         "from": "krizaka-billing-service",
-        "to": "krizaka-spring-boot-starter-observability",
-        "kind": "compile"
-      },
-      {
-        "from": "krizaka-billing-service",
         "to": "krizaka-test-support",
         "kind": "test"
       },
@@ -3009,11 +2992,6 @@
         "from": "krizaka-notifications-service",
         "to": "krizaka-parent",
         "kind": "parent"
-      },
-      {
-        "from": "krizaka-notifications-service",
-        "to": "krizaka-spring-boot-starter-observability",
-        "kind": "compile"
       },
       {
         "from": "krizaka-notifications-service",
@@ -3141,11 +3119,6 @@
         "kind": "parent"
       },
       {
-        "from": "krizaka-spring-boot-starter-app-config",
-        "to": "krizaka-test-support",
-        "kind": "test"
-      },
-      {
         "from": "krizaka-spring-boot-starter-idempotency",
         "to": "krizaka-bom",
         "kind": "import"
@@ -3262,11 +3235,6 @@
       },
       {
         "from": "krizaka-spring-boot-starter-web",
-        "to": "krizaka-test-support",
-        "kind": "test"
-      },
-      {
-        "from": "krizaka-spring-boot-starter-web",
         "to": "krizaka-web",
         "kind": "compile"
       },
@@ -3306,11 +3274,6 @@
         "kind": "parent"
       },
       {
-        "from": "krizaka-users-api",
-        "to": "krizaka-test-support",
-        "kind": "test"
-      },
-      {
         "from": "krizaka-users-client",
         "to": "krizaka-bom",
         "kind": "import"
@@ -3324,11 +3287,6 @@
         "from": "krizaka-users-client",
         "to": "krizaka-security",
         "kind": "compile"
-      },
-      {
-        "from": "krizaka-users-client",
-        "to": "krizaka-test-support",
-        "kind": "test"
       },
       {
         "from": "krizaka-users-client",
@@ -3398,11 +3356,6 @@
       {
         "from": "krizaka-users-service",
         "to": "krizaka-security",
-        "kind": "compile"
-      },
-      {
-        "from": "krizaka-users-service",
-        "to": "krizaka-spring-boot-starter-observability",
         "kind": "compile"
       },
       {
