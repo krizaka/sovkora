@@ -7,7 +7,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.krizaka.sovkora.edge.infrastructure.config.EdgeRoutesProperties;
-import com.krizaka.sovkora.edge.infrastructure.support.RouteResolver;
+import com.krizaka.sovkora.edge.infrastructure.support.*;
 import com.sun.net.httpserver.HttpServer;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
@@ -16,6 +16,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,7 +88,8 @@ class ProxyClientClosedTest {
 
     controller.proxy(request, response);
 
-    assertThat(response.getStatus()).isEqualTo(502);
+    assertThat(response.getStatus()).isEqualTo(503);
+    assertThat(response.getContentAsString()).contains("\"code\":\"BACKEND_UNAVAILABLE\"");
     assertThat(logs.list)
         .filteredOn(event -> event.getFormattedMessage().contains("Backend unreachable"))
         .singleElement()
@@ -113,7 +115,35 @@ class ProxyClientClosedTest {
     RouteResolver resolver =
         new RouteResolver(
             new EdgeRoutesProperties(List.of(new EdgeRoutesProperties.Route("/", base))));
-    return new ProxyController(RestClient.builder().build(), resolver);
+    return new ProxyController(RestClient.builder().build(), resolver, new ClosedBreaker());
+  }
+
+  /** A circuit that is always closed and records nothing: this test is about the client leaving. */
+  private static final class ClosedBreaker implements BackendBreaker, BackendCall {
+    @Override
+    public BackendAdmission admit(URI backend) {
+      return new BackendAdmission.Granted(this);
+    }
+
+    @Override
+    public Duration retryAfter(URI backend) {
+      return Duration.ofSeconds(1);
+    }
+
+    @Override
+    public void answered(int status) {
+      // the outcome is not what this test looks at
+    }
+
+    @Override
+    public void failed(Throwable cause) {
+      // the outcome is not what this test looks at
+    }
+
+    @Override
+    public void released() {
+      // the outcome is not what this test looks at
+    }
   }
 
   /** A response whose client has gone: every write fails like a Broken pipe. */

@@ -177,6 +177,9 @@ services:
       - { key: AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "prod" }
       - { key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce }
       - { key: AUTH_API_KEY_DAILY_REQUESTS, scope: RUN_TIME, value: "2000" }
+      # Fail fast (krizaka-internal#2132): a core that sends no headers in 50 s is a coded 503 BACKEND_TIMEOUT with
+      # Retry-After, before the ingress's own 60 s turns it into an HTML 504. The breaker keeps its defaults.
+      - { key: EDGE_BACKEND_RESPONSE_TIMEOUT, scope: RUN_TIME, value: "50s" }
       - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__PROD_IDENTITY_JWT_SECRET__" }
       - { key: IDENTITY_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8083" }
       - { key: ROUTER_INTERNAL_URL, scope: RUN_TIME, value: "http://core:8080" }

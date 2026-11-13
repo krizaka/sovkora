@@ -21,6 +21,7 @@ import com.krizaka.sovkora.jobs.api.domain.port.JobExecutor;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.CapabilityManager;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
+import com.krizaka.sovkora.test.support.leak.LeakProbe;
 import com.krizaka.users.domain.model.User;
 import com.krizaka.users.domain.port.UserDirectoryClient;
 import java.io.IOException;
@@ -97,6 +98,9 @@ class ProtectedJobRetentionIT {
   private static JobRetentionService retention;
   private static ExecutorService executor;
 
+  /** When set, the stubbed model call fails with it: a read that dies carrying the text. */
+  private RuntimeException modelFailure;
+
   @TempDir Path uploads;
   @TempDir Path keys;
 
@@ -152,6 +156,7 @@ class ProtectedJobRetentionIT {
   void reset() {
     jdbcTemplate.update("DELETE FROM orazaka_jobs");
     jdbcTemplate.update("DELETE FROM orazaka_job_purge");
+    modelFailure = null;
   }
 
   @Test
@@ -323,6 +328,35 @@ class ProtectedJobRetentionIT {
   }
 
   @Test
+  @DisplayName(
+      "[#3376] a SENSITIVE job whose read fails carrying the text keeps it in no table, file, log")
+  void aFailedSensitiveJob_keepsTheExceptionTextInNoTableNoFileNoLog() throws Exception {
+    String mark = "MARQUE-" + UUID.randomUUID();
+    modelFailure = new IllegalStateException("cannot read the document: " + mark);
+    String jobId = UUID.randomUUID().toString();
+    try (LeakProbe probe = LeakProbe.open()) {
+      listener().onMessage(command(jobId, DataClass.SENSITIVE), null);
+
+      assertThat(status(jobId)).as("the job ended").isEqualTo("FAILED");
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), "dormir"))
+          .as("the scan is not vacuous: the user's words are in the row before the purge")
+          .contains("orazaka_jobs");
+
+      retention.purgeExpired(uploads);
+
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), mark))
+          .as("tables holding the exception text")
+          .isEmpty();
+      assertThat(LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), "dormir"))
+          .as("tables holding the user's words")
+          .isEmpty();
+      assertThat(Files.exists(jobDirectory(jobId))).as("the job's files").isFalse();
+      assertThat(probe.logLinesHolding(mark)).as("log lines carrying the text").isEmpty();
+      assertThat(probe.logLinesHolding("dormir")).as("log lines carrying the words").isEmpty();
+    }
+  }
+
+  @Test
   @DisplayName("the schema refuses a job that declares no class")
   void theSchemaRefusesAJobWithNoClass() {
     assertThatThrownBy(
@@ -344,9 +378,13 @@ class ProtectedJobRetentionIT {
     JobExecutor model = mock(JobExecutor.class);
     when(model.handlerKey()).thenReturn("text.generate");
     try {
-      lenient()
-          .when(model.execute(any(), any()))
-          .thenReturn(JobExecutionResult.of(Map.of("content", "Ce que vous décrivez compte.")));
+      if (modelFailure != null) {
+        lenient().when(model.execute(any(), any())).thenThrow(modelFailure);
+      } else {
+        lenient()
+            .when(model.execute(any(), any()))
+            .thenReturn(JobExecutionResult.of(Map.of("content", "Ce que vous décrivez compte.")));
+      }
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
