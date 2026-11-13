@@ -28,6 +28,7 @@ import com.krizaka.sovkora.studio.infrastructure.adapter.persistence.Persistence
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
 import com.krizaka.sovkora.test.support.architecture.Workspace;
+import com.krizaka.sovkora.test.support.leak.LeakProbe;
 import com.krizaka.test.container.ServiceRoles;
 import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
@@ -1835,11 +1836,7 @@ class StudioRunLifecycleIT {
     jdbcTemplate.update(
         "UPDATE studio_run SET finished_at = now() - INTERVAL '200 days' WHERE id = ?", run.id());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(runService.find(run.id(), ACTOR).isEmpty());
     assertEquals(
@@ -1854,11 +1851,7 @@ class StudioRunLifecycleIT {
     RunDetail run = startRun();
     runService.cancel(run.id(), ACTOR);
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(runService.find(run.id(), ACTOR).isPresent());
   }
@@ -1877,11 +1870,7 @@ class StudioRunLifecycleIT {
     jdbcTemplate.update(
         "UPDATE studio_run SET data_class = 'SENSITIVE' WHERE id = ?", protectedRun.id());
 
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
 
     assertTrue(
         runService.find(standard.id(), ACTOR).isPresent(),
@@ -1926,11 +1915,7 @@ class StudioRunLifecycleIT {
   }
 
   private void sweep() {
-    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
-            jdbcTemplate,
-            context.getBean(StudioRuntimeConfigService.class),
-            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
-        .purge();
+    sweepRetention();
   }
 
   private void setInstallationRetention(java.util.UUID runId, int days) {
@@ -1942,6 +1927,116 @@ class StudioRunLifecycleIT {
         """,
         days,
         runId);
+  }
+
+  // ── #3376: after a run of a protected pack ends, no document text remains anywhere ──────────
+
+  @Test
+  @DisplayName(
+      "[#3376] after a SENSITIVE run succeeds and ages out, its text is in no table, no log")
+  void noDocumentTextRemainsAfterASucceededProtectedRun() {
+    assertNoTextRemains(false);
+  }
+
+  @Test
+  @DisplayName("[#3376] after a SENSITIVE run fails and ages out, its text is in no table, no log")
+  void noDocumentTextRemainsAfterAFailedProtectedRun() {
+    assertNoTextRemains(true);
+  }
+
+  /**
+   * Runs document-validation on a text holding a unique mark, lets the run end, ages it past the
+   * protected window, sweeps, and then reads <b>every table</b> of the service's database (each row
+   * as JSON, so every text and JSON column) and every captured log line for the mark.
+   */
+  private void assertNoTextRemains(boolean failed) {
+    String mark = "MARQUE-" + UUID.randomUUID();
+    try (LeakProbe probe = LeakProbe.open()) {
+      UUID installation = installationService.install(COMPLIANCE_KEY, ACTOR, Map.of(), "fr").id();
+      RunDetail run =
+          runService.start(
+              installation,
+              ACTOR,
+              Map.of(
+                  "document",
+                  "Bail de logement. " + mark + " Loyer : 950 $.",
+                  "jurisdiction",
+                  "QC"));
+      jdbcTemplate.update("UPDATE studio_run SET data_class = 'SENSITIVE' WHERE id = ?", run.id());
+      // The dispatch command the outbox carried to the executor: the document, as the adapter
+      // appends it.
+      context
+          .getBean(OutboxService.class)
+          .appendCommand(
+              run.id().toString(),
+              "orazaka.jobs",
+              "job.text.process",
+              UUID.randomUUID().toString(),
+              new java.util.HashMap<>(executor.lastInputs));
+      jdbcTemplate.update("UPDATE studio_outbox SET published_at = now()");
+      if (failed) {
+        sagaService.applyOutcome(
+            executor.dispatched.getFirst(),
+            Map.of(),
+            Map.of(),
+            null,
+            "IllegalStateException",
+            FailureCause.EXECUTOR_FAULT);
+      } else {
+        completeEveryStep(run);
+        // What a report quotes of the document it checked.
+        jdbcTemplate.update(
+            "UPDATE studio_run_step SET output = jsonb_build_object('evidence', ?::text)"
+                + " WHERE run_id = ? AND output IS NOT NULL",
+            mark,
+            run.id());
+      }
+      deliverToAWebhook(run.id(), failed ? "run.failed" : "run.completed", mark);
+      assertTrue(
+          tablesHolding(mark).contains("studio_run"),
+          "the scan is not vacuous: the mark is in the run before the purge");
+
+      jdbcTemplate.update(
+          "UPDATE studio_run SET finished_at = now() - INTERVAL '40 days' WHERE id = ?", run.id());
+      sweepRetention();
+
+      assertEquals(List.of(), tablesHolding(mark), "tables still holding the document text");
+      assertEquals(List.of(), probe.logLinesHolding(mark), "log lines carrying the document text");
+    }
+  }
+
+  private static void deliverToAWebhook(UUID runId, String event, String mark) {
+    UUID endpoint = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO studio_webhook_endpoint (id, actor_id, url, secret) VALUES (?, ?, ?, ?)",
+        endpoint,
+        ACTOR,
+        "https://example.invalid/hook",
+        "sealed");
+    jdbcTemplate.update(
+        "INSERT INTO studio_webhook_delivery (endpoint_id, run_id, event, payload)"
+            + " VALUES (?, ?, ?, ?)",
+        endpoint,
+        runId,
+        event,
+        "{\"runId\":\"" + runId + "\",\"inputs\":{\"document\":\"" + mark + "\"}}");
+  }
+
+  private static void sweepRetention() {
+    new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RetentionSweeper(
+            jdbcTemplate,
+            context.getBean(StudioRuntimeConfigService.class),
+            new com.krizaka.messaging.dedup.JdbcMessageDedup(jdbcTemplate))
+        .purge();
+  }
+
+  /** Every table of the database whose rows, as JSON, contain the text. */
+  private static List<String> tablesHolding(String text) {
+    try {
+      return LeakProbe.tablesHolding(jdbcTemplate.getDataSource(), text);
+    } catch (java.sql.SQLException unreadable) {
+      throw new IllegalStateException("the scan must be able to read every table", unreadable);
+    }
   }
 
   /** Records what the engine submitted, so the DAG's decisions are observable without a broker. */
