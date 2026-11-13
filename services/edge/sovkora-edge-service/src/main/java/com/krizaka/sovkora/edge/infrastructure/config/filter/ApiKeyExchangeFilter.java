@@ -50,7 +50,11 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
 
   /** Wire shape of the internal exchange response (contract copy — no shared jar). */
   record ExchangeResponse(
-      String token, List<String> scopes, String tierKey, Integer requestsPerMinute) {}
+      String token,
+      List<String> scopes,
+      String tierKey,
+      Integer requestsPerMinute,
+      Integer dailyRequests) {}
 
   private final ApiKeyDailyQuota quota;
   private final ApiKeyRateLimiter rateLimiter;
@@ -148,7 +152,7 @@ class ApiKeyExchangeFilter extends OncePerRequestFilter {
     if (refusedByRateLimit(request, response, apiKey, exchanged)) {
       return;
     }
-    if (!quota.tryAcquire(apiKey)) {
+    if (!quota.tryAcquire(apiKey, exchanged.dailyRequests())) {
       logger.warn(
           "API key over its daily quota: {} {}", request.getMethod(), request.getRequestURI());
       long retryAfter = quota.secondsUntilReset();
