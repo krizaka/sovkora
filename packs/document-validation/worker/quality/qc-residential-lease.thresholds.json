@@ -1,0 +1,22 @@
+{
+  "ruleset": "qc-residential-lease",
+  "writtenBefore": "the first measured run (krizaka-internal#3128); a change of this file is a reviewed change of its own, never part of a run",
+  "policy": "minFound = ceil(0.75 x the cases that expect the rule to fail); maxWrong = 0 (a FAIL the case does not expect is a wrong finding); a miss of a critical case refuses the version whatever the totals",
+  "rules": {
+    "QC-LEASE-004": { "casesExpecting": 6, "minFound": 5, "maxWrong": 0 },
+    "QC-LEASE-005": { "casesExpecting": 2, "minFound": 2, "maxWrong": 0 },
+    "QC-LEASE-006": { "casesExpecting": 2, "minFound": 2, "maxWrong": 0 },
+    "QC-LEASE-007": { "casesExpecting": 2, "minFound": 2, "maxWrong": 0 },
+    "QC-LEASE-009": { "casesExpecting": 1, "minFound": 1, "maxWrong": 0 },
+    "QC-LEASE-012": { "casesExpecting": 2, "minFound": 2, "maxWrong": 0 },
+    "QC-LEASE-013": { "casesExpecting": 2, "minFound": 2, "maxWrong": 0 }
+  },
+  "defaultMaxWrong": 0,
+  "criticalCases": [
+    "deposit-security-one-month",
+    "postdated-cheques-plain",
+    "children-refused-plain",
+    "stay-waiver-plain",
+    "termination-one-late-payment-plain"
+  ]
+}
