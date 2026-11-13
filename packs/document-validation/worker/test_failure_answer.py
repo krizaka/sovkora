@@ -44,9 +44,13 @@ def test_an_unexpected_failure_carries_the_type_and_the_cause_only(monkeypatch, 
     (routing_key, event) = channel.published[0]
     assert routing_key == "job.job-fault.error"
     assert event == {"jobId": "job-fault", "error": "RuntimeError", "cause": "EXECUTOR_FAULT"}
-    assert MARK not in json.dumps(event) and "cannot read" not in json.dumps(event)
-    assert MARK not in out and "cannot read" not in out
-    assert "job-fault" in out and "job.validation.screen" in out and "RuntimeError" in out
+    assert MARK not in json.dumps(event)
+    assert "cannot read" not in json.dumps(event)
+    assert MARK not in out
+    assert "cannot read" not in out
+    assert "job-fault" in out
+    assert "job.validation.screen" in out
+    assert "RuntimeError" in out
 
 
 def test_a_refused_payload_emits_its_coded_reason_and_never_the_input(monkeypatch, capsys):
@@ -59,28 +63,26 @@ def test_a_refused_payload_emits_its_coded_reason_and_never_the_input(monkeypatc
     out = capsys.readouterr().out
     event = channel.published[0][1]
     assert event == {"jobId": "job-bad", "error": "UNKNOWN_JURISDICTION", "cause": "INPUT_INVALID"}
-    assert MARK not in json.dumps(event) and MARK not in out
+    assert MARK not in json.dumps(event)
+    assert MARK not in out
     assert "UNKNOWN_JURISDICTION" in out
 
 
-def test_a_malformed_json_field_is_refused_without_echoing_what_arrived(capsys):
+def test_a_malformed_json_field_is_refused_without_echoing_what_arrived():
+    import pytest
     import validation_worker
 
-    try:
+    with pytest.raises(validation_worker.InvalidJobPayload) as refused:
         validation_worker._json_field({"resolved": f"{{not json {MARK}"}, "resolved")
-    except validation_worker.InvalidJobPayload as bad:
-        assert bad.reason == "FIELD_NOT_JSON"
-        assert MARK not in str(bad) and MARK not in repr(bad)
-        return
-    raise AssertionError("a malformed JSON field must be refused")
+    assert refused.value.reason == "FIELD_NOT_JSON"
+    assert MARK not in str(refused.value)
+    assert MARK not in repr(refused.value)
 
 
 def test_a_reason_outside_the_closed_set_is_refused():
+    import pytest
     import validation_worker
 
-    try:
+    with pytest.raises(ValueError, match="INVALID_REASONS") as refused:
         validation_worker.InvalidJobPayload(f"free text {MARK}")
-    except ValueError as bad:
-        assert MARK not in str(bad)
-        return
-    raise AssertionError("InvalidJobPayload takes a code from the closed set, never free text")
+    assert MARK not in str(refused.value)
