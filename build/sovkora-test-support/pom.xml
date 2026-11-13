@@ -132,6 +132,12 @@
             <version>1.21.4</version>
         </dependency>
 
+        <!-- The leak probe reads what a test logged (LeakProbe); the version is the Spring Boot BOM's. -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <!-- Spring Boot Test — @DynamicPropertySource for ephemeral port mapping -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

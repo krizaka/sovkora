@@ -531,9 +531,15 @@ public class JobListener {
           message.jobId(), message.holdId(), FailureCause.GUARD_REFUSAL, refusalText);
       return;
     }
-    logger.error("Error occurred while processing Job ID: {}", message.jobId(), e);
-    Throwable cause = e.getCause() != null ? e.getCause() : e;
-    String errorMessage = cause.getMessage() != null ? cause.getMessage() : "Unknown error";
+    // The exception's text is never kept or logged: one raised while reading a document can carry
+    // that document's words (#3376). The log line names the job and the type; the status, the
+    // result and the event carry the type name only, and the typed cause travels beside it.
+    Throwable cause = e;
+    while (cause.getCause() != null) {
+      cause = cause.getCause();
+    }
+    String errorMessage = cause.getClass().getName();
+    logger.error("Error occurred while processing Job ID: {} ({})", message.jobId(), errorMessage);
     Map<String, Object> errResult = Map.of("error", errorMessage);
     saveOutputResult(message.userId(), message.jobId(), errResult);
     jobPersistenceProvider.updateJobStatus(message.jobId(), STATUS_FAILED, null, errorMessage);

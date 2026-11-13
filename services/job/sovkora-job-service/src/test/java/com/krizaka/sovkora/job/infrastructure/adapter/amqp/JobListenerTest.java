@@ -225,81 +225,58 @@ class JobListenerTest {
             + consumption.getValue().get("gpuSeconds"));
   }
 
+  private static User activeUser(String userId) {
+    return new User(
+        UUID.fromString(userId),
+        "testuser",
+        "test@example.com",
+        true,
+        Set.of("ROLE_USER"),
+        Map.of());
+  }
+
   @Test
   void onMessage_strategyThrowsException_failsJob() throws Exception {
-    String jobId = "job-123";
-    String userId = UUID.randomUUID().toString();
-    JobCommand msg =
-        new JobCommand(
-            jobId,
-            userId,
-            "orazaka.core.chat.text",
-            "default",
-            Map.of("prompt", "Hello test"),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
-
-    User user =
-        new User(
-            UUID.fromString(userId),
-            "testuser",
-            "test@example.com",
-            true,
-            Set.of("ROLE_USER"),
-            Map.of());
-
-    when(userDirectoryService.getUser(userId)).thenReturn(user);
+    JobCommand msg = helloCommand("orazaka.core.chat.text");
+    when(userDirectoryService.getUser(msg.userId())).thenReturn(activeUser(msg.userId()));
     when(chatStrategy.execute(eq(msg), any()))
         .thenThrow(new JobExecutionException("Strategy failed"));
 
-    // Call listener
     listener.onMessage(msg, null);
 
-    // Verify status updates
-    verify(jobPersistenceProvider).updateJobStatus(jobId, "PROCESSING", null, null);
-    verify(jobPersistenceProvider)
-        .updateJobStatus(
-            jobId,
-            "FAILED",
-            null,
-            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException: Strategy failed");
+    verifyFailedWithTheTypeOnly(msg.jobId());
   }
 
   @Test
   void onMessage_unsupportedFeature_failsJob() {
-    String jobId = "job-123";
-    String userId = UUID.randomUUID().toString();
-    JobCommand msg =
-        new JobCommand(
-            jobId,
-            userId,
-            "unsupported.feature",
-            "default",
-            Map.of("prompt", "Hello test"),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
-
-    User user =
-        new User(
-            UUID.fromString(userId),
-            "testuser",
-            "test@example.com",
-            true,
-            Set.of("ROLE_USER"),
-            Map.of());
-
-    when(userDirectoryService.getUser(userId)).thenReturn(user);
+    JobCommand msg = helloCommand("unsupported.feature");
+    when(userDirectoryService.getUser(msg.userId())).thenReturn(activeUser(msg.userId()));
     when(capabilityManager.findByFeatureKey("unsupported.feature")).thenReturn(Optional.empty());
 
-    // Call listener
     listener.onMessage(msg, null);
 
-    // Verify status updates
+    verifyFailedWithTheTypeOnly(msg.jobId());
+  }
+
+  private static JobCommand helloCommand(String featureKey) {
+    return new JobCommand(
+        "job-123",
+        UUID.randomUUID().toString(),
+        featureKey,
+        "default",
+        Map.of("prompt", "Hello test"),
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
+  }
+
+  /** The status says what failed by type, never by the exception's text (#3376). */
+  private void verifyFailedWithTheTypeOnly(String jobId) {
     verify(jobPersistenceProvider).updateJobStatus(jobId, "PROCESSING", null, null);
     verify(jobPersistenceProvider)
         .updateJobStatus(
             jobId,
             "FAILED",
             null,
-            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException: Unknown capability for feature key: unsupported.feature");
+            "com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException");
   }
 
   @Test
@@ -710,6 +687,47 @@ class JobListenerTest {
             org.mockito.ArgumentMatchers.eq(
                 com.krizaka.sovkora.jobs.api.domain.model.FailureCause.EXECUTOR_FAULT),
             org.mockito.ArgumentMatchers.anyString());
+  }
+
+  @Test
+  void anExceptionTextNeverReachesTheStatusTheResultTheEventOrTheLog() {
+    // #3376: an exception raised while reading a document can carry the document's words. The
+    // type name and the typed cause travel; the text does not.
+    String mark = "MARQUE-" + UUID.randomUUID();
+    String jobId = "job-text-in-exception";
+    JobCommand msg =
+        new JobCommand(
+            jobId,
+            "user-m",
+            "orazaka.core.chat.text",
+            "default",
+            Map.of(),
+            com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
+    when(userDirectoryService.getUser("user-m"))
+        .thenThrow(new IllegalStateException("cannot parse: " + mark));
+    com.krizaka.sovkora.test.support.leak.LeakProbe probe =
+        com.krizaka.sovkora.test.support.leak.LeakProbe.open();
+    try (probe) {
+      listener.onMessage(msg, null);
+    }
+
+    org.mockito.ArgumentCaptor<String> status = org.mockito.ArgumentCaptor.forClass(String.class);
+    verify(jobPersistenceProvider)
+        .updateJobStatus(eq(jobId), eq("FAILED"), any(), status.capture());
+    org.mockito.ArgumentCaptor<String> event = org.mockito.ArgumentCaptor.forClass(String.class);
+    verify(jobEventPublisher)
+        .emitError(
+            eq(jobId),
+            org.mockito.ArgumentMatchers.isNull(),
+            eq(com.krizaka.sovkora.jobs.api.domain.model.FailureCause.EXECUTOR_FAULT),
+            event.capture());
+    org.assertj.core.api.Assertions.assertThat(status.getValue())
+        .isEqualTo("java.lang.IllegalStateException");
+    org.assertj.core.api.Assertions.assertThat(event.getValue())
+        .isEqualTo("java.lang.IllegalStateException");
+    org.assertj.core.api.Assertions.assertThat(probe.logLinesHolding(mark))
+        .as("log lines carrying the exception text")
+        .isEmpty();
   }
 
   @Test
