@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * call still renews.
  *
  * <p>The intervals are bootstrap wiring: how often to renew is a property of the lease it renews
- * ({@code orazaka.jobs.lease}); how often to look is the worker sweeper's own interval.
+ * ({@code sovkora.jobs.lease}); how often to look is {@code sovkora.jobs.lease.sweep-interval}.
  */
 @Component
 public class JobLeaseSweeper {
@@ -54,7 +54,7 @@ public class JobLeaseSweeper {
   }
 
   /** Takes back the jobs whose lease expired. */
-  @Scheduled(fixedDelayString = "${orazaka.jobs.worker-sweeper-interval:30000}")
+  @Scheduled(fixedDelayString = "${sovkora.jobs.lease.sweep-interval:30000}")
   public void recover() {
     lostJobRecoveryService.recoverExpired();
   }

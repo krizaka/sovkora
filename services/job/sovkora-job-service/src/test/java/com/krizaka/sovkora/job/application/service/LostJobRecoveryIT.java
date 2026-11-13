@@ -63,7 +63,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
 
   private static final Instant T0 = Instant.parse("2026-11-13T10:00:00Z");
   private static final String ACTOR = "550e8400-e29b-41d4-a716-446655440669";
-  private static final String FEATURE = "orazaka.studio.validation";
+  private static final String FEATURE = "orazaka.core.chat.text";
   private static final String ROUTING_KEY = "job.text.generate";
   private static final String DOCUMENT_TEXT = "Bail: le locataire Jean Tremblay, 123 rue Exemple";
   private static final int CAP = 2;
@@ -343,7 +343,7 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
   static class Wiring {
 
     private static final java.util.regex.Pattern PURGE_TABLE =
-        java.util.regex.Pattern.compile("(?s)CREATE TABLE orazaka_job_purge \\(.*?\\n\\);");
+        java.util.regex.Pattern.compile("(?s)CREATE TABLE (\\w+_job_purge) \\(.*?\\n\\);");
 
     private static final java.util.regex.Pattern JOBS_TABLE =
         java.util.regex.Pattern.compile("(?s)CREATE TABLE orazaka_jobs \\(.*?\\n\\);");
@@ -366,9 +366,9 @@ class LostJobRecoveryIT extends AbstractContainerIntegrationTest {
       }
       java.util.regex.Matcher purge = PURGE_TABLE.matcher(baseline);
       if (!purge.find()) {
-        throw new IllegalStateException("orazaka_job_purge not found in V1");
+        throw new IllegalStateException("the job purge table is not in V1");
       }
-      jdbc.execute("DROP TABLE IF EXISTS orazaka_job_purge");
+      jdbc.execute("DROP TABLE IF EXISTS " + purge.group(1));
       jdbc.execute("DROP TABLE IF EXISTS orazaka_jobs");
       jdbc.execute(table.group());
       jdbc.execute(purge.group());

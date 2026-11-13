@@ -111,6 +111,17 @@ logging:
     org.springframework.amqp: INFO
 
 # ── Sovkora — organised by module ─────────────────────────────────────────────
+# A running job's lease: the worker renews it every renew-interval-seconds (at most a third of
+# the lease); a job whose lease expired is re-enqueued max-retries times, then failed
+# JOB_WORKER_LOST. Bounds are enforced at boot (JobLeasePolicy). Born under the new name.
+sovkora:
+  jobs:
+    worker-id: ${JOBS_WORKER_ID:}
+    lease:
+      lease-seconds: ${JOBS_LEASE_SECONDS:120}
+      renew-interval-seconds: ${JOBS_LEASE_RENEW_SECONDS:30}
+      max-retries: ${JOBS_LEASE_MAX_RETRIES:2}
+      sweep-interval: ${JOBS_LEASE_SWEEP_INTERVAL:30000}
 orazaka:
   # The environment this deployment's provider spend is counted in; its caps are rows (krizaka-internal#3368).
   spend.environment: ${AI_SPEND_ENVIRONMENT:local}
@@ -126,13 +137,6 @@ orazaka:
   # Async job execution lifecycle (job-level timeout).
   jobs:
     execution-timeout: ${JOBS_TIMEOUT_SECONDS:1800}
-    # A running job's lease: the worker renews it every renew-interval-seconds (at most a third of
-    # the lease); a job whose lease expired is re-enqueued max-retries times, then failed
-    # JOB_WORKER_LOST. Bounds are enforced at boot (JobLeasePolicy).
-    lease:
-      lease-seconds: ${JOBS_LEASE_SECONDS:120}
-      renew-interval-seconds: ${JOBS_LEASE_RENEW_SECONDS:30}
-      max-retries: ${JOBS_LEASE_MAX_RETRIES:2}
 
   # sovkora-messaging (RabbitMQ broker wiring) — the executor declares the same
   # orazaka.jobs topology (JobsTopologyConfig) the conversation service publishes to,

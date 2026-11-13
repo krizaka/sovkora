@@ -44,7 +44,7 @@ public class JobLeaseService {
       JdbcTemplate jdbcTemplate,
       Clock clock,
       JobLeasePolicy policy,
-      @Value("${orazaka.jobs.worker-id:}") String configuredWorkerId) {
+      @Value("${sovkora.jobs.worker-id:}") String configuredWorkerId) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.clock = Objects.requireNonNull(clock, "Clock cannot be null");
     this.policy = Objects.requireNonNull(policy, "JobLeasePolicy cannot be null");

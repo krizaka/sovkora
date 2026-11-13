@@ -24,18 +24,18 @@ public record JobLeasePolicy(Duration lease, Duration renewInterval, int maxRetr
   public JobLeasePolicy {
     if (lease.compareTo(MIN_LEASE) < 0 || lease.compareTo(MAX_LEASE) > 0) {
       throw new IllegalArgumentException(
-          "orazaka.jobs.lease.lease-seconds must be between 30s and 1h, not " + lease);
+          "sovkora.jobs.lease.lease-seconds must be between 30s and 1h, not " + lease);
     }
     if (renewInterval.isNegative()
         || renewInterval.isZero()
         || renewInterval.multipliedBy(3).compareTo(lease) > 0) {
       throw new IllegalArgumentException(
-          "orazaka.jobs.lease.renew-interval-seconds must be positive and at most a third of the lease, not "
+          "sovkora.jobs.lease.renew-interval-seconds must be positive and at most a third of the lease, not "
               + renewInterval);
     }
     if (maxRetries < 0 || maxRetries > MAX_RETRIES) {
       throw new IllegalArgumentException(
-          "orazaka.jobs.lease.max-retries must be between 0 and 5, not " + maxRetries);
+          "sovkora.jobs.lease.max-retries must be between 0 and 5, not " + maxRetries);
     }
   }
 }
