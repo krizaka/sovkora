@@ -12,7 +12,7 @@ import { I18nProvider } from "../lib/i18n";
 import { AutomationsPanel } from "../components/automations/AutomationsPanel";
 
 const snap: Snapshot = {
-  settings: { mode: "local", remoteUrl: "https://www.orazaka.com", workspaceDir: null, watched: [], locale: "en" },
+  settings: { mode: "local", remoteUrl: "https://www.orazaka.com", workspaceDir: null, watched: [], locale: "en", limits: {} },
   roots: ["/Users/eric/Documents/Inbox"],
   sidecar: true,
   autostart: false,

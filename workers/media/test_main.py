@@ -181,7 +181,7 @@ class TestTheRunnerCollectsEveryDefinedTest(unittest.TestCase):
                     return re.sub(r"\$\{\{\s*matrix\.([\w-]+)\s*\}\}", lambda m: str(entry.get(m.group(1), "")), text)
 
                 directory = resolve(given["working-directory"])
-                for name in re.findall(r"\btest_\w+\.py\b", resolve(given["test-command"])):
+                for name in re.findall(r"(?:[\w.-]+/)*test_\w+\.py\b", resolve(given["test-command"])):
                     run.add(os.path.normpath(os.path.join(directory, name)))
         if not run:
             self.fail("no Python test command found in ci.yml: this guard would be judging the empty set")

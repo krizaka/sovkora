@@ -7,6 +7,15 @@ export type Settings = {
   workspaceDir: string | null;
   watched: string[];
   locale: "en" | "fr";
+  /** What the files panel lists, previews and sends; a limit left out is the kit's default (megabytes, kilobytes). */
+  limits: FileLimits;
+};
+export type FileLimits = {
+  maxEntries?: number | null;
+  maxTextPreviewKb?: number | null;
+  maxImagePreviewMb?: number | null;
+  maxPdfPreviewMb?: number | null;
+  maxSendMb?: number | null;
 };
 export type Probe = { web: boolean; edge: boolean; state: "running" | "partial" | "stopped" };
 export type Snapshot = {
