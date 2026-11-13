@@ -1,7 +1,6 @@
 /**
- * Guard: every `com.krizaka` version Sovkora imports must be on Maven Central, where krizaka-java releases (krizaka-java#235:
- * GitHub Packages is abandoned for Maven). sovkora-parent names its parent (`krizaka-parent`) and imports the BOM
- * (`krizaka.version`); the BOM names one release per artifact. A version Central does not carry makes `./mvnw install` fail
+ * Guard: every `com.krizaka` version Sovkora imports must be on a repository krizaka-java publishes to: the artifact repository (krizaka-java#3345, every build) or Maven Central (public releases only). sovkora-parent names its parent (`krizaka-parent`) and imports the BOM
+ * (`krizaka.version`); the BOM names one release per artifact. A version no repository carries makes `./mvnw install` fail
  * late, in the first module that needs it (orazaka#434: the kit's starters exist from 0.3.0, the BOM still said 0.2.0).
  * Pure functions + one fetcher, so the rule is unit-tested (scripts/test/krizaka-versions.test.mjs).
  */
@@ -77,32 +76,47 @@ export function parentOf(pom) {
   return /<version>\s*([^<\s]+)\s*<\/version>/.exec(block)?.[1] ?? null;
 }
 
-/** The text of a pom on Maven Central, or null when it is absent or Central cannot be reached. */
-export async function centralPom({ group, artifactId, version }, fetchImpl = fetch) {
-  const url = `${MAVEN_CENTRAL}/${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
-  try {
-    const res = await fetchImpl(url);
-    return res.status === 200 ? await res.text() : null;
-  } catch {
-    return null;
-  }
+/**
+ * Where a com.krizaka version may be published, asked in this order: the repository our builds publish to (krizaka-java#3345,
+ * `ARTIFACT_REPOSITORY_URL`, set once in the workflow), then Maven Central, which keeps only the public releases.
+ */
+export function repositories(env = process.env) {
+  const own = env.ARTIFACT_REPOSITORY_URL?.trim().replace(/\/+$/, "");
+  return own ? [own, MAVEN_CENTRAL] : [MAVEN_CENTRAL];
 }
 
-/** True when the pom of `group:artifactId:version` is on Maven Central; null when Central cannot be reached (never a failure). */
-export async function onCentral({ group, artifactId, version }, fetchImpl = fetch) {
-  const url = `${MAVEN_CENTRAL}/${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
-  try {
-    const res = await fetchImpl(url, { method: "HEAD" });
-    if (res.status === 200) return true;
-    return res.status === 404 ? false : null;
-  } catch {
-    return null;
+const pomUrl = (base, { group, artifactId, version }) => `${base}/${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
+
+/** The text of a pom on the first repository that carries it, or null when none does or none can be reached. */
+export async function publishedPom(coords, repos = repositories(), fetchImpl = fetch) {
+  for (const base of repos) {
+    try {
+      const res = await fetchImpl(pomUrl(base, coords));
+      if (res.status === 200) return await res.text();
+    } catch {
+      // unreachable: try the next repository
+    }
   }
+  return null;
 }
 
+/** True when a repository carries the pom; false when every one answers 404; null when one cannot be reached and none has it (never a failure). */
+export async function onRepository(coords, repos = repositories(), fetchImpl = fetch) {
+  let unreachable = false;
+  for (const base of repos) {
+    try {
+      const res = await fetchImpl(pomUrl(base, coords), { method: "HEAD" });
+      if (res.status === 200) return true;
+      if (res.status !== 404) unreachable = true;
+    } catch {
+      unreachable = true;
+    }
+  }
+  return unreachable ? null : false;
+}
 
-/** The claims nobody provides: the reactor builds another version and no registry carries the one named. */
-export async function unprovided(list, check = onCentral) {
+/** The claims nobody provides: the reactor builds another version and no repository carries the one named. */
+export async function unprovided(list, check = onRepository) {
   const missing = [];
   for (const c of list) {
     if (c.reactor === c.version) continue;
@@ -111,6 +125,6 @@ export async function unprovided(list, check = onCentral) {
   return missing;
 }
 
-export function explain(c) {
-  return `${c.what} ${c.group}:${c.artifactId}:${c.version}, which is not on Maven Central. Name a krizaka-java release Central carries (build/sovkora-parent/pom.xml).`;
+export function explain(c, repos = repositories()) {
+  return `${c.what} ${c.group}:${c.artifactId}:${c.version}, which is on none of ${repos.join(", ")}. Name a krizaka-java release one of them carries (build/sovkora-parent/pom.xml).`;
 }
