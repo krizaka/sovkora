@@ -50,7 +50,7 @@ A service may depend on Tier 1 + Tier 2 + **its own** Tier 3, never another cont
 | Element | State | Decided by | Lands in a slice as |
 |:---|:---|:---|:---|
 | **Web search** (SearXNG, grounded answers that cite sources) | `#planned` | sovkora ADR-087 | a feature of `engine` + a `search` container |
-| **Serverless GPU endpoint** (media jobs at zero idle) | `#planned` | sovkora ADR-078 | a `job` → serverless trigger |
+| **Serverless GPU endpoint** (media jobs at zero idle) | `#planned` | sovkora SOV-096 | a `job` → serverless trigger |
 | **Desktop → GitHub** (read issue, push branch, open PR; user approves each write) | `#planned` | sovkora ADR-093 | a `desktop` feature |
 | **Operator audit read model** (broker → users) | `#planned` | sovkora ADR-085 | a `users`/broker binding |
 | **Production web + per-product API key** | `#planned` | #2136, #2132 | deferred (local phase, §0) |
@@ -69,7 +69,7 @@ The target platform delivers, by module:
 - **Automations** — cloud connectors and schedules (Jira, Slack, WhatsApp, Messenger, CLI agents), signed webhooks, execution history. *(automation)*
 - **Sign-in & billing** — tokens, profiles, plans, wallets, packs held, credit holds, usage metering (a key + plan per product). *(users, billing)*
 - **Clients** — the web app + operator console (BFF), the mobile app, the Mac desktop app (folder grants, local automations), the dev CLI (offline queue). *(apps/\*)*
-- **Grounded web search** *(`#planned`, ADR-087)* and **serverless media at zero idle** *(`#planned`, ADR-078)*.
+- **Grounded web search** *(`#planned`, ADR-087)* and **serverless media at zero idle** *(`#planned`, SOV-096)*.
 
 ## The target rules, in two layers
 

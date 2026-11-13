@@ -97,7 +97,7 @@ test("gpu-dev.sh: stop always destroys, and the sizes are the stated ones", () =
   assert.match(script, /small\) echo "gpu-4000adax1-20gb:0\.76"/);
 });
 
-// RunPod spend guard (ADR-078): the rule alone, on fixtures — no network, no key.
+// RunPod spend guard (SOV-096): the rule alone, on fixtures — no network, no key.
 function decide(fixture) {
   const input = JSON.stringify(fixture);
   return JSON.parse(execFileSync("python3", [join(root, "scripts/runpod-guard.py"), "decide"], { input, encoding: "utf8" }));

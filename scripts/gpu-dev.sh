@@ -12,7 +12,7 @@
 #   scripts/gpu-dev.sh mac               write the env file to run the Mac's worker against the same queue
 #   scripts/gpu-dev.sh relay-secret      create the relay credential in the secrets file if it is missing
 #   scripts/gpu-dev.sh smoke [small|mac] the sovereign smoke: start small, assert our engines through Orazaka, destroy
-#   scripts/gpu-dev.sh runpod once|loop          the RunPod spend guard: stop the idle/too-old pods once, or keep watching (ADR-078)
+#   scripts/gpu-dev.sh runpod once|loop          the RunPod spend guard: stop the idle/too-old pods once, or keep watching (SOV-096)
 #   scripts/gpu-dev.sh user-data big F   render the droplet's cloud-init into F (0600) and create nothing
 #
 #   big   = NVIDIA L40S 48 GB (or RTX 6000 Ada 48 GB), $1.57/h — Wan 2.2 TI2V 5B, 704x1280, 5 s @ 24 fps

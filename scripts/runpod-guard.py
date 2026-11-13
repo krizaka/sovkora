@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""RunPod client and spend guard (ADR-078) on API v2 (orazaka#508: REST v1 and GraphQL stop on 2026-11-15).
+"""RunPod client and spend guard (SOV-096) on API v2 (orazaka#508: REST v1 and GraphQL stop on 2026-11-15).
 
   runpod-guard.py status            pods, uptime, GPU use, $/h  (needs AI_GPU_RUNPOD_API_KEY in the env)
   runpod-guard.py once              one pass: end the pods the rule below condemns
