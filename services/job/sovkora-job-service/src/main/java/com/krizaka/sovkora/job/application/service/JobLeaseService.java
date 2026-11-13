@@ -50,8 +50,16 @@ public class JobLeaseService {
     this.policy = Objects.requireNonNull(policy, "JobLeasePolicy cannot be null");
     this.workerId =
         (configuredWorkerId == null || configuredWorkerId.isBlank())
-            ? "job-service-" + UUID.randomUUID()
+            ? generatedWorkerId()
             : configuredWorkerId;
+  }
+
+  /**
+   * The worker id used when none is configured: unique per process, so two replicas never share a
+   * lease.
+   */
+  private static String generatedWorkerId() {
+    return "job-service-" + UUID.randomUUID();
   }
 
   /**
