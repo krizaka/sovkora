@@ -158,21 +158,29 @@ function closedList(name) {
   return m[1].split(/\s+/).filter(Boolean);
 }
 
+// The live names are read from the code, not typed: a rename of the product's prefix moves the code and this test follows it.
+const liveScript = root("infra/deploy/run-services.sh");
+const APP_DIR_VAR = liveScript.match(/\$\{(\w+_APP_DIR):-\/app\}/)[1];
+const PYTHON_VAR = liveScript.match(/\$\{(\w+_VALIDATION_PYTHON):-/)[1];
+const WORKER_DIRS = [...liveScript.matchAll(/^  cd "\$\{\w+_APP_DIR:-\/app\}\/([^"]+)" \|\| return 1$/gm)].map((m) => m[1]);
+const [SERVICE_TOKEN_VAR] = [...root("workers/media/app/registration.py").matchAll(/environ\.get\("(\w+_SERVICE_TOKEN)"\)/g)].map((m) => m[1]);
+const IDENTITY_SECRET_VAR = root("workers/media/app/registration.py").match(/environ\.get\("(IDENTITY_JWT_SECRET)"\)/)[1];
+
 /** What the worker process really receives: the worker function runs with a poisoned core environment and a stand-in interpreter that prints its env. */
 function workerEnvironment(fn) {
   const dir = mkdtempSync(join(tmpdir(), "worker-env-"));
-  for (const sub of ["orazaka-packs/document-validation/worker", "orazaka-worker-media"]) mkdirSync(join(dir, sub), { recursive: true });
+  for (const sub of WORKER_DIRS) mkdirSync(join(dir, sub), { recursive: true });
   const python = join(dir, "fake-python");
   writeFileSync(python, "#!/bin/sh\nexec /usr/bin/env\n");
   chmodSync(python, 0o755);
   const poison = {
-    DATABASE_PASSWORD: "x", DATABASE_URL: "x", IDENTITY_JWT_SECRET: "x", ORAZAKA_SERVICE_TOKEN: "x", SERVICE_TOKEN: "x",
+    DATABASE_PASSWORD: "x", DATABASE_URL: "x", IDENTITY_JWT_SECRET: "x", [SERVICE_TOKEN_VAR]: "x", SERVICE_TOKEN: "x",
     MEDIA_ENCRYPTION_KEY: "x", STRIPE_SECRET: "x", BILLING_API_KEY: "x", AI_INFERENCE_KEY_ALL: "all", AI_INFERENCE_KEY: "k",
     RABBITMQ_HOST: "broker", RABBITMQ_PORT: "5671", RABBITMQ_USER: "u", RABBITMQ_PASS: "p", SPRING_RABBITMQ_SSL_ENABLED: "true",
   };
   const r = spawnSync("bash", ["-c", `RUN_SERVICES_LIB=1 source "${script}"; ${fn}`], {
     encoding: "utf8", timeout: 15000,
-    env: { ...process.env, ...poison, ORAZAKA_APP_DIR: dir, ORAZAKA_VALIDATION_PYTHON: python },
+    env: { ...process.env, ...poison, [APP_DIR_VAR]: dir, [PYTHON_VAR]: python },
   });
   assert.equal(r.status, 0, r.stderr);
   return Object.fromEntries(r.stdout.split("\n").filter(Boolean).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
@@ -192,7 +200,7 @@ for (const [name, w] of Object.entries(WORKERS)) {
     const allowed = new Set([...w.list(), ...w.fixed, "PWD", "OLDPWD", "SHLVL", "_"]);
     const extra = Object.keys(env).filter((k) => !allowed.has(k));
     assert.deepEqual(extra, [], `variables outside the closed list reach the ${name} worker`);
-    for (const secret of ["DATABASE_PASSWORD", "DATABASE_URL", "IDENTITY_JWT_SECRET", "ORAZAKA_SERVICE_TOKEN", "SERVICE_TOKEN", "MEDIA_ENCRYPTION_KEY", "STRIPE_SECRET", "BILLING_API_KEY", "AI_INFERENCE_KEY_ALL"]) {
+    for (const secret of ["DATABASE_PASSWORD", "DATABASE_URL", IDENTITY_SECRET_VAR, SERVICE_TOKEN_VAR, "SERVICE_TOKEN", "MEDIA_ENCRYPTION_KEY", "STRIPE_SECRET", "BILLING_API_KEY", "AI_INFERENCE_KEY_ALL"]) {
       assert.ok(!(secret in env), `${secret} must not reach the ${name} worker`);
     }
   });
@@ -230,7 +238,7 @@ test("every variable the hosted-video worker reads on its hosted-only path is in
   const read = readNames(...["broker", "asset_sink", "remote_video", "spend", "registration", "activity"].map((m) => `workers/media/app/${m}.py`));
   const have = new Set([...WORKERS["hosted-video"].list(), ...WORKERS["hosted-video"].fixed]);
   // Refused on purpose: with neither the worker never registers with the job service and still consumes (registration.py).
-  const refused = new Set(["ORAZAKA_SERVICE_TOKEN", "IDENTITY_JWT_SECRET"]);
+  const refused = new Set([SERVICE_TOKEN_VAR, IDENTITY_SECRET_VAR]);
   for (const v of read) assert.ok(have.has(v) || refused.has(v), `${v} is read by the hosted-video worker but is not in the closed list`);
   for (const v of refused) assert.ok(!have.has(v), `${v} must stay out of the hosted-video worker's environment`);
 });
