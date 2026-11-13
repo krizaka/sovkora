@@ -9,13 +9,14 @@
 pub mod automation;
 pub mod code;
 // The folder scope and the files inside a grant are krizaka-tauri-kit's (ADR-005: one implementation, tested once).
-pub use krizaka_tauri_kit::{files, scope};
+pub use krizaka_rust::{files, scope};
 pub mod settings;
 pub mod sidecar;
 
 use files::{Entry, Listing, Preview};
+use krizaka_rust::access::Access;
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
-use scope::ScopeStore;
+use scope::{ScopeStore, ScopedPath};
 use serde::Serialize;
 use settings::Settings;
 use sidecar::CliCall;
@@ -75,7 +76,7 @@ pub struct AppState {
     /// The GitHub App connection (ADR-093 slice 4): the sign-in in progress; the tokens live in the Keychain only.
     github: code::github::Connection,
     github_config: code::github::GithubConfig,
-    secrets: Arc<dyn krizaka_tauri_kit::secrets::SecretStore>,
+    secrets: Arc<dyn krizaka_rust::secrets::SecretStore>,
 }
 
 impl AppState {
@@ -325,15 +326,19 @@ fn run_sidecar(
 
 // ───────────────────────────── file access ─────────────────────────────
 
-fn resolve_readable(state: &AppState, path: &str) -> Res<PathBuf> {
+fn resolve_readable(state: &AppState, path: &str) -> Res<ScopedPath> {
     let p = Path::new(path);
     if let Ok(ok) = state.scope.lock().unwrap().resolve(p) {
         return Ok(ok);
     }
-    // A file the user dropped on the window this session is an explicit, one-file permission.
+    // A file the user dropped on the window this session is an explicit, one-file permission: the kit's own gate for it.
     if let Ok(canon) = p.canonicalize() {
         if state.drops.lock().unwrap().files.contains(&canon) {
-            return Ok(canon);
+            let mut dropped = Access::default();
+            dropped.allow_dropped(&canon);
+            if let Ok(ok) = dropped.resolve(p) {
+                return Ok(ok);
+            }
         }
     }
     Err(format!("outside the granted folders: {path}"))
@@ -428,12 +433,21 @@ fn list_dir(state: State<'_, AppState>, path: String) -> Res<Listing> {
         .unwrap()
         .resolve(Path::new(&path))
         .map_err(|e| e.to_string())?;
-    files::list_dir(&dir)
+    let limits = state.settings.lock().unwrap().limits.to_kit();
+    files::list_dir(&dir, &limits).map_err(|e| e.to_string())
 }
 
+/// A preview reads a whole file (up to the settings' limits): off the main thread, so the window never waits for the disk.
 #[tauri::command]
-fn preview_file(state: State<'_, AppState>, path: String) -> Res<Preview> {
-    files::preview(&resolve_readable(&state, &path)?)
+async fn preview_file(app: AppHandle, path: String) -> Res<Preview> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        let limits = state.settings.lock().unwrap().limits.to_kit();
+        let file = resolve_readable(&state, &path)?;
+        files::preview(&file, &limits).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[tauri::command]
@@ -441,7 +455,7 @@ fn reveal_in_finder(state: State<'_, AppState>, path: String) -> Res<()> {
     let p = resolve_readable(&state, &path)?;
     Command::new("open")
         .arg("-R")
-        .arg(p)
+        .arg(p.as_path())
         .spawn()
         .map(|_| ())
         .map_err(|e| e.to_string())
@@ -468,6 +482,7 @@ fn watch_set(
         .lock()
         .unwrap()
         .resolve(Path::new(&path))
+        .map(ScopedPath::into_path_buf)
         .map_err(|e| e.to_string())?;
     if enabled {
         start_watch(&app, &state, &dir)?;
@@ -548,7 +563,7 @@ fn start_watch(app: &AppHandle, state: &AppState, dir: &Path) -> Res<()> {
                     FileAdded {
                         root: root.display().to_string(),
                         entry: Entry {
-                            kind: files::kind_of(&name).into(),
+                            kind: files::kind_of(&name),
                             path: path.display().to_string(),
                             is_dir: false,
                             size: meta.len(),
@@ -583,7 +598,7 @@ impl automation::Backends for ScopedBackends {
             .unwrap()
             .resolve(root)
             .map_err(|e| format!("the folder is no longer granted: {e}"))?;
-        automation::RealBackends.fs(&resolved)
+        automation::RealBackends.fs(resolved.as_path())
     }
     fn model(
         &self,
@@ -625,6 +640,7 @@ fn code_open(state: State<'_, AppState>, path: String) -> Res<code::RepoInfo> {
         .lock()
         .unwrap()
         .resolve(Path::new(&path))
+        .map(ScopedPath::into_path_buf)
         .map_err(|e| e.to_string())?;
     let repo = code::Repo::open(&canon, scope::home_dir().as_deref()).map_err(|e| e.to_string())?;
     let info = repo.info().map_err(|e| e.to_string())?;
@@ -800,9 +816,7 @@ fn github_status(state: State<'_, AppState>) -> Res<code::github::GithubStatus> 
 
 /// Starts the device flow: returns the code to type and where; the wait runs on its own thread.
 #[tauri::command]
-async fn github_sign_in(
-    state: State<'_, AppState>,
-) -> Res<krizaka_tauri_kit::device_flow::DeviceCode> {
+async fn github_sign_in(state: State<'_, AppState>) -> Res<krizaka_rust::device_flow::DeviceCode> {
     let spawn = |job: Box<dyn FnOnce() + Send>| {
         std::thread::spawn(job);
     };
@@ -856,7 +870,12 @@ fn automation_create(
 ) -> Res<automation::types::Automation> {
     let scope = state.scope.clone();
     state.automations.create(input, |p| {
-        scope.lock().unwrap().resolve(p).map_err(|e| e.to_string())
+        scope
+            .lock()
+            .unwrap()
+            .resolve(p)
+            .map(ScopedPath::into_path_buf)
+            .map_err(|e| e.to_string())
     })
 }
 
@@ -968,13 +987,29 @@ fn open_workspace(app: AppHandle, state: State<'_, AppState>) -> Res<String> {
 /// Reads a granted file and puts it in the first file field of the open workspace page, as if it
 /// had been chosen there (Studio input, knowledge-base upload).
 #[tauri::command]
-fn workspace_send_file(app: AppHandle, state: State<'_, AppState>, path: String) -> Res<()> {
+async fn workspace_send_file(app: AppHandle, path: String) -> Res<()> {
+    // The read and the base64 of a file up to the send limit: off the main thread.
+    tauri::async_runtime::spawn_blocking(move || send_file(&app, &path))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+fn send_file(app: &AppHandle, path: &str) -> Res<()> {
     use base64::{engine::general_purpose::STANDARD, Engine};
-    let file = resolve_readable(&state, &path)?;
-    let meta = std::fs::metadata(&file).map_err(|e| e.to_string())?;
-    if !meta.is_file() || meta.len() > files::MAX_SEND {
-        return Err("not a file, or larger than 50 MB".into());
+    use std::io::Read;
+    let state = app.state::<AppState>();
+    let max_send = state.settings.lock().unwrap().limits.to_kit().send();
+    let scoped = resolve_readable(&state, path)?;
+    // One descriptor: the size is checked on the file that is read, never on a path that may have changed.
+    let opened = scoped.open().map_err(|e| e.to_string())?;
+    let meta = opened.metadata().map_err(|e| e.to_string())?;
+    if !meta.is_file() || meta.len() > max_send {
+        return Err(format!(
+            "not a file, or larger than {} MB",
+            max_send / (1024 * 1024)
+        ));
     }
+    let file = scoped.as_path();
     let window = app
         .get_webview_window("workspace")
         .ok_or("open the workspace first")?;
@@ -982,7 +1017,15 @@ fn workspace_send_file(app: AppHandle, state: State<'_, AppState>, path: String)
         .file_name()
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_default();
-    let data = STANDARD.encode(std::fs::read(&file).map_err(|e| e.to_string())?);
+    let mut bytes = Vec::new();
+    opened
+        .take(max_send.saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(|e| e.to_string())?;
+    if bytes.len() as u64 > max_send {
+        return Err("the file grew past the limit while it was read".into());
+    }
+    let data = STANDARD.encode(bytes);
     let js = format!(
         r#"(()=>{{
   const bin=atob("{data}"),u=new Uint8Array(bin.length);
@@ -1214,7 +1257,7 @@ fn on_panel_drop(app: &AppHandle, paths: &[PathBuf]) {
                 .map(|n| n.to_string_lossy().to_string())
                 .unwrap_or_default();
             out.files.push(Entry {
-                kind: files::kind_of(&name).into(),
+                kind: files::kind_of(&name),
                 path: canon.display().to_string(),
                 is_dir: false,
                 size: meta.len(),
@@ -1276,8 +1319,8 @@ pub fn run() {
                 code_rules: code_rules.clone(),
                 github: code::github::Connection::default(),
                 github_config: code::github::GithubConfig::load(&github_file),
-                secrets: Arc::new(krizaka_tauri_kit::secrets::Checked(
-                    krizaka_tauri_kit::keychain::Keychain::new(&app.config().identifier),
+                secrets: Arc::new(krizaka_rust::secrets::Checked(
+                    krizaka_rust::keychain::Keychain::new(&app.config().identifier),
                 )),
             });
             let handle = app.handle().clone();
@@ -1285,7 +1328,7 @@ pub fn run() {
             // Re-arm the folder watches that are still granted.
             for dir in watched {
                 if let Ok(resolved) = state.scope.lock().unwrap().resolve(&dir) {
-                    let _ = start_watch(&handle, &state, &resolved);
+                    let _ = start_watch(&handle, &state, resolved.as_path());
                 }
             }
             build_tray(&handle)?;
