@@ -1,0 +1,267 @@
+{
+  "ruleset": "qc-residential-lease",
+  "asOf": "2026-10-22",
+  "cases": [
+    {
+      "id": "deposit-security-one-month",
+      "found": [
+        "QC-LEASE-004"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "deposit-key",
+      "found": [],
+      "missed": [
+        "QC-LEASE-004"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "deposit-two-months-advance",
+      "found": [],
+      "missed": [
+        "QC-LEASE-004"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "deposit-pet",
+      "found": [
+        "QC-LEASE-004"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "deposit-guarantee-wording",
+      "found": [],
+      "missed": [
+        "QC-LEASE-004"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "deposit-damages",
+      "found": [
+        "QC-LEASE-004"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "postdated-cheques-plain",
+      "found": [
+        "QC-LEASE-005"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "postdated-cheques-paraphrase",
+      "found": [],
+      "missed": [
+        "QC-LEASE-005"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "children-refused-plain",
+      "found": [
+        "QC-LEASE-006"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "children-refused-paraphrase",
+      "found": [],
+      "missed": [
+        "QC-LEASE-006"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "stay-waiver-plain",
+      "found": [
+        "QC-LEASE-007"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "stay-waiver-paraphrase",
+      "found": [],
+      "missed": [
+        "QC-LEASE-007"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "increase-waiver",
+      "found": [
+        "QC-LEASE-009"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "rent-varies-with-electricity",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": true
+    },
+    {
+      "id": "rent-discount-conditional",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": true
+    },
+    {
+      "id": "bedbug-cost-on-tenant",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": true
+    },
+    {
+      "id": "insurance-added-to-rules",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": true
+    },
+    {
+      "id": "pets-forbidden",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": true
+    },
+    {
+      "id": "visits-forbidden-plain",
+      "found": [
+        "QC-LEASE-012"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "guest-needs-consent",
+      "found": [
+        "QC-LEASE-012"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "termination-one-late-payment-plain",
+      "found": [
+        "QC-LEASE-013"
+      ],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "termination-one-late-payment-paraphrase",
+      "found": [],
+      "missed": [
+        "QC-LEASE-013"
+      ],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "control-no-deposit",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "control-children-welcome",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    },
+    {
+      "id": "control-termination-by-tribunal",
+      "found": [],
+      "missed": [],
+      "wrong": [],
+      "unmeasured": false
+    }
+  ],
+  "rules": {
+    "QC-LEASE-004": {
+      "found": 3,
+      "missed": 3,
+      "wrong": 0
+    },
+    "QC-LEASE-005": {
+      "found": 1,
+      "missed": 1,
+      "wrong": 0
+    },
+    "QC-LEASE-006": {
+      "found": 1,
+      "missed": 1,
+      "wrong": 0
+    },
+    "QC-LEASE-007": {
+      "found": 1,
+      "missed": 1,
+      "wrong": 0
+    },
+    "QC-LEASE-009": {
+      "found": 1,
+      "missed": 0,
+      "wrong": 0
+    },
+    "QC-LEASE-012": {
+      "found": 2,
+      "missed": 0,
+      "wrong": 0
+    },
+    "QC-LEASE-013": {
+      "found": 1,
+      "missed": 1,
+      "wrong": 0
+    }
+  },
+  "unmeasuredCases": [
+    "bedbug-cost-on-tenant",
+    "insurance-added-to-rules",
+    "pets-forbidden",
+    "rent-discount-conditional",
+    "rent-varies-with-electricity"
+  ],
+  "refused": true,
+  "refusals": [
+    "QC-LEASE-004: found 3 < minimum 5",
+    "QC-LEASE-005: found 1 < minimum 2",
+    "QC-LEASE-006: found 1 < minimum 2",
+    "QC-LEASE-007: found 1 < minimum 2",
+    "QC-LEASE-013: found 1 < minimum 2"
+  ]
+}
