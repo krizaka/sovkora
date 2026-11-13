@@ -193,10 +193,10 @@ public class RunSagaService {
    *
    * @param jobId the job whose outcome this is
    * @param output what the executor produced
-   * @param consumption the raw measurements, empty when the executor reported none
-   * @param model the engine that ran, {@code null} when the producer named none
-   * @param error the failure message, {@code null} on success
-   * @param cause the executor's declared reason for failing, {@code null} on success
+   * @param consumption the raw measurements
+   * @param model the engine that ran
+   * @param error the failure message
+   * @param cause the declared failure reason
    * @param costUsd what the step's provider calls cost, zero when nothing was priced
    */
   @Transactional

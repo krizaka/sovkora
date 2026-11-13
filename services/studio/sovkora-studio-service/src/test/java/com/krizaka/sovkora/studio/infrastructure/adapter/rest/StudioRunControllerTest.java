@@ -121,27 +121,29 @@ class StudioRunControllerTest {
         .isInstanceOf(RunNotFoundException.class);
   }
 
-  @Test
-  @DisplayName("[3368] the product the edge declared is the one the run is started under")
-  void theDeclaredProductStartsTheRun() {
+  /** Starts a run with this product header and answers the product the service was given. */
+  private Optional<String> productStartedWith(String header) {
     starterRunsTheStart();
     when(runService.start(eq("trade-showcase"), eq(ACTOR), any(), any()))
         .thenReturn(run(RunStatus.RUNNING));
 
-    controller.startStudio("trade-showcase", null, null, "verikora", ACTOR_JWT);
+    controller.startStudio("trade-showcase", null, null, header, ACTOR_JWT);
 
-    verify(runService).start("trade-showcase", ACTOR, java.util.Map.of(), Optional.of("verikora"));
+    org.mockito.ArgumentCaptor<Optional<String>> product =
+        org.mockito.ArgumentCaptor.forClass(Optional.class);
+    verify(runService).start(eq("trade-showcase"), eq(ACTOR), any(), product.capture());
+    return product.getValue();
+  }
+
+  @Test
+  @DisplayName("[3368] the product the edge declared is the one the run is started under")
+  void theDeclaredProductStartsTheRun() {
+    assertThat(productStartedWith("verikora")).contains("verikora");
   }
 
   @Test
   @DisplayName("[3368] a request that declares no product starts a run counted as unattributed")
   void noProductStartsAnUnattributedRun() {
-    starterRunsTheStart();
-    when(runService.start(eq("trade-showcase"), eq(ACTOR), any(), any()))
-        .thenReturn(run(RunStatus.RUNNING));
-
-    controller.startStudio("trade-showcase", null, null, " ", ACTOR_JWT);
-
-    verify(runService).start("trade-showcase", ACTOR, java.util.Map.of(), Optional.empty());
+    assertThat(productStartedWith(" ")).isEmpty();
   }
 }

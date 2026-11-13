@@ -223,19 +223,16 @@ class JobListenerTest {
             + consumption.getValue().get("gpuSeconds"));
   }
 
-  @Test
-  void aStepThatNamesItsProduct_isCountedUnderThatProduct() throws Exception {
-    // krizaka-internal#3368: the studio stamps the product of the run's key on the step; the job
-    // plane makes it the engine's own declaration, so the ledger counts the step's calls under it.
-    String jobId = "job-product";
+  /** Runs a chat step carrying this payload and returns the preferences its executor was given. */
+  private Map<String, Object> preferencesOfStepWith(Map<String, Object> payload) throws Exception {
     String userId = UUID.randomUUID().toString();
     JobCommand msg =
         new JobCommand(
-            jobId,
+            "job-" + payload.size(),
             userId,
             "chat.text",
             "default",
-            Map.of("prompt", "Hello test", JobCommand.SPEND_PRODUCT_KEY, "verikora"),
+            payload,
             com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
     when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
     when(chatStrategy.execute(eq(msg), any()))
@@ -248,37 +245,24 @@ class JobListenerTest {
             org.mockito.ArgumentCaptor.forClass(
                 com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext.class);
     verify(chatStrategy).execute(eq(msg), context.capture());
+    return context.getValue().preferences();
+  }
+
+  @Test
+  void aStepThatNamesItsProduct_isCountedUnderThatProduct() throws Exception {
+    // krizaka-internal#3368: the studio stamps the product of the run's key on the step; the job
+    // plane makes it the engine's own declaration, so the ledger counts the step's calls under it.
     assertEquals(
         "verikora",
-        context.getValue().preferences().get(SpendScope.PRODUCT_DECLARATION),
+        preferencesOfStepWith(Map.of("prompt", "Hi", JobCommand.SPEND_PRODUCT_KEY, "verikora"))
+            .get(SpendScope.PRODUCT_DECLARATION),
         "the product of the run's key is the engine's declaration");
   }
 
   @Test
   void aStepThatNamesNoProduct_declaresNone() throws Exception {
-    String jobId = "job-no-product";
-    String userId = UUID.randomUUID().toString();
-    JobCommand msg =
-        new JobCommand(
-            jobId,
-            userId,
-            "chat.text",
-            "default",
-            Map.of("prompt", "Hello test"),
-            com.krizaka.sovkora.jobs.api.domain.model.DataClass.STANDARD);
-    when(userDirectoryService.getUser(userId)).thenReturn(activeUser(userId));
-    when(chatStrategy.execute(eq(msg), any()))
-        .thenReturn(JobExecutionResult.of(Map.of("content", "ok")));
-
-    listener.onMessage(msg, null);
-
-    org.mockito.ArgumentCaptor<com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext>
-        context =
-            org.mockito.ArgumentCaptor.forClass(
-                com.krizaka.sovkora.jobs.api.domain.model.JobExecutionContext.class);
-    verify(chatStrategy).execute(eq(msg), context.capture());
     assertFalse(
-        context.getValue().preferences().containsKey(SpendScope.PRODUCT_DECLARATION),
+        preferencesOfStepWith(Map.of("prompt", "Hi")).containsKey(SpendScope.PRODUCT_DECLARATION),
         "no declaration: the ledger counts it as unattributed");
   }
 
