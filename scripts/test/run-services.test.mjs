@@ -80,7 +80,7 @@ test("the hosted-video worker is the media worker in hosted-only mode, on the le
   assert.match(fn, /MEDIA_ASSET_SINK_URL=http:\/\/localhost:8090/);
   assert.match(fn, /JOB_SERVICE_INTERNAL_URL=http:\/\/localhost:8090/);
   assert.match(fn, /AI_INFERENCE_KEY="\$\{AI_INFERENCE_KEY_ALL:-\$\{AI_INFERENCE_KEY:-\}\}"/, "the all-models key lists the hosted Wan");
-  assert.match(fn, /exec .*-m app\.consumer/);
+  assert.match(fn, /exec env -i[\s\S]*-m app\.consumer/);
   // The worker resolves its upload root from its own file (…/orazaka-worker-media/app/main.py, 4 levels up = « / » in the image):
   // « Permission denied: /var/orazaka-uploads ». The image's own uploads folder (owned by the orazaka user) is named explicitly.
   assert.match(fn, /UPLOAD_DIR="\$\{ORAZAKA_APP_DIR:-\/app\}\/var\/orazaka-uploads"/);
@@ -144,4 +144,93 @@ test("the dev route migration puts the chat default on the hosted per-token prov
   const sql = root("services/job/sovkora-job-service/src/main/resources/db/dev/R__dev_chat_route.sql");
   assert.match(sql, /'mistral-3-14B'[\s\S]*'do-inference'/);
   assert.match(sql, /UPDATE orazaka_models SET is_default = \(model_name = 'mistral-3-14B'\) WHERE category = 'chat'/);
+});
+
+// ── A worker started inside core receives a closed list of variables, never core's whole environment (krizaka-internal#3295) ──
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+/** The names of a bash array `NAME=(a b c)` of the script, in order. */
+function closedList(name) {
+  const m = root("infra/deploy/run-services.sh").match(new RegExp(`^${name}=\\(([^)]*)\\)`, "m"));
+  assert.ok(m, `${name} is declared once as an array in run-services.sh`);
+  return m[1].split(/\s+/).filter(Boolean);
+}
+
+/** What the worker process really receives: the worker function runs with a poisoned core environment and a stand-in interpreter that prints its env. */
+function workerEnvironment(fn) {
+  const dir = mkdtempSync(join(tmpdir(), "worker-env-"));
+  for (const sub of ["orazaka-packs/document-validation/worker", "orazaka-worker-media"]) mkdirSync(join(dir, sub), { recursive: true });
+  const python = join(dir, "fake-python");
+  writeFileSync(python, "#!/bin/sh\nexec /usr/bin/env\n");
+  chmodSync(python, 0o755);
+  const poison = {
+    DATABASE_PASSWORD: "x", DATABASE_URL: "x", IDENTITY_JWT_SECRET: "x", ORAZAKA_SERVICE_TOKEN: "x", SERVICE_TOKEN: "x",
+    MEDIA_ENCRYPTION_KEY: "x", STRIPE_SECRET: "x", BILLING_API_KEY: "x", AI_INFERENCE_KEY_ALL: "all", AI_INFERENCE_KEY: "k",
+    RABBITMQ_HOST: "broker", RABBITMQ_PORT: "5671", RABBITMQ_USER: "u", RABBITMQ_PASS: "p", SPRING_RABBITMQ_SSL_ENABLED: "true",
+  };
+  const r = spawnSync("bash", ["-c", `RUN_SERVICES_LIB=1 source "${script}"; ${fn}`], {
+    encoding: "utf8", timeout: 15000,
+    env: { ...process.env, ...poison, ORAZAKA_APP_DIR: dir, ORAZAKA_VALIDATION_PYTHON: python },
+  });
+  assert.equal(r.status, 0, r.stderr);
+  return Object.fromEntries(r.stdout.split("\n").filter(Boolean).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
+}
+
+const BASE = () => closedList("WORKER_ENV_BASE");
+const BROKER = () => closedList("WORKER_ENV_BROKER");
+const FIXED = { validation: ["SPRING_RABBITMQ_SSL_CA_FILE"], hostedVideo: ["MEDIA_WORKER_HOSTED_ONLY", "MEDIA_WORKER_PORT", "MEDIA_ASSET_SINK_URL", "JOB_SERVICE_INTERNAL_URL", "UPLOAD_DIR", "AI_INFERENCE_KEY", "SPRING_RABBITMQ_HOST", "SPRING_RABBITMQ_PORT", "SPRING_RABBITMQ_USERNAME", "SPRING_RABBITMQ_PASSWORD", "SPRING_RABBITMQ_SSL_CA_FILE"] };
+const WORKERS = {
+  validation: { fn: "run_validation_worker", list: () => [...BASE(), ...BROKER(), ...closedList("WORKER_ENV_VALIDATION")], fixed: FIXED.validation },
+  "hosted-video": { fn: "run_hosted_video_worker", list: () => [...BASE(), ...BROKER(), ...closedList("WORKER_ENV_HOSTED_VIDEO")], fixed: FIXED.hostedVideo },
+};
+
+for (const [name, w] of Object.entries(WORKERS)) {
+  test(`the ${name} worker's environment is the closed list and nothing else (no database secret, no SERVICE token, no other secret)`, () => {
+    const env = workerEnvironment(w.fn);
+    const allowed = new Set([...w.list(), ...w.fixed, "PWD", "OLDPWD", "SHLVL", "_"]);
+    const extra = Object.keys(env).filter((k) => !allowed.has(k));
+    assert.deepEqual(extra, [], `variables outside the closed list reach the ${name} worker`);
+    for (const secret of ["DATABASE_PASSWORD", "DATABASE_URL", "IDENTITY_JWT_SECRET", "ORAZAKA_SERVICE_TOKEN", "SERVICE_TOKEN", "MEDIA_ENCRYPTION_KEY", "STRIPE_SECRET", "BILLING_API_KEY", "AI_INFERENCE_KEY_ALL"]) {
+      assert.ok(!(secret in env), `${secret} must not reach the ${name} worker`);
+    }
+  });
+
+  test(`the ${name} closed list names no secret but the ones the worker needs`, () => {
+    const needed = new Set(["RABBITMQ_PASS", "AI_INFERENCE_KEY", "SPRING_RABBITMQ_PASSWORD"]);
+    for (const v of [...w.list(), ...w.fixed]) {
+      if (/(PASSWORD|SECRET|KEY|TOKEN|PASS)$/.test(v) || /^(DATABASE|IDENTITY|SERVICE)_/.test(v)) assert.ok(needed.has(v), `${v} is a secret the ${name} worker does not need`);
+    }
+    assert.ok(!(name === "validation" && [...w.list(), ...w.fixed].includes("AI_INFERENCE_KEY")), "validation never calls a provider");
+  });
+}
+
+/** Names a Python source reads from the environment: `.get("X")`, `read("X")`, `_first(src, "X", "Y")`, and the ENV_SWITCH constant. */
+function readNames(...files) {
+  const names = new Set();
+  for (const f of files) {
+    const src = root(f);
+    for (const m of src.matchAll(/(?:\.get|read|environ)\(\s*"([A-Z][A-Z0-9_]{3,})"/g)) names.add(m[1]);
+    for (const m of src.matchAll(/_first\(\s*\w+((?:,\s*"[A-Z][A-Z0-9_]+")+)/g)) for (const n of m[1].matchAll(/"([A-Z0-9_]+)"/g)) names.add(n[1]);
+    for (const m of src.matchAll(/^ENV_SWITCH = "([A-Z0-9_]+)"/gm)) names.add(m[1]);
+  }
+  return names;
+}
+
+test("every variable the validation worker reads is in its closed list, or its CA file the script sets itself", () => {
+  const read = readNames("packs/worker-common/worker_broker.py", "packs/document-validation/worker/validation_worker.py", "packs/document-validation/worker/lecture.py");
+  const have = new Set([...WORKERS.validation.list(), ...WORKERS.validation.fixed]);
+  // RABBITMQ_PASSWORD / SPRING_RABBITMQ_PASSWORD are deprecated names (worker warns); the script passes RABBITMQ_PASS only.
+  const deprecated = new Set(["RABBITMQ_PASSWORD", "SPRING_RABBITMQ_PASSWORD", "RABBITMQ_SSL_CA_FILE"]);
+  for (const v of read) assert.ok(have.has(v) || deprecated.has(v), `${v} is read by the validation worker but is not in the closed list`);
+});
+
+test("every variable the hosted-video worker reads on its hosted-only path is in its closed list, or refused on purpose", () => {
+  const read = readNames(...["broker", "asset_sink", "remote_video", "spend", "registration", "activity"].map((m) => `workers/media/app/${m}.py`));
+  const have = new Set([...WORKERS["hosted-video"].list(), ...WORKERS["hosted-video"].fixed]);
+  // Refused on purpose: with neither the worker never registers with the job service and still consumes (registration.py).
+  const refused = new Set(["ORAZAKA_SERVICE_TOKEN", "IDENTITY_JWT_SECRET"]);
+  for (const v of read) assert.ok(have.has(v) || refused.has(v), `${v} is read by the hosted-video worker but is not in the closed list`);
+  for (const v of refused) assert.ok(!have.has(v), `${v} must stay out of the hosted-video worker's environment`);
 });
