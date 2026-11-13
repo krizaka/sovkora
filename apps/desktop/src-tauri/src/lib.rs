@@ -13,7 +13,7 @@ pub use krizaka_rust::{files, scope};
 pub mod settings;
 pub mod sidecar;
 
-use files::{Entry, Listing, Preview};
+use files::{Entry, Limits, Listing, Preview};
 use krizaka_rust::access::Access;
 use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use scope::{ScopeStore, ScopedPath};
@@ -326,6 +326,16 @@ fn run_sidecar(
 
 // ───────────────────────────── file access ─────────────────────────────
 
+/// The limits the settings give the files panel (the kit lowers what exceeds its ceilings). A poisoned lock reads the
+/// kit's defaults: a preview never panics for it.
+fn file_limits(state: &AppState) -> Limits {
+    state
+        .settings
+        .lock()
+        .map(|settings| settings.limits.to_kit())
+        .unwrap_or_default()
+}
+
 fn resolve_readable(state: &AppState, path: &str) -> Res<ScopedPath> {
     let p = Path::new(path);
     if let Ok(ok) = state.scope.lock().unwrap().resolve(p) {
@@ -433,7 +443,7 @@ fn list_dir(state: State<'_, AppState>, path: String) -> Res<Listing> {
         .unwrap()
         .resolve(Path::new(&path))
         .map_err(|e| e.to_string())?;
-    let limits = state.settings.lock().unwrap().limits.to_kit();
+    let limits = file_limits(&state);
     files::list_dir(&dir, &limits).map_err(|e| e.to_string())
 }
 
@@ -442,7 +452,7 @@ fn list_dir(state: State<'_, AppState>, path: String) -> Res<Listing> {
 async fn preview_file(app: AppHandle, path: String) -> Res<Preview> {
     tauri::async_runtime::spawn_blocking(move || {
         let state = app.state::<AppState>();
-        let limits = state.settings.lock().unwrap().limits.to_kit();
+        let limits = file_limits(&state);
         let file = resolve_readable(&state, &path)?;
         files::preview(&file, &limits).map_err(|e| e.to_string())
     })
@@ -998,7 +1008,7 @@ fn send_file(app: &AppHandle, path: &str) -> Res<()> {
     use base64::{engine::general_purpose::STANDARD, Engine};
     use std::io::Read;
     let state = app.state::<AppState>();
-    let max_send = state.settings.lock().unwrap().limits.to_kit().send();
+    let max_send = file_limits(&state).send();
     let scoped = resolve_readable(&state, path)?;
     // One descriptor: the size is checked on the file that is read, never on a path that may have changed.
     let opened = scoped.open().map_err(|e| e.to_string())?;

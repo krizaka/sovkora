@@ -183,19 +183,22 @@ mod tests {
     }
 
     #[test]
-    fn a_settings_file_from_before_the_limits_reads_the_kit_defaults() {
-        let old = r#"{"mode":"remote","remoteUrl":"https://www.orazaka.com","workspaceDir":null,"watched":[],"locale":"en"}"#;
-        let s: Settings = serde_json::from_str(old).unwrap();
+    fn a_settings_file_from_before_the_limits_reads_the_kit_defaults(
+    ) -> Result<(), serde_json::Error> {
+        let old = r#"{"mode":"remote","remoteUrl":"https://sovkora.example","workspaceDir":null,"watched":[],"locale":"en"}"#;
+        let s: Settings = serde_json::from_str(old)?;
         assert_eq!(s.limits, FileLimits::default());
         assert_eq!(s.limits.to_kit(), Limits::default());
         assert_eq!(Limits::default().pdf_preview(), 12 * MB);
         assert_eq!(Limits::default().send(), 50 * MB);
+        Ok(())
     }
 
     #[test]
-    fn the_limits_are_read_in_megabytes_and_the_kit_lowers_what_exceeds_its_ceiling() {
+    fn the_limits_are_read_in_megabytes_and_the_kit_lowers_what_exceeds_its_ceiling(
+    ) -> Result<(), serde_json::Error> {
         let json = r#"{"maxPdfPreviewMb":20,"maxSendMb":100,"maxTextPreviewKb":8,"maxEntries":50}"#;
-        let limits: FileLimits = serde_json::from_str(json).unwrap();
+        let limits: FileLimits = serde_json::from_str(json)?;
         let kit = limits.to_kit();
         assert_eq!(kit.pdf_preview(), 20 * MB);
         assert_eq!(kit.send(), 100 * MB);
@@ -209,5 +212,6 @@ mod tests {
         .to_kit();
         assert_eq!(absurd.send(), 200 * MB);
         assert_eq!(absurd.pdf_preview(), 50 * MB);
+        Ok(())
     }
 }
