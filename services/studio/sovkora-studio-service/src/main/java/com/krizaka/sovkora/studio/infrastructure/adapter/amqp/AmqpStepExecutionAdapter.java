@@ -155,6 +155,12 @@ class AmqpStepExecutionAdapter implements StepExecutionClient {
     // Namespaced under `orazaka.metering.` rather than `orazaka.studio.` so no pack namespace
     // reaches engine code that has to read it [PACK-002].
     payload.put(JobCommand.DEFERRED_METERING_KEY, Boolean.TRUE);
+    // The product the run's key declared, so each provider call of the step is counted under it.
+    // The
+    // run row carries it (the edge's declaration, never a string typed here); a run no product's
+    // key
+    // started says nothing and is counted as unattributed (krizaka-internal#3368).
+    dispatch.productKey().ifPresent(product -> payload.put(JobCommand.SPEND_PRODUCT_KEY, product));
 
     Map<String, Object> command = new HashMap<>();
     command.put(JOB_ID_KEY, jobId);

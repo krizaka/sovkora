@@ -54,6 +54,11 @@ class AmqpStepExecutionAdapterTest {
   }
 
   private StepDispatch dispatch(String featureKey, Optional<PackScopeGuard> scopeGuard) {
+    return dispatch(featureKey, scopeGuard, Optional.empty());
+  }
+
+  private StepDispatch dispatch(
+      String featureKey, Optional<PackScopeGuard> scopeGuard, Optional<String> product) {
     return new StepDispatch(
         RUN,
         "describe",
@@ -68,7 +73,8 @@ class AmqpStepExecutionAdapterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
-        com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE,
+        product);
   }
 
   /**
@@ -104,6 +110,32 @@ class AmqpStepExecutionAdapterTest {
         .containsEntry("stepId", "describe")
         .containsEntry("ordinal", 2)
         .containsEntry("assetId", "a1");
+  }
+
+  @Test
+  @DisplayName("[3368] the product of the run's key travels on the step, as a declaration")
+  void theRunsProductTravelsWithTheStep() {
+    route("media.vision", "job.media.generate");
+
+    adapter.submit(dispatch("media.vision", Optional.empty(), Optional.of("verikora")));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> payload =
+        (Map<String, Object>) capturedCommand("job.media.generate").get("payload");
+    assertThat(payload).containsEntry(JobCommand.SPEND_PRODUCT_KEY, "verikora");
+  }
+
+  @Test
+  @DisplayName("[3368] a run no product's key started declares none")
+  void noProductNoDeclaration() {
+    route("media.vision", "job.media.generate");
+
+    adapter.submit(dispatch("media.vision"));
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> payload =
+        (Map<String, Object>) capturedCommand("job.media.generate").get("payload");
+    assertThat(payload).doesNotContainKey(JobCommand.SPEND_PRODUCT_KEY);
   }
 
   @Test
@@ -265,7 +297,8 @@ class AmqpStepExecutionAdapterTest {
         Optional.empty(),
         Optional.empty(),
         Optional.empty(),
-        com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE);
+        com.krizaka.sovkora.jobs.api.domain.model.DataClass.SENSITIVE,
+        java.util.Optional.empty());
   }
 
   private AmqpStepExecutionAdapter withQueues(Map<String, String> queueByModel) {

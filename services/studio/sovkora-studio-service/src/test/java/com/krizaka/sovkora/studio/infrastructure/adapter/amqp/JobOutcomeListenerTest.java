@@ -27,9 +27,11 @@ class JobOutcomeListenerTest {
     when(dedupService.claim(anyString(), anyString())).thenReturn(true);
 
     listener.onJobOutcome(
-        new JobOutcomeEvent("job-1", Map.of("assetId", "a1"), null, null, null, null), "msg-1");
+        new JobOutcomeEvent("job-1", Map.of("assetId", "a1"), null, null, null, null, null),
+        "msg-1");
 
-    verify(runSagaService).applyOutcome(eq("job-1"), any(), any(), isNull(), isNull(), any());
+    verify(runSagaService)
+        .applyOutcome(eq("job-1"), any(), any(), isNull(), isNull(), any(), any());
   }
 
   @Test
@@ -40,12 +42,12 @@ class JobOutcomeListenerTest {
     when(dedupService.claim(anyString(), anyString())).thenReturn(true);
     org.mockito.Mockito.doThrow(new IllegalStateException("the studio database was unreachable"))
         .when(runSagaService)
-        .applyOutcome(anyString(), any(), any(), any(), any(), any());
+        .applyOutcome(anyString(), any(), any(), any(), any(), any(), any());
 
     org.assertj.core.api.Assertions.assertThatThrownBy(
             () ->
                 listener.onJobOutcome(
-                    new JobOutcomeEvent("job-1", Map.of(), null, null, null, null), "msg-1"))
+                    new JobOutcomeEvent("job-1", Map.of(), null, null, null, null, null), "msg-1"))
         .isInstanceOf(IllegalStateException.class);
 
     verify(dedupService).release("studio-saga", "msg-1");
@@ -56,9 +58,11 @@ class JobOutcomeListenerTest {
   void redeliveryIsDropped() {
     when(dedupService.claim(anyString(), anyString())).thenReturn(false);
 
-    listener.onJobOutcome(new JobOutcomeEvent("job-1", Map.of(), null, null, null, null), "msg-1");
+    listener.onJobOutcome(
+        new JobOutcomeEvent("job-1", Map.of(), null, null, null, null, null), "msg-1");
 
-    verify(runSagaService, never()).applyOutcome(anyString(), any(), any(), any(), any(), any());
+    verify(runSagaService, never())
+        .applyOutcome(anyString(), any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -67,18 +71,20 @@ class JobOutcomeListenerTest {
     when(dedupService.claim(anyString(), anyString())).thenReturn(true);
 
     listener.onJobOutcome(
-        new JobOutcomeEvent("job-1", null, null, null, "MLX out of memory", null), "msg-2");
+        new JobOutcomeEvent("job-1", null, null, null, "MLX out of memory", null, null), "msg-2");
 
     verify(runSagaService)
-        .applyOutcome(eq("job-1"), any(), any(), isNull(), eq("MLX out of memory"), any());
+        .applyOutcome(eq("job-1"), any(), any(), isNull(), eq("MLX out of memory"), any(), any());
   }
 
   @Test
   @DisplayName("A malformed event is ignored rather than dead-lettering the queue")
   void malformedEventIgnored() {
     listener.onJobOutcome(null, "msg-3");
-    listener.onJobOutcome(new JobOutcomeEvent(null, Map.of(), null, null, null, null), "msg-4");
+    listener.onJobOutcome(
+        new JobOutcomeEvent(null, Map.of(), null, null, null, null, null), "msg-4");
 
-    verify(runSagaService, never()).applyOutcome(anyString(), any(), any(), any(), any(), any());
+    verify(runSagaService, never())
+        .applyOutcome(anyString(), any(), any(), any(), any(), any(), any());
   }
 }
