@@ -112,17 +112,21 @@ public class RunSweeper {
 
     // What is left past its ceiling has no re-issue left, or its command never reached the broker
     // (the newest copy is missing or still unpublished): the dispatch is lost.
+    // One row per run, claimed (KIT-003): a run with stale steps in two lanes, or a run another
+    // instance is sweeping, would otherwise release its hold and announce its failure twice.
     List<StaleRun> stale =
         jdbcTemplate.query(
-            "SELECT DISTINCT r.id, r.hold_id, r.actor_id, r.studio_key, r.blueprint_version,"
-                + " r.correlation_id, COALESCE(s.latency_class, ?) AS lane FROM studio_run r"
-                + " JOIN studio_run_step s ON s.run_id = r.id"
-                + " WHERE r.finished_at IS NULL AND s.status = ?"
-                + " AND COALESCE(s.reissued_at, s.started_at) < now() - make_interval(secs => CASE"
-                + "   WHEN COALESCE(s.latency_class, ?) = 'INTERACTIVE' THEN ? ELSE ? END)"
-                + " AND (s.reissues >= ? OR COALESCE((SELECT o.published_at IS NULL"
-                + "   FROM studio_outbox o WHERE o.message_id = s.job_id"
-                + "   ORDER BY o.created_at DESC LIMIT 1), TRUE))",
+            "SELECT r.id, r.hold_id, r.actor_id, r.studio_key, r.blueprint_version,"
+                + " r.correlation_id, s.lane FROM studio_run r"
+                + " JOIN LATERAL (SELECT COALESCE(st.latency_class, ?) AS lane"
+                + "   FROM studio_run_step st WHERE st.run_id = r.id AND st.status = ?"
+                + "   AND COALESCE(st.reissued_at, st.started_at) < now() - make_interval(secs =>"
+                + "     CASE WHEN COALESCE(st.latency_class, ?) = 'INTERACTIVE' THEN ? ELSE ? END)"
+                + "   AND (st.reissues >= ? OR COALESCE((SELECT o.published_at IS NULL"
+                + "     FROM studio_outbox o WHERE o.message_id = st.job_id"
+                + "     ORDER BY o.created_at DESC LIMIT 1), TRUE))"
+                + "   ORDER BY st.started_at LIMIT 1) s ON TRUE"
+                + " WHERE r.finished_at IS NULL FOR UPDATE OF r SKIP LOCKED",
             (rs, rowNum) -> StaleRun.of(rs, rs.getString("lane")),
             DEFAULT_LANE,
             RunStepStatus.RUNNING.name(),
@@ -161,7 +165,7 @@ public class RunSweeper {
             "SELECT id, hold_id, actor_id, studio_key, blueprint_version, correlation_id"
                 + " FROM studio_run"
                 + " WHERE finished_at IS NULL AND status = ?"
-                + " AND started_at < now() - make_interval(secs => ?)",
+                + " AND started_at < now() - make_interval(secs => ?) FOR UPDATE SKIP LOCKED",
             (rs, rowNum) -> StaleRun.of(rs, "RUN"),
             RunStatus.RUNNING.name(),
             maxSeconds);

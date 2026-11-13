@@ -1709,6 +1709,38 @@ class StudioRunLifecycleIT {
     assertTrue(credits.released.isEmpty());
   }
 
+  @Test
+  @DisplayName(
+      "[KIT-003] a run stale in two lanes is claimed and failed once: one release, one failure"
+          + " event")
+  void aRunStaleInTwoLanesIsFailedOnce() {
+    RunDetail run = startRun();
+    credits.released.clear();
+    List<String> jobs = jobsInFlight(run);
+    assertTrue(jobs.size() >= 2, "the fixture fans out to two steps in flight");
+    jdbcTemplate.update(
+        "UPDATE studio_run_step SET started_at = now() - INTERVAL '2 hours', latency_class ="
+            + " CASE WHEN job_id = ? THEN 'INTERACTIVE' ELSE 'BATCH' END"
+            + " WHERE run_id = ? AND status = ?",
+        jobs.getFirst(),
+        run.id(),
+        RunStepStatus.RUNNING.name());
+
+    sweeper().sweep();
+
+    assertSweptAndReleased(run, "its credits come back");
+    assertEquals(
+        1, java.util.Collections.frequency(credits.released, "hold-1"), "released once, not twice");
+    assertEquals(
+        1,
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM studio_outbox WHERE aggregate_id = ?"
+                + " AND event_type = 'evt.studio.run.failed'",
+            Integer.class,
+            run.id().toString()),
+        "one failure announced per run");
+  }
+
   private com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper sweeper() {
     return new com.krizaka.sovkora.studio.infrastructure.adapter.schedule.RunSweeper(
         jdbcTemplate,
