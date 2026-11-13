@@ -29,9 +29,15 @@ describe("the download videos workflow", () => {
 describe("the Mac film of the Download page (krizaka-internal#230)", () => {
   it("calls the desktop film of this repository as a reusable workflow, and hands its artifact to app-videos", () => {
     assert.match(code, /uses: \.\/\.github\/workflows\/desktop-film\.yml/);
-    assert.match(code, /artifacts: \|\n\s+showcase-web\n\s+showcase-mac/);
+    assert.match(code, /needs\.showcase-mac\.result == 'success' && fromJSON\('"showcase-web\\nshowcase-mac"'\)/);
   });
   it("lets the web videos through when the Mac film fails", () => {
     assert.match(code, /!cancelled\(\) && .*needs\.showcase-web\.result == 'success'/);
+  });
+  // A bug means a missing guard: the shared workflow fails on an artifact it cannot find, so a failed Mac film (no artifact)
+  // took the web videos down although the job's `if` let them through (run 43343592822, krizaka-internal#3285).
+  it("names the Mac film's artifact only when its job succeeded, so a failed film leaves only the web videos", () => {
+    assert.match(code, /artifacts: \$\{\{ needs\.showcase-mac\.result == 'success' && .* \|\| 'showcase-web' \}\}/);
+    assert.doesNotMatch(code, /artifacts: \|\n\s+showcase-web\n\s+showcase-mac/);
   });
 });

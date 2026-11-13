@@ -89,9 +89,9 @@ jobs:
     with:
       product: orazaka
       manifest: apps/web/content/app-videos.json
-      artifacts: |
-        showcase-web
-        showcase-mac
+      # The shared workflow downloads every artifact it is given and fails on a missing one: name the Mac film only when its job
+      # succeeded, or a failed film (no artifact) takes the web videos down (run 43343592822, krizaka-internal#3285).
+      artifacts: ${{ needs.showcase-mac.result == 'success' && fromJSON('"showcase-web\nshowcase-mac"') || 'showcase-web' }}
     secrets:
       MEDIA_STORAGE_API_KEY: ${{ secrets.MEDIA_STORAGE_API_KEY }}
       MEDIA_STORAGE_ZONE: ${{ secrets.MEDIA_STORAGE_ZONE }}
