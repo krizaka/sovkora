@@ -218,6 +218,31 @@
       "cwd": "packs/media-safety/worker"
     },
     {
+      "name": "pack worker data-analytics/worker (ci.yml Pack worker)",
+      "paths": [
+        "packs/data-analytics/**"
+      ],
+      "run": [
+        "uv",
+        "run",
+        "--no-project",
+        "--with",
+        "pytest",
+        "--with",
+        "pika",
+        "--with",
+        "pyyaml",
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "test_facts.py",
+        "test_dashboard.py",
+        "test_worker.py"
+      ],
+      "cwd": "packs/data-analytics/worker"
+    },
+    {
       "name": "pack worker echo-toolkit/worker (ci.yml Pack worker)",
       "paths": [
         "packs/echo-toolkit/**"
