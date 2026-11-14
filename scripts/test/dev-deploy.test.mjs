@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import { connectionVars, grantSql, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
+import { assertDevCluster, connectionVars, creditTopUpSql, grantSql, studioEstimate, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
 
 const spec = (name) => readFileSync(new URL(`../../infra/deploy/${name}.app.yaml`, import.meta.url), "utf8");
 
@@ -627,8 +627,8 @@ test("the semantic cache (orazaka-ai-engine#40) is additive, idempotent, OFF on 
   assert.match(readFileSync(new URL("../dev-deploy.mjs", import.meta.url), "utf8"), /command === "semantic-cache"\) semanticCache\(\)/);
 });
 
-test("the Eric persona carries the Studio grants the product shows (compliance-check), the others none", () => {
-  assert.deepEqual(personaAccount().studios, ["compliance-check"]);
+test("the Eric persona carries the Studio grants the product shows (compliance-check, photo, video, data-driven-ui), the others none", () => {
+  assert.deepEqual(personaAccount().studios, ["compliance-check", "art-golden-hour", "video-generation", "data-driven-ui"]);
   assert.equal(personaAccount("mira").studios, undefined);
   assert.match(grantSql("id-1", personaAccount().studios, "persona Eric"), /'studio\.compliance-check'/);
 });
@@ -683,4 +683,35 @@ test("the deployed keyring is written where the services read it (the core crash
   assert.match(config, /\$\{user\.home\}\/\.sovkora\/master\.key/);
   assert.match(script, /"\$HOME\/\.sovkora\/master\.key"/);
   assert.doesNotMatch(script, /\$HOME\/\.orazaka/);
+});
+
+test("Eric's dev credit bound is the sum of the Studios' own estimates (one run of each), never a typed number", () => {
+  const studios = personaAccount().studios;
+  const sum = studios.reduce((n, k) => n + studioEstimate(k), 0);
+  assert.equal(personaAccount().credits, sum);
+  assert.ok(studioEstimate("video-generation") >= 3600 && studioEstimate("art-golden-hour") > 0);
+  assert.equal(personaAccount("mira").credits, undefined);
+  assert.throws(() => studioEstimate("no-such-studio"), /no blueprint/);
+});
+
+test("creditTopUpSql tops the wallet up to the bound only: the difference, one append-only ledger row, nothing when already there (idempotent, refills)", () => {
+  const sql = creditTopUpSql("actor-1", 3830, "persona Eric");
+  assert.match(sql, /^BEGIN;[\s\S]*COMMIT;\n$/);
+  assert.match(sql, /INSERT INTO credit_wallet \(actor_id\) VALUES \('actor-1'\) ON CONFLICT \(actor_id\) DO NOTHING/);
+  assert.match(sql, /w\.available < 3830/, "a wallet at or above the bound changes nothing");
+  assert.match(sql, /3830 - w\.available/, "only the difference is granted, so a refill lands on the bound");
+  assert.match(sql, /INSERT INTO credit_ledger_entry[\s\S]*'ADJUSTMENT', 'GRANTED'/);
+  assert.doesNotMatch(sql, /UPDATE credit_ledger_entry|DELETE/, "the ledger is append-only");
+  assert.throws(() => creditTopUpSql("", 10, "r"), /no actor id/);
+  assert.throws(() => creditTopUpSql("a", 0, "r"), /bound/);
+  assert.throws(() => creditTopUpSql("a", 1.5, "r"), /bound/);
+  assert.match(creditTopUpSql("a'b", 10, "r"), /'a''b'/);
+});
+
+test("the persona seed is refused outside the dev cluster (production never carries a demo persona)", () => {
+  assert.doesNotThrow(() => assertDevCluster("krizaka-dev-pg-do-user-1-0.d.db.ondigitalocean.com"));
+  assert.doesNotThrow(() => assertDevCluster("localhost"));
+  assert.throws(() => assertDevCluster("krizaka-prod-pg.example.com"), /refused/);
+  assert.throws(() => assertDevCluster(undefined), /refused/);
+  assert.throws(() => assertDevCluster("evil.example.com/krizaka-dev-pg"), /refused/);
 });

@@ -346,10 +346,12 @@ const ACCOUNTS = [
  * (RFC 2606, never delivered). Sign-up stays closed: the account is put through the same seed as the QA ones.
  */
 export function personaAccount(name = "eric") {
+  const demoStudios = ["compliance-check", "art-golden-hour", "video-generation", "data-driven-ui"];
   const personas = {
     // `studios`: what the operator grants the demo persona (studio_entitlement_grant), so a recording or a check runs the
     // Studios the product shows (« not entitled to studio compliance-check » otherwise, orazaka-packs#171). Seed = deployed.
-    eric: { username: "Eric", email: "eric.morel@example.com", secret: "PERSONA", studios: ["compliance-check"] },
+    // `credits`: the bound of his dev wallet, one run of each Studio at its own estimate (blueprint `estimatedCredits`), refilled by the seed.
+    eric: { username: "Eric", email: "eric.morel@example.com", secret: "PERSONA", studios: demoStudios, credits: demoStudios.reduce((n, k) => n + studioEstimate(k), 0) },
     mira: { username: "Mira", email: "mira.tremblay@orazaka.test", secret: "MIRA" },
     // The company itself as a customer (Oussama, 2026-10-22): Krizaka is an SME, it uses Orazaka the way an SME would —
     // a plain user on the free plan, in French — to see its own products from the inside. Not a demo persona, not a
@@ -359,6 +361,47 @@ export function personaAccount(name = "eric") {
   const p = personas[name];
   if (!p) throw new Error(`unknown persona: ${name} (eric | mira | krizaka)`);
   return { key: "persona", ...p, tier: "free", roles: ["ROLE_USER"] };
+}
+
+/** The credits one run of a Studio is estimated at: `estimatedCredits` of its published blueprint, in the pack that carries it. */
+export function studioEstimate(studio) {
+  if (!/^[a-z0-9-]+$/.test(studio)) throw new Error(`not a Studio key: ${studio}`);
+  const packs = join(ROOT, "packs");
+  for (const pack of readdirSync(packs, { withFileTypes: true })) {
+    const file = join(packs, pack.name, "studios", studio, "blueprint.json");
+    if (pack.isDirectory() && existsSync(file)) {
+      const n = JSON.parse(readFileSync(file, "utf8")).estimatedCredits;
+      if (!Number.isInteger(n) || n <= 0) throw new Error(`${studio}: estimatedCredits is not a positive integer`);
+      return n;
+    }
+  }
+  throw new Error(`no blueprint for the Studio ${studio}`);
+}
+
+/** The persona seed writes demo data: only the dev cluster (or a local one) is a target, never anything else. */
+export function assertDevCluster(host) {
+  if (!/^(localhost|127\.0\.0\.1|krizaka-dev-pg-[a-z0-9-]+\.[a-z0-9.-]*ondigitalocean\.com)$/.test(host ?? "")) {
+    throw new Error(`persona seed refused: ${host ?? "no host"} is not the dev cluster (demo personas never exist in production)`);
+  }
+}
+
+/**
+ * Tops a wallet up to `bound` credits (GRANTED bucket) with one append-only ledger row for the difference only:
+ * a wallet already at the bound changes nothing, a spent one is refilled to the bound.
+ */
+export function creditTopUpSql(actorId, bound, reason) {
+  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  if (!actorId) throw new Error("no actor id");
+  if (!Number.isInteger(bound) || bound <= 0) throw new Error(`the credit bound must be a positive integer: ${bound}`);
+  return `BEGIN;
+INSERT INTO credit_wallet (actor_id) VALUES (${q(actorId)}) ON CONFLICT (actor_id) DO NOTHING;
+WITH w AS (SELECT balance_granted + balance_purchased - held AS available FROM credit_wallet WHERE actor_id = ${q(actorId)} FOR UPDATE),
+up AS (UPDATE credit_wallet SET balance_granted = balance_granted + (${bound} - w.available), version = version + 1, updated_at = now()
+       FROM w WHERE actor_id = ${q(actorId)} AND w.available < ${bound} RETURNING balance_granted, ${bound} - w.available AS added)
+INSERT INTO credit_ledger_entry (actor_id, entry_type, bucket, amount, balance_after, reference_type, reference_id, idempotency_key, reason, created_by)
+SELECT ${q(actorId)}, 'ADJUSTMENT', 'GRANTED', up.added, up.balance_granted, 'ADMIN', 'dev-deploy', 'adjustment:' || gen_random_uuid(), ${q(reason)}, 'dev-deploy persona' FROM up;
+COMMIT;
+`;
 }
 
 /** The id of a persona's account, found by e-mail (the display name may have been changed by `names`: « Éric »). */
@@ -449,6 +492,7 @@ function storedSecret(key) {
 /** Eric on dev: created or completed, idempotent — a re-run keeps his password (see planPersonaPassword), the credentials stored in @dev only. */
 function seedPersona(name) {
   const env = secrets();
+  assertDevCluster(env.DATABASE_HOST);
   const persona = personaAccount(name);
   const hashNow = psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB",
     ["-t", "-A", "-c", `SELECT password_hash FROM users WHERE lower(email) = lower('${String(persona.email).replace(/'/g, "''")}') LIMIT 1`]).trim();
@@ -460,6 +504,9 @@ function seedPersona(name) {
     const actorId = psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB",
       ["-t", "-A", "-c", personaActorSql(persona)]).trim();
     psql(env, "orazaka_studio_db", "orazaka_studio_db", "DATABASE_PASSWORD_ORAZAKA_STUDIO_DB", [], grantSql(actorId, persona.studios, `persona ${persona.username}`));
+    if (persona.credits) {
+      psql(env, "krizaka_billing_db", "krizaka_billing_db", "DATABASE_PASSWORD_KRIZAKA_BILLING_DB", [], creditTopUpSql(actorId, persona.credits, `Demo persona ${persona.username}: one run of each Studio (dev)`));
+    }
   }
   console.log(`seeded the persona ${persona.username} (${persona.email}) — credentials stored in @dev (APP_QA_ORAZAKA_${persona.secret}_*), never printed`);
 }
