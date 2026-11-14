@@ -18,5 +18,6 @@ test("no local split layout, no radar, no page-local main around the template", 
 });
 
 test("the closed site keeps its disabled preview", () => {
-  assert.match(form, /disabled=\{pending \|\| Boolean\(preview\)\}/);
+  assert.match(form, /const locked = pending \|\| Boolean\(preview\);/);
+  assert.match(form, /disabled=\{locked\}/);
 });
