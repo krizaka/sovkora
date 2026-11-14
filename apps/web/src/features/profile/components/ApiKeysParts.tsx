@@ -90,7 +90,7 @@ export function CreateApiKeyForm({
   isSaving: boolean;
   error: "none" | "limit" | "generic";
   onCancel: () => void;
-  onSubmit: (name: string) => void;
+  onSubmit: (name: string) => Promise<void>;
 }>) {
   const { t } = useTranslation();
   const form = createApiKey.useForm({ onSubmit: ({ name }) => onSubmit(name) });

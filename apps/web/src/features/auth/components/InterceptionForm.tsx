@@ -79,12 +79,13 @@ function InterceptionFormBody({
   const { resolve, isPending } = useResolveInterception({
     interceptionType,
     schemaId,
-    onSuccess: async () => {
+    onSuccess: () => {
       if (session?.user) {
         const updated = (session.user.activeInterceptions || []).filter((id) => id !== schemaId);
-        await update({ activeInterceptions: updated });
-        router.push("/");
-        router.refresh();
+        update({ activeInterceptions: updated }).then(() => {
+          router.push("/");
+          router.refresh();
+        });
       }
     },
     onError: (msg) => {
