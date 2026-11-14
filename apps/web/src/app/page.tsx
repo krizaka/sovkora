@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { cookies } from "next/headers";
-import { LandingPage } from "@/features/landing/components/LandingPage";
+import { ProductLanding } from "@/features/landing/components/ProductLanding";
 import { DashboardHome } from "@/app/_home/DashboardHome";
 import filmRecords from "@/features/landing/utils/film.records.json";
 import { filmFacts } from "@/features/landing/utils/film-records";
@@ -28,5 +28,5 @@ export default async function HomePage() {
   );
   // The film's run facts are summed from its records at build; an unreadable file shows no figure.
   const film = filmFacts(filmRecords);
-  return <LandingPage measured={measured} film={film} />;
+  return <ProductLanding measured={measured} film={film} />;
 }

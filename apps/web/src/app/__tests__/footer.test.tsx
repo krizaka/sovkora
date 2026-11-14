@@ -5,7 +5,7 @@ import { translations, type Locale } from "@/core/context/translations";
 import { AuthFlagsProvider } from "@/core/context/AuthFlagsContext";
 import PrivacyPage from "@/app/privacy/page";
 import TermsPage from "@/app/terms/page";
-import { LandingPage } from "@/features/landing/components/LandingPage";
+import { ProductLanding } from "@/features/landing/components/ProductLanding";
 
 /* One footer, one contentinfo: the public pages end with @krizaka/ui's SiteFooter (LandingFooter) and nothing else — the
    hand-made legal footers of privacy, terms are gone. The signed-in shell (sidebar) has none. */
@@ -34,7 +34,7 @@ beforeAll(() => {
 const FLAGS = { login: false, signup: false, github: false, google: false };
 
 describe.each<[string, React.ReactElement]>([
-  ["/", <LandingPage key="home" />],
+  ["/", <ProductLanding key="home" />],
   ["/privacy", <PrivacyPage key="privacy" />],
   ["/terms", <TermsPage key="terms" />],
 ])("%s", (_route, page) => {

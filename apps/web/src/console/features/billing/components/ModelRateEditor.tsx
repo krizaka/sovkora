@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@krizaka/ui/field";
 import { Button } from "@krizaka/orazaka-design-system";
 import { Card } from "@krizaka/ui/card";
 import type { BillableUnit, MarginPreview } from "@krizaka/orazaka-shared";
@@ -48,17 +49,13 @@ export function ModelRateEditor({
         <fieldset className="grid gap-3 sm:grid-cols-2">
           <label className="block space-y-1.5">
             <span className="text-xs font-medium text-fg-secondary">Unité de mesure</span>
-            <select
-              className="flex h-11 w-full rounded-lg border border-border-subtle bg-surface-2 px-3 text-sm text-fg"
-              value={draft.unit}
-              onChange={(e) => update({ unit: e.target.value as BillableUnit })}
-            >
+            <Select value={draft.unit} onChange={(e) => update({ unit: e.target.value as BillableUnit })}>
               {UNITS.map((unit) => (
                 <option key={unit} value={unit}>
                   {unit}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <BillingField
             label="Crédits par unité"

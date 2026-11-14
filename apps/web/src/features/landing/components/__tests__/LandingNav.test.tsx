@@ -7,7 +7,7 @@ import { ThemeProvider } from "@krizaka/ui/theme";
 import { translations, type Locale } from "@/core/context/translations";
 import { AuthFlagsProvider } from "@/core/context/AuthFlagsContext";
 import type { AuthFlags } from "@/core/config/auth-flags";
-import { LandingPage } from "@/features/landing/components/LandingPage";
+import { ProductLanding } from "@/features/landing/components/ProductLanding";
 import { LandingNav } from "@/features/landing/components/LandingNav";
 import { NAV_GROUPS, navActive } from "@/features/landing/utils/site-nav";
 import { RETIRED_NAME, visibleWords } from "@/core/utils/visible-words.testkit";
@@ -29,7 +29,7 @@ type SessionValue = React.ContextType<typeof SessionContext>;
 const SIGNED_OUT = { data: null, status: "unauthenticated", update: async () => null };
 const mockSession = { current: SIGNED_OUT as SessionValue };
 
-function renderLanding(locale: Locale, page: React.ReactNode = <LandingPage />, flags: AuthFlags = CLOSED) {
+function renderLanding(locale: Locale, page: React.ReactNode = <ProductLanding />, flags: AuthFlags = CLOSED) {
   mockLocale = locale;
   return render(
     <AuthFlagsProvider flags={flags}>
@@ -86,7 +86,7 @@ describe("the information architecture of the public bar", () => {
   });
 
   it("keeps the version out of the bar (it is in the footer)", () => {
-    renderLanding("en", <LandingPage />);
+    renderLanding("en", <ProductLanding />);
     expect(within(bar()).queryByText(/v\d+\.\d+/)).toBeNull();
     expect(screen.getByTestId("app-version").tagName).toBe("FOOTER");
   });
@@ -142,7 +142,7 @@ describe("the public bar names the product, never its code name (krizaka-interna
 
 describe("the mobile panel", () => {
   it("has the bar's groups in the same order, every destination once, no dead link, then Docs", () => {
-    renderLanding("en", <LandingPage />, CLOSED);
+    renderLanding("en", <ProductLanding />, CLOSED);
     fireEvent.click(screen.getByRole("button", { name: nav.openMenu }));
     const groups = within(bar())
       .getAllByRole("group")
@@ -160,7 +160,7 @@ describe("the mobile panel", () => {
   });
 
   it("has an anchor target on the home for every anchor, and every word in both languages", () => {
-    renderLanding("fr", <LandingPage />, CLOSED);
+    renderLanding("fr", <ProductLanding />, CLOSED);
     for (const g of NAV_GROUPS) {
       for (const e of g.entries) {
         if (e.anchor) expect(document.getElementById(e.anchor)).not.toBeNull();
@@ -192,7 +192,7 @@ describe("the language switch", () => {
 
 describe("the footer", () => {
   it("repeats the bar's groups as columns — Product, Platforms, Docs — with every entry of the bar", () => {
-    renderLanding("en", <LandingPage />, CLOSED);
+    renderLanding("en", <ProductLanding />, CLOSED);
     const footer = screen.getByRole("contentinfo");
     const titles = NAV_GROUPS.map((g) => nav[g.id]).concat(nav.docs);
     for (const title of titles) expect(within(footer).getByText(title)).toBeInTheDocument();

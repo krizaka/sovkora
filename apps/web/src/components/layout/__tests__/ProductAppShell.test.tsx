@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { navWords } from "@krizaka/ui/app-frame";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { RETIRED_NAME, visibleWords } from "@/core/utils/visible-words.testkit";
 import { translations } from "@/core/context/translations";
 
@@ -47,7 +47,7 @@ const openMenu = () =>
     key: "Enter",
   });
 
-describe("AppShell (the shared AppFrame)", () => {
+describe("ProductAppShell (the shared AppFrame)", () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockUser.current = {
@@ -58,7 +58,7 @@ describe("AppShell (the shared AppFrame)", () => {
   });
 
   it("puts where you work on the rail, in the app's order, and Settings and Admin under the avatar only", () => {
-    render(<AppShell>page</AppShell>);
+    render(<ProductAppShell>page</ProductAppShell>);
     const words = railWords();
     expect(words).toEqual(expect.arrayContaining(["Studios", "Chat", "Jobs"]));
     expect(words).not.toContain(t.appNav.settings);
@@ -66,7 +66,7 @@ describe("AppShell (the shared AppFrame)", () => {
   });
 
   it("draws the account menu: who you are, the places, Sign out last", () => {
-    render(<AppShell>page</AppShell>);
+    render(<ProductAppShell>page</ProductAppShell>);
     openMenu();
     const menu = screen.getByRole("menu");
     expect(within(menu).getByRole("menuitem", { name: t.profile.title })).toHaveAttribute("href", "/settings/account");
@@ -84,7 +84,7 @@ describe("AppShell (the shared AppFrame)", () => {
       email: "eric@example.com",
       role: "user",
     };
-    render(<AppShell>page</AppShell>);
+    render(<ProductAppShell>page</ProductAppShell>);
     openMenu();
     expect(
       within(screen.getByRole("menu")).queryByRole("menuitem", {
@@ -94,7 +94,7 @@ describe("AppShell (the shared AppFrame)", () => {
   });
 
   it("signs out from the menu and keeps the notifications in the bar", () => {
-    render(<AppShell>page</AppShell>);
+    render(<ProductAppShell>page</ProductAppShell>);
     expect(screen.getByTestId("notif-bell")).toBeInTheDocument();
     openMenu();
     fireEvent.click(screen.getByRole("menuitem", { name: t.appNav.signOut }));
@@ -102,7 +102,7 @@ describe("AppShell (the shared AppFrame)", () => {
   });
 
   it("says Sovkora and never the code name, on a development deployment too (krizaka-internal#2684)", () => {
-    const { container } = render(<AppShell>page</AppShell>);
+    const { container } = render(<ProductAppShell>page</ProductAppShell>);
     expect(visibleWords(container)).toContain("Sovkora");
     expect(visibleWords(container)).not.toMatch(RETIRED_NAME);
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@krizaka/ui/button";
 import { useMemo, useState } from "react";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { StudioCard } from "@/features/docs/components/StudioCard";
@@ -25,15 +26,17 @@ function Chips({
     <fieldset aria-label={name} className="m-0 flex flex-wrap items-center gap-1.5 border-0 p-0">
       <span className={label}>{name}</span>
       {[null, ...values].map((v) => (
-        <button
+        <Button
           key={v ?? "all"}
           type="button"
+          variant="outline"
+          size="sm"
           aria-pressed={current === v}
           onClick={() => onPick(v)}
-          className="rounded-sm border border-border-subtle px-2.5 py-0.5 text-xs text-fg-secondary transition-colors aria-pressed:border-accent aria-pressed:bg-accent/10 aria-pressed:text-fg"
+          className="h-auto rounded-sm border border-border-subtle px-2.5 py-0.5 text-xs text-fg-secondary transition-colors aria-pressed:border-accent aria-pressed:bg-accent/10 aria-pressed:text-fg"
         >
           {v ?? all}
-        </button>
+        </Button>
       ))}
     </fieldset>
   );

@@ -28,7 +28,7 @@ interface CreditsMeterProps {
  * into where the credits come from — the plan's grant, what was bought, what running work holds — and what the plan
  * grants each period.
  */
-export function CreditsMeter({ wallet, available, plan, loading, href }: Readonly<CreditsMeterProps>) {
+export function WalletCreditsMeter({ wallet, available, plan, loading, href }: Readonly<CreditsMeterProps>) {
   const { locale, t } = useTranslation();
   const w = t.insights.credits;
   const numberLocale = INTL_LOCALES[locale];

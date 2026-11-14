@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 
 /**
  * The application shell of the Studios, Packs and Automation sections: the same frame as the dashboard, chat and
@@ -6,8 +6,8 @@ import { AppShell } from "@/components/layout/AppShell";
  */
 export default function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <AppShell>
+    <ProductAppShell>
       <section className="flex-1 overflow-auto scrollbar-thin">{children}</section>
-    </AppShell>
+    </ProductAppShell>
   );
 }

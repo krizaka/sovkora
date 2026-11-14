@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import * as React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { ModelDialog } from "@/app/dashboard/admin/ModelDialog";
 import { CatalogModel } from "@/app/dashboard/admin/CategoryCard";
 
@@ -70,7 +70,7 @@ describe("ModelDialog", () => {
     setFormModel: jest.fn(),
     formMode: "edit" as const,
     saving: false,
-    onSubmit: jest.fn((e) => e.preventDefault()),
+    onSubmit: jest.fn(),
     errorMessage: null as string | null,
     setErrorMessage: jest.fn(),
     providers: ["ollama", "openai", "replicate"],
@@ -171,12 +171,10 @@ describe("ModelDialog", () => {
     expect(defaultProps.setFormModel).toHaveBeenCalled();
   });
 
-  it("triggers onSubmit when submit button clicked", () => {
-    const { container } = render(<ModelDialog {...defaultProps} />);
-    const form = container.querySelector("form");
-    expect(form).not.toBeNull();
-    fireEvent.submit(form!);
-    expect(defaultProps.onSubmit).toHaveBeenCalled();
+  it("triggers onSubmit when the save button is pressed", async () => {
+    render(<ModelDialog {...defaultProps} />);
+    fireEvent.click(screen.getByRole("button", { name: "Save Changes" }));
+    await waitFor(() => expect(defaultProps.onSubmit).toHaveBeenCalledTimes(1));
   });
 
   it("disables buttons and fields when saving is true", () => {

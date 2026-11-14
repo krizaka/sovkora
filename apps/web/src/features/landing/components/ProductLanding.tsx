@@ -41,7 +41,7 @@ const NO_RUNS: MeasuredRuns = { ok: 0, all: 0, models: 0, day: null };
  * where it runs, the products that run on it, the honest comparison, the questions, the closing call. Every word comes
  * from `t.landing` (en/fr); the details live on their pages (/models, /gallery, /desktop, /docs).
  */
-export function LandingPage({
+export function ProductLanding({
   measured = NO_RUNS,
   film = NO_FILM_FACTS,
 }: Readonly<{ measured?: MeasuredRuns; film?: FilmFacts }>) {

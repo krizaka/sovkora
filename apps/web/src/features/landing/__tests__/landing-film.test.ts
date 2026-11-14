@@ -32,7 +32,7 @@ describe("« Made with Sovkora »: the home film and the real outputs on the Stu
   });
 
   it("sits right after the capabilities and before the measured records", () => {
-    const page = read("src/features/landing/components/LandingPage.tsx");
+    const page = read("src/features/landing/components/ProductLanding.tsx");
     expect(page.indexOf("<LandingCapabilities />")).toBeLessThan(page.indexOf("<LandingFilm"));
     expect(page.indexOf("<LandingFilm")).toBeLessThan(page.indexOf("<LandingRecords"));
   });

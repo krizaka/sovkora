@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteFooter } from "@/console/components/SiteFooter";
+import { ConsoleFooter } from "@/console/components/ConsoleFooter";
 import { Providers } from "@/console/core/providers/Providers";
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function ConsoleRootLayout({ children }: Readonly<{ children: Rea
     <div className="min-h-screen bg-surface-0 text-fg">
       <Providers>
         {children}
-        <SiteFooter />
+        <ConsoleFooter />
       </Providers>
     </div>
   );

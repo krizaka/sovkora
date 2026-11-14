@@ -4,7 +4,7 @@ import * as React from "react";
 import { useQuery } from "@krizaka/query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/core/hooks/useAuth";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useJobStream } from "@/core/context/JobStreamContext";
 import { useJobs } from "@/features/jobs/hooks/useJobs";
@@ -122,7 +122,7 @@ function JobsDashboardContent() {
   }
 
   return (
-    <AppShell>
+    <ProductAppShell>
       <main className="flex-1 overflow-auto p-6 scrollbar-thin ambient-grid">
         <section className="mx-auto max-w-6xl space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
           <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -188,7 +188,7 @@ function JobsDashboardContent() {
         copiedId={copiedId}
         onCopy={handleCopy}
       />
-    </AppShell>
+    </ProductAppShell>
   );
 }
 

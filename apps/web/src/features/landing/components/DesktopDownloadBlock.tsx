@@ -3,7 +3,7 @@
 import { DownloadIcon, ExternalIcon } from "@krizaka/icons";
 import { Button } from "@krizaka/ui/button";
 import { useTranslation } from "@/core/context/LocaleContext";
-import { CopyButton } from "@/features/landing/components/CopyButton";
+import { ClipboardCopyButton } from "@/features/landing/components/ClipboardCopyButton";
 import { fill } from "@/core/context/fill";
 import { RELEASES_URL, type DesktopRelease } from "@/features/landing/utils/release";
 
@@ -54,7 +54,7 @@ export function DownloadBlock({
                 <code data-testid="desktop-sha" className="break-all font-mono text-xs text-fg">
                   {release.sha256}
                 </code>
-                <CopyButton
+                <ClipboardCopyButton
                   text={release.sha256}
                   label={d.download.shaCopy}
                   done={d.download.shaCopied}

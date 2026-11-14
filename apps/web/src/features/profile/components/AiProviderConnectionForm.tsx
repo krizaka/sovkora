@@ -4,6 +4,7 @@ import { IconButton } from "@krizaka/ui/button";
 import * as React from "react";
 import { Button, Icon, Input } from "@krizaka/orazaka-design-system";
 import { useTranslation } from "@/core/context/LocaleContext";
+import { ControlledForm } from "@/components/forms/ControlledForm";
 import { ProviderGlyph, type ProviderConfig } from "./AiProviderLogos";
 
 import { cn } from "@krizaka/ui/cn";
@@ -89,10 +90,9 @@ export function ProviderConnectionForm({
   const canSubmit = !!selected && draftKey.trim().length > 0 && !isSaving;
 
   return (
-    <form
+    <ControlledForm
       className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
+      onSubmit={() => {
         if (canSubmit) onSubmit();
       }}
     >
@@ -157,6 +157,6 @@ export function ProviderConnectionForm({
           {mode === "edit" ? t.providers.update : t.settings.saveCredentials}
         </Button>
       </div>
-    </form>
+    </ControlledForm>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@krizaka/ui/button";
 import { cn } from "@krizaka/ui/cn";
 import { useQuery } from "@krizaka/query";
 import { studiosCopy, type StudiosLocale } from "@/console/core/copy/studios";
@@ -39,12 +40,13 @@ export function StudioBuilderScreen({ locale }: Readonly<{ locale?: StudiosLocal
     <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
       <nav className="space-y-1">
         {studios.map((studio) => (
-          <button
+          <Button
             key={studio.studioKey}
             type="button"
+            variant="ghost"
             onClick={() => select(studio.studioKey)}
             className={cn(
-              "block w-full rounded px-3 py-2 text-left text-sm transition-colors",
+              "block h-auto w-full rounded px-3 py-2 text-left text-sm transition-colors",
               selected === studio.studioKey
                 ? "bg-surface-2 font-semibold text-fg"
                 : "text-fg-secondary hover:bg-surface-2",
@@ -52,7 +54,7 @@ export function StudioBuilderScreen({ locale }: Readonly<{ locale?: StudiosLocal
           >
             {studio.label}
             <span className="block font-mono text-[10px] text-fg-muted">{studio.studioKey}</span>
-          </button>
+          </Button>
         ))}
         {studios.length === 0 && <p className="text-sm text-fg-muted">{words.empty}</p>}
       </nav>

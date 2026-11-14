@@ -26,7 +26,10 @@ test("a closed login shows the real form disabled, not only a notice", async () 
   const form = readFileSync(new URL("../../app/console/login/LoginForm.tsx", import.meta.url), "utf8");
   assert.doesNotMatch(page, /LoginClosed/);
   assert.match(page, /<LoginForm\s+preview=/);
-  assert.match(form, /disabled=\{pending \|\| Boolean\(preview\)\}/);
+  // The fields are locked while pending or in the closed preview; the submit button is disabled in the preview.
+  assert.match(form, /const locked = pending \|\| Boolean\(preview\);/);
+  assert.match(form, /disabled=\{locked\}/);
+  assert.match(form, /<form\.Submit[^>]*disabled=\{Boolean\(preview\)\}/);
   // The preview never reaches next-auth: submitting is a no-op.
-  assert.match(form, /if \(preview\) return;/);
+  assert.match(form, /if \(preview\) \{\s*return;\s*\}/);
 });

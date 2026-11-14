@@ -10,11 +10,19 @@ import * as React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@krizaka/ui/button";
-import { Field, Input } from "@krizaka/ui/field";
+import { createKrizakaForm } from "@krizaka/ui/form";
+import { z } from "zod";
+import { InputField } from "@/features/auth/components/InputField";
 import { AuthScreen } from "@/features/auth/components/AuthScreen";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useVerifyEmail } from "@/features/auth/hooks/useVerifyEmail";
 import { AuthGate } from "@/features/auth/components/AuthGate";
+
+/** The activation token, typed when the link did not carry it. */
+const verifyForm = createKrizakaForm({
+  schema: z.object({ token: z.string() }),
+  defaultValues: { token: "" },
+});
 
 function VerifyPageContent() {
   const searchParams = useSearchParams();
@@ -22,24 +30,22 @@ function VerifyPageContent() {
   const { t } = useTranslation();
   const tokenParam = searchParams.get("token");
 
-  const [token, setToken] = React.useState("");
   const { verify, status, errorMsg } = useVerifyEmail();
+  const form = verifyForm.useForm({
+    defaultValues: { token: tokenParam ?? "" },
+    onSubmit: ({ token }) => {
+      if (token.trim()) {
+        verify(token);
+      }
+    },
+  });
 
   // If token parameter exists in URL, trigger verification automatically
   React.useEffect(() => {
     if (tokenParam) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setToken(tokenParam);
       verify(tokenParam);
     }
   }, [tokenParam, verify]);
-
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (token.trim()) {
-      verify(token);
-    }
-  };
 
   const heading = {
     loading: { title: t.verify.loadingMessage, description: undefined },
@@ -63,26 +69,21 @@ function VerifyPageContent() {
       )}
 
       {(status === "error" || status === "idle") && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Field.Root>
-            <Field.Label htmlFor="verify-token">
-              {status === "error" ? t.verify.enterTokenManually : t.verify.tokenLabel}
-            </Field.Label>
-            <Input
-              id="verify-token"
-              type="text"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder={t.verify.tokenPlaceholder}
-              autoComplete="one-time-code"
-              required
-              invalid={status === "error"}
-            />
-          </Field.Root>
-          <Button type="submit" variant="primary" size="lg" className="w-full">
+        <form.Form className="flex flex-col gap-4">
+          <InputField
+            name="token"
+            id="verify-token"
+            label={status === "error" ? t.verify.enterTokenManually : t.verify.tokenLabel}
+            type="text"
+            placeholder={t.verify.tokenPlaceholder}
+            autoComplete="one-time-code"
+            required
+            invalid={status === "error"}
+          />
+          <form.Submit variant="primary" size="lg" className="w-full">
             {status === "error" ? t.verify.retryVerification : t.verify.activateAccount}
-          </Button>
-        </form>
+          </form.Submit>
+        </form.Form>
       )}
     </AuthScreen>
   );

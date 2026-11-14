@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@krizaka/ui/button";
 import { cn } from "@krizaka/ui/cn";
 import { useState, useSyncExternalStore } from "react";
 import { VideoSources } from "@/core/clips/VideoSources";
@@ -59,10 +60,11 @@ export function AppVideoPlayer({ poster, webm, mp4, width, height, play, label, 
           ))}
         </video>
       ) : (
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={() => setOn(true)}
-          className="group absolute inset-0 size-full cursor-pointer"
+          className="group absolute inset-0 size-full h-full cursor-pointer rounded-none p-0"
           aria-label={`${play}: ${label}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element -- a CDN poster in a box of fixed shape */}
@@ -80,7 +82,7 @@ export function AppVideoPlayer({ poster, webm, mp4, width, height, play, label, 
               {play}
             </span>
           </span>
-        </button>
+        </Button>
       )}
     </div>
   );
