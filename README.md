@@ -119,6 +119,8 @@ The users and billing services come from [krizaka-java](https://github.com/kriza
 `build/sovkora-parent/pom.xml` imports (`krizaka.version`). The local stack and the docs generator read it from
 `.krizaka-java/`, a checkout of that tag (git-ignored).
 
+Before a push, `krizaka-precheck` runs the tests [`precheck.json`](precheck.json) declares for the paths you changed (the CI gate's own commands, Maven under the heavy lock).
+
 | Part | Build and test it |
 |:---|:---|
 | One Java module | `./mvnw verify -pl services/studio/sovkora-studio-service -am` (and `-amd` for what depends on it) |
