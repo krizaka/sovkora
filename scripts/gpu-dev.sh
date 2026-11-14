@@ -165,7 +165,7 @@ host_env = (f"PROFILE={profile}\nWORKER_IMAGE={worker}\nCHISEL_IMAGE={chisel}\nR
             f"IDLE_MINUTES={idle}\nMAX_HOURS={max_hours}\nOLLAMA_IMAGE={ollama}\nOLLAMA_MODELS=\"{ollama_models}\"\n"
             f"SERVICES={os.environ.get('GPU_SERVICES', 'all')}\n")
 worker_env = (f"SPRING_RABBITMQ_USERNAME=gpu-worker\nSPRING_RABBITMQ_PASSWORD={os.environ['RABBIT_PASSWORD']}\n"
-              f"ORAZAKA_SERVICE_TOKEN={os.environ['SERVICE_TOKEN']}\n")
+              f"SOVKORA_SERVICE_TOKEN={os.environ['SERVICE_TOKEN']}\n")
 relay_env = f"AUTH=gpu:{os.environ['RELAY_PASSWORD']}\n"
 parts = ["#cloud-config\n", "ssh_pwauth: false\n", f"ssh_authorized_keys:\n  - {pubkey}\n", "write_files:\n",
          file("/opt/orazaka-gpu/host.sh", open(f"{root}/infra/gpu/host.sh").read(), "0750"),
@@ -383,7 +383,7 @@ with os.fdopen(fd, "w") as handle:
         "SPRING_RABBITMQ_HOST=127.0.0.1\nSPRING_RABBITMQ_PORT=15671\nSPRING_RABBITMQ_USERNAME=gpu-worker\n"
         f"SPRING_RABBITMQ_SSL_ENABLED=true\nSPRING_RABBITMQ_SSL_CA_FILE={sys.argv[2]}\nSPRING_RABBITMQ_SSL_SERVER_NAME=broker-dev.orazaka.com\n"
         f"SPRING_RABBITMQ_PASSWORD={os.environ['RABBIT_PASSWORD']}\n"
-        f"ORAZAKA_SERVICE_TOKEN={os.environ['SERVICE_TOKEN']}\n"
+        f"SOVKORA_SERVICE_TOKEN={os.environ['SERVICE_TOKEN']}\n"
         "MEDIA_ASSET_SINK_URL=http://127.0.0.1:18090\nJOB_SERVICE_INTERNAL_URL=http://127.0.0.1:18090\n"
     )
     if os.environ.get("INFERENCE_KEY"):

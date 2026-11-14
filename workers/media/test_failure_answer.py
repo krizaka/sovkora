@@ -123,3 +123,14 @@ def test_a_speech_failure_answers_with_the_type_name_never_the_text_it_was_readi
     assert code == 500
     assert json.loads(payload) == {"error": "speech failed: RuntimeError"}
     assert MARK.encode() not in payload
+
+
+def test_an_asset_sink_failure_carries_its_message_which_names_the_cause():
+    import app.consumer as consumer
+    from app import asset_sink
+
+    refused = asset_sink.AssetSinkError("the job service refused the upload (400)")
+    sent, out = _deliver(consumer, "media-sink", refused)
+    assert sent.call_args.args[:2] == ("media-sink", "AssetSinkError: the job service refused the upload (400)")
+    assert sent.call_args.kwargs["cause"] == consumer.EXECUTOR_FAULT
+    assert "the job service refused the upload (400)" in out

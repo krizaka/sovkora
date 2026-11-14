@@ -178,7 +178,7 @@ concurrency: 1
 It reads that file at boot, **binds its queues from it**, and posts it to
 `POST /internal/v1/workers`, then `POST /internal/v1/workers/{name}/heartbeat` periodically
 (30 s is the reference cadence; the platform's staleness horizon is several multiples of it).
-Both require the `SERVICE` bearer token (ADR-035), supplied as `ORAZAKA_SERVICE_TOKEN`.
+Both require the `SERVICE` bearer token (ADR-035), supplied as `SOVKORA_SERVICE_TOKEN`.
 
 > **Registration MUST NOT be a startup dependency.** A worker that cannot reach the job service MUST
 > keep consuming. The registry is an availability signal, never an authorisation — dispatch is

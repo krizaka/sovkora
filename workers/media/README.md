@@ -45,7 +45,7 @@ What the deployment declares (never assumed):
 | `MEDIA_GPU_PROFILE` | `big` or `small`: the host's default video model (`models.yaml` profiles) |
 | `MEDIA_VIDEO_DEFAULT_MODEL` | overrides that default |
 | `MEDIA_ASSET_SINK_URL` | the job service; outputs are handed to it (sealed there) instead of kept on this disk |
-| `ORAZAKA_SERVICE_TOKEN` | a short-lived `SERVICE` token for the hand-over and the worker registry |
+| `SOVKORA_SERVICE_TOKEN` | a short-lived `SERVICE` token for the hand-over and the worker registry |
 | `MEDIA_ACTIVITY_FILE` | touched at each job's start and end, for the host's idle watchdog |
 | `MEDIA_VIDEO_OFFLOAD` | `auto` (default), `true`, `false`: diffusers model offload |
 

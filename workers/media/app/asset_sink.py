@@ -25,6 +25,21 @@ from app.registration import _service_token
 #: An output file name: a word, never a path. The job service checks it again.
 _FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 
+#: How much of the job service's own reason is carried into the error: enough to name it, never a body dump.
+_REASON_LIMIT = 200
+
+
+def _refusal(what: str, refused: urllib.error.HTTPError) -> AssetSinkError:
+    """``what`` + the status + the reason the job service gave (``{"error": ...}``), so the cause is readable."""
+    try:
+        body = json.loads(refused.read().decode("utf-8") or "{}")
+        reason = body.get("error") if isinstance(body, dict) else None
+    except (OSError, ValueError):
+        reason = None
+    suffix = f": {str(reason)[:_REASON_LIMIT]}" if reason else ""
+    return AssetSinkError(f"{what} ({refused.code}){suffix}")
+
+
 #: Error message when the deployment has not declared the asset sink URL.
 _SINK_URL_NOT_SET = "MEDIA_ASSET_SINK_URL is not set"
 
@@ -60,7 +75,7 @@ def upload(path: str, job: dict, filename: str, content_type: str, env: dict | N
         raise AssetSinkError(f"refusing to upload under the name {filename!r}")
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (ORAZAKA_SERVICE_TOKEN) to authenticate the upload")
+        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to authenticate the upload")
     with open(path, "rb") as handle:
         data = handle.read()
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service, never caller-supplied
@@ -70,16 +85,16 @@ def upload(path: str, job: dict, filename: str, content_type: str, env: dict | N
         headers={
             "Content-Type": content_type,
             "Authorization": f"Bearer {token}",
-            "X-Orazaka-User-Id": str(job.get("userId") or ""),
-            "X-Orazaka-Feature-Key": str(job.get("featureKey") or ""),
-            "X-Orazaka-Data-Class": str(job.get("dataClass") or ""),
+            "X-Sovkora-User-Id": str(job.get("userId") or ""),
+            "X-Sovkora-Feature-Key": str(job.get("featureKey") or ""),
+            "X-Sovkora-Data-Class": str(job.get("dataClass") or ""),
         },
     )
     try:
         with urllib.request.urlopen(request, timeout=300) as response:  # noqa: S310 — see above
             body = json.loads(response.read().decode("utf-8") or "{}")
     except urllib.error.HTTPError as refused:
-        raise AssetSinkError(f"the job service refused the upload ({refused.code})") from refused
+        raise _refusal("the job service refused the upload", refused) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the upload: {unreachable}") from unreachable
     url = body.get("url")
@@ -105,17 +120,17 @@ def fetch_image(job: dict, target: str, env: dict | None = None, asset: str | No
         raise AssetSinkError(_SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (ORAZAKA_SERVICE_TOKEN) to fetch the starting image")
+        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to fetch the starting image")
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service, never caller-supplied
         f"{base}/internal/v1/jobs/{job['jobId']}/input/image" + (f"?asset={asset}" if asset else ""),
         method="GET",
-        headers={"Authorization": f"Bearer {token}", "X-Orazaka-User-Id": str(job.get("userId") or "")},
+        headers={"Authorization": f"Bearer {token}", "X-Sovkora-User-Id": str(job.get("userId") or "")},
     )
     try:
         with urllib.request.urlopen(request, timeout=120) as response:  # noqa: S310 — see above
             data = response.read()
     except urllib.error.HTTPError as refused:
-        raise AssetSinkError(f"the job service has no starting image for this job ({refused.code})") from refused
+        raise _refusal("the job service has no starting image for this job", refused) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the starting image: {unreachable}") from unreachable
     if not data:
@@ -139,7 +154,7 @@ def parse_asset_url(reference: str):
 def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict | None = None) -> str | None:
     """Reads back one output of the acting user's from the job service into ``destination``.
 
-    The job service answers only for the job's owner (``X-Orazaka-User-Id``); anyone else's is a 404, which
+    The job service answers only for the job's owner (``X-Sovkora-User-Id``); anyone else's is a 404, which
     is returned as ``None`` — *not found*, like a file that does not exist.
 
     Raises:
@@ -150,11 +165,11 @@ def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict 
         raise AssetSinkError(_SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (ORAZAKA_SERVICE_TOKEN) to read the output")
+        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to read the output")
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service
         f"{base}/internal/v1/jobs/{job_id}/output/{filename}",
         method="GET",
-        headers={"Authorization": f"Bearer {token}", "X-Orazaka-User-Id": str(user_id or "")},
+        headers={"Authorization": f"Bearer {token}", "X-Sovkora-User-Id": str(user_id or "")},
     )
     try:
         with urllib.request.urlopen(request, timeout=300) as response:  # noqa: S310 — see above
@@ -162,7 +177,7 @@ def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict 
     except urllib.error.HTTPError as refused:
         if refused.code == 404:
             return None
-        raise AssetSinkError(f"the job service refused the read ({refused.code})") from refused
+        raise _refusal("the job service refused the read", refused) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the read: {unreachable}") from unreachable
     os.makedirs(destination, exist_ok=True)
