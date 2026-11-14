@@ -81,9 +81,7 @@ def exchanges_passive(env: dict | None = None) -> bool:
 
 def declare_exchange(channel, name: str, kind: str, env: dict | None = None) -> None:
     """Declares one of the platform's exchanges, or only checks it exists when :func:`exchanges_passive` says so."""
-    channel.exchange_declare(
-        exchange=name, exchange_type=kind, durable=True, passive=exchanges_passive(env)
-    )
+    channel.exchange_declare(exchange=name, exchange_type=kind, durable=True, passive=exchanges_passive(env))
 
 
 def describe(params: pika.ConnectionParameters) -> str:

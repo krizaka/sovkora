@@ -19,22 +19,26 @@ from pathlib import Path
 
 import pika
 import pika.exceptions
+import pytest
 
 from app import broker
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOL = ROOT / "scripts" / "gpu-pod-broker.py"
-IMAGE = os.environ.get(
-    "GPU_POD_BROKER_TEST_IMAGE", "rabbitmq:4.2-alpine"
-)  # infra/deploy/broker/cloud-init.yaml
+IMAGE = os.environ.get("GPU_POD_BROKER_TEST_IMAGE", "rabbitmq:4.2-alpine")  # infra/deploy/broker/cloud-init.yaml
 KEY = "20261114120000-a1b2c3"
 ADMIN = ("platform", "platform-test-password")
 
 
 def _run(*args: str, stdin: str | None = None) -> subprocess.CompletedProcess:
-    return subprocess.run(
-        list(args), input=stdin, capture_output=True, text=True, check=False, timeout=180
-    )
+    return subprocess.run(list(args), input=stdin, capture_output=True, text=True, check=False, timeout=180)  # noqa: S603 — the test's own docker commands
+
+
+def _serve_until_closed(connection: pika.BlockingConnection, seconds: float) -> None:
+    """Serves the connection's events until the broker closes it (raises) or ``seconds`` pass (returns)."""
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        connection.process_data_events(time_limit=0.5)
 
 
 class PodBrokerUser(unittest.TestCase):
@@ -42,39 +46,23 @@ class PodBrokerUser(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # test_main replaces sys.modules["pika"] with a mock; this suite must hold the real client (it runs first in CI).
-        assert isinstance(pika.BlockingConnection, type), (
-            "pika is mocked: run this suite before test_main"
-        )
-        assert shutil.which("docker"), (
-            "docker is required for the broker integration test (no skip)"
-        )
+        # test_main replaces sys.modules["pika"] with a mock: this suite must hold the real client (it runs first).
+        assert isinstance(pika.BlockingConnection, type), "pika is mocked: run this suite before test_main"
+        assert shutil.which("docker"), "docker is required for the broker integration test (no skip)"
         cls.container = f"sovkora-pod-broker-{uuid.uuid4().hex[:8]}"
-        started = _run(
-            "docker", "run", "-d", "--name", cls.container, "-p", "127.0.0.1::5672", IMAGE
-        )
+        started = _run("docker", "run", "-d", "--name", cls.container, "-p", "127.0.0.1::5672", IMAGE)
         assert started.returncode == 0, started.stderr
         cls.shell = f"docker exec -i {cls.container} sh -s"
         # Wait for the server's own word: a rabbitmqctl started before the node is up can break its distribution start.
         deadline = time.monotonic() + 120
         while True:
             ready = _run("docker", "logs", cls.container)
-            if (
-                "Server startup complete" in ready.stdout + ready.stderr
-                or time.monotonic() > deadline
-            ):
+            if "Server startup complete" in ready.stdout + ready.stderr or time.monotonic() > deadline:
                 break
             time.sleep(1)
-        ready = _run(
-            "docker", "exec", cls.container, "rabbitmqctl", "await_startup", "--timeout", "60"
-        )
+        ready = _run("docker", "exec", cls.container, "rabbitmqctl", "await_startup", "--timeout", "60")
         assert ready.returncode == 0, ready.stderr
-        port = (
-            _run("docker", "port", cls.container, "5672/tcp")
-            .stdout.strip()
-            .splitlines()[0]
-            .rsplit(":", 1)[1]
-        )
+        port = _run("docker", "port", cls.container, "5672/tcp").stdout.strip().splitlines()[0].rsplit(":", 1)[1]
         cls.port = int(port)
         made = _run(
             "docker",
@@ -96,9 +84,7 @@ class PodBrokerUser(unittest.TestCase):
             channel.exchange_declare(exchange="orazaka.dlx", exchange_type="direct", durable=True)
             channel.exchange_declare(exchange="orazaka.events", exchange_type="topic", durable=True)
             channel.queue_declare(queue="orazaka.jobs.interactive", durable=True)
-            channel.queue_bind(
-                queue="orazaka.jobs.interactive", exchange="orazaka.jobs", routing_key="job.text.*"
-            )
+            channel.queue_bind(queue="orazaka.jobs.interactive", exchange="orazaka.jobs", routing_key="job.text.*")
 
     @classmethod
     def tearDownClass(cls):
@@ -115,7 +101,7 @@ class PodBrokerUser(unittest.TestCase):
         return pika.BlockingConnection(broker.connection_parameters(env))
 
     def _tool(self, *args: str) -> subprocess.CompletedProcess:
-        return subprocess.run(
+        return subprocess.run(  # noqa: S603 — the repository's own script
             [sys.executable, str(TOOL), *args],
             capture_output=True,
             text=True,
@@ -126,20 +112,20 @@ class PodBrokerUser(unittest.TestCase):
 
     def _pod(self, key: str = KEY) -> tuple[str, str]:
         made = self._tool("create", key)
-        self.assertEqual(made.returncode, 0, made.stderr)
+        assert made.returncode == 0, made.stderr
         user, password = made.stdout.split()
-        self.assertEqual(user, f"gpu-pod-{key}")
+        assert user == f"gpu-pod-{key}"
         return user, password
 
     def _refused(self, action) -> None:
         """Runs ``action(channel)`` on a fresh channel of the pod and expects the broker's 403."""
         connection = self._connect(*self.pod)
         try:
-            with self.assertRaises(pika.exceptions.ChannelClosedByBroker) as closed:
-                channel = connection.channel()
-                channel.confirm_delivery()
+            channel = connection.channel()
+            channel.confirm_delivery()
+            with pytest.raises(pika.exceptions.ChannelClosedByBroker) as closed:
                 action(channel)
-            self.assertEqual(closed.exception.reply_code, 403, closed.exception.reply_text)
+            assert closed.value.reply_code == 403, closed.value.reply_text
         finally:
             if connection.is_open:
                 connection.close()
@@ -180,9 +166,7 @@ class PodBrokerUser(unittest.TestCase):
             channel.queue_declare(queue=cancel, exclusive=True, auto_delete=True)
             channel.queue_bind(queue=cancel, exchange="orazaka.jobs", routing_key="job.cancel.*")
             for event in ("progress", "done", "error", "cancelled"):
-                channel.basic_publish(
-                    exchange="orazaka.events", routing_key=f"job.job-1.{event}", body=b"{}"
-                )
+                channel.basic_publish(exchange="orazaka.events", routing_key=f"job.job-1.{event}", body=b"{}")
         finally:
             connection.close()
 
@@ -190,37 +174,23 @@ class PodBrokerUser(unittest.TestCase):
         self.pod = self._pod("20261114120001-a1b2c3")
         try:
             # A shared exchange is the platform's: declaring it for real is the right to delete it.
-            self._refused(
-                lambda c: c.exchange_declare(
-                    exchange="orazaka.jobs", exchange_type="topic", durable=True
-                )
-            )
+            self._refused(lambda c: c.exchange_declare(exchange="orazaka.jobs", exchange_type="topic", durable=True))
             self._refused(lambda c: c.exchange_delete(exchange="orazaka.jobs"))
             # Another lane's queue: neither read nor removed.
             self._refused(
-                lambda c: c.basic_consume(
-                    queue="orazaka.jobs.interactive", on_message_callback=lambda *_: None
-                )
+                lambda c: c.basic_consume(queue="orazaka.jobs.interactive", on_message_callback=lambda *_: None)
             )
             self._refused(lambda c: c.queue_delete(queue="orazaka.jobs.interactive"))
+            self._refused(lambda c: c.queue_declare(queue="orazaka.billing.settlements", durable=True))
+            # Only the job lifecycle keys on the events exchange: no forged billing or capability event.
             self._refused(
-                lambda c: c.queue_declare(queue="orazaka.billing.settlements", durable=True)
-            )
-            # Only the job lifecycle keys on orazaka.events: no forged billing or capability event, nothing on orazaka.jobs.
-            self._refused(
-                lambda c: c.basic_publish(
-                    exchange="orazaka.events", routing_key="evt.billing.settled", body=b"{}"
-                )
+                lambda c: c.basic_publish(exchange="orazaka.events", routing_key="evt.billing.settled", body=b"{}")
             )
             self._refused(
-                lambda c: c.basic_publish(
-                    exchange="orazaka.events", routing_key="evt.capability.changed", body=b"{}"
-                )
+                lambda c: c.basic_publish(exchange="orazaka.events", routing_key="evt.capability.changed", body=b"{}")
             )
             self._refused(
-                lambda c: c.basic_publish(
-                    exchange="orazaka.jobs", routing_key="job.text.generate", body=b"{}"
-                )
+                lambda c: c.basic_publish(exchange="orazaka.jobs", routing_key="job.text.generate", body=b"{}")
             )
         finally:
             self._tool("delete", "20261114120001-a1b2c3")
@@ -232,37 +202,34 @@ class PodBrokerUser(unittest.TestCase):
         user, password = self._pod(key)
         held = self._connect(user, password)
         ended = self._tool("delete", key)
-        self.assertEqual(ended.returncode, 0, ended.stderr)
-        with self.assertRaises(pika.exceptions.ProbableAuthenticationError):
+        assert ended.returncode == 0, ended.stderr
+        with pytest.raises(pika.exceptions.ProbableAuthenticationError):
             self._connect(user, password)
-        deadline = time.monotonic() + 15
-        with self.assertRaises(pika.exceptions.AMQPConnectionError):
-            while time.monotonic() < deadline:
-                held.process_data_events(time_limit=0.5)
-        self.assertFalse(held.is_open)
+        with pytest.raises(pika.exceptions.AMQPConnectionError):
+            _serve_until_closed(held, seconds=15)
+        assert not held.is_open
 
     def test_4_the_sweep_ends_the_users_of_pods_that_are_gone_and_keeps_the_live_ones(self):
         live, gone = "20261114120003-a1b2c3", "20261114120004-a1b2c3"
         self._pod(live)
         gone_user, gone_password = self._pod(gone)
         swept = self._tool("sweep", f"orazaka-gpu-big-{live}")
-        self.assertEqual(swept.returncode, 0, swept.stderr)
-        self.assertIn(f"gpu-pod-{gone}", swept.stdout)
-        self.assertNotIn(f"gpu-pod-{live}", swept.stdout)
-        with self.assertRaises(pika.exceptions.ProbableAuthenticationError):
+        assert swept.returncode == 0, swept.stderr
+        assert f"gpu-pod-{gone}" in swept.stdout
+        assert f"gpu-pod-{live}" not in swept.stdout
+        with pytest.raises(pika.exceptions.ProbableAuthenticationError):
             self._connect(gone_user, gone_password)
         self._tool("delete", live)
 
     def test_5_a_refused_create_prints_no_credential(self):
         key = "20261114120005-a1b2c3"
         self._pod(key)
-        made = self._tool(
-            "create", key
-        )  # the user exists: rabbitmqctl refuses, the launcher gets nothing to hand out
+        # The user exists: rabbitmqctl refuses, and the launcher gets nothing to hand out.
+        made = self._tool("create", key)
         self._tool("delete", key)
-        self.assertEqual(made.returncode, 1)
-        self.assertNotIn("PASSWORD", made.stderr)
-        self.assertEqual(made.stdout, "")
+        assert made.returncode == 1
+        assert "PASSWORD" not in made.stderr
+        assert made.stdout == ""
 
 
 if __name__ == "__main__":

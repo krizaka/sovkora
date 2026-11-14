@@ -9,9 +9,10 @@
   gpu-pod-broker.py scope               prints the permissions a pod user gets (the tests read them)
 
 Everything goes through RabbitMQ's own CLI, rabbitmqctl, run by the shell GPU_BROKER_SHELL names: a command that runs
-`sh -s` where rabbitmqctl is — `ssh root@<broker> docker exec -i rabbitmq sh -s` (gpu-dev.sh), `docker exec -i <c> sh -s`
-in the tests. The script travels on stdin, the password in a here-document: never an argument, never on a command
-line of either machine. The admin side (the ssh key that reaches the broker) never leaves this machine.
+`sh -s` where rabbitmqctl is — `ssh root@<broker> docker exec -i rabbitmq sh -s` (gpu-dev.sh),
+`docker exec -i <c> sh -s` in the tests. The script travels on stdin, the password in a here-document: never an
+argument, never on a command line of either machine. The admin side (the ssh key that reaches the broker) never
+leaves this machine.
 
 The scope, against the shared gpu-worker user (configure, write and read on every name of the platform, deletion
 included): the pod may declare, bind and consume only the media worker's own lanes and its own cancel queue, check the
@@ -66,9 +67,8 @@ def _shell(script):
     if not command:
         raise BrokerError("GPU_BROKER_SHELL is not set: no way to reach the broker's rabbitmqctl")
     try:
-        done = subprocess.run(
-            command, input=script, capture_output=True, text=True, check=False, timeout=120
-        )
+        # The operator's own command (GPU_BROKER_SHELL), never a caller's input.
+        done = subprocess.run(command, input=script, capture_output=True, text=True, check=False, timeout=120)  # noqa: S603
     except subprocess.TimeoutExpired as error:
         raise BrokerError("rabbitmqctl did not answer in 120 s") from error
     if done.returncode != 0:
@@ -85,8 +85,10 @@ def create_script(user, password):
             f"rabbitmqctl add_user {q(user)} >/dev/null <<'PASSWORD'",
             password,
             "PASSWORD",
-            f"rabbitmqctl -q set_permissions -p {q(VHOST)} {q(user)} {q(SCOPE['configure'])} {q(SCOPE['write'])} {q(SCOPE['read'])}",
-            f"rabbitmqctl -q set_topic_permissions -p {q(VHOST)} {q(user)} {q(EVENTS)} {q(TOPIC['write'])} {q(TOPIC['read'])}",
+            f"rabbitmqctl -q set_permissions -p {q(VHOST)} {q(user)} "
+            f"{q(SCOPE['configure'])} {q(SCOPE['write'])} {q(SCOPE['read'])}",
+            f"rabbitmqctl -q set_topic_permissions -p {q(VHOST)} {q(user)} {q(EVENTS)} "
+            f"{q(TOPIC['write'])} {q(TOPIC['read'])}",
             "",
         ]
     )
@@ -126,9 +128,7 @@ def pod_users():
 
 def orphans(users, live_names):
     """The pod users no live pod carries: a live pod's name ends with its key."""
-    return [
-        u for u in users if not any(name.endswith("-" + u[len(PREFIX) :]) for name in live_names)
-    ]
+    return [u for u in users if not any(name.endswith("-" + u[len(PREFIX) :]) for name in live_names)]
 
 
 def sweep(live_names):
