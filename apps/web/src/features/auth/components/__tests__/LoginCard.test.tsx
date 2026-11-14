@@ -11,9 +11,7 @@ jest.mock(
       return <a {...props}>{children}</a>;
     },
 );
-jest.mock("@/features/auth/components/AuthScreen", () => ({
-  AuthScreen: ({ children }: { children: ReactNode }) => <main>{children}</main>,
-}));
+jest.mock("@/features/auth/components/AuthScreen");
 jest.mock("@/core/context/LocaleContext", () => ({
   useTranslation: () => ({
     t: {

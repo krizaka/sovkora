@@ -82,7 +82,7 @@ function InterceptionFormBody({
     onSuccess: () => {
       if (session?.user) {
         const updated = (session.user.activeInterceptions || []).filter((id) => id !== schemaId);
-        update({ activeInterceptions: updated }).then(() => {
+        void update({ activeInterceptions: updated }).then(() => {
           router.push("/");
           router.refresh();
         });

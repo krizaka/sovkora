@@ -14,17 +14,8 @@ jest.mock("next/navigation", () => ({
 jest.mock("@/features/auth/hooks/useVerifyEmail", () => ({
   useVerifyEmail: () => ({ verify: mockVerify, status, errorMsg: "Bad token" }),
 }));
-jest.mock("@/features/auth/components/AuthGate", () => ({
-  AuthGate: ({ children }: { children: ReactNode }) => children,
-}));
-jest.mock("@/features/auth/components/AuthScreen", () => ({
-  AuthScreen: ({ title, children }: { title: string; children: ReactNode }) => (
-    <main>
-      <h1>{title}</h1>
-      {children}
-    </main>
-  ),
-}));
+jest.mock("@/features/auth/components/AuthGate");
+jest.mock("@/features/auth/components/AuthScreen");
 jest.mock("@/core/context/LocaleContext", () => ({
   useTranslation: () => ({
     t: {
