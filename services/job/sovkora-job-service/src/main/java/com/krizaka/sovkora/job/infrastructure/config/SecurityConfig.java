@@ -11,7 +11,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -67,7 +66,9 @@ public class SecurityConfig {
       throws Exception {
     PodTokenDecoder pods = new PodTokenDecoder(properties.signingKey(), tokens, clock);
     return http.securityMatcher(PodTokenDecoder::carriesPodToken)
-        .csrf(AbstractHttpConfigurer::disable)
+        // A bearer token is no ambient credential a browser could forge: the four routes this chain
+        // lets through are exempt from CSRF; everything else is denied below anyway.
+        .csrf(csrf -> csrf.ignoringRequestMatchers(SecurityBaseline.INTERNAL_PATHS))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
