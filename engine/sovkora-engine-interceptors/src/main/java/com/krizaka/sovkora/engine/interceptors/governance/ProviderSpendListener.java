@@ -68,6 +68,7 @@ public class ProviderSpendListener {
     }
     BigDecimal cost = price.get().costOf(usage);
     metrics.cost(scope, CAPABILITY, model, cost);
+    metrics.tokens(scope, CAPABILITY, model, usage.promptTokens(), usage.completionTokens());
     if (cost.signum() == 0) {
       return;
     }

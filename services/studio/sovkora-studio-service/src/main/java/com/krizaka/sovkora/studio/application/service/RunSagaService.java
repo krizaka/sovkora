@@ -22,6 +22,7 @@ import com.krizaka.sovkora.studio.domain.port.StepExecutionClient;
 import com.krizaka.sovkora.studio.infrastructure.support.CitationContract;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
 import com.krizaka.sovkora.studio.infrastructure.support.OutputContractException;
+import com.krizaka.sovkora.studio.infrastructure.support.RunMeasureRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -80,6 +81,7 @@ public class RunSagaService {
   private final OutboxService outboxService;
   private final ColumnValueResolver columns;
   private final MeterRegistry meterRegistry;
+  private final RunMeasureRegistry measures;
   private final RunAuditService runAuditService;
 
   /**
@@ -131,6 +133,7 @@ public class RunSagaService {
     this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
     this.columns = Objects.requireNonNull(columns, "ColumnValueResolver required");
     this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry required");
+    this.measures = new RunMeasureRegistry(meterRegistry);
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
     this.runs = Objects.requireNonNull(runs, "StudioRunService provider required");
   }
@@ -456,6 +459,10 @@ public class RunSagaService {
             .filter(step -> dependenciesSatisfied(step, snapshot.states()))
             .toList();
 
+    // The first advance that has work and finds no step recorded: how long the run waited for it.
+    if (run.parentRunId() == null && snapshot.states().isEmpty() && !ready.isEmpty()) {
+      measures.started(run.ageSeconds());
+    }
     for (BlueprintStep step : ready) {
       dispatch(run, blueprint, step, scope, effectiveConfig);
     }
@@ -916,6 +923,9 @@ public class RunSagaService {
     if (run.parentRunId() == null) {
       settlementService.settleSucceeded(run.id(), run.holdId(), settledRuns(run, blueprint));
     }
+    if (run.parentRunId() == null) {
+      measures.succeeded(run.ageSeconds());
+    }
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), true, null);
     outboxService.append(run.id().toString(), "evt.studio.run.succeeded", runEvent(run));
     if (run.parentRunId() != null) {
@@ -1005,6 +1015,10 @@ public class RunSagaService {
             "cause",
             declared.name())
         .increment();
+
+    if (run.parentRunId() == null) {
+      measures.failed(run.ageSeconds(), declared);
+    }
 
     // The category, never the reason: `reason` is the failed step's message, which for a refusal is
     // the pack's reviewed answer — a crisis response on a REGULATED pack (ADR-065).
@@ -1188,6 +1202,7 @@ public class RunSagaService {
         .query(
             "SELECT r.id, r.installation_id, r.actor_id, r.studio_key, r.blueprint_version,"
                 + " r.status, r.hold_id, r.correlation_id, r.inputs, r.data_class, r.parent_run_id,"
+                + " EXTRACT(EPOCH FROM (now() - r.started_at)) AS age_seconds,"
                 + " s.step_id, s.ordinal, i.config AS installation_config,"
                 + " (SELECT config_value FROM studio_runtime_config WHERE config_key = ?)"
                 + " AS blueprint_cache_size"
@@ -1252,7 +1267,9 @@ public class RunSagaService {
     return jdbcTemplate
         .query(
             "SELECT id, installation_id, actor_id, studio_key, blueprint_version, status, hold_id,"
-                + " correlation_id, inputs, data_class, parent_run_id FROM studio_run WHERE id = ?",
+                + " correlation_id, inputs, data_class, parent_run_id,"
+                + " EXTRACT(EPOCH FROM (now() - started_at)) AS age_seconds"
+                + " FROM studio_run WHERE id = ?",
             (rs, rowNum) -> runRow(rs),
             runId)
         .stream()
@@ -1273,7 +1290,8 @@ public class RunSagaService {
         rs.getString("correlation_id"),
         columns.objectMap(rs.getString("inputs")),
         DataClass.valueOf(rs.getString("data_class")),
-        rs.getObject("parent_run_id", UUID.class));
+        rs.getObject("parent_run_id", UUID.class),
+        rs.getDouble("age_seconds"));
   }
 
   /** Where a job outcome lands in a DAG, with the rows already needed by its advance. */
@@ -1327,5 +1345,6 @@ public class RunSagaService {
       String correlationId,
       Map<String, Object> inputs,
       DataClass dataClass,
-      UUID parentRunId) {}
+      UUID parentRunId,
+      double ageSeconds) {}
 }

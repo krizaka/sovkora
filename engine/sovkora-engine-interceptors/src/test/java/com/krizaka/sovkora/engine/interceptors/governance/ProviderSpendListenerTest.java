@@ -64,6 +64,28 @@ class ProviderSpendListenerTest {
   }
 
   @Test
+  @DisplayName(
+      "the tokens of a priced turn are counted as ai_tokens_total by type, with no tenant label")
+  void countsTheTokens() {
+    listener.onChatCompleted(turn("big", TokenUsage.reported(1_000_000, 500_000, 1_500_000)));
+
+    assertThat(
+            registry
+                .get("ai.tokens")
+                .tags("product", "verikora", "capability", "CHAT", "model", "big", "type", "input")
+                .counter()
+                .count())
+        .isEqualTo(1_000_000.0);
+    assertThat(registry.get("ai.tokens").tag("type", "output").counter().count())
+        .isEqualTo(500_000.0);
+    assertThat(
+            registry.find("ai.tokens").counters().stream()
+                .flatMap(c -> c.getId().getTags().stream())
+                .map(io.micrometer.core.instrument.Tag::getKey))
+        .containsOnly("product", "capability", "model", "type");
+  }
+
+  @Test
   @DisplayName("the 50 % alert fires once however many turns follow it")
   void alertFiresOnce() {
     listener.onChatCompleted(

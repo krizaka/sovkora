@@ -216,6 +216,11 @@ services:
       - { key: AI_VIDEO_DAILY_RUNS, scope: RUN_TIME, value: "5" }
       # The monthly provider-spend cap of this deployment is the row of (this environment, product key) — krizaka-internal#3368.
       - { key: AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "dev" }
+      # Telemetry of the engine services (krizaka-internal#3437): OTLP to the Grafana Cloud stack. The services export
+      # nothing until the endpoint is set; the token is the stack's ingest token, set on the live app, never here.
+      - { key: OBSERVABILITY_OTLP_ENDPOINT, scope: RUN_TIME, value: "" }
+      - { key: OBSERVABILITY_INGEST_TOKEN, scope: RUN_TIME, type: SECRET, value: "__OBSERVABILITY_INGEST_TOKEN__" }
+      - { key: OBSERVABILITY_ENVIRONMENT, scope: RUN_TIME, value: "dev" }
       - { key: AUTH_API_KEY_DAILY_REQUESTS, scope: RUN_TIME, value: "2000" }
       - { key: SPRING_AI_OLLAMA_BASE_URL, scope: RUN_TIME, value: "http://gpu-relay:11434" }
       - { key: ORAZAKA_OLLAMA_MODEL, scope: RUN_TIME, value: "qwen2.5:7b" }

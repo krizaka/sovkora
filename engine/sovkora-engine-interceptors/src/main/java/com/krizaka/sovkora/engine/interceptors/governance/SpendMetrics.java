@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class SpendMetrics {
 
   private static final String SCOPE = "scope";
+  private static final String MODEL = "model";
 
   private final MeterRegistry registry;
   private final Map<String, AtomicReference<Double>> ratios = new ConcurrentHashMap<>();
@@ -29,8 +30,27 @@ public class SpendMetrics {
   /** The cost of one turn, once its tokens are priced. */
   public void cost(SpendScope scope, String capability, String model, BigDecimal usd) {
     registry
-        .counter("ai.cost", "product", scope.productKey(), "capability", capability, "model", model)
+        .counter("ai.cost", "product", scope.productKey(), "capability", capability, MODEL, model)
         .increment(usd.doubleValue());
+  }
+
+  /** The tokens of one priced turn, input and output apart. */
+  public void tokens(SpendScope scope, String capability, String model, int input, int output) {
+    tokenCounter(scope, capability, model, "input").increment(input);
+    tokenCounter(scope, capability, model, "output").increment(output);
+  }
+
+  private Counter tokenCounter(SpendScope scope, String capability, String model, String type) {
+    return registry.counter(
+        "ai.tokens",
+        "product",
+        scope.productKey(),
+        "capability",
+        capability,
+        MODEL,
+        model,
+        "type",
+        type);
   }
 
   /** The month's spend of a scope and how much of its cap that is. */
@@ -58,7 +78,7 @@ public class SpendMetrics {
 
   /** A turn on a model with no price row: its cost is unknown, and that is visible. */
   public void unpriced(String model) {
-    registry.counter("ai.cost.unpriced", "model", model).increment();
+    registry.counter("ai.cost.unpriced", MODEL, model).increment();
   }
 
   /** A turn whose cost could not be written to the ledger. */

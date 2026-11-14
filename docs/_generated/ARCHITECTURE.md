@@ -92,7 +92,7 @@ Build dependencies between the modules above (test scope excluded): who packages
 | `sovkora-edge-service` | `krizaka-security` |
 | `sovkora-job-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api` |
 | `sovkora-knowledge-service` | `krizaka-messaging`, `krizaka-security` |
-| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-studio-api` |
+| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-spring-boot-starter-observability`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-studio-api` |
 | `krizaka-billing-service` | `krizaka-billing-api`, `krizaka-messaging`, `krizaka-security` |
 | `krizaka-notifications-service` | `krizaka-messaging`, `krizaka-notifications-api` |
 | `krizaka-users-service` | `krizaka-security`, `krizaka-users-core` |

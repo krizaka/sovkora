@@ -1575,6 +1575,10 @@
     },
     {
       "from": "sovkora-studio-service",
+      "to": "krizaka-spring-boot-starter-observability"
+    },
+    {
+      "from": "sovkora-studio-service",
       "to": "sovkora-crypto"
     },
     {

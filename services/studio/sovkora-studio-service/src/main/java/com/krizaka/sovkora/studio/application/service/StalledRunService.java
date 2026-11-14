@@ -2,6 +2,8 @@ package com.krizaka.sovkora.studio.application.service;
 
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
+import com.krizaka.sovkora.studio.infrastructure.support.RunMeasureRegistry;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -31,16 +33,19 @@ public class StalledRunService {
   private final RunSettlementService settlementService;
   private final RunAuditService runAuditService;
   private final OutboxService outboxService;
+  private final RunMeasureRegistry measures;
 
   public StalledRunService(
       org.springframework.jdbc.core.JdbcTemplate jdbcTemplate,
       RunSettlementService settlementService,
       RunAuditService runAuditService,
-      OutboxService outboxService) {
+      OutboxService outboxService,
+      MeterRegistry meterRegistry) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.settlementService = Objects.requireNonNull(settlementService, "settlement");
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
     this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
+    this.measures = new RunMeasureRegistry(meterRegistry);
   }
 
   /**
@@ -57,7 +62,7 @@ public class StalledRunService {
   public int failUndispatched(Instant startedBefore, int limit) {
     List<Stalled> stalled =
         jdbcTemplate.query(
-            "SELECT r.id, r.hold_id, r.actor_id, r.studio_key, r.blueprint_version,"
+            "SELECT r.id, r.started_at, r.hold_id, r.actor_id, r.studio_key, r.blueprint_version,"
                 + " r.correlation_id FROM studio_run r"
                 + " WHERE r.finished_at IS NULL AND r.status = ? AND r.parent_run_id IS NULL"
                 + " AND r.started_at < ?"
@@ -66,6 +71,7 @@ public class StalledRunService {
             (rs, rowNum) ->
                 new Stalled(
                     rs.getObject("id", UUID.class),
+                    rs.getTimestamp("started_at").toInstant(),
                     rs.getString("hold_id"),
                     rs.getString("actor_id"),
                     rs.getString("studio_key"),
@@ -97,6 +103,9 @@ public class StalledRunService {
     }
     logger.warn("Run {} dispatched no step — failing it and releasing its hold", run.id());
     settlementService.releaseAbandoned(run.holdId(), "swept: no step was dispatched");
+    measures.failed(
+        (Instant.now().toEpochMilli() - run.startedAt().toEpochMilli()) / 1000.0,
+        FailureCause.TIMEOUT);
     runAuditService.recordFinished(
         run.id(), run.actorId(), run.studioKey(), false, FailureCause.TIMEOUT);
     outboxService.appendRunFailed(
@@ -106,6 +115,7 @@ public class StalledRunService {
 
   private record Stalled(
       UUID id,
+      Instant startedAt,
       String holdId,
       String actorId,
       String studioKey,
