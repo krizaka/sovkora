@@ -151,13 +151,16 @@ jobs:
         run: pnpm run validate
       - name: Build
         run: pnpm run build
+      - name: Name the report after the app (the sonar job merges every coverage-* artifact into one folder)
+        if: ${{ always() }}
+        run: if [ -f coverage/lcov.info ]; then cp coverage/lcov.info "$GITHUB_WORKSPACE/lcov-web.info"; fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
           name: coverage-web
           if-no-files-found: ignore
           retention-days: 1
-          path: apps/web/coverage/lcov.info
+          path: lcov-web.info
 
   mobile:
     name: Mobile app
@@ -182,13 +185,16 @@ jobs:
         run: pnpm install --frozen-lockfile --filter .
       - name: Validate (lint, types, tests with coverage, links, icons, flows, names)
         run: pnpm run validate
+      - name: Name the report after the app (the sonar job merges every coverage-* artifact into one folder)
+        if: ${{ always() }}
+        run: if [ -f coverage/lcov.info ]; then cp coverage/lcov.info "$GITHUB_WORKSPACE/lcov-mobile.info"; fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
           name: coverage-mobile
           if-no-files-found: ignore
           retention-days: 1
-          path: apps/mobile/coverage/lcov.info
+          path: lcov-mobile.info
 
   cli:
     name: CLI
@@ -215,13 +221,16 @@ jobs:
         run: pnpm run validate
       - name: What npm users get (pack both tarballs, install them outside the repository, run the bin)
         run: pnpm run test:pack
+      - name: Name the report after the app (the sonar job merges every coverage-* artifact into one folder)
+        if: ${{ always() }}
+        run: if [ -f coverage/lcov.info ]; then cp coverage/lcov.info "$GITHUB_WORKSPACE/lcov-cli.info"; fi
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: ${{ always() }}
         with:
           name: coverage-cli
           if-no-files-found: ignore
           retention-days: 1
-          path: apps/cli/coverage/lcov.info
+          path: lcov-cli.info
 
   # ── Python ──────────────────────────────────────────────────────────────────────────────────────────────────────
   media:

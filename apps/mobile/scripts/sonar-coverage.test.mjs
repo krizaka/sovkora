@@ -14,12 +14,12 @@ test("validate runs jest with an lcov report", () => {
 });
 
 test("the one CI analysis (ADR-029) uploads that report and reads it", () => {
-  assert.match(read("../../.github/workflows/ci.yml"), /path: apps\/mobile\/coverage\/lcov\.info/);
+  assert.match(read("../../.github/workflows/ci.yml"), /path: lcov-mobile\.info/);
   const properties = read("../../sonar-project.properties");
   assert.match(properties, /^sonar\.projectKey=krizaka_sovkora$/m);
   assert.ok(
     (properties.match(/^sonar\.javascript\.lcov\.reportPaths=(.*)$/m)?.[1] ?? "")
       .split(",")
-      .includes("apps/mobile/coverage/lcov.info"),
+      .includes("lcov-mobile.info"),
   );
 });
