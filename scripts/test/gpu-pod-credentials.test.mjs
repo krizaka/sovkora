@@ -7,12 +7,11 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { SERVICE_JWT, jobService, jwtsIn, podToken } from "./pod-token.fixture.mjs";
+import { SERVICE_JWT, jobService, jwtsIn, podToken, stubServer } from "./pod-token.fixture.mjs";
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
 const KEY = /^[0-9]{14}-[0-9a-f]{6}$/;
@@ -23,33 +22,24 @@ const SHARED = ["RABBITMQ_PASS_GPU", "RABBITMQ_PASS", "IDENTITY_JWT_SECRET", "AI
 /** A RunPod v2 stub: pods in memory, the bodies it was sent. */
 async function runpod({ failCreate = false } = {}) {
   const state = { pods: [], bodies: [], nextId: 1 };
-  const server = createServer((req, res) => {
-    let raw = "";
-    req.on("data", (c) => (raw += c));
-    req.on("end", () => {
-      const path = new URL(req.url, "http://x").pathname;
-      const body = raw ? JSON.parse(raw) : undefined;
-      const send = (code, data) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(data ?? {})); };
-      if (path === "/graphql") return send(200, { data: { myself: { clientBalance: 42.5, currentSpendPerHr: 0 } } });
-      if (path === "/v2/network-volumes") return send(200, { networkVolumes: [{ id: "vol1", name: "models", dataCenter: "CA-MTL-1" }] });
-      if (path === "/v2/pods" && req.method === "GET") return send(200, { pods: state.pods.filter((p) => p.status !== "TERMINATED"), pagination: { hasNextPage: false } });
-      if (path === "/v2/pods" && req.method === "POST") {
-        state.bodies.push(body);
-        if (failCreate) return send(400, { message: "no capacity" });
-        const pod = { id: `pod${state.nextId++}`, name: body.name, status: "RUNNING", cost: 0.5, gpu: { id: body.gpu.id } };
-        state.pods.push(pod);
-        return send(201, pod);
-      }
-      const one = path.match(/^\/v2\/pods\/([^/]+)\/action$/);
-      const pod = one && state.pods.find((p) => p.id === one[1]);
-      if (!pod) return send(404, { message: "not found" });
-      pod.status = "TERMINATED";
-      return send(200, pod);
-    });
+  const stub = await stubServer((req, path, body, send) => {
+    if (path === "/graphql") return send(200, { data: { myself: { clientBalance: 42.5, currentSpendPerHr: 0 } } });
+    if (path === "/v2/network-volumes") return send(200, { networkVolumes: [{ id: "vol1", name: "models", dataCenter: "CA-MTL-1" }] });
+    if (path === "/v2/pods" && req.method === "GET") return send(200, { pods: state.pods.filter((p) => p.status !== "TERMINATED"), pagination: { hasNextPage: false } });
+    if (path === "/v2/pods" && req.method === "POST") {
+      state.bodies.push(body);
+      if (failCreate) return send(400, { message: "no capacity" });
+      const pod = { id: `pod${state.nextId++}`, name: body.name, status: "RUNNING", cost: 0.5, gpu: { id: body.gpu.id } };
+      state.pods.push(pod);
+      return send(201, pod);
+    }
+    const one = path.match(/^\/v2\/pods\/([^/]+)\/action$/);
+    const pod = one && state.pods.find((p) => p.id === one[1]);
+    if (!pod) return send(404, { message: "not found" });
+    pod.status = "TERMINATED";
+    return send(200, pod);
   });
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  server.unref();
-  return { state, base: `http://127.0.0.1:${server.address().port}`, close: () => { server.close(); server.closeAllConnections(); } };
+  return { state, ...stub };
 }
 
 const run = (cmd, args, env) => new Promise((resolve) => {

@@ -2,8 +2,7 @@ package com.krizaka.sovkora.job.infrastructure.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import com.nimbusds.jose.util.Base64URL;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -19,9 +18,7 @@ class PodTokenDecoderTest {
   }
 
   private static String jose(String json) {
-    return Base64.getUrlEncoder()
-        .withoutPadding()
-        .encodeToString(json.getBytes(StandardCharsets.UTF_8));
+    return Base64URL.encode(json).toString();
   }
 
   @Test

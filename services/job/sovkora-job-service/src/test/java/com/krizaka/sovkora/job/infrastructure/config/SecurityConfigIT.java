@@ -28,14 +28,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.test.web.servlet.MockMvc;
@@ -180,16 +174,9 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
   @DisplayName(
       "a SERVICE token (identity secret) with the pod kid gains nothing: the pod key verifies it")
   void forgedKidIsRefused() throws Exception {
-    JwtEncoder identity =
-        NimbusJwtEncoder.withSecretKey(
-                new javax.crypto.spec.SecretKeySpec(
-                    PodTokenTestWiring.IDENTITY_SECRET.getBytes(
-                        java.nio.charset.StandardCharsets.UTF_8),
-                    "HmacSHA256"))
-            .algorithm(MacAlgorithm.HS256)
-            .jwkPostProcessor(jwk -> jwk.keyID(PodTokenPolicy.KEY_ID))
-            .build();
-    String token = encode(identity, "SERVICE", PodTokenPolicy.KEY_ID);
+    byte[] identity =
+        PodTokenTestWiring.IDENTITY_SECRET.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    String token = forge(identity, "SERVICE", PodTokenPolicy.KEY_ID);
     mvc.perform(bearer(podRoutes().getFirst(), token)).andExpect(status().isUnauthorized());
   }
 
@@ -231,15 +218,15 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
   }
 
   /** A token signed with the pod key, recorded for {@link #POD}, with the given role and kid. */
-  private String sign(PodTokenProperties keys, String role, String kid) {
-    var builder = NimbusJwtEncoder.withSecretKey(keys.signingKey()).algorithm(MacAlgorithm.HS256);
-    if (kid != null) {
-      builder.jwkPostProcessor(jwk -> jwk.keyID(kid));
-    }
-    return encode(builder.build(), role, kid);
+  private String sign(PodTokenProperties keys, String role, String kid) throws Exception {
+    return forge(keys.signingKey().getEncoded(), role, kid);
   }
 
-  private String encode(JwtEncoder encoder, String role, String kid) {
+  /**
+   * A token forged with Nimbus directly, not through the service's encoder: its row is recorded, so
+   * only the key, the role or the kid can make it fail.
+   */
+  private String forge(byte[] key, String role, String kid) throws Exception {
     UUID jti = UUID.randomUUID();
     jdbc.update("DELETE FROM gpu_pod_tokens");
     jdbc.update(
@@ -248,20 +235,22 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
         POD.value(),
         java.sql.Timestamp.from(PodTokenTestWiring.T0),
         java.sql.Timestamp.from(PodTokenTestWiring.T0.plus(Duration.ofHours(2))));
-    JwtClaimsSet claims =
-        JwtClaimsSet.builder()
+    var claims =
+        new com.nimbusds.jwt.JWTClaimsSet.Builder()
             .subject(POD.subject())
-            .audience(List.of(PodTokenPolicy.AUDIENCE))
+            .audience(PodTokenPolicy.AUDIENCE)
             .claim("roles", List.of(role))
-            .id(jti.toString())
-            .issuedAt(PodTokenTestWiring.T0)
-            .expiresAt(PodTokenTestWiring.T0.plus(Duration.ofHours(2)))
+            .jwtID(jti.toString())
+            .issueTime(java.util.Date.from(PodTokenTestWiring.T0))
+            .expirationTime(java.util.Date.from(PodTokenTestWiring.T0.plus(Duration.ofHours(2))))
             .build();
-    JwsHeader.Builder header = JwsHeader.with(MacAlgorithm.HS256);
+    var header = new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.HS256);
     if (kid != null) {
-      header.keyId(kid);
+      header.keyID(kid);
     }
-    return encoder.encode(JwtEncoderParameters.from(header.build(), claims)).getTokenValue();
+    var jwt = new com.nimbusds.jwt.SignedJWT(header.build(), claims);
+    jwt.sign(new com.nimbusds.jose.crypto.MACSigner(key));
+    return jwt.serialize();
   }
 
   @Configuration
