@@ -9,7 +9,8 @@
 # relay of dev.sovkora.com and runs the consumer. Nothing listens publicly but sshd (the key of this machine only).
 #
 # Settings come from the environment gpu-dev.sh gives the pod (credentials included, never printed): WORKER_REF, PROFILE,
-# RELAY_URL, RELAY_AUTH, RABBIT_USER + RABBIT_PASSWORD (the pod's own broker user, krizaka-internal#3614), SERVICE_TOKEN,
+# RELAY_URL, RELAY_AUTH, RABBIT_USER + RABBIT_PASSWORD (the pod's own broker user, krizaka-internal#3614), POD_TOKEN (its own
+# job service token, minted by the job service for it and revoked when it ends, krizaka-internal#3645; never a SERVICE token),
 # BROKER_CA_B64, IDLE_MINUTES, MAX_HOURS (and HF_TOKEN, optional).
 # STILLS=1 (images only): RELAY_URL and RELAY_AUTH alone, no broker credential (krizaka-internal#3611).
 #
@@ -299,7 +300,7 @@ export SPRING_RABBITMQ_HOST=127.0.0.1 SPRING_RABBITMQ_PORT=15671 SPRING_RABBITMQ
   UPLOAD_DIR="$STATE/uploads" MEDIA_ACTIVITY_FILE="$STATE/state/last-activity" MEDIA_HEARTBEAT_FILE="$STATE/state/heartbeat" MEDIA_GPU_PROFILE="${PROFILE:-big}" \
   ORAZAKA_MEDIA_MEM_HEADROOM_GB=4 PYTHONUNBUFFERED=1 MEDIA_WORKER_PORT=8188 MEDIA_SOUND_ENABLED="$SOUND_FLAG" MEDIA_FONT_FILE="$FONT"
 # shellcheck disable=SC2086 # UPSCALER_ENV is a list of NAME=value words
-env $UPSCALER_ENV GPU_OUT_URL="${GPU_OUT_URL:-}" GPU_OUT_HEADER="${GPU_OUT_HEADER:-}" GPU_OUT_KEY="${GPU_OUT_KEY:-}" SPRING_RABBITMQ_PASSWORD="$RABBIT_PASSWORD" SOVKORA_SERVICE_TOKEN="$SERVICE_TOKEN" \
+env $UPSCALER_ENV GPU_OUT_URL="${GPU_OUT_URL:-}" GPU_OUT_HEADER="${GPU_OUT_HEADER:-}" GPU_OUT_KEY="${GPU_OUT_KEY:-}" SPRING_RABBITMQ_PASSWORD="$RABBIT_PASSWORD" SOVKORA_POD_TOKEN="$POD_TOKEN" \
   nohup /opt/venv/bin/python -u -m app.consumer > /var/log/orazaka-worker.log 2>&1 &
 touch "$STATE/ready" "$STATE/state/last-activity"
 step "serving: worker (${PROFILE:-big}${IMAGE_MODEL:+, images $IMAGE_MODEL}${SOUND_MODELS:+, sound $SOUND_MODELS}), relay → ${RELAY_URL}"

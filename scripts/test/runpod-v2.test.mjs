@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { podToken } from "./pod-token.fixture.mjs";
 import { bunnyTarget, capReached, planFromPrompts, spentUsd } from "../runpod-batch.mjs";
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
@@ -74,7 +75,7 @@ test("create posts the nested v2 body and terminate uses the action endpoint", a
   const dir = mkdtempSync(join(tmpdir(), "rp-body-"));
   const boot = join(dir, "boot.sh"); writeFileSync(boot, "echo hi\n");
   const body = join(dir, "body.json");
-  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: "gpu-pod-20261114120000-abcdef", RABBIT_PASSWORD: "r", SERVICE_TOKEN: "t", BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "vol1", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "" };
+  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: "gpu-pod-20261114120000-abcdef", RABBIT_PASSWORD: "r", POD_KEY: "20261114120000-abcdef", POD_TOKEN: podToken("20261114120000-abcdef"), BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "vol1", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "" };
   assert.equal((await guard(s, ["body", body, "NVIDIA L40S"], env)).code, 0);
   const made = await guard(s, ["create", body]);
   assert.match(made.stdout.trim(), /^pod1 0\.5 NVIDIA L40S$/);
@@ -195,7 +196,7 @@ test("without a volume the body mounts nothing and sizes the container disk (ora
   const dir = mkdtempSync(join(tmpdir(), "rp-novol-"));
   const boot = join(dir, "boot.sh"); writeFileSync(boot, "echo hi\n");
   const body = join(dir, "body.json");
-  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: "gpu-pod-20261114120000-abcdef", RABBIT_PASSWORD: "r", SERVICE_TOKEN: "t", BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "100" };
+  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: "gpu-pod-20261114120000-abcdef", RABBIT_PASSWORD: "r", POD_KEY: "20261114120000-abcdef", POD_TOKEN: podToken("20261114120000-abcdef"), BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "100" };
   assert.equal((await guard(s, ["body", body, "NVIDIA GeForce RTX 4090"], env)).code, 0);
   const made = JSON.parse(readFileSync(body, "utf8"));
   assert.equal(made.mounts, undefined);

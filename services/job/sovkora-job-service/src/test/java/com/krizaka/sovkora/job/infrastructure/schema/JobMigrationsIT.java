@@ -30,7 +30,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
   @Configuration
   static class NoBeans {}
 
-  private static final int TABLES = 33;
+  private static final int TABLES = 34;
 
   private static final String CONTEXT_TABLES =
       "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"
@@ -105,7 +105,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(job(database).migrate().migrationsExecuted)
         .as("first run on an empty database")
-        .isEqualTo(3);
+        .isEqualTo(4);
     assertThat(job(database).migrate().migrationsExecuted).as("second run").isZero();
     job(database).validate();
 
@@ -147,7 +147,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     // Baselining at the default 1 would mark V1 applied and skip it; baselining at 0 runs it.
     assertThat(job(database).migrate().migrationsExecuted)
         .as("job V1 on a database another context filled")
-        .isEqualTo(3);
+        .isEqualTo(4);
     assertThat(
             flyway(database, otherLocation, "flyway_history_conversation")
                 .migrate()
@@ -168,7 +168,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     bootstrapExtension(database);
     Flyway dev = flyway(database, "classpath:db/migration,classpath:db/dev", "flyway_history_job");
 
-    assertThat(dev.migrate().migrationsExecuted).as("V1, V2, V3 and the dev route").isEqualTo(4);
+    assertThat(dev.migrate().migrationsExecuted).as("V1 to V4 and the dev route").isEqualTo(5);
     assertThat(dev.migrate().migrationsExecuted).as("second run").isZero();
     dev.validate();
 

@@ -121,6 +121,12 @@ sovkora:
       lease-seconds: ${JOBS_LEASE_SECONDS:120}
       renew-interval-seconds: ${JOBS_LEASE_RENEW_SECONDS:30}
       max-retries: ${JOBS_LEASE_MAX_RETRIES:2}
+    # A RunPod pod's own token (krizaka-internal#3645): minted here for the launcher, accepted on the media
+    # worker's four routes only, revoked at terminate. The key is derived from this secret under a fixed label,
+    # so it is never the session secret even when the deployment has no JOB_POD_TOKEN_SECRET of its own.
+    pod-token:
+      signing-secret: ${JOB_POD_TOKEN_SECRET:${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}}
+      max-lifetime: ${JOB_POD_TOKEN_MAX_LIFETIME:PT12H30M}
       sweep-interval: ${JOBS_LEASE_SWEEP_INTERVAL:30000}
 orazaka:
   # The environment this deployment's provider spend is counted in; its caps are rows (krizaka-internal#3368).

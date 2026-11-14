@@ -7,7 +7,10 @@
 #                                    a network volume keeps the weights between pods, the worker is built in the pod from its
 #                                    public repository (GHCR is private), the tunnel dials OUT to the relay of dev.sovkora.com
 #   gpu-dev.sh runpod stop          TERMINATE it — a pod is never left running or paused; the ledger gets its end; its broker user is deleted
-#   gpu-dev.sh runpod revoke        delete the broker user of every pod that no longer runs (start does it too)
+#                                    and its job service token revoked
+#   gpu-dev.sh runpod revoke        delete the broker user and revoke the token of every pod that no longer runs (start does it too)
+#   gpu-dev.sh runpod token-check   the free journey of the pod token, no pod: mint, the worker's routes accept it, another
+#                                    route refuses it, revoke, then it is refused (scripts/gpu-pod-token.py preflight)
 #   gpu-dev.sh runpod status        what runs, since when, what it has cost so far
 #   gpu-dev.sh runpod count         « pods: N running » (exit 3 when N > 0)
 #   gpu-dev.sh runpod logs          the pod's boot and worker logs (ssh, read-only)
@@ -56,28 +59,43 @@ rp_broker() {
   local shell; shell="$(broker_shell)" || { echo "gpu-dev: the broker droplet's address is unknown (doctl, by its tag)" >&2; return 1; }
   GPU_BROKER_SHELL="$shell" python3 "$ROOT/scripts/gpu-pod-broker.py" "$@"
 }
+# A pod's own job service token (krizaka-internal#3645): scripts/gpu-pod-token.py, through the relay to core:8090. The call
+# carries a SERVICE token minted here, which stays on this machine; the pod gets only the token the job service mints for it.
+# GPU_JOB_SERVICE_URL overrides the route (the tests: a stub).
+rp_pod_token() {
+  GPU_SERVICE_TOKEN="$(mint_service_token 0)" GPU_RELAY_URL="$RELAY_URL" GPU_RELAY_AUTH="gpu:$(secret AI_GPU_RELAY_PASSWORD)" \
+    python3 "$ROOT/scripts/gpu-pod-token.py" "$@"
+}
 # The key a pod's broker user is named after: its UTC start and 6 random hex digits; the pod's name ends with it.
 rp_pod_key() { printf '%s-%s' "$(date -u +%Y%m%d%H%M%S)" "$(python3 -c 'import secrets; print(secrets.token_hex(3))')"; }
-# Deletes the broker users no live pod carries (a pod ended by its own watchdog or by the spend guard). An unreadable pod
-# list deletes nothing: a running pod is never cut off on a guess.
-rp_broker_sweep() {
-  local listed names=()
-  listed=$(rp_py list "$RP_PREFIX") || { say "broker users not swept: the pod list is unreadable"; return 0; }
-  local line
+# The key at the end of a pod's name, or nothing for a pod that has none (measure, stills).
+rp_name_key() {
+  local key="${1#"$RP_PREFIX"-*-}"
+  [[ "$key" =~ ^[0-9]{14}-[0-9a-f]{6}$ ]] && printf '%s' "$key"
+  return 0
+}
+# Deletes the broker users and revokes the job service tokens no live pod carries (a pod ended by its own watchdog or by the
+# spend guard). An unreadable pod list deletes and revokes nothing: a running pod is never cut off on a guess.
+rp_pod_sweep() {
+  local listed names=() keys=()
+  listed=$(rp_py list "$RP_PREFIX") || { say "broker users and pod tokens not swept: the pod list is unreadable"; return 0; }
+  local line key
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     case "$line" in *" EXITED "*|*" TERMINATED "*) continue ;; esac
     names+=("${line##* }")
+    key="$(rp_name_key "${line##* }")"; [[ -z "$key" ]] || keys+=("$key")
   done <<<"$listed"
   rp_broker sweep ${names[@]+"${names[@]}"} || say "WARNING: the pods' broker users were not swept — scripts/gpu-dev.sh runpod revoke"
+  rp_pod_token sweep ${keys[@]+"${keys[@]}"} >/dev/null || say "WARNING: the pods' job service tokens were not swept — scripts/gpu-dev.sh runpod revoke"
 }
 
 runpod_start() {
   [[ -n "$(secret AI_GPU_RUNPOD_API_KEY || true)" ]] || die "no AI_GPU_RUNPOD_API_KEY in ${ENV_FILE:-$SECRET_SOURCE}"
   # MEASURE=1 (gpu-dev.sh runpod measure): a pod that measures and ends, with no relay, no broker, no service token.
   [[ -n "${MEASURE:-}" || -n "$(secret AI_GPU_RELAY_PASSWORD || true)" ]] || die "no relay credential — scripts/gpu-dev.sh relay-secret"
-  # First, the broker users of pods that ended without us (their watchdog, the spend guard) are deleted.
-  [[ -n "${MEASURE:-}${STILLS:-}" ]] || rp_broker_sweep
+  # First, the broker users and tokens of pods that ended without us (their watchdog, the spend guard) are deleted and revoked.
+  [[ -n "${MEASURE:-}${STILLS:-}" ]] || rp_pod_sweep
   local running; running=$(rp_live | wc -l | tr -d ' ')
   [[ "$running" == "0" ]] || die "a RunPod pod already runs — scripts/gpu-dev.sh runpod status (or stop)"
   local balance spend; read -r balance spend <<<"$(rp_balance)" || die "RunPod balance unreadable (the account balance has no v2 endpoint yet) — nothing was created"
@@ -88,11 +106,18 @@ runpod_start() {
   local max_hours="${GPU_MAX_HOURS:-8}" worker_ref
   # A Studio-serving pod joins the broker as ITSELF (krizaka-internal#3614): a user made for it now, deleted when it ends.
   # Measure and stills pods never join the broker, so they get none.
-  local pod_key="" rabbit_user="" rabbit_password=""
+  # Its job service token is minted by the job service for this pod alone (krizaka-internal#3645): the pod role, never SERVICE,
+  # accepted on the worker's four routes only, until the pod's lifetime cap (max hours + its boot) or its revocation at stop.
+  local pod_key="" rabbit_user="" rabbit_password="" pod_token=""
   if [[ -z "${MEASURE:-}${STILLS:-}" ]]; then
     pod_key="$(rp_pod_key)"
     read -r rabbit_user rabbit_password < <(rp_broker create "$pod_key") || true
     [[ -n "$rabbit_user" && -n "$rabbit_password" ]] || die "the broker made no user for the pod: nothing was created"
+    pod_token="$(rp_pod_token mint "$pod_key" "$(python3 -c "print(int(float('$max_hours') * 3600) + 1800)")")" || pod_token=""
+    if [[ -z "$pod_token" ]]; then
+      rp_broker delete "$pod_key" || say "WARNING: the unused broker user gpu-pod-$pod_key was not deleted (the next start sweeps it)"
+      die "the job service minted no token for the pod: nothing was created"
+    fi
   fi
   # GPU_WORKER_REF runs a worker commit not yet on main (a branch under review), else main's head.
   worker_ref="${GPU_WORKER_REF:-$(git ls-remote https://github.com/krizaka/sovkora.git refs/heads/main | cut -c1-40)}"
@@ -132,7 +157,7 @@ runpod_start() {
       IDLE_MINUTES="${GPU_IDLE_MINUTES:-30}" RP_IMAGE="$RP_IMAGE" PUBKEY="$(cat "$LOCAL/id_ed25519.pub")" \
       RELAY_URL="$RELAY_URL" RELAY_AUTH="${MEASURE:+x}${MEASURE:-gpu:$(secret AI_GPU_RELAY_PASSWORD)}" \
       RABBIT_USER="$rabbit_user" RABBIT_PASSWORD="$rabbit_password" POD_KEY="$pod_key" \
-      SERVICE_TOKEN="${MEASURE:+x}${MEASURE:-${STILLS:+x}}${MEASURE:-${STILLS:-$(mint_service_token "$max_hours")}}" \
+      POD_TOKEN="$pod_token" \
       BROKER_CA_B64="${MEASURE:+x}${MEASURE:-${STILLS:+x}}${MEASURE:-${STILLS:-$(broker_ca_b64)}}" \
       STILLS="${STILLS:-}" MEASURE="${MEASURE:-}" MEASURE_ARGS="${MEASURE_ARGS:-}" MEASURE_PIP="${MEASURE_PIP:-}" \
       BOOT="$ROOT/infra/gpu/$([[ -n "${MEASURE:-}" ]] && echo runpod-measure.sh || echo runpod-bootstrap.sh)" \
@@ -151,7 +176,10 @@ runpod_start() {
     done
   done
   rm -f "$body"
-  [[ -z "$pod_key" ]] || rp_broker delete "$pod_key" || say "WARNING: the unused broker user gpu-pod-$pod_key was not deleted (the next start sweeps it)"
+  if [[ -n "$pod_key" ]]; then
+    rp_broker delete "$pod_key" || say "WARNING: the unused broker user gpu-pod-$pod_key was not deleted (the next start sweeps it)"
+    rp_pod_token revoke "$pod_key" || say "WARNING: the unused token of pod $pod_key was not revoked (the next start sweeps it)"
+  fi
   die "no RunPod datacentre had the GPU in stock (or a models volume) — nothing was created"
 }
 
@@ -161,11 +189,14 @@ runpod_stop() {
     id="${line%% *}"
     [[ -n "$id" ]] || continue
     rp_py terminate "$id" && say "terminated RunPod pod $id — billing stopped (the models volume is kept)"
-    # Its broker user goes with it: from now on the broker refuses it and closes what it still holds open.
-    name="${line##* }"; key="${name#"$RP_PREFIX"-*-}"
-    if [[ "$key" =~ ^[0-9]{14}-[0-9a-f]{6}$ ]]; then
+    # Its broker user and its job service token go with it: from now on the broker refuses it and closes what it still holds
+    # open, and the job service refuses its token.
+    name="${line##* }"; key="$(rp_name_key "$name")"
+    if [[ -n "$key" ]]; then
       if rp_broker delete "$key"; then say "deleted the broker user of pod $id"
       else say "WARNING: the broker user gpu-pod-$key was not deleted — scripts/gpu-dev.sh runpod revoke"; fi
+      if rp_pod_token revoke "$key"; then say "revoked the job service token of pod $id"
+      else say "WARNING: the job service token of pod $key was not revoked — scripts/gpu-dev.sh runpod revoke"; fi
     fi
   done < <(rp_live)
   if [[ -z "$(rp_live)" ]]; then say "no RunPod pod running — \$0/hour"; fi
@@ -272,8 +303,11 @@ runpod() {
     # A pod that only measures (infra/gpu/runpod-measure.sh): MEASURE_ARGS="load wan2.2-ti2v-5b" … ; it ends itself.
     measure) shift; MEASURE=1 runpod_start "$@" ;;
     stop) runpod_stop ;;
-    # Deletes the broker user of every pod that no longer runs (one its watchdog or the spend guard ended); start does it too.
-    revoke) rp_broker_sweep ;;
+    # Deletes the broker user and revokes the token of every pod that no longer runs (one its watchdog or the spend guard
+    # ended); start does it too.
+    revoke) rp_pod_sweep ;;
+    # The pod token's free journey against the deployed job service: no pod, no spend.
+    token-check) rp_pod_token preflight ;;
     status) runpod_status ;;
     count) runpod_count ;;
     logs) runpod_logs ;;
@@ -281,6 +315,6 @@ runpod() {
     # The spend guard (SOV-096): ends a pod idle GPU_IDLE_MINUTES (20) or older than GPU_MAX_HOURS (6), once or in a loop.
     once|loop)
       AI_GPU_RUNPOD_API_KEY="${AI_GPU_RUNPOD_API_KEY:-$(rp_key)}" python3 "$ROOT/scripts/runpod-guard.py" "$1" "${@:2}" ;;
-    *) echo "usage: scripts/gpu-dev.sh runpod start [gpu] | measure [gpu] | stop | revoke | status | count | logs | batch FILE | once | loop" >&2; exit 2 ;;
+    *) echo "usage: scripts/gpu-dev.sh runpod start [gpu] | measure [gpu] | stop | revoke | token-check | status | count | logs | batch FILE | once | loop" >&2; exit 2 ;;
   esac
 }

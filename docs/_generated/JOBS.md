@@ -99,6 +99,7 @@ the service's `application.yml` or environment.
 | `job` | `JobLeaseSweeper.recover` | every 30 s (`sovkora.jobs.lease.sweep-interval`) | Takes back the jobs whose lease expired. |
 | `job` | `JobRetentionSweeper.sweep` | every 60 s (`orazaka.jobs.retention-sweep-interval`) | Purges expired jobs, then deletes any purged job's directory that came back. |
 | `job` | `JobRetentionSweeper.sweepUploads` | every 3600 s (`orazaka.jobs.upload-retention-interval`) | Deletes uploads older than the ordinary retention window; hourly, listing is not free. |
+| `job` | `PodTokenSweeper.purge` | every 3600 s (`sovkora.jobs.pod-token.purge-interval-ms`) | Purges the revocation rows of pod tokens that expired more than a day ago, hourly. |
 | `job` | `WorkerHeartbeatSweeper.markStaleWorkers` | every 30 s (`orazaka.jobs.worker-sweeper-interval`) | Marks workers that have stopped heartbeating as `STALE`. |
 | `job` | `WorkerSelfRegistration.heartbeat` | every 30 s (`orazaka.jobs.worker-heartbeat-interval`) | Registers the job service in the worker registry from its own `worker.yaml`. |
 | `knowledge` | `AnalyticsRetentionSchedule.purge` | cron `0 27 3 * * *` | Runs the analytics retention sweep once a day (03:27 UTC — after the recommender's). |
