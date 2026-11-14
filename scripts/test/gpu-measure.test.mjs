@@ -35,7 +35,7 @@ test("the measure subcommand sends the pod only what it needs", () => {
 
 test("one pod at a time: the measure pod is named orazaka-gpu-* so the existing guard refuses a second one", () => {
   assert.match(guard, /"orazaka-gpu-" \+/);
-  assert.match(lib, /rp_py list orazaka-gpu/);
+  assert.match(lib, /RP_PREFIX="orazaka-gpu"[\s\S]*rp_live\(\) \{ rp_py list "\$RP_PREFIX"/);
 });
 
 test("the measures write where the next pod and the operator can read them", () => {

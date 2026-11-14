@@ -83,7 +83,7 @@ def _listen_once() -> None:
     connection = pika.BlockingConnection(broker.connection_parameters())
     try:
         channel = connection.channel()
-        channel.exchange_declare(exchange=JOBS_EXCHANGE, exchange_type="topic", durable=True)
+        broker.declare_exchange(channel, JOBS_EXCHANGE, "topic")
         queue = f"orazaka.cancel.{uuid.uuid4().hex}"
         channel.queue_declare(queue=queue, exclusive=True, auto_delete=True)
         channel.queue_bind(queue=queue, exchange=JOBS_EXCHANGE, routing_key=CANCEL_BINDING)

@@ -22,7 +22,7 @@ def _publish_job_event(routing_key: str, payload: dict) -> None:
     try:
         connection = pika.BlockingConnection(broker.connection_parameters())
         channel = connection.channel()
-        channel.exchange_declare(exchange=EVENTS_EXCHANGE, exchange_type="topic", durable=True)
+        broker.declare_exchange(channel, EVENTS_EXCHANGE, "topic")
         message = json.dumps(payload)
         channel.basic_publish(
             exchange=EVENTS_EXCHANGE,

@@ -270,6 +270,13 @@ Droplet in the `default-tor1` VPC (`node scripts/dev-deploy.mjs broker`, idempot
 - **Two users**, strong random passwords in the secrets file: `orazaka` (the platform, everything on `/`) and
   `gpu-worker` (`RABBITMQ_PASS_GPU`: configure/write/read on `orazaka.*` names only). A GPU droplet must be created in
   the same VPC (`--vpc-uuid` of `default-tor1`; another region needs VPC peering).
+- **A RunPod pod has a user of its own** (krizaka-internal#3614), never `gpu-worker`: `gpu-dev.sh runpod start` makes
+  `gpu-pod-<key>` through `rabbitmqctl` over SSH (`scripts/gpu-pod-broker.py`; the pod's name ends with the key), and
+  `runpod stop` deletes it and closes its connections; a start, or `runpod revoke`, deletes the users of pods that ended
+  on their own. Its scope: declare, bind and consume the media lanes (`…jobs.video`, `…jobs.sound`, their DLQs) and its
+  own cancel queue; the shared exchanges only checked (passive), never declared or deleted; on the events exchange only
+  the keys `job.<id>.progress|done|error|cancelled` (topic permissions). Proven against RabbitMQ 4.2 by
+  `workers/media/test_gpu_pod_broker.py`.
 - No volume worth keeping: queues are re-declared by the services and workers at start (AGENTS.md §6).
 
 ## Media — kept outside the container

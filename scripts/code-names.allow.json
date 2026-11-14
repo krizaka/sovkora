@@ -48,6 +48,16 @@
       "row": "K2"
     },
     {
+      "token": "orazaka.events",
+      "reason": "A live RabbitMQ exchange name (the events exchange: job lifecycle and platform events), declared by every service and worker and named in the broker users' permissions (krizaka-internal#3614); renamed only with the broker topology, like orazaka.jobs.",
+      "row": "K2"
+    },
+    {
+      "token": "orazaka.dlx",
+      "reason": "A live RabbitMQ exchange name (the dead-letter exchange), declared by every service and worker and named in the broker users' permissions (krizaka-internal#3614); renamed only with the broker topology, like orazaka.jobs.",
+      "row": "K2"
+    },
+    {
       "token": "orazaka_jobs",
       "reason": "A live database name (the job plane); renamed only by a forward migration of krizaka-internal#2684, never by editing the queries and tests that read it.",
       "row": "K2"

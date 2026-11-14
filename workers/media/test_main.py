@@ -252,7 +252,7 @@ class TestSendProgressUpdate(unittest.TestCase):
 
         mock_pika.BlockingConnection.assert_called_once()
         mock_channel.exchange_declare.assert_called_once_with(
-            exchange="orazaka.events", exchange_type="topic", durable=True
+            exchange="orazaka.events", exchange_type="topic", durable=True, passive=False
         )
         mock_channel.basic_publish.assert_called_once()
 

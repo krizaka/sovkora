@@ -239,15 +239,16 @@ jobs:
       contents: read
     uses: krizaka/.github/.github/workflows/python-ci.yml@a9b7d9371790abb5b71bc40028f747e876752e66 # main
     with:
-      relevant: '^(workers/media/|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
+      relevant: '^(workers/media/|scripts/gpu-pod-broker\.py$|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
       working-directory: workers/media
       extra-packages: pytest pyyaml pika Pillow psutil cryptography numpy coverage
       # The sound suites render through ffmpeg; the runner image may not carry it.
       setup-command: command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
       # Every suite of the worker (test_main's runner guard fails on one left out): no GPU, no model; the CUDA host's suites
-      # skip themselves where ffmpeg lacks a filter.
+      # skip themselves where ffmpeg lacks a filter. test_gpu_pod_broker.py goes first: it needs the real pika (test_main
+      # mocks it) and Docker (a RabbitMQ 4.2 container, the broker's image; the runner has Docker, no skip).
       test-command: >
-        python -m coverage run -m pytest -q test_capability_contract.py test_gpu_runtime.py test_image_to_video.py
+        python -m coverage run -m pytest -q test_gpu_pod_broker.py test_capability_contract.py test_gpu_runtime.py test_image_to_video.py
         test_cut.py test_deliver.py test_foley.py test_mixer.py test_titles.py test_voice_direction.py
         test_remote_video.py test_sound_models.py
         test_main.py test_measure.py test_model_cache.py test_upscale.py test_sound_handler.py test_stages.py
