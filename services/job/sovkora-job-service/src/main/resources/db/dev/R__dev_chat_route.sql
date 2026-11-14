@@ -9,4 +9,8 @@ VALUES ('mistral-3-14B', 'Mistral 3 14B', 'chat', NULL, 'do-inference', FALSE,
         'Mistral 3 14B (Apache-2.0) on DigitalOcean serverless inference — the chat default of the dev '
         || 'environment: fluent English and French, billed per token, no GPU to run.')
 ON CONFLICT (model_name) DO UPDATE SET provider_name = EXCLUDED.provider_name;
+-- The catalogue offers a model only when status = 'available' (CatalogModelDto.isOffered) and treats it as hosted only when
+-- runs_on = 'provider'. The row above is created with the baseline's defaults ('internal', no runs_on), so without this
+-- the Studios' chat step found no chat model on dev (krizaka-internal#3620).
+UPDATE orazaka_models SET status = 'available', runs_on = 'provider', capabilities = 'chat' WHERE model_name = 'mistral-3-14B';
 UPDATE orazaka_models SET is_default = (model_name = 'mistral-3-14B') WHERE category = 'chat';
