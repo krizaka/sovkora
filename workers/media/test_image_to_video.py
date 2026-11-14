@@ -175,7 +175,7 @@ class TestHandOver(unittest.TestCase):
             got = consumer._starting_image(job, {"imagePath": "/srv/uploads/u-1/a.jpg"}, scratch)
         request = opened.call_args.args[0]
         self.assertEqual("http://core:8090/internal/v1/jobs/j-1/input/image", request.full_url)
-        self.assertEqual("u-1", request.get_header("X-orazaka-user-id"))
+        self.assertEqual("u-1", request.get_header("X-sovkora-user-id"))
         self.assertEqual(b"\xff\xd8jpeg", open(got, "rb").read())
         shutil.rmtree(scratch)
 

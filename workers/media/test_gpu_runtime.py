@@ -524,7 +524,8 @@ class TestAssetHandOver(unittest.TestCase):
         self.assertEqual("http://127.0.0.1:8090/internal/v1/jobs/job-9/output/video.mp4", sent["url"])
         self.assertEqual("PUT", sent["method"])
         self.assertEqual("Bearer tok", sent["headers"]["Authorization"])
-        self.assertEqual("user-1", sent["headers"]["X-orazaka-user-id"])
+        self.assertEqual("user-1", sent["headers"]["X-sovkora-user-id"])
+        assert "X-orazaka-user-id" not in sent["headers"]
         self.assertEqual(Path(self.path).read_bytes(), sent["data"])
 
     def test_a_path_is_never_an_asset_name(self):

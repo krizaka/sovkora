@@ -122,7 +122,8 @@
         "test_speech_server.py",
         "test_spend.py",
         "test_dockerfile_pins.py",
-        "test_failure_answer.py"
+        "test_failure_answer.py",
+        "test_asset_sink_causes.py"
       ],
       "cwd": "workers/media",
       "timeoutSeconds": 900

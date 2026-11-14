@@ -123,3 +123,14 @@ def test_a_speech_failure_answers_with_the_type_name_never_the_text_it_was_readi
     assert code == 500
     assert json.loads(payload) == {"error": "speech failed: RuntimeError"}
     assert MARK.encode() not in payload
+
+
+def test_an_asset_sink_failure_carries_its_cause_code_not_only_its_class():
+    import app.consumer as consumer
+    from app import asset_sink
+
+    sent, out = _deliver(consumer, "media-sink", asset_sink.AssetSinkError(asset_sink.UPLOAD_REJECTED))
+    assert sent.call_args.args[:2] == ("media-sink", "AssetSinkError: UPLOAD_REJECTED")
+    assert sent.call_args.kwargs["cause"] == consumer.EXECUTOR_FAULT
+    assert "UPLOAD_REJECTED" in out
+    assert MARK not in out
