@@ -1,6 +1,5 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
 import VerifyPage from "@/app/verify/page";
 
 const mockVerify = jest.fn();
