@@ -79,11 +79,17 @@ def _service_token() -> str | None:
     entitled to the internal surface as any service, which is exactly what makes a
     worker in any language a first-class participant (ADR-037 §3.4).
 
-    A pre-minted ``SOVKORA_SERVICE_TOKEN`` (or, until the pods are rebuilt, the retired
-    ``ORAZAKA_SERVICE_TOKEN``) wins if the deployment supplies one. With
-    neither, the worker simply never registers — and still consumes.
+    A RunPod pod's own ``SOVKORA_POD_TOKEN`` comes first (krizaka-internal#3645): minted by the job
+    service for that pod, accepted on the worker's four routes only and revoked when the pod ends,
+    it is the only credential a pod holds. Then a pre-minted ``SOVKORA_SERVICE_TOKEN`` (or, until
+    the pods are rebuilt, the retired ``ORAZAKA_SERVICE_TOKEN``) wins if the deployment supplies
+    one. With none, the worker simply never registers — and still consumes.
     """
-    supplied = os.environ.get("SOVKORA_SERVICE_TOKEN") or os.environ.get("ORAZAKA_SERVICE_TOKEN")
+    supplied = (
+        os.environ.get("SOVKORA_POD_TOKEN")
+        or os.environ.get("SOVKORA_SERVICE_TOKEN")
+        or os.environ.get("ORAZAKA_SERVICE_TOKEN")
+    )
     if supplied:
         return supplied
     secret = os.environ.get("IDENTITY_JWT_SECRET")

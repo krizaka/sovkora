@@ -106,3 +106,12 @@ def test_the_service_token_is_read_from_its_functional_name_then_the_retired_one
         assert registration._service_token() == "new"
     with patch.dict(os.environ, {**kept, "ORAZAKA_SERVICE_TOKEN": "old"}, clear=True):
         assert registration._service_token() == "old"
+
+
+def test_a_gpu_pods_own_token_wins_over_any_service_credential():
+    # krizaka-internal#3645: a RunPod pod holds only the job-scoped token the job service minted for it;
+    # when it is there, the worker never presents (nor mints) a SERVICE token.
+    kept = {k: v for k, v in os.environ.items() if not k.endswith("_SERVICE_TOKEN") and k != "SOVKORA_POD_TOKEN"}
+    env = {**kept, "SOVKORA_POD_TOKEN": "pod", "SOVKORA_SERVICE_TOKEN": "svc", "IDENTITY_JWT_SECRET": "s" * 40}
+    with patch.dict(os.environ, env, clear=True):
+        assert registration._service_token() == "pod"

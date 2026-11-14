@@ -2,6 +2,8 @@
 // launcher before the pod and deleted when it ends; the create body carries none of the vault's shared secrets. RunPod is a
 // stub (no network, no spend); the broker is a stub shell that records the rabbitmqctl scripts it is sent. The real broker is
 // exercised by workers/media/test_gpu_pod_broker.py (RabbitMQ 4.2 in a container).
+// krizaka-internal#3645: the pod's job service token is its own too, minted by the job service (a stub here) for that pod,
+// revoked at stop and by the sweep; the SERVICE token the launcher's own call carries never reaches the pod.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -10,6 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { SERVICE_JWT, jobService, jwtsIn, podToken } from "./pod-token.fixture.mjs";
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
 const KEY = /^[0-9]{14}-[0-9a-f]{6}$/;
@@ -55,7 +58,7 @@ const run = (cmd, args, env) => new Promise((resolve) => {
 });
 
 /** Sources gpu-runpod.sh with the vault, the output zone and the broker stubbed, then runs `runpod <args…>` lines. */
-async function launcher(s, commands, { users = [], env = {} } = {}) {
+async function launcher(s, commands, { users = [], env = {}, job } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "rp-cred-"));
   const bin = join(dir, "bin"); mkdirSync(bin);
   writeFileSync(join(bin, "ssh-keygen"), `#!/bin/sh\nwhile [ $# -gt 0 ]; do [ "$1" = -f ] && f="$2"; shift; done\necho k > "$f"; echo "ssh-ed25519 AAA" > "$f.pub"\n`);
@@ -69,13 +72,14 @@ async function launcher(s, commands, { users = [], env = {} } = {}) {
 ROOT="${root}"; LOCAL="${dir}/local"; LEDGER="${dir}/ledger.tsv"; ENV_FILE=x; RELAY_URL=u
 die() { echo "gpu-dev: $*" >&2; exit 1; }; say() { echo "gpu-dev: $*"; }
 gpu_out_env() { printf "GPU_OUT_URL=https://z.example/krizaka-gpu-out/d/%s\\nGPU_OUT_HEADER=AccessKey\\nGPU_OUT_KEY=zone-key\\n" "$1"; }
-secret() { echo "s3cret-$1"; }; mint_service_token() { echo tok; }; broker_ca_b64() { echo ca; }; ledger_add() { :; }
+secret() { echo "s3cret-$1"; }; mint_service_token() { echo '${SERVICE_JWT}'; }; broker_ca_b64() { echo ca; }; ledger_add() { :; }
 source "$ROOT/scripts/lib/gpu-runpod.sh"
 ${commands.map((c) => `runpod ${c}`).join("\n")}
 `);
   const result = await run("bash", [join(dir, "driver.sh")], {
     PATH: `${bin}:${process.env.PATH}`, GPU_WORKER_REF: "w".repeat(40), GPU_LOCAL_DIR: join(dir, "local"), GPU_RUNPOD_DCS: "CA-MTL-1",
-    GPU_RUNPOD_GPUS: "NVIDIA L40S", GPU_RUNPOD_VOLUME: "models", RUNPOD_API_BASE: `${s.base}/v2`, RUNPOD_GRAPHQL_URL: `${s.base}/graphql`, GPU_BROKER_SHELL: join(bin, "fake-broker"), ...env,
+    GPU_RUNPOD_GPUS: "NVIDIA L40S", GPU_RUNPOD_VOLUME: "models", RUNPOD_API_BASE: `${s.base}/v2`, RUNPOD_GRAPHQL_URL: `${s.base}/graphql`, GPU_BROKER_SHELL: join(bin, "fake-broker"),
+    GPU_JOB_SERVICE_URL: job ? job.base : "http://127.0.0.1:9", ...env,
   });
   const calls = existsSync(log) ? readFileSync(log, "utf8").split("\n----\n").filter((c) => c.trim()) : [];
   return { ...result, calls };
@@ -83,7 +87,8 @@ ${commands.map((c) => `runpod ${c}`).join("\n")}
 
 test("start: the pod's own broker user is made BEFORE the pod, and the create body carries it and no shared secret", async () => {
   const s = await runpod();
-  const r = await launcher(s, ["start"]);
+  const job = await jobService();
+  const r = await launcher(s, ["start"], { job });
   assert.equal(r.code, 0, r.stderr);
   const body = s.state.bodies[0];
   const env = body.env;
@@ -104,12 +109,37 @@ test("start: the pod's own broker user is made BEFORE the pod, and the create bo
   // The shared values left, each named: the relay credential (it reaches only the relay's allow-list, and nothing behind it
   // without the pod's own broker user and token) and the optional read-only download token of public weights.
   assert.deepEqual([...sent.matchAll(/s3cret-[A-Z_]+/g)].map((m) => m[0]), ["s3cret-AI_GPU_RELAY_PASSWORD", "s3cret-AI_HUGGINGFACE_TOKEN"]);
-  s.close();
+  // (c) its job service token is the one the job service minted for THIS pod; no SERVICE token travels (krizaka-internal#3645).
+  assert.equal(env.SERVICE_TOKEN, undefined, "no SERVICE_TOKEN in the pod's environment");
+  assert.ok(!sent.includes(SERVICE_JWT), "the launcher's SERVICE token stays on this machine");
+  assert.equal(env.POD_TOKEN, job.state.live.get(key), "the pod gets the token minted for its key");
+  const tokens = jwtsIn(sent);
+  assert.equal(tokens.length, 1, "one token in the body: the pod's");
+  assert.deepEqual(tokens[0].roles, ["GPU_POD"]);
+  assert.deepEqual(tokens[0].aud, ["sovkora-job-service"]);
+  assert.equal(tokens[0].sub, `gpu-pod:${key}`);
+  for (const t of tokens) assert.ok(!t.roles.includes("SERVICE"), "never a SERVICE role in the body");
+  const mint = job.state.calls.find((c) => c.method === "POST" && c.path === `/internal/v1/gpu-pods/${key}/token`);
+  assert.equal(mint.body.lifetimeSeconds, 8 * 3600 + 1800, "the pod's lifetime cap: GPU_MAX_HOURS (8) + its boot");
+  assert.equal(mint.bearer, SERVICE_JWT, "the launcher asks with its own SERVICE token");
+  s.close(); job.close();
 });
 
-test("stop: the terminated pod's broker user is deleted with it", async () => {
+test("start: when the job service mints no token, the pod is not created and its broker user is deleted", async () => {
   const s = await runpod();
-  const r = await launcher(s, ["start", "stop"]);
+  const job = await jobService({ refuseMint: true });
+  const r = await launcher(s, ["start"], { job });
+  assert.equal(r.code, 1);
+  assert.match(r.stderr, /minted no token for the pod: nothing was created/);
+  assert.equal(s.state.bodies.length, 0, "no pod body was ever sent");
+  assert.ok(r.calls.some((c) => c.includes("delete_user gpu-pod-")));
+  s.close(); job.close();
+});
+
+test("stop: the terminated pod's broker user is deleted and its job service token revoked with it", async () => {
+  const s = await runpod();
+  const job = await jobService();
+  const r = await launcher(s, ["start", "stop"], { job });
   assert.equal(r.code, 0, r.stderr);
   const user = s.state.bodies[0].env.RABBIT_USER;
   assert.equal(s.state.pods[0].status, "TERMINATED");
@@ -117,48 +147,116 @@ test("stop: the terminated pod's broker user is deleted with it", async () => {
   assert.equal(deleted.length, 1);
   assert.ok(deleted[0].includes(`delete_user ${user}\n`) && deleted[0].includes(`close_all_user_connections ${user} `));
   assert.match(r.stdout, /deleted the broker user of pod pod1/);
-  s.close();
+  const key = user.slice("gpu-pod-".length);
+  assert.ok(job.state.calls.some((c) => c.method === "DELETE" && c.path === `/internal/v1/gpu-pods/${key}/token` && c.bearer === SERVICE_JWT));
+  assert.equal(job.state.live.size, 0, "the pod's token is no longer live");
+  assert.match(r.stdout, /revoked the job service token of pod pod1/);
+  s.close(); job.close();
 });
 
 test("start: when no datacentre has the GPU, the user made for it is deleted and nothing runs", async () => {
   const s = await runpod({ failCreate: true });
-  const r = await launcher(s, ["start"]);
+  const job = await jobService();
+  const r = await launcher(s, ["start"], { job });
   assert.equal(r.code, 1);
   assert.match(r.stderr, /nothing was created/);
   const user = s.state.bodies[0].env.RABBIT_USER;
   assert.ok(r.calls.some((c) => c.includes(`delete_user ${user}\n`)));
-  s.close();
+  assert.equal(job.state.live.size, 0, "the token minted for the pod that never ran is revoked");
+  s.close(); job.close();
 });
 
 test("start sweeps first: the user of a pod that no longer runs (its watchdog ended it) is deleted, a live pod's is kept", async () => {
   const s = await runpod();
   s.state.pods.push({ id: "live1", name: `${POD}-big-20261114100000-aaaaaa`, status: "RUNNING", cost: 0.5, gpu: { id: "NVIDIA L40S" } });
-  const r = await launcher(s, ["start"], { users: ["gpu-pod-20261114100000-aaaaaa", "gpu-pod-20261114090000-bbbbbb", "platform"] });
+  const job = await jobService();
+  job.state.live.set("20261114100000-aaaaaa", podToken("20261114100000-aaaaaa"));
+  job.state.live.set("20261114090000-bbbbbb", podToken("20261114090000-bbbbbb"));
+  const r = await launcher(s, ["start"], { users: ["gpu-pod-20261114100000-aaaaaa", "gpu-pod-20261114090000-bbbbbb", "platform"], job });
   assert.equal(r.code, 1); // a pod already runs: the start refuses, and the sweep ran before
+  const sweep = job.state.calls.find((c) => c.path === "/internal/v1/gpu-pods/tokens/sweep");
+  assert.deepEqual(sweep.body.running, ["20261114100000-aaaaaa"], "the running pods' keys, read from RunPod");
+  assert.deepEqual([...job.state.live.keys()], ["20261114100000-aaaaaa"], "the ended pod's token is revoked, the live pod's kept");
   const deleted = r.calls.filter((c) => c.includes("delete_user")).join("\n");
   assert.match(deleted, /delete_user gpu-pod-20261114090000-bbbbbb\n/);
   assert.doesNotMatch(deleted, /20261114100000-aaaaaa/);
   assert.doesNotMatch(deleted, /delete_user platform\n/);
-  s.close();
+  s.close(); job.close();
+});
+
+test("revoke: with the pod list unreadable, no broker user is deleted and no token revoked", async () => {
+  const job = await jobService();
+  job.state.live.set("20261114090000-bbbbbb", podToken("20261114090000-bbbbbb"));
+  const r = await launcher({ base: "http://127.0.0.1:9" }, ["revoke"], { job, users: ["gpu-pod-20261114090000-bbbbbb"] });
+  assert.equal(r.code, 0, r.stderr);
+  assert.match(r.stdout, /not swept: the pod list is unreadable/);
+  assert.equal(job.state.calls.length, 0);
+  assert.deepEqual(r.calls, []);
+  job.close();
 });
 
 test("measure and stills pods get no broker user at all, and no broker is called", async () => {
   for (const mode of ["MEASURE", "STILLS"]) {
     const s = await runpod();
-    const r = await launcher(s, ["start"], { env: { [mode]: "1" } });
+    const job = await jobService();
+    const r = await launcher(s, ["start"], { env: { [mode]: "1" }, job });
     assert.equal(r.code, 0, r.stderr);
     const env = s.state.bodies[0].env;
-    for (const k of ["RABBIT_USER", "RABBIT_PASSWORD", "SERVICE_TOKEN"]) assert.equal(env[k], undefined, `${mode}: ${k}`);
+    for (const k of ["RABBIT_USER", "RABBIT_PASSWORD", "SERVICE_TOKEN", "POD_TOKEN"]) assert.equal(env[k], undefined, `${mode}: ${k}`);
     assert.deepEqual(r.calls, [], `${mode}: the broker is never asked`);
-    s.close();
+    assert.deepEqual(job.state.calls, [], `${mode}: no token is minted`);
+    assert.deepEqual(jwtsIn(JSON.stringify(s.state.bodies[0])), [], `${mode}: no token at all in the body`);
+    s.close(); job.close();
   }
 });
 
-test("the body builder refuses a shared broker user", async () => {
+/** The body builder (runpod-guard.py body) on a Studio-serving pod's environment. */
+async function body(overrides) {
   const dir = mkdtempSync(join(tmpdir(), "rp-body-"));
   const boot = join(dir, "boot.sh"); writeFileSync(boot, "echo hi\n");
-  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: "gpu-worker", RABBIT_PASSWORD: "r", SERVICE_TOKEN: "t", BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "" };
-  const r = await run("python3", [join(root, "scripts/runpod-guard.py"), "body", join(dir, "body.json"), "NVIDIA L40S"], { AI_GPU_RUNPOD_API_KEY: "k", ...env });
+  const key = "20261114120000-abcdef";
+  const env = { WORKER_REF: "w", PROFILE: "big", MAX_HOURS: "1", IDLE_MINUTES: "30", RELAY_URL: "u", RELAY_AUTH: "a", RABBIT_USER: `gpu-pod-${key}`, RABBIT_PASSWORD: "r", POD_KEY: key, POD_TOKEN: podToken(key), BROKER_CA_B64: "c", RP_IMAGE: "img", DC: "CA-MTL-1", VOLUME: "", PUBKEY: "ssh-ed25519 AAA", BOOT: boot, DISK_GB: "", ...overrides };
+  return run("python3", [join(root, "scripts/runpod-guard.py"), "body", join(dir, "body.json"), "NVIDIA L40S"], { AI_GPU_RUNPOD_API_KEY: "k", ...env });
+}
+
+test("the body builder refuses a shared broker user", async () => {
+  const r = await body({ RABBIT_USER: "gpu-worker" });
   assert.notEqual(r.code, 0);
   assert.match(r.stderr, /its own gpu-pod-\* user/);
+});
+
+test("the body builder takes the pod's own token only: never a SERVICE token, another pod's, or none", async () => {
+  assert.equal((await body({})).code, 0);
+  for (const POD_TOKEN of [SERVICE_JWT, podToken("20261114120000-abcdef", { roles: ["GPU_POD", "SERVICE"] }), podToken("20261114090000-bbbbbb"),
+    podToken("20261114120000-abcdef", { aud: ["sovkora-studio-service"] }), "", "not-a-token"]) {
+    const r = await body({ POD_TOKEN });
+    assert.notEqual(r.code, 0, POD_TOKEN);
+    assert.match(r.stderr, /its own (GPU_POD )?job service token/);
+    assert.ok(!r.stderr.includes(POD_TOKEN) || POD_TOKEN === "", "the refusal never prints the token");
+  }
+});
+
+test("gpu-pod-token.py fails closed: no SERVICE token, no route, or a relay tunnel that does not open", async () => {
+  const script = join(root, "scripts/gpu-pod-token.py");
+  const dir = mkdtempSync(join(tmpdir(), "rp-tok-"));
+  const bin = join(dir, "bin"); mkdirSync(bin);
+  writeFileSync(join(bin, "chisel"), "#!/bin/sh\nexit 1\n"); chmodSync(join(bin, "chisel"), 0o755);
+  let r = await run("python3", [script, "mint", "20261114120000-abcdef", "60"], { GPU_JOB_SERVICE_URL: "http://127.0.0.1:9" });
+  assert.equal(r.code, 1); assert.match(r.stderr, /no GPU_SERVICE_TOKEN/);
+  r = await run("python3", [script, "mint", "20261114120000-abcdef", "60"], { GPU_SERVICE_TOKEN: SERVICE_JWT });
+  assert.equal(r.code, 1); assert.match(r.stderr, /no route to the job service/);
+  r = await run("python3", [script, "mint", "20261114120000-abcdef", "60"], { PATH: `${bin}:${process.env.PATH}`, GPU_SERVICE_TOKEN: SERVICE_JWT, GPU_RELAY_URL: "u", GPU_RELAY_AUTH: "gpu:s3cret" });
+  assert.equal(r.code, 1); assert.match(r.stderr, /tunnel to the job service did not open/);
+  assert.ok(!(r.stdout + r.stderr).includes("s3cret"));
+});
+
+test("runpod token-check: the free journey — minted, accepted on the worker's routes, refused elsewhere, refused once revoked", async () => {
+  const job = await jobService();
+  const r = await launcher({ base: "http://127.0.0.1:9" }, ["token-check"], { job });
+  assert.equal(r.code, 0, r.stderr);
+  assert.match(r.stdout, /accepted on POST \/internal\/v1\/workers\/sovkora-preflight\/heartbeat \(404\)/);
+  assert.match(r.stdout, /refused on GET \/internal\/v1\/capabilities \(403\)/);
+  assert.match(r.stdout, /refused once revoked \(401\)/);
+  assert.equal(job.state.live.size, 0);
+  job.close();
 });

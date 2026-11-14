@@ -82,8 +82,9 @@ test("a rented pod holds the output zone's key and no site credential: only the 
     assert.ok(!/MEDIA_STORAGE|MEDIA_ACCOUNT|BUNNY_|krizaka-assets/i.test(text), `${f} names a site storage credential or the sites' zone`);
   }
   // the pod's variables are an allow-list: the gpu-out pair passes, the sites' key does not
-  const ok = podEnvProblems({ GPU_OUT_URL: "u", GPU_OUT_HEADER: "AccessKey", GPU_OUT_KEY: "zone-key", SERVICE_TOKEN: "t" }, ["assets-key"]);
+  const ok = podEnvProblems({ GPU_OUT_URL: "u", GPU_OUT_HEADER: "AccessKey", GPU_OUT_KEY: "zone-key", POD_TOKEN: "t" }, ["assets-key"]);
   assert.deepEqual(ok, []);
+  assert.equal(podEnvProblems({ SERVICE_TOKEN: "t" }).length, 1, "a pod never carries a SERVICE token (krizaka-internal#3645)");
   assert.ok(podEnvProblems({ MEDIA_STORAGE_API_KEY: "assets-key" }, ["assets-key"]).length >= 2, "MEDIA_STORAGE_API_KEY is refused by name and by value");
   assert.ok(podEnvProblems({ GPU_OUT_KEY: "assets-key" }, ["assets-key"]).length === 1, "the sites' key under the gpu-out name is refused by value");
   assert.ok(podEnvProblems({ MEDIA_ACCOUNT_API_KEY: "x" }).length >= 1, "the Bunny account key is refused");

@@ -174,6 +174,21 @@ def cmd_balance(key, _args):
     return 0
 
 
+def require_pod_token(token, key):
+    """Refuses any token but the pod's own: addressed to the job service, the GPU_POD role only, its subject the pod's key.
+
+    Read, not verified (the job service verifies): this guard only keeps a SERVICE token, or another pod's, out of a body."""
+    try:
+        payload = token.split(".")[1]
+        claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+    except (IndexError, ValueError):
+        raise ValueError("a pod carries its own job service token (gpu-pod-token.py mint), not this value") from None
+    aud = claims.get("aud")
+    if claims.get("roles") != ["GPU_POD"] or (aud if isinstance(aud, list) else [aud]) != ["sovkora-job-service"] \
+            or claims.get("sub") != f"gpu-pod:{key}":
+        raise ValueError("a pod never carries a SERVICE token, nor another pod's: only its own GPU_POD job service token")
+
+
 def create_body(e, gpu_id):
     """The v2 body of one orazaka pod: gpu / mounts / disk nested, the start command as entrypoint + cmd. `e` is the environment."""
     boot = base64.b64encode(open(e["BOOT"], "rb").read()).decode()
@@ -185,9 +200,11 @@ def create_body(e, gpu_id):
         env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "MAX_HOURS", "IDLE_MINUTES")}
     else:
         # The Studio-serving pod joins the broker as its own user, made for it and deleted when it ends (krizaka-internal#3614).
-        env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "RABBIT_USER", "RABBIT_PASSWORD", "SERVICE_TOKEN", "BROKER_CA_B64", "MAX_HOURS", "IDLE_MINUTES")}
+        # Its job service token is its own too (krizaka-internal#3645): minted by the job service, the pod role, never SERVICE.
+        env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "RABBIT_USER", "RABBIT_PASSWORD", "POD_TOKEN", "BROKER_CA_B64", "MAX_HOURS", "IDLE_MINUTES")}
         if not e["RABBIT_USER"].startswith("gpu-pod-"):
             raise ValueError("a pod joins the broker as its own gpu-pod-* user, never a shared one")
+        require_pod_token(e["POD_TOKEN"], e.get("POD_KEY", ""))
     if e.get("GPU_OUT_URL") and not e.get("MEASURE"):
         # The pod's own output zone (krizaka-internal#2121): its URL under <day>/<run>/<pod>, the header name and THAT zone's key.
         # Never a site's key: the dedicated zone is the only storage a rented machine can touch.

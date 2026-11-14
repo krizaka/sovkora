@@ -883,6 +883,7 @@ function hostedTier3Dirs(serviceRoot) {
  */
 function accessRules(serviceDir) {
   const rules = [];
+  const lanes = [];
   for (const f of javaFiles(serviceDir)) {
     if (!f.endsWith("SecurityConfig.java")) continue;
     const code = read(f).replace(/^\s*(\/\/|\*|\/\*).*$/gm, "");
@@ -890,6 +891,16 @@ function accessRules(serviceDir) {
     // first and `anyRequest().authenticated()` last, around the service's own: the same order
     // Spring Security will evaluate them in (krizaka-java krizaka-service-kit, ADR-073).
     const baseline = code.includes("SecurityBaseline.apply(");
+    // A chain of its own, declared before the baseline and narrowed by `securityMatcher(...)`: the job service's GPU pod
+    // lane (krizaka-internal#3645). Its grants are a second way in on the paths it names, so they are read apart and shown
+    // beside the baseline's rule rather than mixed into its first-match order.
+    const at = baseline ? code.indexOf("SecurityBaseline.apply(") : -1;
+    if (at > 0 && code.slice(0, at).includes("securityMatcher(")) {
+      for (const { httpMethod, patterns, verb, args } of requestMatcherRules(code.slice(0, at))) {
+        if (!/^has(Any)?Authority$/.test(verb)) continue;
+        for (const pattern of patterns) lanes.push({ pattern, label: args.join(" + "), httpMethod });
+      }
+    }
     if (baseline) {
       rules.push({ pattern: "/**", label: "public", httpMethod: "OPTIONS" });
       for (const pattern of ["/actuator/health", "/actuator/info", "/error"]) {
@@ -897,7 +908,7 @@ function accessRules(serviceDir) {
       }
       rules.push({ pattern: "/internal/v1/**", label: "SERVICE", httpMethod: null });
     }
-    for (const { httpMethod, patterns, verb, args } of requestMatcherRules(code)) {
+    for (const { httpMethod, patterns, verb, args } of requestMatcherRules(at > 0 && lanes.length ? code.slice(at) : code)) {
       const label =
         verb === "permitAll"
           ? "public"
@@ -923,7 +934,21 @@ function accessRules(serviceDir) {
   // specificity gets the answer backwards: billing's `requestMatchers(OPTIONS, "/**").permitAll()`
   // then shadowed everything below it and the reference called 28 authenticated billing endpoints
   // public — the exact opposite of the posture ADR-035 establishes.
+  rules.lanes = lanes;
   return rules;
+}
+
+/** Whether a Spring path pattern covers a concrete path. */
+function covers(pattern, concrete) {
+  const regex = new RegExp(
+    "^" +
+      pattern
+        .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/\*\*/g, ".*")
+        .replace(/(?<!\.)\*/g, "[^/]*") +
+      "$",
+  );
+  return regex.test(concrete);
 }
 
 /**
@@ -935,17 +960,10 @@ function accessRules(serviceDir) {
  */
 function accessFor(rules, path, method) {
   const concrete = path.replace(/\{[^}]*\}/g, "x");
+  const lane = (rules.lanes ?? []).find((r) => (!r.httpMethod || r.httpMethod === method) && covers(r.pattern, concrete));
   for (const { pattern, label, httpMethod } of rules) {
     if (httpMethod && httpMethod !== method) continue;
-    const regex = new RegExp(
-      "^" +
-        pattern
-          .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-          .replace(/\*\*/g, ".*")
-          .replace(/(?<!\.)\*/g, "[^/]*") +
-        "$",
-    );
-    if (regex.test(concrete)) return label;
+    if (covers(pattern, concrete)) return lane ? `${label}, or ${lane.label} (its own chain)` : label;
   }
   // Not a formatting placeholder — a finding. A service with no matching rule has no Spring
   // Security on the path at all, which is how `/internal/v1/knowledge/**` came to be reachable

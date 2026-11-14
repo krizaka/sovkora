@@ -96,8 +96,10 @@ broker_ca_b64() {
 
 droplets_json() { doctl compute droplet list --tag-name "$TAG" -o json; }
 
-# The SERVICE token the worker presents to the job service (ADR-035), minted HERE with the identity
-# secret, which never leaves this machine; it expires with the droplet's lifetime.
+# The SERVICE token the droplet's and the Mac's worker present to the job service (ADR-035), minted HERE with the identity
+# secret, which never leaves this machine; it expires with the droplet's lifetime. A RunPod pod never gets one: this
+# machine's own call to the job service carries it (`mint_service_token 0`, 30 min) to mint the pod's own token
+# (krizaka-internal#3645, scripts/gpu-pod-token.py).
 mint_service_token() {
   local hours="$1"
   JWT_SECRET="$(secret IDENTITY_JWT_SECRET)" python3 - "$hours" <<'PY'

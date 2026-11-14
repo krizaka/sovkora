@@ -171,6 +171,8 @@ const WORKER_DIRS = [
 const SERVICE_TOKEN_VARS = [...root("workers/media/app/registration.py").matchAll(/environ\.get\("(\w+_SERVICE_TOKEN)"\)/g)].map((m) => m[1]);
 const [SERVICE_TOKEN_VAR] = SERVICE_TOKEN_VARS;
 const IDENTITY_SECRET_VAR = root("workers/media/app/registration.py").match(/environ\.get\("(IDENTITY_JWT_SECRET)"\)/)[1];
+// A RunPod pod's own job service token (krizaka-internal#3645): only a pod holds one, never a worker of the core container.
+const POD_TOKEN_VAR = root("workers/media/app/registration.py").match(/environ\.get\("(\w+_POD_TOKEN)"\)/)[1];
 
 /** What the worker process really receives: the worker function runs with a poisoned core environment and a stand-in interpreter that prints its env. */
 function workerEnvironment(fn) {
@@ -255,7 +257,7 @@ test("every variable the hosted-video worker reads on its hosted-only path is in
   const read = readNames(...["broker", "asset_sink", "remote_video", "spend", "registration", "activity"].map((m) => `workers/media/app/${m}.py`));
   const have = new Set([...WORKERS["hosted-video"].list(), ...WORKERS["hosted-video"].fixed]);
   // Refused on purpose: with neither the worker never registers with the job service and still consumes (registration.py).
-  const refused = new Set([...SERVICE_TOKEN_VARS, IDENTITY_SECRET_VAR]);
+  const refused = new Set([...SERVICE_TOKEN_VARS, IDENTITY_SECRET_VAR, POD_TOKEN_VAR]);
   for (const v of read) assert.ok(have.has(v) || refused.has(v), `${v} is read by the hosted-video worker but is not in the closed list`);
   for (const v of refused) assert.ok(!have.has(v), `${v} must stay out of the hosted-video worker's environment`);
 });

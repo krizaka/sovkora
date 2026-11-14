@@ -38,6 +38,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+  /** The pod role, named here so the generated API reference reads it (krizaka-internal#3645). */
+  private static final String GPU_POD = PodTokenPolicy.ROLE;
+
   /**
    * The pods' chain: only requests whose bearer token names the pod key reach it, and it accepts a
    * live pod token on the media worker's four routes ({@code docs/WORKER_PROTOCOL.md}) only —
@@ -72,13 +75,13 @@ public class SecurityConfig {
                 auth.requestMatchers("/error")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/internal/v1/workers")
-                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .hasAuthority(GPU_POD)
                     .requestMatchers(HttpMethod.POST, "/internal/v1/workers/*/heartbeat")
-                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .hasAuthority(GPU_POD)
                     .requestMatchers(HttpMethod.PUT, "/internal/v1/jobs/*/output/*")
-                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .hasAuthority(GPU_POD)
                     .requestMatchers(HttpMethod.GET, "/internal/v1/jobs/*/input/image")
-                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .hasAuthority(GPU_POD)
                     .anyRequest()
                     .denyAll())
         .oauth2ResourceServer(

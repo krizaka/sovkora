@@ -277,6 +277,15 @@ Droplet in the `default-tor1` VPC (`node scripts/dev-deploy.mjs broker`, idempot
   own cancel queue; the shared exchanges only checked (passive), never declared or deleted; on the events exchange only
   the keys `job.<id>.progress|done|error|cancelled` (topic permissions). Proven against RabbitMQ 4.2 by
   `workers/media/test_gpu_pod_broker.py`.
+- **A RunPod pod has a job service token of its own too** (krizaka-internal#3645), never a `SERVICE` token:
+  `runpod start` asks the job service (`POST /internal/v1/gpu-pods/<key>/token`, through the relay to `core:8090`, with a
+  `SERVICE` token that stays on the Mac) for a token whose `aud` is the job service, whose only role is `GPU_POD`, whose
+  `sub` is `gpu-pod:<key>` and whose `exp` is the pod's lifetime cap. The job service accepts it on the worker's four
+  routes only (register, heartbeat, a job's output upload, a job's input image) and only while its `gpu_pod_tokens` row is
+  live; no other service verifies it (its key is derived under a label of its own, `JOB_POD_TOKEN_SECRET`, falling back
+  to the identity secret). `runpod stop` revokes it, and a start or `runpod revoke` revokes the token of every pod that
+  ended on its own. `runpod token-check` is the free journey after a deploy: mint, the routes accept it, another route
+  refuses it, revoke, then it is refused — no pod.
 - No volume worth keeping: queues are re-declared by the services and workers at start (AGENTS.md §6).
 
 ## Media — kept outside the container
@@ -369,7 +378,7 @@ demand here: the pod or the Mac is started by hand (`gpu-dev.sh`), and the model
 
 **Outputs.** The droplet keeps nothing: the worker hands each clip to the job service (`PUT
 /internal/v1/jobs/{id}/output/{file}`, a `SERVICE` token minted by `gpu-dev.sh` from the identity secret — which never
-leaves this machine — and expiring with the droplet), which seals it with the platform's key, adopts the job's row if a
+leaves this machine — and expiring with the droplet; a RunPod pod presents its own job-scoped token instead, above), which seals it with the platform's key, adopts the job's row if a
 Studio step left none, and serves it at `/api/v1/assets/{id}/video.mp4`.
 
 **The image** is pulled from GHCR; while that package is private, the droplet builds it from the worker's public repository at its `main` commit (~20 min, once) and keeps it on the Volume (`/models/images`), so later starts load it in a minute. Making the package public (GitHub → Packages → orazaka-worker-media → visibility) removes the build.

@@ -72,7 +72,7 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
   /** Every other kind of route this service has, internal and public. */
   private static List<MockHttpServletRequestBuilder> otherRoutes() {
     return List.of(
-        get("/internal/v1/capabilities/orazaka.core.media.vision"),
+        get("/internal/v1/capabilities/media.vision"),
         post("/internal/v1/gpu-pods/" + POD.value() + "/token"),
         delete("/internal/v1/gpu-pods/" + POD.value() + "/token"),
         post("/internal/v1/gpu-pods/tokens/sweep"),
