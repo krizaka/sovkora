@@ -39,10 +39,22 @@ test("the scripts job writes the lcov report of the script tests, and the Sonar 
   assert.ok(sonarJob.indexOf("download-artifact") < sonarJob.indexOf("actions/sonar-scan@"), "the coverage is downloaded before the scan");
   assert.match(sonarJob, /pattern: coverage-\*/);
   const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
-  for (const report of ["lcov-scripts.info", "apps/web/coverage/lcov.info", "apps/cli/coverage/lcov.info"]) {
+  for (const report of ["lcov-scripts.info", "lcov-web.info", "lcov-mobile.info", "lcov-cli.info"]) {
     assert.ok((p.match(/^sonar\.javascript\.lcov\.reportPaths=(.*)$/m)?.[1] ?? "").split(",").includes(report), report);
   }
   assert.match(p, /^sonar\.coverage\.jacoco\.xmlReportPaths=/m);
+});
+
+// Every uploaded report has a file name of its own, and each is listed: the artifacts are merged into one folder, so two files
+// with the same name overwrite each other and only one part reaches SonarCloud.
+test("every coverage artifact uploads an lcov file with a distinct name, and Sonar lists each", () => {
+  const uploaded = [...ci.matchAll(/name: coverage-(web|mobile|cli|scripts)\n(?:.*\n)*?\s+path: (\S+\.info)/g)].map((m) => ({ part: m[1], path: m[2] }));
+  for (const part of ["web", "mobile", "cli", "scripts"]) assert.ok(uploaded.some((u) => u.part === part), `${part} uploads an lcov`);
+  const names = uploaded.map((u) => u.path.split("/").pop());
+  assert.equal(new Set(names).size, names.length, `lcov file names collide: ${names.join(", ")}`);
+  const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
+  const listed = (p.match(/^sonar\.javascript\.lcov\.reportPaths=(.*)$/m)?.[1] ?? "").split(",");
+  for (const name of names) assert.ok(listed.includes(name), `${name} is in sonar.javascript.lcov.reportPaths`);
 });
 
 test("sonar-project.properties names the one project of the repository", () => {
