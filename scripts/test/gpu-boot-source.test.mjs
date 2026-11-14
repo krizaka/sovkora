@@ -1,11 +1,9 @@
 // node --test scripts/test — a GPU boot builds the worker from this repository's workers/media, never from a retired repository (krizaka-internal#3611).
-import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { test } from "node:test";
+import assert from "node:assert/strict";
 
-const root = new URL("../../", import.meta.url).pathname;
-const read = (p) => readFileSync(join(root, p), "utf8");
+const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
 const BOOT_FILES = ["infra/gpu/runpod-bootstrap.sh", "infra/gpu/runpod-measure.sh", "infra/gpu/host.sh", "infra/gpu/watchdog.sh", "scripts/lib/gpu-runpod.sh", "scripts/gpu-dev.sh", "scripts/studio-preflight.mjs"];
 
 test("a GPU boot or infra script references no GitHub repository of krizaka other than sovkora", () => {
