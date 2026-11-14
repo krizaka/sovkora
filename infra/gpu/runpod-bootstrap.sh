@@ -3,13 +3,14 @@
 # The RunPod pod's boot (scripts/gpu-dev.sh runpod start) — the same worker as the DigitalOcean droplet, in one container.
 #
 # A RunPod pod is a single container (no Docker inside), on a base image that already has CUDA, Python and sshd. So the
-# CUDA image of orazaka-worker-media (private on GHCR) is not pulled: this script builds the same runtime in place from the
-# worker's public repository — the venv of Dockerfile.cuda, the requirements, the code at WORKER_REF — then fetches the
+# CUDA image of the media worker (private on GHCR) is not pulled: this script builds the same runtime in place from
+# workers/media of the public krizaka/sovkora repository — the venv of Dockerfile.cuda, the requirements, the code at WORKER_REF — then fetches the
 # weights ONCE onto the network volume (/models: a restart does not download them again), opens the chisel tunnel to the
 # relay of dev.sovkora.com and runs the consumer. Nothing listens publicly but sshd (the key of this machine only).
 #
 # Settings come from the environment gpu-dev.sh gives the pod (credentials included, never printed): WORKER_REF, PROFILE,
 # RELAY_URL, RELAY_AUTH, RABBIT_PASSWORD, SERVICE_TOKEN, BROKER_CA_B64, IDLE_MINUTES, MAX_HOURS (and HF_TOKEN, optional).
+# STILLS=1 (images only): RELAY_URL and RELAY_AUTH alone, no broker credential (krizaka-internal#3611).
 #
 # A profile that declares an image model (`cinema`, ADR-080) also serves sd-server (FLUX.2 klein keyframes) on :8086 — the
 # address the platform's image provider already names (gpu-relay:8086) — built once for CUDA and kept on the volume. A
@@ -151,7 +152,7 @@ build_sd_server() {
 if [[ -n "${STILLS:-}" ]]; then
   export DEBIAN_FRONTEND=noninteractive
   apt-get update -qq >/dev/null 2>&1; apt-get install -y -qq curl git ca-certificates >/dev/null 2>&1
-  rm -rf /app-src && git clone -q https://github.com/krizaka/orazaka-worker-media.git /app-src && git -C /app-src checkout -q "${WORKER_REF:-main}"
+  rm -rf /sovkora-src /app-src && git clone -q --filter=blob:none --no-checkout https://github.com/krizaka/sovkora.git /sovkora-src && git -C /sovkora-src checkout -q "${WORKER_REF:-main}" && ln -sfn /sovkora-src/workers/media /app-src
   python3 -m venv /opt/stills && /opt/stills/bin/pip install -q --no-cache-dir pyyaml
   export MEDIA_MODELS_DIR=/models
   IMAGE_MODEL=$(cd /app-src && /opt/stills/bin/python -c "from app.video_models import load_manifest; print(load_manifest()['profiles']['${PROFILE:-big}'].get('image') or '')")
@@ -191,8 +192,7 @@ if [[ ! -x $VENV/bin/python ]]; then
   $VENV/bin/pip install -q --no-cache-dir torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
 fi
 ln -sfn /models/venv /opt/venv
-rm -rf /app-src && git clone -q https://github.com/krizaka/orazaka-worker-media.git /app-src
-git -C /app-src checkout -q "${WORKER_REF:-main}"
+rm -rf /sovkora-src /app-src && git clone -q --filter=blob:none --no-checkout https://github.com/krizaka/sovkora.git /sovkora-src && git -C /sovkora-src checkout -q "${WORKER_REF:-main}" && ln -sfn /sovkora-src/workers/media /app-src
 /opt/venv/bin/pip install -q --no-cache-dir -r /app-src/requirements-cuda.txt
 # The optional video upscaler (Studio `upscale`: SeedVR2 3B, Apache-2.0): a pinned checkout and its own venv, both on the volume, so a
 # later pod finds them in place; its weights (7 GB) are fetched by its CLI at the first upscale into /models/seedvr2.
@@ -208,7 +208,7 @@ fi
 [[ -d $UP/seedvr2/.git ]] || git clone -q https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler $UP/seedvr2
 git -C $UP/seedvr2 checkout -q "$SEEDVR2_REF" 2>/dev/null || { git -C $UP/seedvr2 fetch -q origin && git -C $UP/seedvr2 checkout -q "$SEEDVR2_REF"; }
 mkdir -p $UP/seedvr; [[ -e /models/seedvr2 ]] || ln -sfn $UP/seedvr /models/seedvr2   # the worker looks for the weights in <models>/seedvr2
-step "worker runtime ready: orazaka-worker-media@$(git -C /app-src rev-parse --short=12 HEAD)"
+step "worker runtime ready: sovkora/workers/media@$(git -C /sovkora-src rev-parse --short=12 HEAD)"
 
 # --- 2. chisel, the tunnel client ---------------------------------------------------------------------
 if ! command -v chisel >/dev/null; then

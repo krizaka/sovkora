@@ -71,23 +71,23 @@ iptables -C DOCKER-USER -d 169.254.169.254 -j DROP 2>/dev/null || iptables -I DO
 # public repository at its main commit, kept on the volume so it is built once per commit, not per start.
 worker_image() {
   if docker pull -q "$WORKER_IMAGE" >/dev/null 2>&1; then step "image pulled: $WORKER_IMAGE"; return; fi
-  local sha; sha=$(git ls-remote https://github.com/krizaka/orazaka-worker-media.git refs/heads/main | cut -c1-12)
-  local tar="/models/images/orazaka-worker-media-${sha}.tar"
+  local sha; sha=$(git ls-remote https://github.com/krizaka/sovkora.git refs/heads/main | cut -c1-12)
+  local tar="/models/images/sovkora-media-worker-${sha}.tar"
   mkdir -p /models/images
   if [[ -f "$tar" ]]; then
-    docker load -q -i "$tar" >/dev/null && docker tag "orazaka-worker-media:${sha}" "$WORKER_IMAGE"
+    docker load -q -i "$tar" >/dev/null && docker tag "sovkora-media-worker:${sha}" "$WORKER_IMAGE"
     step "image loaded from the volume (worker-media ${sha})"; return
   fi
-  step "building the worker image from krizaka/orazaka-worker-media@${sha} (once per commit, ~20 min)"
+  step "building the worker image from krizaka/sovkora@${sha} (once per commit, ~20 min)"
   local src; src=$(mktemp -d)
-  git clone -q --depth 1 https://github.com/krizaka/orazaka-worker-media.git "$src"
+  git clone -q --depth 1 https://github.com/krizaka/sovkora.git "$src"
   # The DigitalOcean GPU image ships Docker without buildx, and Dockerfile.cuda needs BuildKit.
   docker buildx version >/dev/null 2>&1 || { apt-get update -qq && apt-get install -y -qq docker-buildx >/dev/null; }
-  DOCKER_BUILDKIT=1 docker build -q -f "$src/Dockerfile.cuda" -t "orazaka-worker-media:${sha}" "$src" >/dev/null
+  DOCKER_BUILDKIT=1 docker build -q -f "$src/workers/media/Dockerfile.cuda" -t "sovkora-media-worker:${sha}" "$src/workers/media" >/dev/null
   rm -rf "$src"
-  docker tag "orazaka-worker-media:${sha}" "$WORKER_IMAGE"
-  rm -f /models/images/orazaka-worker-media-*.tar
-  docker save -o "$tar.part" "orazaka-worker-media:${sha}" && mv "$tar.part" "$tar"
+  docker tag "sovkora-media-worker:${sha}" "$WORKER_IMAGE"
+  rm -f /models/images/sovkora-media-worker-*.tar
+  docker save -o "$tar.part" "sovkora-media-worker:${sha}" && mv "$tar.part" "$tar"
   step "image built and kept on the volume ($(du -h "$tar" | cut -f1))"
 }
 worker_image

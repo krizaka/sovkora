@@ -2,7 +2,7 @@
 # ==============================================================================
 # The RunPod MEASUREMENT pod's boot (scripts/gpu-dev.sh runpod measure): the same runtime as runpod-bootstrap.sh, but the pod
 # never joins the dev broker — no relay, no tunnel, no consumer, no credential beyond the HF token for public weights. It runs
-# `python -m app.measure …` (orazaka-worker-media) and writes one JSON line per measure to /models/measure/<epoch>/results.jsonl
+# `python -m app.measure …` (workers/media of krizaka/sovkora) and writes one JSON line per measure to /models/measure/<epoch>/results.jsonl
 # (also on the network volume), then waits MEASURE_GRACE_MINUTES (default 15) for `scp`, and ends itself.
 #
 # Settings (environment): WORKER_REF, PROFILE, MEASURE_ARGS (the app.measure commands, `;` separated, e.g.
@@ -126,8 +126,7 @@ if [[ ! -x $VENV/bin/python ]]; then
   $VENV/bin/pip install -q --no-cache-dir torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
 fi
 ln -sfn /models/venv /opt/venv
-rm -rf /app-src && git clone -q https://github.com/krizaka/orazaka-worker-media.git /app-src
-git -C /app-src checkout -q "${WORKER_REF:-main}"
+rm -rf /sovkora-src /app-src && git clone -q --filter=blob:none --no-checkout https://github.com/krizaka/sovkora.git /sovkora-src && git -C /sovkora-src checkout -q "${WORKER_REF:-main}" && ln -sfn /sovkora-src/workers/media /app-src
 /opt/venv/bin/pip install -q --no-cache-dir -r /app-src/requirements-cuda.txt
 # shellcheck disable=SC2086 # MEASURE_PIP is a list of requirement words
 [[ -z "${MEASURE_PIP:-}" ]] || /opt/venv/bin/pip install -q --no-cache-dir $MEASURE_PIP

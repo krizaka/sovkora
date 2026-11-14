@@ -325,7 +325,7 @@ console or in that file — never in a service's configuration.
 ## GPU — images and 9:16 video, by the hour
 
 Generation runs on a GPU droplet that exists only while it works (ADR-077). It runs the CUDA image of
-`krizaka/orazaka-worker-media` (`ghcr.io/krizaka/sovkora-media-worker:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
+`workers/media` of `krizaka/sovkora` (`ghcr.io/krizaka/sovkora-media-worker:cuda-latest`): **sd-server** with FLUX.2 [klein] 4B
 for images, and the **media worker** draining `job.video.*` / `job.compose.*` with Wan for 9:16 video.
 
 | Size | Droplet | $/hour | Video model (default) | 9:16 clip |

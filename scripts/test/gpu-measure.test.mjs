@@ -29,7 +29,7 @@ test("the measure subcommand sends the pod only what it needs", () => {
   assert.match(lib, /measure\) shift; MEASURE=1 runpod_start/);
   const block = guard.slice(guard.indexOf('if e.get("MEASURE")'), guard.indexOf('if e.get("HF_TOKEN")'));
   assert.match(block, /WORKER_REF.*PROFILE.*MAX_HOURS.*IDLE_MINUTES.*MEASURE_ARGS.*MEASURE_PIP/s);
-  assert.ok(!/RELAY|RABBIT|SERVICE_TOKEN|BROKER/.test(block.split("else:")[0]), "measure env carries no broker credential");
+  assert.ok(!/RELAY|RABBIT|SERVICE_TOKEN|BROKER/.test(block.split("elif")[0]), "measure env carries no broker credential");
   assert.match(guard, /"measure" if e.get\("MEASURE"\)/);
 });
 
