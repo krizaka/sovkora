@@ -180,6 +180,9 @@ def create_body(e, gpu_id):
     if e.get("MEASURE"):
         # Measurement only: the pod never learns the relay, the broker or a service token.
         env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "MAX_HOURS", "IDLE_MINUTES", "MEASURE_ARGS", "MEASURE_PIP")}
+    elif e.get("STILLS"):
+        # Images only: the pod serves sd-server through the relay and never joins the broker (GPU rule, krizaka-internal#3611).
+        env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "MAX_HOURS", "IDLE_MINUTES")}
     else:
         env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "RABBIT_PASSWORD", "SERVICE_TOKEN", "BROKER_CA_B64", "MAX_HOURS", "IDLE_MINUTES")}
     if e.get("GPU_OUT_URL") and not e.get("MEASURE"):

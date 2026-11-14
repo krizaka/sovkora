@@ -74,7 +74,7 @@ test("the droplet opens no port but SSH from the caller, and reaches the platfor
   assert.match(host, /iptables -I DOCKER-USER -d 169\.254\.169\.254 -j DROP/);
   assert.match(host, /client .*"\$RELAY_URL"[\s\S]*0\.0\.0\.0:5671:broker-dev\.orazaka\.com:5671 0\.0\.0\.0:8090:core:8090[\s\S]*R:0\.0\.0\.0:8086:sd-server:8086 R:0\.0\.0\.0:8188:worker:8188 R:0\.0\.0\.0:11434:ollama:11434/);
   // A private registry never blocks a start: the image is built once per worker commit and kept on the volume.
-  assert.match(host, /docker pull -q "\$WORKER_IMAGE"[\s\S]*docker load -q -i[\s\S]*docker build -q -f "\$src\/Dockerfile\.cuda"[\s\S]*docker save/);
+  assert.match(host, /docker pull -q "\$WORKER_IMAGE"[\s\S]*docker load -q -i[\s\S]*docker build -q -f "\$src\/workers\/media\/Dockerfile\.cuda"[\s\S]*docker save/);
   // The watchdog is armed before anything that can fail.
   assert.ok(host.indexOf("orazaka-gpu-watchdog.timer") < host.indexOf("--name orazaka-fetch"));
 });
@@ -128,7 +128,7 @@ test("the volume's creation message never reaches stdout (it is read as the volu
   const host = read("infra/gpu/host.sh");
   assert.match(host, /docker buildx version[\s\S]*apt-get install -y -qq docker-buildx[\s\S]*docker build/);
   // one image per worker commit: a new main commit is a new tar, hence a rebuild
-  assert.match(host, /orazaka-worker-media-\$\{sha\}\.tar/);
+  assert.match(host, /sovkora-media-worker-\$\{sha\}\.tar/);
 });
 
 test("GPU_SERVICES=video starts neither the image engine nor Ollama (their memory is the video model's)", () => {
@@ -159,7 +159,7 @@ test("runpod bootstrap: a watchdog first, the worker built from its public repos
   const boot = read("infra/gpu/runpod-bootstrap.sh");
   assert.ok(boot.indexOf("orazaka-watchdog armed") < 0 && boot.indexOf("watchdog armed") < boot.indexOf("building the worker runtime"));
   assert.match(boot, /api\.runpod\.io\/v2\/pods\/\$\{RUNPOD_POD_ID\}/); // the pod ends itself
-  assert.match(boot, /git clone -q https:\/\/github\.com\/krizaka\/orazaka-worker-media\.git/);
+  assert.match(boot, /git clone -q --filter=blob:none --no-checkout https:\/\/github\.com\/krizaka\/sovkora\.git/);
   assert.match(boot, /MEDIA_MODELS_DIR=\/models/);
   assert.match(boot, /127\.0\.0\.1:15671:broker-dev\.orazaka\.com:5671/);
   assert.doesNotMatch(boot, /ghcr\.io/); // the private registry is never needed

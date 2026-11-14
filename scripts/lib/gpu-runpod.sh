@@ -54,7 +54,7 @@ runpod_start() {
 
   local max_hours="${GPU_MAX_HOURS:-8}" worker_ref
   # GPU_WORKER_REF runs a worker commit not yet on main (a branch under review), else main's head.
-  worker_ref="${GPU_WORKER_REF:-$(git ls-remote https://github.com/krizaka/orazaka-worker-media.git refs/heads/main | cut -c1-40)}"
+  worker_ref="${GPU_WORKER_REF:-$(git ls-remote https://github.com/krizaka/sovkora.git refs/heads/main | cut -c1-40)}"
   mkdir -p "$LOCAL"; chmod 700 "$LOCAL"
   [[ -f "$LOCAL/id_ed25519" ]] || ssh-keygen -q -t ed25519 -N "" -C "orazaka-gpu-dev" -f "$LOCAL/id_ed25519"
   local body="$LOCAL/runpod-body.json"
@@ -90,8 +90,9 @@ runpod_start() {
       WORKER_REF="$worker_ref" PROFILE="${GPU_RUNPOD_PROFILE:-big}" DC="$dc" VOLUME="$volume" MAX_HOURS="$max_hours" \
       IDLE_MINUTES="${GPU_IDLE_MINUTES:-30}" RP_IMAGE="$RP_IMAGE" PUBKEY="$(cat "$LOCAL/id_ed25519.pub")" \
       RELAY_URL="$RELAY_URL" RELAY_AUTH="${MEASURE:+x}${MEASURE:-gpu:$(secret AI_GPU_RELAY_PASSWORD)}" \
-      RABBIT_PASSWORD="${MEASURE:+x}${MEASURE:-$(secret RABBITMQ_PASS_GPU)}" \
-      SERVICE_TOKEN="${MEASURE:+x}${MEASURE:-$(mint_service_token "$max_hours")}" BROKER_CA_B64="${MEASURE:+x}${MEASURE:-$(broker_ca_b64)}" \
+      RABBIT_PASSWORD="${MEASURE:+x}${MEASURE:-${STILLS:+x}}${MEASURE:-${STILLS:-$(secret RABBITMQ_PASS_GPU)}}" \
+      SERVICE_TOKEN="${MEASURE:+x}${MEASURE:-${STILLS:+x}}${MEASURE:-${STILLS:-$(mint_service_token "$max_hours")}}" \
+      BROKER_CA_B64="${MEASURE:+x}${MEASURE:-${STILLS:+x}}${MEASURE:-${STILLS:-$(broker_ca_b64)}}" \
       STILLS="${STILLS:-}" MEASURE="${MEASURE:-}" MEASURE_ARGS="${MEASURE_ARGS:-}" MEASURE_PIP="${MEASURE_PIP:-}" \
       BOOT="$ROOT/infra/gpu/$([[ -n "${MEASURE:-}" ]] && echo runpod-measure.sh || echo runpod-bootstrap.sh)" \
       HF_TOKEN="$(secret AI_HUGGINGFACE_TOKEN 2>/dev/null || true)" DISK_GB="${GPU_RUNPOD_DISK_GB:-}" \
@@ -204,7 +205,7 @@ runpod_batch() {
   trap runpod_batch_cleanup EXIT INT TERM HUP
   # FREE preflight (orazaka#508): the Studio is asked the exact run BEFORE any GPU is rented; a refusal a booted pod cannot fix stops here.
   if [[ -z "${GPU_BATCH_SKIP_PREFLIGHT:-}" ]]; then
-    node "$ROOT/scripts/studio-preflight.mjs" ${model:+--model "$model"} ${model:+--worker-ref "${GPU_WORKER_REF:-$(git ls-remote https://github.com/krizaka/orazaka-worker-media.git refs/heads/main | cut -c1-40)}"} ${size:+--size "$size"} || die "preflight refused: no GPU was rented"
+    node "$ROOT/scripts/studio-preflight.mjs" ${model:+--model "$model"} ${model:+--worker-ref "${GPU_WORKER_REF:-$(git ls-remote https://github.com/krizaka/sovkora.git refs/heads/main | cut -c1-40)}"} ${size:+--size "$size"} || die "preflight refused: no GPU was rented"
   fi
   # The pod's own watchdog gets the cap too: at the dearest rate we would ever start (GPU_BATCH_MAX_RATE), the hours the cap pays for.
   # STILLS=1: the pod serves the image engine only, up in minutes (no video weights, no upscaler, no consumer).

@@ -45,7 +45,7 @@ export function workerListsModel(yaml, model) {
 /** models.yaml of the worker at one commit, read with the app credential (never printed). */
 function workerModelsAt(ref) {
   const credential = process.env.GH_TOKEN ?? execFileSync(toolPath("python3"), [`${process.env.HOME}/.krizaka-worktrees/tools/gh-app-token.py`, "agents"], { encoding: "utf8" }).trim();
-  return execFileSync(toolPath("gh"), ["api", `repos/krizaka/orazaka-worker-media/contents/models.yaml?ref=${ref}`, "-H", "Accept: application/vnd.github.raw"], { encoding: "utf8", env: { ...process.env, GH_TOKEN: credential } });
+  return execFileSync(toolPath("gh"), ["api", `repos/krizaka/sovkora/contents/workers/media/models.yaml?ref=${ref}`, "-H", "Accept: application/vnd.github.raw"], { encoding: "utf8", env: { ...process.env, GH_TOKEN: credential } });
 }
 
 async function call(method, path, body, token) {
