@@ -16,7 +16,7 @@ export interface AppVideo {
 
 export const APP_VIDEOS: readonly AppVideo[] = manifest.videos;
 
-/** A video older than this is stale: the test that guards the page fails, so the recording job is looked at (#315). */
+/** A video older than this is stale: the daily watch `.github/workflows/stale-videos.yml` raises the alert `stale-videos/sovkora`, so the recording job is looked at (#315, krizaka-internal#3626). Never a test that reads the clock. */
 // @fixed: the guard of krizaka/.github#315 — a recording older than two weeks means the e2e job stopped publishing
 export const MAX_AGE_DAYS = 14;
 
