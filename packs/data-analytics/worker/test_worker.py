@@ -16,16 +16,12 @@ import worker_failure
 
 HERE = Path(__file__).parent
 CSV = (HERE / "fixtures" / "ventes-atelier-octobre.csv").read_text(encoding="utf-8")
-RUN_28954CDF = (HERE / "fixtures" / "run-28954cdf-answer.txt").read_text(
-    encoding="utf-8"
-)
+RUN_28954CDF = (HERE / "fixtures" / "run-28954cdf-answer.txt").read_text(encoding="utf-8")
 QUESTION = "Amounts are in Canadian dollars. Which product earned the most, and which week was the best?"
 
 
 def _run(routing_key: str, payload: dict) -> dict:
-    result, consumption = data_worker.handle(
-        routing_key, {"jobId": "j-1", "payload": payload}
-    )
+    result, consumption = data_worker.handle(routing_key, {"jobId": "j-1", "payload": payload})
     assert consumption["tokens"] == 0, "the worker spends no token"
     return result
 
@@ -34,13 +30,9 @@ def _facts() -> dict:
     return _run("job.data.facts", {"data": CSV, "question": QUESTION, "language": "en"})
 
 
-def _valid_plan(factsJson: str) -> str:
-    computed = facts.facts_from_json(factsJson)
-    lamp = next(
-        f.id
-        for f in computed.facts
-        if f.label.startswith("sum of total where produit = lampe")
-    )
+def _valid_plan(facts_json: str) -> str:
+    computed = facts.facts_from_json(facts_json)
+    lamp = next(f.id for f in computed.facts if f.label.startswith("sum of total where produit = lampe"))
     return json.dumps(
         {
             "summary": f"The lamp earned {{{lamp}}}.",
@@ -91,23 +83,20 @@ def test_the_final_step_fails_as_the_executor_s_fault_when_both_answers_are_refu
         "retry": "{",
         "final": "true",
     }
-    with pytest.raises(dashboard.AnswerRefused) as refused:
+    with pytest.raises(dashboard.AnswerRefusedError) as refused:
         _run("job.data.dashboard", payload)
     answer = worker_failure.failure_answer("j-1", refused.value)
     assert answer == {
         "jobId": "j-1",
-        "error": "AnswerRefused",
+        "error": "AnswerRefusedError",
         "cause": "EXECUTOR_FAULT",
     }
 
 
 def test_unreadable_facts_are_the_executor_s_fault_not_the_person_s():
-    with pytest.raises(facts.FactsUnreadable) as unreadable:
+    with pytest.raises(facts.FactsUnreadableError) as unreadable:
         _run("job.data.dashboard", {"facts": "{}", "answer": "{}", "final": "true"})
-    assert (
-        worker_failure.failure_answer("j-1", unreadable.value)["cause"]
-        == "EXECUTOR_FAULT"
-    )
+    assert worker_failure.failure_answer("j-1", unreadable.value)["cause"] == "EXECUTOR_FAULT"
 
 
 def test_an_unknown_language_is_refused_with_its_code():

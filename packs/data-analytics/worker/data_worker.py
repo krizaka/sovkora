@@ -55,14 +55,14 @@ def _facts(payload: dict) -> dict:
 
 def _dashboard(payload: dict) -> dict:
     """The drawn answer. A first check (``final`` false) reports a refusal so the blueprint can ask again; the final one
-    raises :class:`dashboard.AnswerRefused` (an executor fault, never billed) when neither answer holds."""
+    raises :class:`dashboard.AnswerRefusedError` (an executor fault, never billed) when neither answer holds."""
     computed = facts.facts_from_json(str(payload.get("facts") or ""))
     question = str(payload.get("question") or "")
     answers = [str(payload.get("answer") or ""), str(payload.get("retry") or "")]
     drawn, problems = dashboard.assemble(answers, computed, question)
     final = str(payload.get("final") or "false").strip().lower() == "true"
     if drawn is None and final:
-        raise dashboard.AnswerRefused()
+        raise dashboard.AnswerRefusedError()
     return {
         "answer": drawn or "",
         "valid": drawn is not None,

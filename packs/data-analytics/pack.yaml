@@ -61,7 +61,7 @@ requires:
           answer: { type: string, description: "The model's plan: one JSON object naming facts and tables by id." }
           retry: { type: string, description: "The model's second plan, when the first was refused." }
           question: { type: string, description: "The question: a figure it writes may be quoted back." }
-          final: { type: string, enum: ["true", "false"], description: "true: fail (AnswerRefused) when no plan holds; false: report the refusal so the blueprint asks again." }
+          final: { type: string, enum: ["true", "false"], description: "true: fail (AnswerRefusedError) when no plan holds; false: report the refusal so the blueprint asks again." }
         required: [facts, answer]
       outputSchema:
         type: object

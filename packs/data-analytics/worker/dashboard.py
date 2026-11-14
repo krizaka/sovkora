@@ -33,13 +33,13 @@ _KEYS = {
     "note": {"tone", "title", "text"},
 }
 _PLACEHOLDER = re.compile(r"\{(F\d+)\}")
-_NUMBER = re.compile(r"\d(?:[\d   ,.]*\d)?")
+_NUMBER = re.compile(r"\d(?:[\d\u00a0\u202f ,.]*\d)?")
 # Small whole numbers are words, not figures: « the three products », « top 3 », « week 2 ».
 _SMALL = 12
 
 
-class AnswerRefused(Exception):
-    """Neither the model's answer nor its one retry made a dashboard the facts support (an executor fault: never billed)."""
+class AnswerRefusedError(Exception):
+    """Neither the answer nor its one retry made a dashboard the facts support (an executor fault: never billed)."""
 
 
 def read_plan(text: str) -> tuple[dict | None, list[str]]:
@@ -61,15 +61,13 @@ def read_plan(text: str) -> tuple[dict | None, list[str]]:
 
 
 def check_plan(plan: dict, facts: Facts, question: str) -> list[str]:
-    """What the plan breaks: its shape, its ids, and every figure in its texts that is not a fact. Empty when it holds."""
+    """What the plan breaks: its shape, its ids, every figure in its texts that is not a fact. Empty when it holds."""
     problems: list[str] = []
     _keys(plan, "plan", "the answer", problems)
     summary = plan.get("summary")
     if not isinstance(summary, str) or not summary.strip():
         problems.append("summary is required: one or two sentences")
-    texts: list[tuple[str, str]] = (
-        [("summary", summary)] if isinstance(summary, str) else []
-    )
+    texts: list[tuple[str, str]] = [("summary", summary)] if isinstance(summary, str) else []
     kpis = plan.get("kpis", [])
     if not isinstance(kpis, list) or len(kpis) > MAX_KPIS:
         problems.append(f"kpis is a list of at most {MAX_KPIS}")
@@ -82,9 +80,7 @@ def check_plan(plan: dict, facts: Facts, question: str) -> list[str]:
         _keys(kpi, "kpi", where, problems)
         _label(kpi.get("label"), f"{where}.label", problems, texts)
         if not isinstance(kpi.get("fact"), str) or facts.fact(kpi["fact"]) is None:
-            problems.append(
-                f"{where}.fact is not one of the facts (F1…F{len(facts.facts)})"
-            )
+            problems.append(f"{where}.fact is not one of the facts (F1…F{len(facts.facts)})")
     chart = plan.get("chart")
     if chart is not None:
         _check_chart(chart, facts, problems, texts)
@@ -95,9 +91,7 @@ def check_plan(plan: dict, facts: Facts, question: str) -> list[str]:
     if note is not None:
         _check_note(note, problems, texts)
     if not kpis and chart is None and table is None and note is None:
-        problems.append(
-            "the answer shows nothing: give kpis, a chart, a table or a note"
-        )
+        problems.append("the answer shows nothing: give kpis, a chart, a table or a note")
     if facts.source == "none" and (kpis or chart is not None or table is not None):
         problems.append("there is no table: answer with a note of tone warning only")
     for where, text in texts:
@@ -111,9 +105,7 @@ def _keys(value: dict, shape: str, where: str, problems: list[str]) -> None:
         problems.append(f"{where} has no property {', '.join(extra)}")
 
 
-def _label(
-    value: object, where: str, problems: list[str], texts: list, limit: int = MAX_LABEL
-) -> None:
+def _label(value: object, where: str, problems: list[str], texts: list, limit: int = MAX_LABEL) -> None:
     if not isinstance(value, str) or not value.strip() or len(value) > limit:
         problems.append(f"{where} is a text of 1 to {limit} characters")
     else:
@@ -134,11 +126,11 @@ def _check_chart(chart: object, facts: Facts, problems: list[str], texts: list) 
         problems.append("chart.series is a list of 1 to 4 column keys")
     elif table is not None:
         known = {m.key for m in table.measures}
-        for key in series:
-            if key not in known:
-                problems.append(
-                    f"chart.series: {key} is not a column of {table.id} ({', '.join(sorted(known))})"
-                )
+        problems.extend(
+            f"chart.series: {key} is not a column of {table.id} ({', '.join(sorted(known))})"
+            for key in series
+            if key not in known
+        )
         if chart.get("kind") == "pie" and len(series) != 1:
             problems.append("a pie chart has one series")
 
@@ -155,11 +147,11 @@ def _check_table(table: object, facts: Facts, problems: list[str], texts: list) 
         problems.append("table.columns is a list of 1 to 12 column keys")
     elif found is not None:
         known = [found.dimension.key, *[m.key for m in found.measures]]
-        for key in columns:
-            if key not in known:
-                problems.append(
-                    f"table.columns: {key} is not a column of {found.id} ({', '.join(known)})"
-                )
+        problems.extend(
+            f"table.columns: {key} is not a column of {found.id} ({', '.join(known)})"
+            for key in columns
+            if key not in known
+        )
 
 
 def _check_note(note: object, problems: list[str], texts: list) -> None:
@@ -173,9 +165,7 @@ def _check_note(note: object, problems: list[str], texts: list) -> None:
     _label(note.get("text"), "note.text", problems, texts, MAX_TEXT)
 
 
-def _table_ref(
-    value: object, where: str, facts: Facts, problems: list[str]
-) -> FactTable | None:
+def _table_ref(value: object, where: str, facts: Facts, problems: list[str]) -> FactTable | None:
     table = facts.table(value) if isinstance(value, str) else None
     if table is None:
         problems.append(f"{where} is not one of the tables (T1…T{len(facts.tables)})")
@@ -187,16 +177,17 @@ def _table_ref(
 
 def _ungrounded(text: str, where: str, facts: Facts, question: str) -> list[str]:
     """The figures a text writes that are none of the facts. A ``{F12}`` placeholder is the way to write one."""
-    problems = []
-    for placeholder in _PLACEHOLDER.findall(text):
-        if facts.fact(placeholder) is None:
-            problems.append(f"{where}: {{{placeholder}}} is not one of the facts")
+    problems = [
+        f"{where}: {{{placeholder}}} is not one of the facts"
+        for placeholder in _PLACEHOLDER.findall(text)
+        if facts.fact(placeholder) is None
+    ]
     allowed = _allowed(facts, question)
-    for token in _NUMBER.findall(_PLACEHOLDER.sub(" ", text)):
-        if not any(_close(candidate, allowed) for candidate in _readings(token)):
-            problems.append(
-                f"{where}: the figure {token.strip()} is not one of the facts — write the fact as {{F…}}"
-            )
+    problems.extend(
+        f"{where}: the figure {token.strip()} is not one of the facts — write the fact as {{F…}}"
+        for token in _NUMBER.findall(_PLACEHOLDER.sub(" ", text))
+        if not any(_close(candidate, allowed) for candidate in _readings(token))
+    )
     return problems
 
 
@@ -215,7 +206,7 @@ def _allowed(facts: Facts, question: str) -> list[float]:
 
 def _readings(token: str) -> list[float]:
     """Every way a figure can be read: ``3,770`` (en) / ``3 770`` (fr) / ``1,5`` (fr) / ``1.5`` (en)."""
-    compact = token.replace(" ", "").replace(" ", "").replace(" ", "").strip(".,")
+    compact = token.replace("\u00a0", "").replace("\u202f", "").replace(" ", "").strip(".,")
     readings = []
     for text in (
         compact.replace(",", ""),
@@ -233,11 +224,7 @@ def _close(candidate: float, allowed: Sequence[float]) -> bool:
     if candidate == int(candidate) and 0 <= candidate <= _SMALL:
         return True
     decimals = 0 if candidate == int(candidate) else 2
-    return any(
-        abs(round(value, decimals) - candidate) < 0.0051
-        or abs(value - candidate) < 0.0051
-        for value in allowed
-    )
+    return any(abs(round(value, decimals) - candidate) < 0.0051 or abs(value - candidate) < 0.0051 for value in allowed)
 
 
 # ── Writing ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -250,26 +237,24 @@ def format_fact(fact: Fact, facts: Facts) -> str:
         number = _number(fact.value * 100, language, 1)
         return f"{number} %" if language == "fr" else f"{number}%"
     if fact.kind == "money" and facts.currency is not None:
-        number = _number(
-            fact.value, language, 2 if fact.value != int(fact.value) else 0
-        )
+        number = _number(fact.value, language, 2 if fact.value != int(fact.value) else 0)
         symbol = _symbol(facts.currency.code, facts.currency.symbol, language)
-        return f"{number} {symbol}" if language == "fr" else f"{symbol}{number}"
+        return f"{number}\u00a0{symbol}" if language == "fr" else f"{symbol}{number}"
     return _number(fact.value, language, 0 if fact.value == int(fact.value) else 2)
 
 
 def _symbol(code: str | None, symbol: str | None, language: Language) -> str:
     if code == "USD":
-        return "$ US" if language == "fr" else "US$"
+        return "$\u00a0US" if language == "fr" else "US$"
     if code == "CHF":
-        return "CHF" if language == "fr" else "CHF "
+        return "CHF" if language == "fr" else "CHF\u00a0"
     return symbol or code or ""
 
 
 def _number(value: float, language: Language, decimals: int) -> str:
     text = f"{value:,.{decimals}f}"
     if language == "fr":
-        return text.replace(",", " ").replace(".", ",")
+        return text.replace(",", "\u00a0").replace(".", ",")
     return text
 
 
@@ -287,9 +272,7 @@ def build_answer(plan: dict, facts: Facts) -> str:
     if len(kpis) == 1:
         children.append(kpis[0]["id"])
     elif kpis:
-        components.append(
-            {"id": "figures", "component": "Row", "children": [k["id"] for k in kpis]}
-        )
+        components.append({"id": "figures", "component": "Row", "children": [k["id"] for k in kpis]})
         children.append("figures")
     components.extend(kpis)
     if plan.get("chart") is not None:
@@ -335,9 +318,7 @@ def build_answer(plan: dict, facts: Facts) -> str:
                 },
             }
         )
-    body = "\n".join(
-        json.dumps(line, ensure_ascii=False, separators=(",", ":")) for line in lines
-    )
+    body = "\n".join(json.dumps(line, ensure_ascii=False, separators=(",", ":")) for line in lines)
     return f"{fill(plan['summary'].strip(), facts)}\n\n```a2ui\n{body}\n```"
 
 
@@ -418,9 +399,7 @@ def _table(spec: dict, facts: Facts, data: dict) -> dict:
     }
 
 
-def assemble(
-    answers: Sequence[str], facts: Facts, question: str
-) -> tuple[str | None, list[str]]:
+def assemble(answers: Sequence[str], facts: Facts, question: str) -> tuple[str | None, list[str]]:
     """The first answer whose plan holds, drawn; else ``None`` and the reasons the last one was refused."""
     problems: list[str] = ["no answer"]
     for text in answers:

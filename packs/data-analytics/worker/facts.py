@@ -1,4 +1,4 @@
-"""The figures of a data-driven answer, computed from the person's table before any model writes a word (krizaka-internal#3628).
+"""The figures of a data-driven answer, computed from the table before any model writes (krizaka-internal#3628).
 
 A model asked to add up a hundred rows gets it wrong (three dev runs, three different totals for the same lamp), so the
 sums, counts, rankings, shares and per-period totals are computed here, deterministically, and handed to the model as
@@ -195,7 +195,7 @@ class Facts:
         return json.dumps(asdict(self), ensure_ascii=False, separators=(",", ":"))
 
 
-class FactsUnreadable(ValueError):
+class FactsUnreadableError(ValueError):
     """The facts handed between two steps are not the ones this module wrote."""
 
 
@@ -223,15 +223,13 @@ def facts_from_json(text: str) -> Facts:
             columns=tuple(Column(**c) for c in raw["columns"]),
         )
     except (ValueError, KeyError, TypeError) as bad:
-        raise FactsUnreadable("facts") from bad
+        raise FactsUnreadableError("facts") from bad
 
 
 # ── Reading the table ───────────────────────────────────────────────────────────────────────────────────────────────
 
 
-def read_table(
-    data: str, question: str
-) -> tuple[list[str], list[list[str]], Literal["data", "question", "none"]]:
+def read_table(data: str, question: str) -> tuple[list[str], list[list[str]], Literal["data", "question", "none"]]:
     """The header and rows of the person's table: the data field, else a CSV or JSON pasted in the question."""
     if data.strip():
         header, rows = _parse(data)
@@ -260,21 +258,12 @@ def _parse_json(text: str) -> tuple[list[str], list[list[str]]]:
     if isinstance(value, dict):
         lists = [v for v in value.values() if isinstance(v, list)]
         value = lists[0] if len(lists) == 1 else [value]
-    if (
-        not isinstance(value, list)
-        or not value
-        or not all(isinstance(r, dict) for r in value)
-    ):
+    if not isinstance(value, list) or not value or not all(isinstance(r, dict) for r in value):
         return [], []
     header: list[str] = []
     for row in value:
-        header.extend(
-            k for k in row if k not in header and not isinstance(row[k], (dict, list))
-        )
-    rows = [
-        ["" if row.get(k) is None else _cell(row.get(k)) for k in header]
-        for row in value[:MAX_ROWS]
-    ]
+        header.extend(k for k in row if k not in header and not isinstance(row[k], (dict, list)))
+    rows = [["" if row.get(k) is None else _cell(row.get(k)) for k in header] for row in value[:MAX_ROWS]]
     return header, rows
 
 
@@ -294,9 +283,7 @@ def _parse_csv(text: str) -> tuple[list[str], list[list[str]]]:
     records = list(csv.reader(io.StringIO("\n".join(lines)), delimiter=delimiter))
     header = [h.strip() for h in records[0]]
     width = len(header)
-    rows = [
-        [c.strip() for c in r] for r in records[1 : MAX_ROWS + 1] if len(r) == width
-    ]
+    rows = [[c.strip() for c in r] for r in records[1 : MAX_ROWS + 1] if len(r) == width]
     if not rows or any(not h for h in header):
         return [], []
     return header, rows
@@ -312,11 +299,7 @@ def _embedded(question: str) -> Iterable[str]:
     best: list[str] = []
     run: list[str] = []
     for line in lines:
-        if (
-            run
-            and _delimiters(line) == _delimiters(run[0])
-            and _delimiters(line) != (0, 0, 0)
-        ):
+        if run and _delimiters(line) == _delimiters(run[0]) and _delimiters(line) != (0, 0, 0):
             run.append(line)
         else:
             if len(run) > len(best):
@@ -341,7 +324,7 @@ def _delimiters(line: str) -> tuple[int, int, int]:
 
 def parse_number(cell: str) -> tuple[float | None, str | None]:
     """A cell as a number, and the currency symbol or code written around it (``$12``, ``1 234,50 €``, ``45 CAD``)."""
-    text = cell.strip().replace(" ", "").replace(" ", "").replace(" ", "")
+    text = cell.strip().replace("\u00a0", "").replace("\u202f", "").replace(" ", "")
     unit = None
     for symbol in _SYMBOLS:
         if text.startswith(symbol) or text.endswith(symbol):
@@ -371,9 +354,7 @@ def parse_date(cell: str) -> date | None:
 
 def column_key(label: str, taken: set[str]) -> str:
     """An A2UI-safe key for a column (``[A-Za-z0-9_]``, at most 64), unique among those already taken."""
-    ascii_label = (
-        unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode()
-    )
+    ascii_label = unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode()
     key = re.sub(r"[^A-Za-z0-9_]+", "_", ascii_label).strip("_")[:56] or "col"
     unique, n = key, 2
     while unique in taken:
@@ -383,14 +364,10 @@ def column_key(label: str, taken: set[str]) -> str:
 
 
 def _normalised(label: str) -> str:
-    return (
-        unicodedata.normalize("NFKD", label.lower()).encode("ascii", "ignore").decode()
-    )
+    return unicodedata.normalize("NFKD", label.lower()).encode("ascii", "ignore").decode()
 
 
-def _type_columns(
-    header: Sequence[str], rows: Sequence[Sequence[str]]
-) -> tuple[list[Column], set[str]]:
+def _type_columns(header: Sequence[str], rows: Sequence[Sequence[str]]) -> tuple[list[Column], set[str]]:
     taken: set[str] = {"count", "week", "day", "month"}
     columns: list[Column] = []
     units: set[str] = set()
@@ -405,23 +382,13 @@ def _type_columns(
             seen = {u for _, u in parsed if u}
             units |= seen
             name = _normalised(label)
-            intensive = bool(
-                _INTENSIVE_WORDS.search(name)
-            ) and not _EXTENSIVE_WORDS.search(name)
-            money = (
-                bool(seen)
-                or bool(_MONEY_WORDS.search(name))
-                or any(s in label for s in "$€£")
-            )
-            columns.append(
-                Column(key, label, "number", money=money, intensive=intensive)
-            )
+            intensive = bool(_INTENSIVE_WORDS.search(name)) and not _EXTENSIVE_WORDS.search(name)
+            money = bool(seen) or bool(_MONEY_WORDS.search(name)) or any(s in label for s in "$€£")
+            columns.append(Column(key, label, "number", money=money, intensive=intensive))
             continue
         columns.append(Column(key, label, "category"))
     for label in header:
-        units |= {s for s in "$€£" if s in label} | (
-            set(_CODES) & set(re.split(r"[^A-Z]+", label.upper()))
-        )
+        units |= {s for s in "$€£" if s in label} | (set(_CODES) & set(re.split(r"[^A-Z]+", label.upper())))
     return columns, units
 
 
@@ -433,11 +400,7 @@ def detect_currency(units: set[str], question: str) -> Currency | None:
     named = [code for code, pattern in _QUESTION_CURRENCIES if pattern.search(question)]
     if "$" in units:
         dollar = [c for c in named if c in ("CAD", "USD")]
-        return (
-            Currency(dollar[0], "$", "question")
-            if len(dollar) == 1
-            else Currency(None, "$", "data")
-        )
+        return Currency(dollar[0], "$", "question") if len(dollar) == 1 else Currency(None, "$", "data")
     if len(named) == 1:
         return Currency(named[0], _symbol(named[0]), "question")
     if not named and _DOLLAR.search(question):
@@ -446,9 +409,7 @@ def detect_currency(units: set[str], question: str) -> Currency | None:
 
 
 def _symbol(code: str) -> str:
-    return {"CAD": "$", "USD": "US$", "EUR": "€", "GBP": "£", "CHF": "CHF"}.get(
-        code, code
-    )
+    return {"CAD": "$", "USD": "US$", "EUR": "€", "GBP": "£", "CHF": "CHF"}.get(code, code)
 
 
 # ── Computing ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -462,10 +423,7 @@ def compute(data: str, question: str, language: Language) -> Facts:
     columns, units = _type_columns(header, raw_rows)
     currency = detect_currency(units, question)
     if currency is None:
-        columns = [
-            Column(c.key, c.label, c.kind, money=False, intensive=c.intensive)
-            for c in columns
-        ]
+        columns = [Column(c.key, c.label, c.kind, money=False, intensive=c.intensive) for c in columns]
     rows = [_typed_row(columns, r) for r in raw_rows]
     builder = _Builder(language, currency)
     builder.add(len(rows), "count", "number of rows")
@@ -477,17 +435,11 @@ def compute(data: str, question: str, language: Language) -> Facts:
         kind = builder.kind_of(m, values)
         if not m.intensive:
             builder.add(sum(values), kind, f"sum of {m.label}")
-        builder.add(
-            sum(values) / len(values), _mean_kind(kind), f"mean of {m.label} per row"
-        )
+        builder.add(sum(values) / len(values), _mean_kind(kind), f"mean of {m.label} per row")
         builder.add(min(values), kind, f"smallest {m.label} in one row")
         builder.add(max(values), kind, f"largest {m.label} in one row")
     extensive = [m for m in measures if not m.intensive]
-    categories = [
-        c
-        for c in columns
-        if c.kind == "category" and 2 <= _distinct(rows, c.key) <= MAX_CATEGORIES
-    ]
+    categories = [c for c in columns if c.kind == "category" and 2 <= _distinct(rows, c.key) <= MAX_CATEGORIES]
     for dim in categories[:MAX_DIMENSIONS]:
         groups = _group(rows, lambda r, k=dim.key: r[k] or "—")
         builder.grouped(dim, groups, extensive, f"by {dim.label}", rank=True)
@@ -546,13 +498,9 @@ class _Builder:
         self.facts: list[Fact] = []
         self.tables: list[FactTable] = []
 
-    def add(
-        self, value: float, kind: FactKind, label: str, key: str | None = None
-    ) -> None:
+    def add(self, value: float, kind: FactKind, label: str, key: str | None = None) -> None:
         if len(self.facts) < MAX_FACTS:
-            self.facts.append(
-                Fact(f"F{len(self.facts) + 1}", _clean(value), kind, label, key)
-            )
+            self.facts.append(Fact(f"F{len(self.facts) + 1}", _clean(value), kind, label, key))
 
     def kind_of(self, column: Column, values: Sequence[float]) -> FactKind:
         if column.money and self.currency is not None:
@@ -572,10 +520,7 @@ class _Builder:
     ) -> FactTable:
         """A table over ``groups`` and, per group, its count, its sum and share of each measure, and its rank."""
         keys = list(order if order is not None else groups)
-        sums = {
-            m.key: {k: sum(r[m.key] or 0 for r in groups[k]) for k in keys}
-            for m in measures
-        }
+        sums = {m.key: {k: sum(r[m.key] or 0 for r in groups[k]) for k in keys} for m in measures}
         if rank and measures:
             primary = next((m for m in measures if m.money), measures[0])
             keys.sort(key=lambda k: (-sums[primary.key][k], str(k)))
@@ -583,23 +528,16 @@ class _Builder:
             keys.sort(key=lambda k: (-len(groups[k]), str(k)))
         shown = labels or {k: str(k) for k in keys}
         count = Column("count", _WORDS[self.language]["count"], "count")
-        cols = tuple(
-            Column(m.key, m.label, "number", money=m.money, intensive=False)
-            for m in measures
-        )
+        cols = tuple(Column(m.key, m.label, "number", money=m.money, intensive=False) for m in measures)
         rows = []
         for k in keys:
             row = {dim.key: shown[k], "count": len(groups[k])}
             row.update({m.key: _clean(sums[m.key][k]) for m in measures})
             rows.append(row)
-        table = FactTable(
-            f"T{len(self.tables) + 1}", title, dim, (count, *cols), tuple(rows)
-        )
+        table = FactTable(f"T{len(self.tables) + 1}", title, dim, (count, *cols), tuple(rows))
         self.tables.append(table)
         for m in measures:
-            values = [
-                r[m.key] for g in groups.values() for r in g if r[m.key] is not None
-            ]
+            values = [r[m.key] for g in groups.values() for r in g if r[m.key] is not None]
             kind = self.kind_of(m, values)
             total = sum(sums[m.key].values())
             ranked = sorted(keys, key=lambda k, mk=m.key: (-sums[mk][k], str(k)))
@@ -628,9 +566,7 @@ class _Builder:
             )
         return table
 
-    def periods(
-        self, column: Column, rows: Sequence[dict], measures: Sequence[Column]
-    ) -> None:
+    def periods(self, column: Column, rows: Sequence[dict], measures: Sequence[Column]) -> None:
         dated = [r for r in rows if r[column.key] is not None]
         if not dated:
             return
@@ -641,9 +577,7 @@ class _Builder:
         years = first.year != last.year
         words = _WORDS[self.language]
         days = _group(dated, lambda r: r[column.key])
-        weeks = _group(
-            dated, lambda r: r[column.key] - timedelta(days=r[column.key].weekday())
-        )
+        weeks = _group(dated, lambda r: r[column.key] - timedelta(days=r[column.key].weekday()))
         months = _group(dated, lambda r: (r[column.key].year, r[column.key].month))
         for name, groups, label_of, title in (
             ("day", days, lambda d: day_label(d, self.language, years), "by day"),
@@ -660,15 +594,11 @@ class _Builder:
             order = sorted(groups)
             labels = {k: label_of(k) for k in order}
             dim = Column(name, words[name], "period")
-            self.grouped(
-                dim, groups, measures, title, rank=False, order=order, labels=labels
-            )
+            self.grouped(dim, groups, measures, title, rank=False, order=order, labels=labels)
             if name == "week":
                 for w in order:
                     if w < first or w + timedelta(days=6) > last:
-                        span = (
-                            min(w + timedelta(days=6), last) - max(w, first)
-                        ).days + 1
+                        span = (min(w + timedelta(days=6), last) - max(w, first)).days + 1
                         self.add(
                             span,
                             "count",
@@ -677,7 +607,7 @@ class _Builder:
                         )
             for m in measures:
                 totals = {k: sum(r[m.key] or 0 for r in groups[k]) for k in order}
-                kind = self.kind_of(m, [v for v in totals.values()])
+                kind = self.kind_of(m, list(totals.values()))
                 best = max(order, key=lambda k, t=totals: (t[k], -order.index(k)))
                 worst = min(order, key=lambda k, t=totals: (t[k], order.index(k)))
                 self.add(
@@ -704,17 +634,20 @@ def day_label(day: date, language: Language, with_year: bool = False) -> str:
 
 
 def week_label(monday: date, language: Language) -> str:
-    """A Monday-to-Sunday week: ``Oct 19–25``, ``Sep 28–Oct 4`` (en); ``19–25 oct.``, ``28 sept.–4 oct.`` (fr)."""
+    """A Monday-to-Sunday week, its two ends joined by an en dash.
+
+    ``Oct 19-25``, ``Sep 28-Oct 4`` (en); ``19-25 oct.``, ``28 sept.-4 oct.`` (fr).
+    """
     sunday = monday + timedelta(days=6)
     months = _MONTHS[language]
     year = f" {sunday.year}" if monday.year != sunday.year else ""
     if language == "en":
         if monday.month == sunday.month:
-            return f"{months[monday.month - 1]} {monday.day}–{sunday.day}"
-        return f"{months[monday.month - 1]} {monday.day}–{months[sunday.month - 1]} {sunday.day}{year}"
+            return f"{months[monday.month - 1]} {monday.day}\u2013{sunday.day}"
+        return f"{months[monday.month - 1]} {monday.day}\u2013{months[sunday.month - 1]} {sunday.day}{year}"
     if monday.month == sunday.month:
-        return f"{monday.day}–{sunday.day} {months[monday.month - 1]}"
-    return f"{monday.day} {months[monday.month - 1]}–{sunday.day} {months[sunday.month - 1]}{year}"
+        return f"{monday.day}\u2013{sunday.day} {months[monday.month - 1]}"
+    return f"{monday.day} {months[monday.month - 1]}\u2013{sunday.day} {months[sunday.month - 1]}{year}"
 
 
 def month_label(year_month: tuple[int, int], language: Language) -> str:
@@ -731,22 +664,16 @@ def describe(facts: Facts) -> str:
         return "No table could be read from the data or the question: there are no facts and no tables."
     lines = [f"Rows: {facts.rows}."]
     if facts.currency and facts.currency.code:
-        lines.append(
-            f"Currency of the money figures: {facts.currency.code} (named by the {facts.currency.source})."
-        )
+        lines.append(f"Currency of the money figures: {facts.currency.code} (named by the {facts.currency.source}).")
     elif facts.currency:
-        lines.append(
-            f"Money figures are in {facts.currency.symbol} (which dollar is not said)."
-        )
+        lines.append(f"Money figures are in {facts.currency.symbol} (which dollar is not said).")
     else:
         lines.append("No currency is named: never write one.")
     lines.append("Facts (write one in a text as {F12}):")
     for f in facts.facts:
         unit = " (a fraction: 0.25 is 25 %)" if f.kind == "percent" else ""
         lines.append(f"{f.id} = {f.value}{unit} — {f.label}")
-    lines.append(
-        "Tables (a chart or a table draws one; its columns are the keys below):"
-    )
+    lines.append("Tables (a chart or a table draws one; its columns are the keys below):")
     for t in facts.tables:
         keys = ", ".join([t.dimension.key, *[m.key for m in t.measures]])
         lines.append(f"{t.id} — {t.title}: columns {keys} ({len(t.rows)} rows)")
