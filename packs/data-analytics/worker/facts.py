@@ -181,12 +181,12 @@ class Facts:
     rows: int
     source: Literal["data", "question", "none"]
     currency: Currency | None = None
-    facts: tuple[Fact, ...] = ()
+    figures: tuple[Fact, ...] = ()
     tables: tuple[FactTable, ...] = ()
     columns: tuple[Column, ...] = field(default_factory=tuple)
 
     def fact(self, fact_id: str) -> Fact | None:
-        return next((f for f in self.facts if f.id == fact_id), None)
+        return next((f for f in self.figures if f.id == fact_id), None)
 
     def table(self, table_id: str) -> FactTable | None:
         return next((t for t in self.tables if t.id == table_id), None)
@@ -209,7 +209,7 @@ def facts_from_json(text: str) -> Facts:
             rows=int(raw["rows"]),
             source=raw["source"],
             currency=currency,
-            facts=tuple(Fact(**f) for f in raw["facts"]),
+            figures=tuple(Fact(**f) for f in raw["figures"]),
             tables=tuple(
                 FactTable(
                     id=t["id"],
@@ -295,24 +295,29 @@ def _embedded(question: str) -> Iterable[str]:
         start, end = question.find(opener), question.rfind(closer)
         if 0 <= start < end:
             yield question[start : end + 1]
-    lines = question.splitlines()
+    best = _longest_delimited_run(question.splitlines())
+    if len(best) >= 2:
+        yield "\n".join([_header_after_colon(best[0]), *best[1:]])
+
+
+def _longest_delimited_run(lines: Sequence[str]) -> list[str]:
+    """The longest run of consecutive lines that share the same count of each delimiter (a pasted CSV)."""
     best: list[str] = []
     run: list[str] = []
-    for line in lines:
-        if run and _delimiters(line) == _delimiters(run[0]) and _delimiters(line) != (0, 0, 0):
+    for line in [*lines, ""]:
+        shape = _delimiters(line)
+        if run and shape == _delimiters(run[0]):
             run.append(line)
-        else:
-            if len(run) > len(best):
-                best = run
-            run = [line] if _delimiters(line) != (0, 0, 0) else []
-    if len(run) > len(best):
-        best = run
-    if len(best) >= 2:
-        # « Here is my data: date,views » — the words before the colon introduce the header, they are not part of it.
-        header = best[0]
-        if ": " in header.split(",")[0]:
-            header = header.rsplit(": ", 1)[1]
-        yield "\n".join([header, *best[1:]])
+            continue
+        if len(run) > len(best):
+            best = run
+        run = [line] if shape != (0, 0, 0) else []
+    return best
+
+
+def _header_after_colon(line: str) -> str:
+    """« Here is my data: date,views » — the words before the colon introduce the header, they are not part of it."""
+    return line.rsplit(": ", 1)[1] if ": " in line.split(",")[0] else line
 
 
 def _delimiters(line: str) -> tuple[int, int, int]:
@@ -355,7 +360,7 @@ def parse_date(cell: str) -> date | None:
 def column_key(label: str, taken: set[str]) -> str:
     """An A2UI-safe key for a column (``[A-Za-z0-9_]``, at most 64), unique among those already taken."""
     ascii_label = unicodedata.normalize("NFKD", label).encode("ascii", "ignore").decode()
-    key = re.sub(r"[^A-Za-z0-9_]+", "_", ascii_label).strip("_")[:56] or "col"
+    key = re.sub(r"\W+", "_", ascii_label).strip("_")[:56] or "col"
     unique, n = key, 2
     while unique in taken:
         unique, n = f"{key}_{n}", n + 1
@@ -451,7 +456,7 @@ def compute(data: str, question: str, language: Language) -> Facts:
         rows=len(rows),
         source=source,
         currency=currency,
-        facts=tuple(builder.facts),
+        figures=tuple(builder.facts),
         tables=tuple(builder.tables),
         columns=tuple(columns),
     )
@@ -596,32 +601,28 @@ class _Builder:
             dim = Column(name, words[name], "period")
             self.grouped(dim, groups, measures, title, rank=False, order=order, labels=labels)
             if name == "week":
-                for w in order:
-                    if w < first or w + timedelta(days=6) > last:
-                        span = (min(w + timedelta(days=6), last) - max(w, first)).days + 1
-                        self.add(
-                            span,
-                            "count",
-                            f"days of the week {labels[w]} inside the data (a partial week)",
-                            labels[w],
-                        )
-            for m in measures:
-                totals = {k: sum(r[m.key] or 0 for r in groups[k]) for k in order}
-                kind = self.kind_of(m, list(totals.values()))
-                best = max(order, key=lambda k, t=totals: (t[k], -order.index(k)))
-                worst = min(order, key=lambda k, t=totals: (t[k], order.index(k)))
+                self._partial_weeks(order, labels, first, last)
+            self._extremes(name, groups, order, labels, measures)
+
+    def _partial_weeks(self, mondays: Sequence[date], labels: dict, first: date, last: date) -> None:
+        """How many days of a week cut by the edges of the data are inside it."""
+        for monday in mondays:
+            sunday = monday + timedelta(days=6)
+            if monday < first or sunday > last:
+                span = (min(sunday, last) - max(monday, first)).days + 1
                 self.add(
-                    totals[best],
-                    kind,
-                    f"best {name} by {m.label}: {labels[best]}",
-                    labels[best],
+                    span, "count", f"days of the week {labels[monday]} inside the data (a partial week)", labels[monday]
                 )
-                self.add(
-                    totals[worst],
-                    kind,
-                    f"weakest {name} by {m.label}: {labels[worst]}",
-                    labels[worst],
-                )
+
+    def _extremes(self, name: str, groups: dict, order: Sequence, labels: dict, measures: Sequence[Column]) -> None:
+        """The best and the weakest period of each measure."""
+        for m in measures:
+            totals = {k: sum(r[m.key] or 0 for r in groups[k]) for k in order}
+            kind = self.kind_of(m, list(totals.values()))
+            best = max(order, key=lambda k, t=totals: (t[k], -order.index(k)))
+            worst = min(order, key=lambda k, t=totals: (t[k], order.index(k)))
+            self.add(totals[best], kind, f"best {name} by {m.label}: {labels[best]}", labels[best])
+            self.add(totals[worst], kind, f"weakest {name} by {m.label}: {labels[worst]}", labels[worst])
 
 
 # ── Labels ──────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -670,7 +671,7 @@ def describe(facts: Facts) -> str:
     else:
         lines.append("No currency is named: never write one.")
     lines.append("Facts (write one in a text as {F12}):")
-    for f in facts.facts:
+    for f in facts.figures:
         unit = " (a fraction: 0.25 is 25 %)" if f.kind == "percent" else ""
         lines.append(f"{f.id} = {f.value}{unit} — {f.label}")
     lines.append("Tables (a chart or a table draws one; its columns are the keys below):")

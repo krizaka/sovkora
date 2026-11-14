@@ -12,8 +12,8 @@ QUESTION_EN = (
 
 
 def _fact(computed: facts.Facts, label: str) -> facts.Fact:
-    found = [f for f in computed.facts if f.label == label]
-    assert len(found) == 1, f"{label}: {[f.label for f in computed.facts if label[:20] in f.label]}"
+    found = [f for f in computed.figures if f.label == label]
+    assert len(found) == 1, f"{label}: {[f.label for f in computed.figures if label[:20] in f.label]}"
     return found[0]
 
 
@@ -81,12 +81,12 @@ def test_the_currency_comes_from_the_data_or_the_question_and_is_never_assumed()
 
 def test_without_a_currency_no_figure_is_money():
     computed = facts.compute(CSV, "Which product sold best?", "en")
-    assert all(f.kind != "money" for f in computed.facts)
+    assert all(f.kind != "money" for f in computed.figures)
 
 
 def test_a_unit_price_is_never_summed():
     computed = facts.compute(CSV, QUESTION_EN, "en")
-    labels = [f.label for f in computed.facts]
+    labels = [f.label for f in computed.figures]
     assert "sum of prix_unitaire" not in labels
     assert "mean of prix_unitaire per row" in labels
     assert all("prix_unitaire" not in [m.key for m in t.measures] for t in computed.tables)
@@ -113,7 +113,7 @@ def test_a_json_table_is_read():
 def test_no_table_gives_no_facts():
     computed = facts.compute("", "What were my sales?", "en")
     assert computed.source == "none"
-    assert computed.facts == ()
+    assert computed.figures == ()
     assert "No table" in facts.describe(computed)
 
 

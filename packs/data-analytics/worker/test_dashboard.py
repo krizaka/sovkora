@@ -18,7 +18,7 @@ COMPUTED = facts.compute(CSV, QUESTION, "en")
 
 
 def _id(label: str) -> str:
-    return next(f.id for f in COMPUTED.facts if f.label == label)
+    return next(f.id for f in COMPUTED.figures if f.label == label)
 
 
 LAMP = _id("sum of total where produit = lampe-gres-creme (rank 1 of 5 by total)")
@@ -102,7 +102,7 @@ def test_the_dashboard_numbers_are_the_facts_and_its_rows_the_facts_tables():
 
 def test_french_figures_are_written_the_french_way():
     computed = facts.compute(CSV, "Les montants sont en dollars canadiens. Quelle semaine ?", "fr")
-    lamp = next(f.id for f in computed.facts if f.label.startswith("sum of total where produit = lampe"))
+    lamp = next(f.id for f in computed.figures if f.label.startswith("sum of total where produit = lampe"))
     answer = dashboard.build_answer(
         {
             "summary": f"La lampe : {{{lamp}}}.",

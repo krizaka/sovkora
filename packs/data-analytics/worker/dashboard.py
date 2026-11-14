@@ -68,19 +68,7 @@ def check_plan(plan: dict, facts: Facts, question: str) -> list[str]:
     if not isinstance(summary, str) or not summary.strip():
         problems.append("summary is required: one or two sentences")
     texts: list[tuple[str, str]] = [("summary", summary)] if isinstance(summary, str) else []
-    kpis = plan.get("kpis", [])
-    if not isinstance(kpis, list) or len(kpis) > MAX_KPIS:
-        problems.append(f"kpis is a list of at most {MAX_KPIS}")
-        kpis = []
-    for i, kpi in enumerate(kpis):
-        where = f"kpis[{i}]"
-        if not isinstance(kpi, dict):
-            problems.append(f"{where} is an object")
-            continue
-        _keys(kpi, "kpi", where, problems)
-        _label(kpi.get("label"), f"{where}.label", problems, texts)
-        if not isinstance(kpi.get("fact"), str) or facts.fact(kpi["fact"]) is None:
-            problems.append(f"{where}.fact is not one of the facts (F1…F{len(facts.facts)})")
+    kpis = _check_kpis(plan.get("kpis", []), facts, problems, texts)
     chart = plan.get("chart")
     if chart is not None:
         _check_chart(chart, facts, problems, texts)
@@ -97,6 +85,23 @@ def check_plan(plan: dict, facts: Facts, question: str) -> list[str]:
     for where, text in texts:
         problems.extend(_ungrounded(text, where, facts, question))
     return problems
+
+
+def _check_kpis(kpis: object, facts: Facts, problems: list[str], texts: list) -> list:
+    """The KPIs, each a label and a fact id; what is wrong with them goes to ``problems``."""
+    if not isinstance(kpis, list) or len(kpis) > MAX_KPIS:
+        problems.append(f"kpis is a list of at most {MAX_KPIS}")
+        return []
+    for i, kpi in enumerate(kpis):
+        where = f"kpis[{i}]"
+        if not isinstance(kpi, dict):
+            problems.append(f"{where} is an object")
+            continue
+        _keys(kpi, "kpi", where, problems)
+        _label(kpi.get("label"), f"{where}.label", problems, texts)
+        if not isinstance(kpi.get("fact"), str) or facts.fact(kpi["fact"]) is None:
+            problems.append(f"{where}.fact is not one of the facts (F1…F{len(facts.figures)})")
+    return kpis
 
 
 def _keys(value: dict, shape: str, where: str, problems: list[str]) -> None:
@@ -193,7 +198,7 @@ def _ungrounded(text: str, where: str, facts: Facts, question: str) -> list[str]
 
 def _allowed(facts: Facts, question: str) -> list[float]:
     values: list[float] = []
-    for f in facts.facts:
+    for f in facts.figures:
         values.append(float(f.value))
         if f.kind == "percent":
             values.append(float(f.value) * 100)

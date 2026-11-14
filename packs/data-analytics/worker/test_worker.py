@@ -32,7 +32,7 @@ def _facts() -> dict:
 
 def _valid_plan(facts_json: str) -> str:
     computed = facts.facts_from_json(facts_json)
-    lamp = next(f.id for f in computed.facts if f.label.startswith("sum of total where produit = lampe"))
+    lamp = next(f.id for f in computed.figures if f.label.startswith("sum of total where produit = lampe"))
     return json.dumps(
         {
             "summary": f"The lamp earned {{{lamp}}}.",
