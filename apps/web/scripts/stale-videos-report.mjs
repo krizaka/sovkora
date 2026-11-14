@@ -17,7 +17,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   const temp = path.resolve(process.env.RUNNER_TEMP ?? tmpdir());
   const target = path.resolve(temp, out);
-  if (path.relative(temp, target).startsWith("..")) throw new Error("the report path leaves the temporary folder");
+  if (path.relative(temp, target).startsWith("..")) {
+    throw new Error("the report path leaves the temporary folder");
+  }
   const { videos } = JSON.parse(readFileSync(MANIFEST, "utf8"));
   const {
     GITHUB_SERVER_URL: server,
@@ -27,6 +29,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   } = process.env;
   const alert = alertFor(new Date(), videos, runId ? `${server}/${repo}/actions/runs/${runId}` : "");
   writeFileSync(target, alert.body);
-  if (output) appendFileSync(output, `state=${alert.state}\n`);
+  if (output) {
+    appendFileSync(output, `state=${alert.state}\n`);
+  }
   process.stdout.write(`${alert.state}: ${alert.ids.length ? alert.ids.join(", ") : "no stale recording"}\n`);
 }

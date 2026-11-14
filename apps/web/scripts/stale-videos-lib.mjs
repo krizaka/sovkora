@@ -22,12 +22,13 @@ export function staleVideos(now, videos) {
 /** The alert for this day: `red` names the stale ids (raises or comments), `green` clears it. Pure. */
 export function alertFor(now, videos, runUrl = "") {
   const stale = staleVideos(now, videos);
-  if (stale.length === 0)
+  if (stale.length === 0) {
     return {
       state: "green",
       ids: [],
       body: `All ${videos.length} recordings are less than ${MAX_AGE_DAYS} days old.\n`,
     };
+  }
   const ids = stale.map(videoId);
   const lines = [
     `${ids.length} of ${videos.length} download-page recordings are older than ${MAX_AGE_DAYS} days: the e2e job stopped publishing.`,
@@ -36,6 +37,8 @@ export function alertFor(now, videos, runUrl = "") {
     "",
     "Look at the `Download videos` workflow of krizaka/sovkora (`.github/workflows/web-videos.yml`); the next successful run republishes them and this alert clears by itself.",
   ];
-  if (runUrl) lines.push("", `Watch run: ${runUrl}`);
+  if (runUrl) {
+    lines.push("", `Watch run: ${runUrl}`);
+  }
   return { state: "red", ids, body: `${lines.join("\n")}\n` };
 }
