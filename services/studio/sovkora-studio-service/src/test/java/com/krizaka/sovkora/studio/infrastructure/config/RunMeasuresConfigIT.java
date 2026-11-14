@@ -5,18 +5,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.krizaka.test.container.AbstractContainerIntegrationTest;
 import com.zaxxer.hikari.HikariDataSource;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,27 +40,25 @@ class RunMeasuresConfigIT extends AbstractContainerIntegrationTest {
   }
 
   @BeforeAll
-  static void migrate() throws Exception {
-    try (Connection admin =
-            DriverManager.getConnection(
-                postgres().getJdbcUrl(), postgres().getUsername(), postgres().getPassword());
-        Statement statement = admin.createStatement()) {
-      statement.execute("DROP DATABASE IF EXISTS " + DATABASE);
-      statement.execute("CREATE DATABASE " + DATABASE);
-    }
-    Flyway.configure()
-        .dataSource(url(DATABASE), postgres().getUsername(), postgres().getPassword())
-        .locations("classpath:db/migration")
-        .load()
-        .migrate();
-    dataSource = new HikariDataSource();
-    dataSource.setJdbcUrl(url(DATABASE));
-    dataSource.setUsername(postgres().getUsername());
-    dataSource.setPassword(postgres().getPassword());
+  static void migrate() {
+    new JdbcTemplate(pooled(postgres().getJdbcUrl()))
+        .execute("DROP DATABASE IF EXISTS " + DATABASE + " WITH (FORCE)");
+    new JdbcTemplate(pooled(postgres().getJdbcUrl())).execute("CREATE DATABASE " + DATABASE);
+    dataSource = pooled(url(DATABASE));
+    Flyway.configure().dataSource(dataSource).load().migrate();
     jdbc = new JdbcTemplate(dataSource);
     // A REGULATED run needs an installation (its consent); the gauge does not read it, so the
     // fixture drops that one row-level guard rather than seeding a catalogue chain.
     jdbc.execute("ALTER TABLE studio_run DROP CONSTRAINT ck_run_uninstalled_not_regulated");
+  }
+
+  private static HikariDataSource pooled(String jdbcUrl) {
+    HikariDataSource pool = new HikariDataSource();
+    pool.setJdbcUrl(jdbcUrl);
+    pool.setUsername(postgres().getUsername());
+    pool.setPassword(postgres().getPassword());
+    pool.setMaximumPoolSize(2);
+    return pool;
   }
 
   @AfterAll
@@ -74,22 +68,27 @@ class RunMeasuresConfigIT extends AbstractContainerIntegrationTest {
     }
   }
 
-  @BeforeEach
-  void emptyTable() {
+  @AfterEach
+  void emptyTheTable() {
     jdbc.update("DELETE FROM studio_run");
   }
 
   private void run(String status, String dataClass, Duration age, boolean finished, boolean child) {
-    UUID parent = null;
+    java.util.UUID parent = null;
     if (child) {
-      parent = UUID.randomUUID();
+      parent = java.util.UUID.randomUUID();
       insert(parent, "SUCCEEDED", "STANDARD", Duration.ofHours(5), true, null);
     }
-    insert(UUID.randomUUID(), status, dataClass, age, finished, parent);
+    insert(java.util.UUID.randomUUID(), status, dataClass, age, finished, parent);
   }
 
   private void insert(
-      UUID id, String status, String dataClass, Duration age, boolean finished, UUID parent) {
+      java.util.UUID id,
+      String status,
+      String dataClass,
+      Duration age,
+      boolean finished,
+      java.util.UUID parent) {
     java.sql.Timestamp started = java.sql.Timestamp.from(NOW.minus(age));
     jdbc.update(
         "INSERT INTO studio_run (id, actor_id, studio_key, blueprint_version, status,"
