@@ -163,7 +163,9 @@ const liveScript = root("infra/deploy/run-services.sh");
 const APP_DIR_VAR = liveScript.match(/\$\{(\w+_APP_DIR):-\/app\}/)[1];
 const PYTHON_VAR = liveScript.match(/\$\{(\w+_VALIDATION_PYTHON):-/)[1];
 const WORKER_DIRS = [...liveScript.matchAll(/^  cd "\$\{\w+_APP_DIR:-\/app\}\/([^"]+)" \|\| return 1$/gm)].map((m) => m[1]);
-const [SERVICE_TOKEN_VAR] = [...root("workers/media/app/registration.py").matchAll(/environ\.get\("(\w+_SERVICE_TOKEN)"\)/g)].map((m) => m[1]);
+// The functional name first, then the retired code-named one the worker still reads until the pods are rebuilt (#3619).
+const SERVICE_TOKEN_VARS = [...root("workers/media/app/registration.py").matchAll(/environ\.get\("(\w+_SERVICE_TOKEN)"\)/g)].map((m) => m[1]);
+const [SERVICE_TOKEN_VAR] = SERVICE_TOKEN_VARS;
 const IDENTITY_SECRET_VAR = root("workers/media/app/registration.py").match(/environ\.get\("(IDENTITY_JWT_SECRET)"\)/)[1];
 
 /** What the worker process really receives: the worker function runs with a poisoned core environment and a stand-in interpreter that prints its env. */
@@ -174,7 +176,7 @@ function workerEnvironment(fn) {
   writeFileSync(python, "#!/bin/sh\nexec /usr/bin/env\n");
   chmodSync(python, 0o755);
   const poison = {
-    DATABASE_PASSWORD: "x", DATABASE_URL: "x", IDENTITY_JWT_SECRET: "x", [SERVICE_TOKEN_VAR]: "x", SERVICE_TOKEN: "x",
+    DATABASE_PASSWORD: "x", DATABASE_URL: "x", IDENTITY_JWT_SECRET: "x", ...Object.fromEntries(SERVICE_TOKEN_VARS.map((v) => [v, "x"])), SERVICE_TOKEN: "x",
     MEDIA_ENCRYPTION_KEY: "x", STRIPE_SECRET: "x", BILLING_API_KEY: "x", AI_INFERENCE_KEY_ALL: "all", AI_INFERENCE_KEY: "k",
     RABBITMQ_HOST: "broker", RABBITMQ_PORT: "5671", RABBITMQ_USER: "u", RABBITMQ_PASS: "p", SPRING_RABBITMQ_SSL_ENABLED: "true",
   };
@@ -200,7 +202,7 @@ for (const [name, w] of Object.entries(WORKERS)) {
     const allowed = new Set([...w.list(), ...w.fixed, "PWD", "OLDPWD", "SHLVL", "_"]);
     const extra = Object.keys(env).filter((k) => !allowed.has(k));
     assert.deepEqual(extra, [], `variables outside the closed list reach the ${name} worker`);
-    for (const secret of ["DATABASE_PASSWORD", "DATABASE_URL", IDENTITY_SECRET_VAR, SERVICE_TOKEN_VAR, "SERVICE_TOKEN", "MEDIA_ENCRYPTION_KEY", "STRIPE_SECRET", "BILLING_API_KEY", "AI_INFERENCE_KEY_ALL"]) {
+    for (const secret of ["DATABASE_PASSWORD", "DATABASE_URL", IDENTITY_SECRET_VAR, ...SERVICE_TOKEN_VARS, "SERVICE_TOKEN", "MEDIA_ENCRYPTION_KEY", "STRIPE_SECRET", "BILLING_API_KEY", "AI_INFERENCE_KEY_ALL"]) {
       assert.ok(!(secret in env), `${secret} must not reach the ${name} worker`);
     }
   });
@@ -238,7 +240,7 @@ test("every variable the hosted-video worker reads on its hosted-only path is in
   const read = readNames(...["broker", "asset_sink", "remote_video", "spend", "registration", "activity"].map((m) => `workers/media/app/${m}.py`));
   const have = new Set([...WORKERS["hosted-video"].list(), ...WORKERS["hosted-video"].fixed]);
   // Refused on purpose: with neither the worker never registers with the job service and still consumes (registration.py).
-  const refused = new Set([SERVICE_TOKEN_VAR, IDENTITY_SECRET_VAR]);
+  const refused = new Set([...SERVICE_TOKEN_VARS, IDENTITY_SECRET_VAR]);
   for (const v of read) assert.ok(have.has(v) || refused.has(v), `${v} is read by the hosted-video worker but is not in the closed list`);
   for (const v of refused) assert.ok(!have.has(v), `${v} must stay out of the hosted-video worker's environment`);
 });

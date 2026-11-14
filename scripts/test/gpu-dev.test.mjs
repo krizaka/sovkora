@@ -58,7 +58,7 @@ test("user-data: the host scripts are the repository's, secrets are 0600 and the
 
 test("user-data: the worker's SERVICE token is signed, scoped to SERVICE, and expires with the droplet", () => {
   const { files } = render("small");
-  const token = files["/etc/orazaka-gpu/worker.env"].content.match(/^ORAZAKA_SERVICE_TOKEN=(\S+)$/m)[1];
+  const token = files["/etc/orazaka-gpu/worker.env"].content.match(/^SOVKORA_SERVICE_TOKEN=(\S+)$/m)[1];
   const [h, p, s] = token.split(".");
   assert.equal(createHmac("sha256", JWT).update(`${h}.${p}`).digest("base64url"), s);
   const claims = JSON.parse(Buffer.from(p, "base64url").toString());
