@@ -33,11 +33,13 @@ test("the scripts job writes the lcov report of the script tests, and the Sonar 
   const scripts = ci.split(/\n  (?=[a-z-]+:\n)/).find((block) => /^scripts:/.test(block)) ?? "";
   assert.match(scripts, /--experimental-test-coverage/);
   assert.match(scripts, /--test-coverage-exclude='scripts\/test\/\*\*'/);
-  assert.match(scripts, /--test-reporter-destination=coverage\/lcov\.info/);
+  assert.match(scripts, /--test-reporter-destination=coverage\/lcov-scripts\.info/);
+  // The artifacts are merged into one folder and a single-file upload keeps only its file name: two « lcov.info » overwrite each other.
+  assert.match(scripts, /path: coverage\/lcov-scripts\.info/);
   assert.ok(sonarJob.indexOf("download-artifact") < sonarJob.indexOf("actions/sonar-scan@"), "the coverage is downloaded before the scan");
   assert.match(sonarJob, /pattern: coverage-\*/);
   const p = readFileSync(new URL("../../sonar-project.properties", import.meta.url), "utf8");
-  for (const report of ["coverage/lcov.info", "apps/web/coverage/lcov.info", "apps/cli/coverage/lcov.info"]) {
+  for (const report of ["lcov-scripts.info", "apps/web/coverage/lcov.info", "apps/cli/coverage/lcov.info"]) {
     assert.ok((p.match(/^sonar\.javascript\.lcov\.reportPaths=(.*)$/m)?.[1] ?? "").split(",").includes(report), report);
   }
   assert.match(p, /^sonar\.coverage\.jacoco\.xmlReportPaths=/m);

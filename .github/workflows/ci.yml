@@ -344,7 +344,7 @@ jobs:
           node --test --test-timeout=120000 --experimental-test-coverage \
             --test-coverage-exclude='scripts/test/**' \
             --test-reporter=spec --test-reporter-destination=stdout \
-            --test-reporter=lcov --test-reporter-destination=coverage/lcov.info \
+            --test-reporter=lcov --test-reporter-destination=coverage/lcov-scripts.info \
             'scripts/test/*.test.mjs'
       - name: The retired code names only fall (docs/NAMING.md)
         run: node scripts/check-code-names.mjs
@@ -364,7 +364,9 @@ jobs:
           name: coverage-scripts
           if-no-files-found: ignore
           retention-days: 1
-          path: coverage/lcov.info
+          # Its own file name: the sonar job merges every coverage-* artifact into one folder, and a single-file upload keeps
+          # only the file name, so a second « lcov.info » would overwrite this one (the scripts sat at 0 %).
+          path: coverage/lcov-scripts.info
 
   infra-format:
     name: OpenTofu format
