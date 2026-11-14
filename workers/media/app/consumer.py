@@ -903,11 +903,11 @@ def _on_message(channel, method, _properties, body) -> None:
         if job_id:
             send_job_error(job_id, type(missing).__name__, hold_id=hold_id, cause=PLATFORM_UNAVAILABLE)
     except asset_sink.AssetSinkError as refused:
-        # Our own fixed wording (which of the causes: no sink, no token, a refused name, the job service's
-        # status and reason): it never quotes a prompt or a path, so it travels, where a bare class name hid it.
-        print(f"[consumer] job {job_id} failed: {refused}", flush=True)
+        # Which cause, as a code of the closed set the class declares (no sink URL, no token, a refused name, the
+        # job service's refusal by status): the bare class name left it unreadable.
+        print(f"[consumer] job {job_id} failed: {type(refused).__name__} {refused.reason}", flush=True)
         if job_id:
-            send_job_error(job_id, f"{type(refused).__name__}: {refused}", hold_id=hold_id, cause=EXECUTOR_FAULT)
+            send_job_error(job_id, f"{type(refused).__name__}: {refused.reason}", hold_id=hold_id, cause=EXECUTOR_FAULT)
     except Exception as e:  # honest failure: report and ack — a bad job never succeeds on retry
         # The type name only: the message of an exception raised while reading a prompt or a clip can quote it.
         print(f"[consumer] job {job_id} failed: {type(e).__name__}", flush=True)

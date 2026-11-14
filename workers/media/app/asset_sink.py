@@ -20,32 +20,51 @@ import re
 import urllib.error
 import urllib.request
 
+from app.failure import CodedReasonError
 from app.registration import _service_token
 
 #: An output file name: a word, never a path. The job service checks it again.
 _FILENAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$")
 
-#: How much of the job service's own reason is carried into the error: enough to name it, never a body dump.
-_REASON_LIMIT = 200
+#: The causes of a failed hand-over, one code each. A code is the whole message: it travels on the job's error
+#: event and into the log, so it never quotes a file name, a path or what the job service answered (#3376).
+SINK_URL_NOT_SET = "SINK_URL_NOT_SET"
+SERVICE_TOKEN_MISSING = "SERVICE_TOKEN_MISSING"  # noqa: S105 — a cause code, not a secret
+FILENAME_REFUSED = "FILENAME_REFUSED"
+UPLOAD_UNAUTHORIZED = "UPLOAD_UNAUTHORIZED"
+UPLOAD_REJECTED = "UPLOAD_REJECTED"
+UPLOAD_REFUSED = "UPLOAD_REFUSED"
+UPLOAD_NO_URL = "UPLOAD_NO_URL"
+INPUT_NOT_FOUND = "INPUT_NOT_FOUND"
+INPUT_UNAUTHORIZED = "INPUT_UNAUTHORIZED"
+INPUT_REFUSED = "INPUT_REFUSED"
+INPUT_EMPTY = "INPUT_EMPTY"
+READ_REFUSED = "READ_REFUSED"
 
 
-def _refusal(what: str, refused: urllib.error.HTTPError) -> AssetSinkError:
-    """``what`` + the status + the reason the job service gave (``{"error": ...}``), so the cause is readable."""
-    try:
-        body = json.loads(refused.read().decode("utf-8") or "{}")
-        reason = body.get("error") if isinstance(body, dict) else None
-    except (OSError, ValueError):
-        reason = None
-    suffix = f": {str(reason)[:_REASON_LIMIT]}" if reason else ""
-    return AssetSinkError(f"{what} ({refused.code}){suffix}")
+class AssetSinkError(CodedReasonError):
+    """The platform did not take the file. The job fails: an output nobody can read is not done.
 
+    ``reason`` says which cause: no sink URL, no SERVICE token, a refused name, or the job service's refusal
+    (told apart by its status: unauthorised, rejected as malformed — typically no actor — or anything else).
+    """
 
-#: Error message when the deployment has not declared the asset sink URL.
-_SINK_URL_NOT_SET = "MEDIA_ASSET_SINK_URL is not set"
-
-
-class AssetSinkError(RuntimeError):
-    """The platform did not take the file. The job fails: an output nobody can read is not done."""
+    REASONS = frozenset(
+        {
+            SINK_URL_NOT_SET,
+            SERVICE_TOKEN_MISSING,
+            FILENAME_REFUSED,
+            UPLOAD_UNAUTHORIZED,
+            UPLOAD_REJECTED,
+            UPLOAD_REFUSED,
+            UPLOAD_NO_URL,
+            INPUT_NOT_FOUND,
+            INPUT_UNAUTHORIZED,
+            INPUT_REFUSED,
+            INPUT_EMPTY,
+            READ_REFUSED,
+        }
+    )
 
 
 def sink_url(env: dict | None = None) -> str | None:
@@ -70,12 +89,12 @@ def upload(path: str, job: dict, filename: str, content_type: str, env: dict | N
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError(_SINK_URL_NOT_SET)
+        raise AssetSinkError(SINK_URL_NOT_SET)
     if not _FILENAME.match(filename):
-        raise AssetSinkError(f"refusing to upload under the name {filename!r}")
+        raise AssetSinkError(FILENAME_REFUSED)
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to authenticate the upload")
+        raise AssetSinkError(SERVICE_TOKEN_MISSING)
     with open(path, "rb") as handle:
         data = handle.read()
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service, never caller-supplied
@@ -94,12 +113,18 @@ def upload(path: str, job: dict, filename: str, content_type: str, env: dict | N
         with urllib.request.urlopen(request, timeout=300) as response:  # noqa: S310 — see above
             body = json.loads(response.read().decode("utf-8") or "{}")
     except urllib.error.HTTPError as refused:
-        raise _refusal("the job service refused the upload", refused) from refused
+        raise AssetSinkError(
+            UPLOAD_UNAUTHORIZED
+            if refused.code in (401, 403)
+            else UPLOAD_REJECTED
+            if refused.code == 400
+            else UPLOAD_REFUSED
+        ) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the upload: {unreachable}") from unreachable
     url = body.get("url")
     if not isinstance(url, str) or not url:
-        raise AssetSinkError("the job service accepted the upload but returned no URL")
+        raise AssetSinkError(UPLOAD_NO_URL)
     print(f"[asset-sink] {job['jobId']}/{filename}: {len(data)} bytes stored as {url}", flush=True)
     return url
 
@@ -117,10 +142,10 @@ def fetch_image(job: dict, target: str, env: dict | None = None, asset: str | No
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError(_SINK_URL_NOT_SET)
+        raise AssetSinkError(SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to fetch the starting image")
+        raise AssetSinkError(SERVICE_TOKEN_MISSING)
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service, never caller-supplied
         f"{base}/internal/v1/jobs/{job['jobId']}/input/image" + (f"?asset={asset}" if asset else ""),
         method="GET",
@@ -130,11 +155,17 @@ def fetch_image(job: dict, target: str, env: dict | None = None, asset: str | No
         with urllib.request.urlopen(request, timeout=120) as response:  # noqa: S310 — see above
             data = response.read()
     except urllib.error.HTTPError as refused:
-        raise _refusal("the job service has no starting image for this job", refused) from refused
+        raise AssetSinkError(
+            INPUT_NOT_FOUND
+            if refused.code == 404
+            else INPUT_UNAUTHORIZED
+            if refused.code in (401, 403)
+            else INPUT_REFUSED
+        ) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the starting image: {unreachable}") from unreachable
     if not data:
-        raise AssetSinkError("the job service answered an empty starting image")
+        raise AssetSinkError(INPUT_EMPTY)
     with open(target, "wb") as handle:
         handle.write(data)
     print(f"[asset-sink] {job['jobId']}: starting image of {len(data)} bytes fetched", flush=True)
@@ -162,10 +193,10 @@ def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict 
     """
     base = sink_url(env)
     if base is None:
-        raise AssetSinkError(_SINK_URL_NOT_SET)
+        raise AssetSinkError(SINK_URL_NOT_SET)
     token = _service_token()
     if not token:
-        raise AssetSinkError("no SERVICE token (SOVKORA_SERVICE_TOKEN) to read the output")
+        raise AssetSinkError(SERVICE_TOKEN_MISSING)
     request = urllib.request.Request(  # noqa: S310 — the deployment's own job service
         f"{base}/internal/v1/jobs/{job_id}/output/{filename}",
         method="GET",
@@ -177,7 +208,7 @@ def fetch(job_id: str, filename: str, user_id: str, destination: str, env: dict 
     except urllib.error.HTTPError as refused:
         if refused.code == 404:
             return None
-        raise _refusal("the job service refused the read", refused) from refused
+        raise AssetSinkError(READ_REFUSED) from refused
     except OSError as unreachable:
         raise ConnectionError(f"the job service is unreachable for the read: {unreachable}") from unreachable
     os.makedirs(destination, exist_ok=True)

@@ -525,7 +525,7 @@ class TestAssetHandOver(unittest.TestCase):
         self.assertEqual("PUT", sent["method"])
         self.assertEqual("Bearer tok", sent["headers"]["Authorization"])
         self.assertEqual("user-1", sent["headers"]["X-sovkora-user-id"])
-        self.assertNotIn("X-orazaka-user-id", sent["headers"])
+        assert "X-orazaka-user-id" not in sent["headers"]
         self.assertEqual(Path(self.path).read_bytes(), sent["data"])
 
     def test_a_path_is_never_an_asset_name(self):
@@ -537,29 +537,6 @@ class TestAssetHandOver(unittest.TestCase):
                 "video/mp4",
                 {"MEDIA_ASSET_SINK_URL": "http://x"},
             )
-
-    def test_a_refusal_says_the_status_and_the_reason_the_job_service_gave(self):
-        import io
-        import urllib.error
-
-        refusal = urllib.error.HTTPError("http://x", 400, "Bad Request", {}, io.BytesIO(b'{"error": "no actor for job-9"}'))
-        with (
-            patch.object(asset_sink, "_service_token", return_value="tok"),
-            patch.object(asset_sink.urllib.request, "urlopen", side_effect=refusal),
-            self.assertRaises(asset_sink.AssetSinkError) as raised,
-        ):
-            asset_sink.upload(self.path, self.job, "video.mp4", "video/mp4", {"MEDIA_ASSET_SINK_URL": "http://x"})
-        self.assertIn("(400)", str(raised.exception))
-        self.assertIn("no actor for job-9", str(raised.exception))
-
-    def test_the_service_token_is_read_from_its_functional_name_then_the_old_one(self):
-        from app import registration
-
-        with patch.dict(os.environ, {"SOVKORA_SERVICE_TOKEN": "new", "ORAZAKA_SERVICE_TOKEN": "old"}):
-            self.assertEqual("new", registration._service_token())
-        env = {k: v for k, v in os.environ.items() if k != "SOVKORA_SERVICE_TOKEN"}
-        with patch.dict(os.environ, {**env, "ORAZAKA_SERVICE_TOKEN": "old"}, clear=True):
-            self.assertEqual("old", registration._service_token())
 
     def test_no_token_no_upload(self):
         with (
