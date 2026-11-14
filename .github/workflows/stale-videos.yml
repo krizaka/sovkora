@@ -17,7 +17,7 @@ jobs:
     name: Recordings younger than 14 days
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
@@ -27,7 +27,14 @@ jobs:
           ref: main
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
+          package-manager-cache: false
           node-version: 22
+      # The report imports date-fns: the web app's locked dependencies are installed first (the first dispatch failed with
+      # ERR_MODULE_NOT_FOUND, krizaka-internal#3626).
+      - run: npm install -g pnpm@12.10.1
+      - name: Install the web app's locked dependencies
+        working-directory: apps/web
+        run: pnpm install --frozen-lockfile --ignore-scripts --filter .
       - id: report
         name: Read the manifest
         run: node apps/web/scripts/stale-videos-report.mjs "$RUNNER_TEMP/stale-videos.md"

@@ -44,3 +44,21 @@ test("the cutoff is exactly the age: 14 days old is still fresh, one second more
 test("the alert is one key for the product", () => {
   assert.equal(ALERT_KEY, "stale-videos/sovkora");
 });
+
+// A bug means a missing guard: the watch's first run failed with ERR_MODULE_NOT_FOUND (date-fns) because the workflow ran the
+// report without installing the web app's dependencies (run 43609446294, krizaka-internal#3626). A bare package the scripts import
+// must be installed by a step that runs before the report.
+test("the watch workflow installs the web app's locked dependencies before it runs the report", () => {
+  const read = (rel) => readFileSync(new URL(rel, import.meta.url), "utf8");
+  const workflow = read("../../../.github/workflows/stale-videos.yml").replace(/^\s*#.*$/gm, "");
+  const bare = [read("./stale-videos-lib.mjs"), read("./stale-videos-report.mjs")]
+    .flatMap((src) => [...src.matchAll(/from "([^".][^"]*)"/g)].map((m) => m[1]))
+    .filter((spec) => !spec.startsWith("node:"));
+  if (bare.length === 0) {
+    return;
+  }
+  const install = workflow.indexOf("pnpm install --frozen-lockfile");
+  const report = workflow.indexOf("stale-videos-report.mjs");
+  assert.ok(install !== -1, `the scripts import ${bare.join(", ")} but the workflow installs nothing`);
+  assert.ok(install < report, "the install step must come before the report");
+});
