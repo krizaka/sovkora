@@ -184,7 +184,10 @@ def create_body(e, gpu_id):
         # Images only: the pod serves sd-server through the relay and never joins the broker (GPU rule, krizaka-internal#3611).
         env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "MAX_HOURS", "IDLE_MINUTES")}
     else:
-        env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "RABBIT_PASSWORD", "SERVICE_TOKEN", "BROKER_CA_B64", "MAX_HOURS", "IDLE_MINUTES")}
+        # The Studio-serving pod joins the broker as its own user, made for it and deleted when it ends (krizaka-internal#3614).
+        env = {k: e[k] for k in ("WORKER_REF", "PROFILE", "RELAY_URL", "RELAY_AUTH", "RABBIT_USER", "RABBIT_PASSWORD", "SERVICE_TOKEN", "BROKER_CA_B64", "MAX_HOURS", "IDLE_MINUTES")}
+        if not e["RABBIT_USER"].startswith("gpu-pod-"):
+            raise ValueError("a pod joins the broker as its own gpu-pod-* user, never a shared one")
     if e.get("GPU_OUT_URL") and not e.get("MEASURE"):
         # The pod's own output zone (krizaka-internal#2121): its URL under <day>/<run>/<pod>, the header name and THAT zone's key.
         # Never a site's key: the dedicated zone is the only storage a rented machine can touch.
@@ -197,7 +200,8 @@ def create_body(e, gpu_id):
     env["PUBLIC_KEY"] = e["PUBKEY"]
     env["ORAZAKA_BOOT_B64"] = boot
     return {
-        "name": "orazaka-gpu-" + ("measure" if e.get("MEASURE") else e["PROFILE"]),
+        # A pod's name ends with its key: the key names its broker user, which the launcher deletes when the pod is gone.
+        "name": "orazaka-gpu-" + ("measure" if e.get("MEASURE") else e["PROFILE"]) + (f"-{e['POD_KEY']}" if e.get("POD_KEY") else ""),
         "image": e["RP_IMAGE"],
         "cloud": "SECURE",
         "gpu": {"id": gpu_id, "count": 1},

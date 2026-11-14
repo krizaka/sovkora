@@ -9,7 +9,8 @@
 # relay of dev.sovkora.com and runs the consumer. Nothing listens publicly but sshd (the key of this machine only).
 #
 # Settings come from the environment gpu-dev.sh gives the pod (credentials included, never printed): WORKER_REF, PROFILE,
-# RELAY_URL, RELAY_AUTH, RABBIT_PASSWORD, SERVICE_TOKEN, BROKER_CA_B64, IDLE_MINUTES, MAX_HOURS (and HF_TOKEN, optional).
+# RELAY_URL, RELAY_AUTH, RABBIT_USER + RABBIT_PASSWORD (the pod's own broker user, krizaka-internal#3614), SERVICE_TOKEN,
+# BROKER_CA_B64, IDLE_MINUTES, MAX_HOURS (and HF_TOKEN, optional).
 # STILLS=1 (images only): RELAY_URL and RELAY_AUTH alone, no broker credential (krizaka-internal#3611).
 #
 # A profile that declares an image model (`cinema`, ADR-080) also serves sd-server (FLUX.2 klein keyframes) on :8086 — the
@@ -290,7 +291,8 @@ AUTH="$RELAY_AUTH" nohup chisel client --keepalive 25s --max-retry-interval 30s 
   127.0.0.1:15671:broker-dev.orazaka.com:5671 127.0.0.1:18090:core:8090 R:0.0.0.0:8188:127.0.0.1:8188 $IMAGE_REMOTE \
   > /var/log/orazaka-relay.log 2>&1 &
 cd /app-src
-export SPRING_RABBITMQ_HOST=127.0.0.1 SPRING_RABBITMQ_PORT=15671 SPRING_RABBITMQ_USERNAME=gpu-worker \
+# The pod's own broker user (krizaka-internal#3614): its lanes only, the shared exchanges checked, never declared.
+export SPRING_RABBITMQ_HOST=127.0.0.1 SPRING_RABBITMQ_PORT=15671 SPRING_RABBITMQ_USERNAME="$RABBIT_USER" MEDIA_BROKER_EXCHANGES_PASSIVE=true \
   SPRING_RABBITMQ_SSL_ENABLED=true SPRING_RABBITMQ_SSL_CA_FILE=/etc/orazaka/broker-ca.pem \
   SPRING_RABBITMQ_SSL_SERVER_NAME=broker-dev.orazaka.com \
   MEDIA_ASSET_SINK_URL=http://127.0.0.1:18090 JOB_SERVICE_INTERNAL_URL=http://127.0.0.1:18090 \

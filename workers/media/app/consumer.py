@@ -962,8 +962,8 @@ def _consume_once() -> None:
     connection = pika.BlockingConnection(params)
     channel = connection.channel()
     # Idempotent duplicate of the platform topology (§6) so the worker can start first.
-    channel.exchange_declare(exchange=JOBS_EXCHANGE, exchange_type="topic", durable=True)
-    channel.exchange_declare(exchange=DLX_EXCHANGE, exchange_type="direct", durable=True)
+    broker.declare_exchange(channel, JOBS_EXCHANGE, "topic")
+    broker.declare_exchange(channel, DLX_EXCHANGE, "direct")
     try:
         max_length = int(os.environ.get("BROKER_QUEUE_MAX_LENGTH", "1000"))
     except ValueError:

@@ -58,7 +58,7 @@ WORKER_ENV_VALIDATION=(AI_LAW_LECTURE_ENABLED)
 # hosted-video: the provider's URL, timeout and spend caps (remote_video.py, spend.py), its queue length, its scratch folder, its liveness files (activity.py).
 # The provider key and the broker mapping are set below; the service token and the identity secret are refused on purpose
 # (registration.py: without them the worker does not register with the job service and still consumes).
-WORKER_ENV_HOSTED_VIDEO=(AI_INFERENCE_URL MEDIA_REMOTE_TIMEOUT_SECONDS AI_SPEND_STATE_FILE AI_VIDEO_DAILY_RUNS AI_SPEND_DAILY_BUDGET_USD BROKER_QUEUE_MAX_LENGTH MEDIA_SCRATCH_DIR MEDIA_ACTIVITY_FILE MEDIA_HEARTBEAT_FILE)
+WORKER_ENV_HOSTED_VIDEO=(AI_INFERENCE_URL MEDIA_BROKER_EXCHANGES_PASSIVE MEDIA_REMOTE_TIMEOUT_SECONDS AI_SPEND_STATE_FILE AI_VIDEO_DAILY_RUNS AI_SPEND_DAILY_BUDGET_USD BROKER_QUEUE_MAX_LENGTH MEDIA_SCRATCH_DIR MEDIA_ACTIVITY_FILE MEDIA_HEARTBEAT_FILE)
 
 # Fills WORKER_ENV with NAME=value for each name given that core has set; a name core does not carry is not invented.
 worker_env() {

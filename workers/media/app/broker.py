@@ -69,6 +69,21 @@ def connection_parameters(env: dict | None = None) -> pika.ConnectionParameters:
     return pika.ConnectionParameters(**options)
 
 
+def exchanges_passive(env: dict | None = None) -> bool:
+    """Whether this process only checks that the platform's exchanges exist (``MEDIA_BROKER_EXCHANGES_PASSIVE=true``).
+
+    A GPU pod logs in as its own broker user (krizaka-internal#3614), which may not configure a shared exchange — the
+    right to declare one is also the right to delete it. The platform declares them; the pod checks they are there.
+    """
+    source = os.environ if env is None else env
+    return source.get("MEDIA_BROKER_EXCHANGES_PASSIVE", "false").lower() == "true"
+
+
+def declare_exchange(channel, name: str, kind: str, env: dict | None = None) -> None:
+    """Declares one of the platform's exchanges, or only checks it exists when :func:`exchanges_passive` says so."""
+    channel.exchange_declare(exchange=name, exchange_type=kind, durable=True, passive=exchanges_passive(env))
+
+
 def describe(params: pika.ConnectionParameters) -> str:
     """A log line for the connection — host, port and user, never the password."""
     user = getattr(params.credentials, "username", "?")
