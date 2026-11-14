@@ -1,0 +1,13 @@
+# The data-analytics worker: the deterministic half of the data-driven-ui Studio (krizaka-internal#3628). It computes the
+# figures of a table and draws the dashboard from them; the model in between only chooses and explains. It calls no
+# provider and reads no file: a run's table arrives in the job.
+name: sovkora-worker-data
+family: data
+bindings:
+  - "job.data.*"
+version: "1.0.0"
+concurrency: 2
+
+run:
+  python: "../.venv/bin/python3"
+  args: ["data_worker.py"]

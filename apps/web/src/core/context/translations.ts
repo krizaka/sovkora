@@ -916,6 +916,9 @@ const rawTranslations: Record<Locale, TranslationDictionary> = {
       resultGone: "This result is no longer available",
       resultGoneBody:
         "The file was not kept: this environment can reset its storage when a new version goes out. The facts of the run are below; run it again with the same seed to make it again.",
+      dashboardRefused: "This dashboard cannot be shown",
+      dashboardRefusedBody:
+        "The answer does not follow the dashboard format, so none of it is shown. Run the Studio again for a checked answer.",
       runCancelled: "Run cancelled",
       runRunning: "Running...",
       runAwaitingInput: "Waiting for your approval",
@@ -1858,6 +1861,9 @@ const rawTranslations: Record<Locale, TranslationDictionary> = {
       resultGone: "Ce résultat n'est plus disponible",
       resultGoneBody:
         "Le fichier n'a pas été conservé : cet environnement peut réinitialiser son stockage à chaque nouvelle version. Les faits de l'exécution sont ci-dessous ; relancez-la avec la même graine pour la refaire.",
+      dashboardRefused: "Ce tableau de bord ne peut pas être affiché",
+      dashboardRefusedBody:
+        "La réponse ne suit pas le format du tableau de bord : rien n'en est affiché. Relancez le Studio pour obtenir une réponse vérifiée.",
       runCancelled: "Exécution annulée",
       runRunning: "En cours...",
       runAwaitingInput: "En attente de votre validation",

@@ -7,25 +7,69 @@
 #   erasures in, feeds and creator insights out, < 150 ms. That is not a Studio run (a
 #   run is an asynchronous, metered saga), so the pack declares it as the API scopes a
 #   buyer's service key opens — `requires.api` — and the edge enforces them.
-# - DATA-DRIVEN UI (ADR-082): a CSV or JSON and a question become an A2UI v0.9 dashboard.
+# - DATA-DRIVEN UI (ADR-082): a CSV or JSON and a question become an A2UI v0.9 dashboard. Its figures are
+#   computed by the pack's worker, never by the model (krizaka-internal#3628): job.data.facts adds the table up,
+#   the model picks facts by id and explains them, job.data.dashboard checks that answer and draws it from the facts.
 # - UNDERSTANDING is asynchronous and metered, so it is Studios: what a video is about
 #   (a keyframe through vision, then a JSON reading) and creator suggestions the
 #   creator approves.
 #
-# tier DATA: every featureKey the blueprints name is an orazaka.core.* row the engine
-# already owns. Users are pseudonyms (HMAC-SHA256 by the product, Loi 25): the pack
+# tier WORKER: the blueprints name the engine's orazaka.core.* rows and the two capabilities of
+# the pack's own worker (worker/, Python, stdlib arithmetic, no provider). Users are pseudonyms (HMAC-SHA256 by the product, Loi 25): the pack
 # never receives an e-mail, a name or a user id (README).
 # ─────────────────────────────────────────────────────────────────────────────
 apiVersion: orazaka.dev/v1
 key: data-analytics
-version: 1.6.0
-tier: DATA
+version: 1.7.0
+tier: WORKER
 distribution: OSS
 regulatoryClass: STANDARD
 
 requires:
-  # Zero contributed capabilities: vision and chat completion are the engine's own.
-  capabilities: []
+  # Vision and chat completion are the engine's own; the two below are the worker's, and bill nothing on their own:
+  # they add up and draw, the model step between them is the metered one.
+  capabilities:
+    - key: orazaka.data.table.facts
+      routingKey: job.data.facts
+      handlerKey: data.facts
+      billableCapability: NONE
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          data: { type: string, description: "The person's table: a CSV with its header row, or a JSON. Empty when it is pasted in the question." }
+          question: { type: string, description: "The question, which may hold the table." }
+          language: { type: string, enum: [en, fr], description: "The language of the labels (weeks, days, months)." }
+        required: [question]
+      outputSchema:
+        type: object
+        properties:
+          factsJson: { type: string, description: "Every computed figure and table, for the dashboard step." }
+          facts: { type: string, description: "The same, one line each with its id, for the model." }
+          hasTable: { type: boolean }
+          rows: { type: integer }
+        required: [factsJson, facts, hasTable, rows]
+    - key: orazaka.data.table.dashboard
+      routingKey: job.data.dashboard
+      handlerKey: data.dashboard
+      billableCapability: NONE
+      enabled: true
+      inputSchema:
+        type: object
+        properties:
+          facts: { type: string, description: "factsJson of the facts step." }
+          answer: { type: string, description: "The model's plan: one JSON object naming facts and tables by id." }
+          retry: { type: string, description: "The model's second plan, when the first was refused." }
+          question: { type: string, description: "The question: a figure it writes may be quoted back." }
+          final: { type: string, enum: ["true", "false"], description: "true: fail (AnswerRefused) when no plan holds; false: report the refusal so the blueprint asks again." }
+        required: [facts, answer]
+      outputSchema:
+        type: object
+        properties:
+          answer: { type: string, description: "The summary, then the A2UI v0.9 surface (catalog krizaka:genui/v1) drawn from the facts." }
+          valid: { type: boolean }
+          problems: { type: string, description: "Why the plan was refused, one line each; empty when it holds." }
+        required: [answer, valid, problems]
   # The recommender's serving contract (ADR-078 §6). Identical to the edge's ApiKeyScopes
   # (tests/data-analytics.test.mjs): a scope the edge does not know grants nothing.
   api:

@@ -858,6 +858,8 @@ export interface TranslationDictionary {
     runSucceeded: string;
     resultGone: string;
     resultGoneBody: string;
+    dashboardRefused: string;
+    dashboardRefusedBody: string;
     runCancelled: string;
     runRunning: string;
     runAwaitingInput: string;

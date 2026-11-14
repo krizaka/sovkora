@@ -40,6 +40,8 @@ test("no model input defaults to a hosted vendor's model", () => {
 
 test("data-driven-ui leaves the model to the person or the platform (Auto)", () => {
   const ddui = files.find((f) => f.where === "data-analytics/studios/data-driven-ui").bp;
-  assert.equal(ddui.definition.steps[0].inputs.model, "{{inputs.model:}}");
+  const chats = ddui.definition.steps.filter((s) => s.inputs?.prompt !== undefined);
+  assert.equal(chats.length, 2, "the answer and its one retry");
+  for (const step of chats) assert.equal(step.inputs.model, "{{inputs.model:}}", step.id);
   assert.equal(ddui.inputSchema.properties.model.default, undefined);
 });

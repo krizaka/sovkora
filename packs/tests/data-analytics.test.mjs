@@ -74,7 +74,9 @@ test("each Studio is a published blueprint over existing capabilities, labelled 
     const b = blueprint(key);
     assert.equal(b.definition.studioKey, key);
     assert.equal(b.status, "PUBLISHED");
-    for (const step of b.definition.steps) assert.match(step.featureKey, /^orazaka\.core\./, `${key}: ${step.id}`);
+    // The engine's capabilities, and the pack's own worker (data-driven-ui adds up and draws, krizaka-internal#3628).
+    for (const step of b.definition.steps)
+      assert.match(step.featureKey, /^orazaka\.(core|data\.table)\./, `${key}: ${step.id}`);
     for (const lang of ["en", "fr"]) {
       const i18n = readFileSync(join(dir, "i18n", `${lang}.yaml`), "utf8");
       assert.match(i18n, new RegExp(`  ${key}:\\n    label:`), `${key} label in ${lang}`);
@@ -118,32 +120,63 @@ test("the pack never handles a raw identity: its docs state the pseudonym rule (
   for (const words of ["HMAC-SHA256", "pseudonym", "erasures", "retention"]) assert.ok(readme.includes(words), words);
 });
 
-test("data-driven UI (ADR-082): one LLM step that answers in A2UI v0.9 with the krizaka:genui/v1 catalog only", () => {
-  const [step] = blueprint("data-driven-ui").definition.steps;
-  assert.equal(step.featureKey, "orazaka.core.chat.completion");
-  const prompt = step.inputs.prompt;
+test("data-driven UI (krizaka-internal#3628): the worker computes the figures, the model only picks and explains", () => {
+  const b = blueprint("data-driven-ui");
+  const steps = Object.fromEntries(b.definition.steps.map((s) => [s.id, s]));
+  assert.deepEqual(Object.keys(steps), ["facts", "answer", "check", "retry", "dashboard"]);
+  // The figures come first, from the table, before any model writes.
+  assert.equal(steps.facts.featureKey, "orazaka.data.table.facts");
+  assert.deepEqual(steps.facts.dependsOn, []);
+  assert.equal(
+    steps.facts.inputs.data,
+    "{{inputs.data:}}",
+    "the data block may be empty (the table is in the question)",
+  );
+  // The model reads the facts, never the raw table, and names them by id.
+  const prompt = steps.answer.inputs.prompt;
+  assert.ok(prompt.includes("{{steps.computed.facts}}"));
+  assert.ok(!prompt.includes("{{inputs.data"), "the model is never handed the table to add up");
   for (const words of [
-    "```a2ui",
-    '"version":"v0.9"',
-    "krizaka:genui/v1",
-    "createSurface",
-    "updateComponents",
-    "updateDataModel",
-    '"id":"root"',
-    "ONE line",
+    "ONE JSON object",
+    "{F12}",
+    "Never write a number of your own",
+    "tone warning",
     "complete, valid example",
-  ]) {
+  ])
     assert.ok(prompt.includes(words), words);
-  }
-  for (const component of ["Column", "Row", "Text", "Callout", "KpiStat", "ChartCard", "Table"])
-    assert.ok(prompt.includes(`"component":"${component}"`), component);
-  for (const rule of ["never invent", "No other component", "no HTML, no URL, no code"])
-    assert.ok(prompt.includes(rule), rule);
-  const props = blueprint("data-driven-ui").inputSchema.properties;
+  // Checked, asked again once with the reasons, then drawn — or a typed failure.
+  assert.equal(steps.check.featureKey, "orazaka.data.table.dashboard");
+  assert.equal(steps.check.inputs.final, "false");
+  assert.equal(steps.retry.condition, "{{steps.check.valid}} == false");
+  assert.ok(steps.retry.inputs.prompt.startsWith(prompt), "the retry asks the same question");
+  assert.ok(steps.retry.inputs.prompt.includes("{{steps.check.problems}}"));
+  assert.equal(steps.dashboard.inputs.final, "true");
+  assert.equal(steps.dashboard.inputs.retry, "{{steps.retried.content:}}");
+  assert.equal(steps.dashboard.onError, "FAIL");
+  assert.equal(b.definition.outputs[0].from, "{{steps.drawn.answer}}");
+  for (const chat of [steps.answer, steps.retry]) assert.deepEqual(chat.onErrorByCause, { GUARD_REFUSAL: "FAIL" });
+  const props = b.inputSchema.properties;
   assert.equal(props.question.maxLength, 20000);
-  // Launchable from the chat bar: one step, one required prose input — the message, data pasted in it or not.
-  assert.deepEqual(blueprint("data-driven-ui").inputSchema.required, ["question"]);
+  // Launchable from the chat bar: one required prose input — the message, data pasted in it or not.
+  assert.deepEqual(b.inputSchema.required, ["question"]);
   assert.equal(props.question.format, "prose");
   assert.equal(props.data.format, undefined, "a single prose input, so the chat bar knows where the message goes");
-  assert.ok(prompt.includes("{{inputs.data:}}"), "the data block may be empty");
+});
+
+test("the data worker is the pack's, declared with what it bills (nothing) and run by its worker.yaml", () => {
+  const yaml = pack();
+  assert.match(yaml, /^tier: WORKER$/m);
+  for (const [key, routing] of [
+    ["orazaka.data.table.facts", "job.data.facts"],
+    ["orazaka.data.table.dashboard", "job.data.dashboard"],
+  ])
+    assert.match(
+      yaml,
+      new RegExp(
+        `- key: ${key.replaceAll(".", "\\.")}\\n\\s+routingKey: ${routing.replaceAll(".", "\\.")}\\n[\\s\\S]*?billableCapability: NONE`,
+      ),
+    );
+  const worker = readFileSync(join(dir, "worker", "worker.yaml"), "utf8");
+  assert.match(worker, /^family: data$/m);
+  assert.match(worker, /- "job\.data\.\*"/);
 });

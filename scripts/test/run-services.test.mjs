@@ -162,7 +162,11 @@ function closedList(name) {
 const liveScript = root("infra/deploy/run-services.sh");
 const APP_DIR_VAR = liveScript.match(/\$\{(\w+_APP_DIR):-\/app\}/)[1];
 const PYTHON_VAR = liveScript.match(/\$\{(\w+_VALIDATION_PYTHON):-/)[1];
-const WORKER_DIRS = [...liveScript.matchAll(/^  cd "\$\{\w+_APP_DIR:-\/app\}\/([^"]+)" \|\| return 1$/gm)].map((m) => m[1]);
+const PACKS_DIR = liveScript.match(/^  cd "\$\{\w+_APP_DIR:-\/app\}\/([^"]+)\/\$pack\/worker" \|\| return 1$/m)[1];
+const WORKER_DIRS = [
+  ...[...liveScript.matchAll(/^  cd "\$\{\w+_APP_DIR:-\/app\}\/([^"$]+)" \|\| return 1$/gm)].map((m) => m[1]),
+  ...[...liveScript.matchAll(/^run_\w+_worker\(\) \{ run_pack_worker ([\w-]+) /gm)].map((m) => `${PACKS_DIR}/${m[1]}/worker`),
+];
 // The functional name first, then the retired code-named one the worker still reads until the pods are rebuilt (#3619).
 const SERVICE_TOKEN_VARS = [...root("workers/media/app/registration.py").matchAll(/environ\.get\("(\w+_SERVICE_TOKEN)"\)/g)].map((m) => m[1]);
 const [SERVICE_TOKEN_VAR] = SERVICE_TOKEN_VARS;
@@ -190,9 +194,10 @@ function workerEnvironment(fn) {
 
 const BASE = () => closedList("WORKER_ENV_BASE");
 const BROKER = () => closedList("WORKER_ENV_BROKER");
-const FIXED = { validation: ["SPRING_RABBITMQ_SSL_CA_FILE"], hostedVideo: ["MEDIA_WORKER_HOSTED_ONLY", "MEDIA_WORKER_PORT", "MEDIA_ASSET_SINK_URL", "JOB_SERVICE_INTERNAL_URL", "UPLOAD_DIR", "AI_INFERENCE_KEY", "SPRING_RABBITMQ_HOST", "SPRING_RABBITMQ_PORT", "SPRING_RABBITMQ_USERNAME", "SPRING_RABBITMQ_PASSWORD", "SPRING_RABBITMQ_SSL_CA_FILE"] };
+const FIXED = { validation: ["SPRING_RABBITMQ_SSL_CA_FILE"], data: ["SPRING_RABBITMQ_SSL_CA_FILE"], hostedVideo: ["MEDIA_WORKER_HOSTED_ONLY", "MEDIA_WORKER_PORT", "MEDIA_ASSET_SINK_URL", "JOB_SERVICE_INTERNAL_URL", "UPLOAD_DIR", "AI_INFERENCE_KEY", "SPRING_RABBITMQ_HOST", "SPRING_RABBITMQ_PORT", "SPRING_RABBITMQ_USERNAME", "SPRING_RABBITMQ_PASSWORD", "SPRING_RABBITMQ_SSL_CA_FILE"] };
 const WORKERS = {
   validation: { fn: "run_validation_worker", list: () => [...BASE(), ...BROKER(), ...closedList("WORKER_ENV_VALIDATION")], fixed: FIXED.validation },
+  data: { fn: "run_data_worker", list: () => [...BASE(), ...BROKER()], fixed: FIXED.data },
   "hosted-video": { fn: "run_hosted_video_worker", list: () => [...BASE(), ...BROKER(), ...closedList("WORKER_ENV_HOSTED_VIDEO")], fixed: FIXED.hostedVideo },
 };
 
@@ -212,7 +217,7 @@ for (const [name, w] of Object.entries(WORKERS)) {
     for (const v of [...w.list(), ...w.fixed]) {
       if (/(PASSWORD|SECRET|KEY|TOKEN|PASS)$/.test(v) || /^(DATABASE|IDENTITY|SERVICE)_/.test(v)) assert.ok(needed.has(v), `${v} is a secret the ${name} worker does not need`);
     }
-    assert.ok(!(name === "validation" && [...w.list(), ...w.fixed].includes("AI_INFERENCE_KEY")), "validation never calls a provider");
+    assert.ok(!(name !== "hosted-video" && [...w.list(), ...w.fixed].includes("AI_INFERENCE_KEY")), `${name} never calls a provider`);
   });
 }
 
@@ -234,6 +239,16 @@ test("every variable the validation worker reads is in its closed list, or its C
   // RABBITMQ_PASSWORD / SPRING_RABBITMQ_PASSWORD are deprecated names (worker warns); the script passes RABBITMQ_PASS only.
   const deprecated = new Set(["RABBITMQ_PASSWORD", "SPRING_RABBITMQ_PASSWORD", "RABBITMQ_SSL_CA_FILE"]);
   for (const v of read) assert.ok(have.has(v) || deprecated.has(v), `${v} is read by the validation worker but is not in the closed list`);
+});
+
+test("the supervisor starts the data-analytics worker by default, and it reads nothing but the broker", () => {
+  const sh = root("infra/deploy/run-services.sh");
+  assert.match(sh, /ORAZAKA_WORKERS-validation hosted-video data\}/);
+  assert.match(sh, /data\)\s*\n\s*echo "\[run-services\] starting the data-analytics worker \(supervised\)"/);
+  const read = readNames("packs/worker-common/worker_broker.py", ...["data_worker", "facts", "dashboard"].map((m) => `packs/data-analytics/worker/${m}.py`));
+  const have = new Set([...WORKERS.data.list(), ...WORKERS.data.fixed]);
+  const deprecated = new Set(["RABBITMQ_PASSWORD", "SPRING_RABBITMQ_PASSWORD", "RABBITMQ_SSL_CA_FILE"]);
+  for (const v of read) assert.ok(have.has(v) || deprecated.has(v), `${v} is read by the data worker but is not in the closed list`);
 });
 
 test("every variable the hosted-video worker reads on its hosted-only path is in its closed list, or refused on purpose", () => {

@@ -69,15 +69,25 @@ worker_env() {
   done
 }
 
-# Runs in the supervisor's own background process (`"$@" &`), so `cd` stays local and `exec` makes the worker that very
+# A pack worker on the validation venv: its folder under the packs, its script, its own closed list on top of the base and
+# the broker's. Runs in the supervisor's own background process (`"$@" &`), so `cd` stays local and `exec` makes the worker that very
 # process: the supervisor's TERM reaches the Python process itself, not a shell around it.
-run_validation_worker() {
-  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-packs/document-validation/worker" || return 1
-  worker_env "${WORKER_ENV_BASE[@]}" "${WORKER_ENV_BROKER[@]}" "${WORKER_ENV_VALIDATION[@]}"
+run_pack_worker() {
+  local pack="$1" script="$2"; shift 2
+  cd "${ORAZAKA_APP_DIR:-/app}/orazaka-packs/$pack/worker" || return 1
+  worker_env "${WORKER_ENV_BASE[@]}" "${WORKER_ENV_BROKER[@]}" "$@"
   exec env -i "${WORKER_ENV[@]}" \
     SPRING_RABBITMQ_SSL_CA_FILE="${ORAZAKA_APP_DIR:-/app}/var/broker-ca.pem" \
-    "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u validation_worker.py
+    "${ORAZAKA_VALIDATION_PYTHON:-/opt/validation-venv/bin/python3}" -u "$script"
 }
+
+# The document-validation worker (job.validation.*): its closed list adds the lecture switch.
+run_validation_worker() { run_pack_worker document-validation validation_worker.py "${WORKER_ENV_VALIDATION[@]}"; }
+
+# The data-analytics worker: the figures of the data-driven-ui Studio (job.data.*), computed before the model writes and
+# checked after it (krizaka-internal#3628). Stdlib arithmetic on the validation venv: no GPU, no provider, no file, and no
+# variable beyond the broker's.
+run_data_worker() { run_pack_worker data-analytics data_worker.py; }
 
 # The hosted-video worker: the media worker in hosted-only mode — a CPU consumer that calls the provider's API for the models a
 # provider serves (the hosted Wan 2.2), on a queue of its own (job.hostedvideo.*, which the GPU worker never matches). It needs
@@ -163,11 +173,16 @@ done
 # The Python workers of the packs, after the JVMs (the job service declares the topology they bind to). The dev broker
 # is TLS only: the worker reads the same RABBITMQ_* and SPRING_RABBITMQ_SSL_ENABLED as the services, and the CA file
 # written above (orazaka-packs document-validation/worker/broker.py).
-for worker in ${ORAZAKA_WORKERS-validation hosted-video}; do
+for worker in ${ORAZAKA_WORKERS-validation hosted-video data}; do
   case "$worker" in
     validation)
       echo "[run-services] starting the document-validation worker (supervised)"
       supervise validation run_validation_worker > >(sed -u "s/^/[validation] /") 2>&1 &
+      workers+=("$!")
+      ;;
+    data)
+      echo "[run-services] starting the data-analytics worker (supervised)"
+      supervise data run_data_worker > >(sed -u "s/^/[data] /") 2>&1 &
       workers+=("$!")
       ;;
     hosted-video)
