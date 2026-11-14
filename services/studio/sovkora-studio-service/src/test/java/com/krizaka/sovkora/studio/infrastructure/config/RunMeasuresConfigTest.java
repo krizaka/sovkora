@@ -31,7 +31,7 @@ class RunMeasuresConfigTest {
   @Test
   @DisplayName("sovkora.run.stuck counts the runs still RUNNING past the declared age, no label")
   void stuckGauge() {
-    when(jdbc.queryForObject(anyString(), eq(Long.class), eq("RUNNING"), eq(CUTOFF)))
+    when(jdbc.queryForObject(anyString(), eq(Long.class), eq("RUNNING"), eq(CUTOFF), any()))
         .thenReturn(2L);
 
     bind();
@@ -43,7 +43,7 @@ class RunMeasuresConfigTest {
   @Test
   @DisplayName("a database that cannot answer reads as no data, never as zero stuck runs")
   void unreadableIsNotZero() {
-    when(jdbc.queryForObject(anyString(), eq(Long.class), any(), any()))
+    when(jdbc.queryForObject(anyString(), eq(Long.class), any(), any(), any()))
         .thenThrow(new DataAccessResourceFailureException("down"));
 
     bind();

@@ -24,10 +24,8 @@ class RunMeasuresConfig {
    * that exposes no content, and a protected run holds a credit hold and a slot like any other
    * (ADR-055 asks the aggregate to say which class it counts).
    */
-  private static final String ALL_CLASSES =
-      java.util.Arrays.stream(DataClass.values())
-          .map(c -> "'" + c.name() + "'")
-          .collect(java.util.stream.Collectors.joining(", "));
+  private static final String[] ALL_CLASSES =
+      java.util.Arrays.stream(DataClass.values()).map(Enum::name).toArray(String[]::new);
 
   private static final Logger logger = LoggerFactory.getLogger(RunMeasuresConfig.class);
 
@@ -51,12 +49,11 @@ class RunMeasuresConfig {
                         jdbc.queryForObject(
                             "SELECT count(*) FROM studio_run WHERE finished_at IS NULL"
                                 + " AND parent_run_id IS NULL AND status = ? AND started_at < ?"
-                                + " AND data_class IN ("
-                                + ALL_CLASSES
-                                + ")",
+                                + " AND data_class = ANY (?)",
                             Long.class,
                             RunStatus.RUNNING.name(),
-                            Timestamp.from(clock.instant().minus(properties.stuckAfter())));
+                            Timestamp.from(clock.instant().minus(properties.stuckAfter())),
+                            (Object) ALL_CLASSES);
                     return stuck == null ? Double.NaN : stuck.doubleValue();
                   } catch (org.springframework.dao.DataAccessException unreadable) {
                     logger.warn("The stuck-runs measure could not read the database", unreadable);

@@ -459,6 +459,10 @@ public class RunSagaService {
             .filter(step -> dependenciesSatisfied(step, snapshot.states()))
             .toList();
 
+    // The first advance that has work and finds no step recorded: how long the run waited for it.
+    if (run.parentRunId() == null && snapshot.states().isEmpty() && !ready.isEmpty()) {
+      measures.started(run.ageSeconds());
+    }
     for (BlueprintStep step : ready) {
       dispatch(run, blueprint, step, scope, effectiveConfig);
     }
@@ -582,37 +586,7 @@ public class RunSagaService {
           // the deadline starts, so the ceiling that applies is the lane the platform held when
           // the work was sent (ADR-067).
           laneOf(step));
-      noteFirstDispatch(run, step.id(), ordinal);
     }
-  }
-
-  /**
-   * Times how long a top-level run waited for its first step to be handed to an executor: the step
-   * just written is the only one the run has.
-   */
-  private void noteFirstDispatch(RunRow run, String stepId, int ordinal) {
-    if (run.parentRunId() != null || ordinal != 0) {
-      return;
-    }
-    jdbcTemplate
-        .queryForList(
-            "SELECT EXTRACT(EPOCH FROM (now() - r.started_at)) FROM studio_run r WHERE r.id = ?"
-                + " AND NOT EXISTS (SELECT 1 FROM studio_run_step s WHERE s.run_id = r.id"
-                + " AND s.step_id <> ?)",
-            Double.class,
-            run.id(),
-            stepId)
-        .forEach(measures::started);
-  }
-
-  /** How long ago the run was created, read on the database's clock. */
-  private double runAge(UUID runId) {
-    Double seconds =
-        jdbcTemplate.queryForObject(
-            "SELECT EXTRACT(EPOCH FROM (now() - started_at)) FROM studio_run WHERE id = ?",
-            Double.class,
-            runId);
-    return seconds == null ? 0.0 : seconds;
   }
 
   /**
@@ -950,7 +924,7 @@ public class RunSagaService {
       settlementService.settleSucceeded(run.id(), run.holdId(), settledRuns(run, blueprint));
     }
     if (run.parentRunId() == null) {
-      measures.succeeded(runAge(run.id()));
+      measures.succeeded(run.ageSeconds());
     }
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), true, null);
     outboxService.append(run.id().toString(), "evt.studio.run.succeeded", runEvent(run));
@@ -1043,7 +1017,7 @@ public class RunSagaService {
         .increment();
 
     if (run.parentRunId() == null) {
-      measures.failed(runAge(run.id()), declared);
+      measures.failed(run.ageSeconds(), declared);
     }
 
     // The category, never the reason: `reason` is the failed step's message, which for a refusal is
@@ -1228,6 +1202,7 @@ public class RunSagaService {
         .query(
             "SELECT r.id, r.installation_id, r.actor_id, r.studio_key, r.blueprint_version,"
                 + " r.status, r.hold_id, r.correlation_id, r.inputs, r.data_class, r.parent_run_id,"
+                + " EXTRACT(EPOCH FROM (now() - r.started_at)) AS age_seconds,"
                 + " s.step_id, s.ordinal, i.config AS installation_config,"
                 + " (SELECT config_value FROM studio_runtime_config WHERE config_key = ?)"
                 + " AS blueprint_cache_size"
@@ -1292,7 +1267,9 @@ public class RunSagaService {
     return jdbcTemplate
         .query(
             "SELECT id, installation_id, actor_id, studio_key, blueprint_version, status, hold_id,"
-                + " correlation_id, inputs, data_class, parent_run_id FROM studio_run WHERE id = ?",
+                + " correlation_id, inputs, data_class, parent_run_id,"
+                + " EXTRACT(EPOCH FROM (now() - started_at)) AS age_seconds"
+                + " FROM studio_run WHERE id = ?",
             (rs, rowNum) -> runRow(rs),
             runId)
         .stream()
@@ -1313,7 +1290,8 @@ public class RunSagaService {
         rs.getString("correlation_id"),
         columns.objectMap(rs.getString("inputs")),
         DataClass.valueOf(rs.getString("data_class")),
-        rs.getObject("parent_run_id", UUID.class));
+        rs.getObject("parent_run_id", UUID.class),
+        rs.getDouble("age_seconds"));
   }
 
   /** Where a job outcome lands in a DAG, with the rows already needed by its advance. */
@@ -1367,5 +1345,6 @@ public class RunSagaService {
       String correlationId,
       Map<String, Object> inputs,
       DataClass dataClass,
-      UUID parentRunId) {}
+      UUID parentRunId,
+      double ageSeconds) {}
 }
