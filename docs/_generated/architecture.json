@@ -4964,8 +4964,8 @@
     {
       "key": "data-analytics",
       "dir": "data-analytics",
-      "version": "1.6.0",
-      "tier": "DATA",
+      "version": "1.7.0",
+      "tier": "WORKER",
       "kind": null,
       "distribution": "OSS",
       "regulatoryClass": "STANDARD",
@@ -4979,7 +4979,10 @@
         "priceCents": 4900,
         "includedCredits": 300
       },
-      "capabilities": [],
+      "capabilities": [
+        "orazaka.data.table.facts",
+        "orazaka.data.table.dashboard"
+      ],
       "workers": [],
       "scopeGuard": false,
       "consent": false,
@@ -5015,7 +5018,7 @@
           "pricing": "PAID",
           "status": "PUBLISHED",
           "estimatedCredits": 30,
-          "steps": 1,
+          "steps": 5,
           "stepKinds": [
             "CAPABILITY"
           ],

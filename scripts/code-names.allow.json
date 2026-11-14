@@ -56,6 +56,11 @@
       "token": "orazaka.core.chat.text",
       "reason": "A live routing key of the chat capability, stored in capability rows; renamed only by a data migration of krizaka-internal#2684.",
       "row": "K2"
+    },
+    {
+      "token": "orazaka.data.table",
+      "reason": "The data-analytics worker's capability keys (orazaka.data.table.facts, .dashboard, krizaka-internal#3628): the registry's feature-key grammar is ^orazaka\\. (packs/pack.schema.json $defs.featureKey), stored in capability rows; renamed with every other key by a data migration of krizaka-internal#2684.",
+      "row": "K2"
     }
   ]
 }

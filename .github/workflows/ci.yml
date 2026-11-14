@@ -299,6 +299,9 @@ jobs:
           - worker: echo-toolkit/worker
             packages: pika pyyaml pytest
             tests: test_echo_worker.py
+          - worker: data-analytics/worker
+            packages: pika pyyaml pytest
+            tests: test_facts.py test_dashboard.py test_worker.py
           - worker: tenant-screening-qc/worker
             packages: pika pyyaml pytest
             tests: test_screening.py

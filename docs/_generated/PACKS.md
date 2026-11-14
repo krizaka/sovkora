@@ -65,7 +65,7 @@ capability rows, a price, catalogue entries — and changes no code.
   "key": "data-analytics",
   "title": "Recommendations & insights",
   "tagline": "A feed per person and analytics per creator, on your own data.",
-  "tier": "DATA",
+  "tier": "WORKER",
   "category": "Data & analytics",
   "studios": 3
  },
@@ -1009,8 +1009,8 @@ capability rows, a price, catalogue entries — and changes no code.
  "title": "Recommendations & insights",
  "tagline": "A feed per person and analytics per creator, on your own data.",
  "description": "The recommender your product calls with a service key: send pseudonymous events and your eligible items, read a \"for you\" feed, similar items and creator insights — every item says why it is there. Two Studios read your videos and suggest titles and tags.",
- "version": "1.6.0",
- "tier": "DATA",
+ "version": "1.7.0",
+ "tier": "WORKER",
  "kind": null,
  "distribution": "OSS",
  "regulatoryClass": "STANDARD",
@@ -1047,7 +1047,7 @@ capability rows, a price, catalogue entries — and changes no code.
      "title": "Modèle de langage"
     }
    ],
-   "steps": 1,
+   "steps": 5,
    "stepKinds": [
     "CAPABILITY"
    ],
@@ -1969,7 +1969,7 @@ Kept off the shelf (`catalog.status: DRAFT`): `echo-toolkit` — installable for
 | `bill96-french-first` | 1.0.0 | `french-version` · `bilingual-consistency-check` · `french-first-copy` · `firm-glossary` |
 | `business-brief` | 1.0.0 | `invitation-writer` |
 | `code-contributor` | 1.1.0 | `code-issue-to-pr` · `code-read-write` |
-| `data-analytics` | 1.6.0 | `data-driven-ui` · `video-understanding` · `creator-suggestions` |
+| `data-analytics` | 1.7.0 | `data-driven-ui` · `video-understanding` · `creator-suggestions` |
 | `document-validation` | 1.12.0 | `document-authenticity` · `compliance-check` |
 | `echo-toolkit` | 1.2.0 | `echo-reverse` |
 | `identity-document-check` | 1.0.0 | `identity-document-check` |

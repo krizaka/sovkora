@@ -1,13 +1,10 @@
 "use client";
 
-import { chartsGenUiCatalog } from "@krizaka/charts/genui";
-import { baseGenUiCatalog, GenUiStream } from "@krizaka/ui/genui";
+import { GenUiStream } from "@krizaka/ui/genui";
 import React from "react";
 
+import { GENUI_CATALOG } from "@/components/genui/genUiCatalog";
 import { useTranslation } from "@/core/context/LocaleContext";
-
-/** The components a model may draw in the chat: Krizaka UI's base catalog and the charts' (ADR-082, catalog krizaka:genui/v1). */
-const CATALOG = { ...baseGenUiCatalog, ...chartsGenUiCatalog };
 
 /** `true` when an answer carries a generated interface (an `a2ui` fence, complete or still streaming). */
 export function hasGenUi(content: string): boolean {
@@ -30,7 +27,7 @@ export function GenUiAnswer({
     <div className="flex min-w-[min(36rem,70vw)] flex-col gap-3" data-testid="genui-answer">
       <GenUiStream
         text={content}
-        catalog={CATALOG}
+        catalog={GENUI_CATALOG}
         streaming={streaming}
         renderProse={renderProse}
         labels={t.chat.genui}

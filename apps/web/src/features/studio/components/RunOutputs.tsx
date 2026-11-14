@@ -7,6 +7,7 @@ import { Card } from "@krizaka/ui/card";
 import type { RunArtefact } from "@krizaka/orazaka-shared";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { asReport, ReportFindings } from "./ReportFindings";
+import { isDashboard, RunDashboard } from "./RunDashboard";
 import { artefactLabel } from "@/features/studio/utils/artefactLabel";
 import { AudioWaveform } from "@/components/media/AudioWaveform";
 
@@ -57,6 +58,8 @@ function RunOutputRow({ artefact, index, wide }: Readonly<RunOutputRowProps>) {
   const media =
     (artefact.type === "IMAGE" || artefact.type === "VIDEO" || artefact.type === "AUDIO") && artefact.value !== "";
   const report = artefact.type === "TEXT" ? asReport(artefact.value) : null;
+  // A generated dashboard is drawn, or refused as a whole: its JSON is never printed (krizaka-internal#3628).
+  const dashboard = artefact.type === "TEXT" && !report && isDashboard(artefact.value);
 
   const copy = async () => {
     await navigator.clipboard.writeText(artefact.value);
@@ -69,6 +72,11 @@ function RunOutputRow({ artefact, index, wide }: Readonly<RunOutputRowProps>) {
       {report && (
         <Card.Body padding="lg" className="gap-3 pb-0">
           <ReportFindings report={report} />
+        </Card.Body>
+      )}
+      {dashboard && (
+        <Card.Body padding="lg" className="gap-3 pb-0">
+          <RunDashboard answer={artefact.value} />
         </Card.Body>
       )}
       <ArtefactMedia artefact={artefact} gone={gone} onGone={() => setGone(true)} />
@@ -90,7 +98,7 @@ function RunOutputRow({ artefact, index, wide }: Readonly<RunOutputRowProps>) {
             </Button>
           </span>
         </header>
-        {artefact.type === "TEXT" && !report ? (
+        {artefact.type === "TEXT" && !report && !dashboard ? (
           <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-fg">{artefact.value}</p>
         ) : null}
       </Card.Body>
