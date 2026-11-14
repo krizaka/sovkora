@@ -28,6 +28,10 @@
     {
       "path": "pnpm-workspace.yaml",
       "why": "the pnpm workspace of apps/ (each app keeps its own lockfile)"
+    },
+    {
+      "path": "precheck.json",
+      "why": "the tests the CI gate runs per changed path, read by krizaka-precheck before a push (krizaka-internal#3537)"
     }
   ],
   "allowTracked": [
