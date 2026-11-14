@@ -9,6 +9,9 @@ import { useTranslation } from "@/core/context/LocaleContext";
 import { InterceptionFormField } from "./InterceptionFormField";
 import { useInterceptionSchema, useResolveInterception } from "@/features/auth/hooks/useInterception";
 import { Card } from "@krizaka/ui/card";
+import { createKrizakaForm } from "@krizaka/ui/form";
+import { z } from "zod";
+import type { SchemaDescriptor } from "@/services/interception.api";
 
 interface InterceptionFormProps {
   schemaId: string;
@@ -16,50 +19,8 @@ interface InterceptionFormProps {
 }
 
 export function InterceptionForm({ schemaId, interceptionType = schemaId }: Readonly<InterceptionFormProps>) {
-  const router = useRouter();
-  const { data: session, update } = useSession();
-  const { locale, t } = useTranslation();
-  const [edits, setEdits] = React.useState<Record<string, string>>({});
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-
+  const { t } = useTranslation();
   const { schema, isLoading, error } = useInterceptionSchema(schemaId);
-
-  // The schema's defaults, with what the person typed laid over them: computed in render, never copied by an effect.
-  const formValues: Record<string, string> = {
-    ...Object.fromEntries((schema?.fields ?? []).map((field) => [field.name, field.defaultValue || ""])),
-    ...edits,
-  };
-
-  const { resolve, isPending } = useResolveInterception({
-    interceptionType,
-    schemaId,
-    onSuccess: async () => {
-      if (session?.user) {
-        const updated = (session.user.activeInterceptions || []).filter((id) => id !== schemaId);
-        await update({ activeInterceptions: updated });
-        router.push("/");
-        router.refresh();
-      }
-    },
-    onError: (msg) => {
-      setErrorMsg(msg);
-    },
-  });
-
-  const handleInputChange = (fieldName: string, value: string) => {
-    setEdits((prev) => ({ ...prev, [fieldName]: value }));
-  };
-
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrorMsg(null);
-    const missing = schema?.fields?.find((f) => f.required && !formValues[f.name]?.trim());
-    if (missing) {
-      setErrorMsg(t.interception.fieldRequired(missing.label));
-      return;
-    }
-    resolve(formValues);
-  };
 
   if (isLoading) {
     return (
@@ -91,9 +52,61 @@ export function InterceptionForm({ schemaId, interceptionType = schemaId }: Read
     );
   }
 
+  return <InterceptionFormBody schemaId={schemaId} interceptionType={interceptionType} schema={schema} />;
+}
+
+/** The loaded schema's form: its fields are the schema's, so the form is defined once per loaded schema. */
+function InterceptionFormBody({
+  schemaId,
+  interceptionType,
+  schema,
+}: Readonly<{ schemaId: string; interceptionType: string; schema: SchemaDescriptor }>) {
+  const router = useRouter();
+  const { data: session, update } = useSession();
+  const { locale, t } = useTranslation();
+  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
+
+  // The schema's defaults, laid out by field name: the values a person edits.
+  const [interception] = React.useState(() =>
+    createKrizakaForm({
+      schema: z.object({ values: z.record(z.string(), z.string()) }),
+      defaultValues: {
+        values: Object.fromEntries(schema.fields.map((field) => [field.name, field.defaultValue || ""])),
+      },
+    }),
+  );
+
+  const { resolve, isPending } = useResolveInterception({
+    interceptionType,
+    schemaId,
+    onSuccess: async () => {
+      if (session?.user) {
+        const updated = (session.user.activeInterceptions || []).filter((id) => id !== schemaId);
+        await update({ activeInterceptions: updated });
+        router.push("/");
+        router.refresh();
+      }
+    },
+    onError: (msg) => {
+      setErrorMsg(msg);
+    },
+  });
+
+  const form = interception.useForm({
+    onSubmit: ({ values }) => {
+      setErrorMsg(null);
+      const missing = schema.fields.find((f) => f.required && !values[f.name]?.trim());
+      if (missing) {
+        setErrorMsg(t.interception.fieldRequired(missing.label));
+        return;
+      }
+      resolve(values);
+    },
+  });
+
   return (
     <Card.Root className="max-w-xl mx-auto border-border-subtle/60 bg-surface-0/60 shadow-2xl transition-all duration-300">
-      <form onSubmit={handleSubmit}>
+      <form.Form className="block">
         <Card.Body padding="lg" className="gap-1.5 space-y-2">
           <Card.Title className="line-clamp-none group-hover:text-transparent text-2xl font-bold tracking-tight bg-gradient-to-r from-surface-1 to-surface-3 bg-clip-text text-transparent">
             {schema.title}
@@ -113,14 +126,18 @@ export function InterceptionForm({ schemaId, interceptionType = schemaId }: Read
 
           <div className="space-y-4">
             {schema.fields.map((field) => (
-              <InterceptionFormField
-                key={field.name}
-                field={field}
-                value={formValues[field.name] || ""}
-                onChange={(val) => handleInputChange(field.name, val)}
-                disabled={isPending}
-                locale={locale}
-              />
+              <form.Field key={field.name} name={`values.${field.name}`}>
+                {(control) => (
+                  <InterceptionFormField
+                    field={field}
+                    id={control.id}
+                    value={String(control.value ?? "")}
+                    onChange={control.setValue}
+                    disabled={isPending}
+                    locale={locale}
+                  />
+                )}
+              </form.Field>
             ))}
           </div>
         </Card.Body>
@@ -141,7 +158,7 @@ export function InterceptionForm({ schemaId, interceptionType = schemaId }: Read
             )}
           </Button>
         </Card.Footer>
-      </form>
+      </form.Form>
     </Card.Root>
   );
 }

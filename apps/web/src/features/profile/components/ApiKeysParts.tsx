@@ -3,7 +3,9 @@
 import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
-import { Button, Icon, Input } from "@krizaka/orazaka-design-system";
+import { z } from "zod";
+import { Button, Icon } from "@krizaka/orazaka-design-system";
+import { createKrizakaForm } from "@krizaka/ui/form";
 import { useTranslation } from "@/core/context/LocaleContext";
 import type { ApiKeyInfo, GeneratedKey } from "@/features/profile/hooks/useApiKeys";
 
@@ -73,44 +75,28 @@ export function ApiKeyRow({
   );
 }
 
+const createApiKey = createKrizakaForm({
+  schema: z.object({ name: z.string() }),
+  defaultValues: { name: "" },
+});
+
 /** Create-key form body rendered inside the create dialog. */
 export function CreateApiKeyForm({
-  draftName,
-  onNameChange,
   isSaving,
   error,
   onCancel,
   onSubmit,
 }: Readonly<{
-  draftName: string;
-  onNameChange: (value: string) => void;
   isSaving: boolean;
   error: "none" | "limit" | "generic";
   onCancel: () => void;
-  onSubmit: () => void;
+  onSubmit: (name: string) => void;
 }>) {
   const { t } = useTranslation();
+  const form = createApiKey.useForm({ onSubmit: ({ name }) => onSubmit(name) });
   return (
-    <form
-      className="space-y-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSubmit();
-      }}
-    >
-      <div className="space-y-1.5">
-        <label htmlFor="api-key-name" className="text-xs font-medium text-fg-secondary">
-          {t.apiKeys.nameLabel}
-        </label>
-        <Input
-          id="api-key-name"
-          value={draftName}
-          onChange={(event) => onNameChange(event.target.value)}
-          placeholder={t.apiKeys.namePlaceholder}
-          maxLength={100}
-          autoFocus
-        />
-      </div>
+    <form.Form className="space-y-4">
+      <form.TextField name="name" label={t.apiKeys.nameLabel} placeholder={t.apiKeys.namePlaceholder} maxLength={100} />
       {error !== "none" && (
         <p className="text-xs text-danger">{error === "limit" ? t.apiKeys.limitReached : t.apiKeys.createError}</p>
       )}
@@ -118,11 +104,15 @@ export function CreateApiKeyForm({
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           {t.apiKeys.cancel}
         </Button>
-        <Button type="submit" size="sm" disabled={isSaving || !draftName.trim()}>
-          {t.apiKeys.createCta}
-        </Button>
+        <form.Watch name="name">
+          {(name) => (
+            <Button type="submit" size="sm" disabled={isSaving || !String(name).trim()}>
+              {t.apiKeys.createCta}
+            </Button>
+          )}
+        </form.Watch>
       </div>
-    </form>
+    </form.Form>
   );
 }
 

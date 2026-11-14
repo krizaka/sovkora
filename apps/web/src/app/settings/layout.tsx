@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { useAuth } from "@/core/hooks/useAuth";
 
 /**
@@ -22,12 +22,12 @@ export default function SettingsFrame({ children }: Readonly<{ children: React.R
   if (isLoading || !isAuthenticated) return null;
 
   return (
-    <AppShell>
+    <ProductAppShell>
       <main className="flex-1 overflow-auto p-4 scrollbar-thin sm:p-6">
         <div className="mx-auto max-w-5xl">
           <React.Suspense fallback={null}>{children}</React.Suspense>
         </div>
       </main>
-    </AppShell>
+    </ProductAppShell>
   );
 }

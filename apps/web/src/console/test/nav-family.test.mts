@@ -12,7 +12,7 @@ test("the bar shows the environment badge and no family switcher", () => {
 });
 
 test("the footer is @krizaka/ui's SiteFooter in app mode: one slim line, no family columns", () => {
-  const src = read("components/SiteFooter.tsx");
+  const src = read("components/ConsoleFooter.tsx");
   assert.match(src, /@krizaka\/ui\/site-footer/);
   assert.match(src, /family=\{false\}/);
   assert.match(src, /variant="app"/);

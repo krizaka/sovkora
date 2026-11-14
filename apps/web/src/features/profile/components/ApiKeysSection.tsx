@@ -26,13 +26,11 @@ export function ApiKeysSection({ fetchHeaders }: Readonly<ApiKeysSectionProps>) 
     keys,
     canCreate,
     isCreateOpen,
-    draftName,
     isSaving,
     error,
     generated,
     openCreate,
     closeCreate,
-    setDraftName,
     submit,
     dismissGenerated,
     remove,
@@ -88,14 +86,7 @@ export function ApiKeysSection({ fetchHeaders }: Readonly<ApiKeysSectionProps>) 
             <Dialog.Description>{t.apiKeys.subtitle}</Dialog.Description>
           </Dialog.Header>
           <Dialog.Body>
-            <CreateApiKeyForm
-              draftName={draftName}
-              onNameChange={setDraftName}
-              isSaving={isSaving}
-              error={error}
-              onCancel={closeCreate}
-              onSubmit={submit}
-            />
+            <CreateApiKeyForm isSaving={isSaving} error={error} onCancel={closeCreate} onSubmit={submit} />
           </Dialog.Body>
         </Dialog.Content>
       </Dialog.Root>

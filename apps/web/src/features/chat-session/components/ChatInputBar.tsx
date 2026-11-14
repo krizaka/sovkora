@@ -120,6 +120,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
             studios={composerStudios}
             t={t}
           />
+          {/* ui-allow: invisible file-picker trigger driven by the attach menu; FileUpload is a visible dropzone with its own queue UI */}
           <input type="file" ref={fileInputRef} className="hidden" onChange={onFileChange} />
           <MessageComposer
             variant="pill"

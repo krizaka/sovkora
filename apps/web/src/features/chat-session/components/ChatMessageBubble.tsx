@@ -23,7 +23,7 @@ interface Props {
  * AI messages align left with surface-1 background.
  * Includes hover-to-copy action bar and staggered slide-in.
  */
-export const MessageBubble: React.FC<Props> = ({ message, index = 0 }) => {
+export const ChatMessageBubble: React.FC<Props> = ({ message, index = 0 }) => {
   const isUser = message.role === "user";
   const { t } = useTranslation();
   const [copied, setCopied] = React.useState(false);

@@ -7,7 +7,7 @@ import { ThemeProvider } from "@krizaka/ui/theme";
 import { translations, type Locale } from "@/core/context/translations";
 import { AuthFlagsProvider } from "@/core/context/AuthFlagsContext";
 import type { AuthFlags } from "@/core/config/auth-flags";
-import { LandingPage } from "@/features/landing/components/LandingPage";
+import { ProductLanding } from "@/features/landing/components/ProductLanding";
 import { LandingNav } from "@/features/landing/components/LandingNav";
 
 const mockPath = { current: "/" };
@@ -26,7 +26,7 @@ type SessionValue = React.ContextType<typeof SessionContext>;
 const SIGNED_OUT = { data: null, status: "unauthenticated", update: async () => null };
 const mockSession = { current: SIGNED_OUT as SessionValue };
 
-function renderLanding(locale: Locale, page: React.ReactNode = <LandingPage />, flags: AuthFlags = CLOSED) {
+function renderLanding(locale: Locale, page: React.ReactNode = <ProductLanding />, flags: AuthFlags = CLOSED) {
   mockLocale = locale;
   return render(
     <AuthFlagsProvider flags={flags}>
@@ -98,7 +98,7 @@ describe("the one action of the bar: using the app", () => {
   });
 
   it("puts Contact in the footer, pointing to krizaka.com/contact", () => {
-    renderLanding("en", <LandingPage />, CLOSED);
+    renderLanding("en", <ProductLanding />, CLOSED);
     expect(
       within(screen.getByRole("contentinfo")).getByRole("link", { name: translations.en.landing.footer.contact }),
     ).toHaveAttribute("href", "https://www.krizaka.com/en/contact?topic=sovkora&source=sovkora-app");

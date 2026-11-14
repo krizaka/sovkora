@@ -54,8 +54,7 @@ export function useMcpServers(fetchHeaders: () => Promise<Record<string, string>
   const isLoadingServers = serversQuery.isFetching;
   const loadServers = () => queryClient.invalidateQueries({ queryKey: ["mcp-servers"] });
 
-  const handleSaveServer = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSaveServer = async () => {
     if (!serverLabel) return;
     setIsSavingServer(true);
     setServerMessage(null);

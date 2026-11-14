@@ -41,8 +41,8 @@ export const CATEGORY_META: Record<string, { icon: string; color: string }> = {
   },
 };
 
-/* ─── Tooltip ─── */
-export function Tooltip({ text }: Readonly<{ text: string }>) {
+/* ─── HelpTooltip ─── */
+export function HelpTooltip({ text }: Readonly<{ text: string }>) {
   const { t } = useTranslation();
   return (
     <KzTooltip content={text}>

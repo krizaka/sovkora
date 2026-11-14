@@ -4,7 +4,7 @@ import * as React from "react";
 import { useQuery } from "@krizaka/query";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/core/hooks/useAuth";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { useTranslation } from "@/core/context/LocaleContext";
 import type { CatalogModel } from "./CategoryCard";
 import { CategoryCard } from "./CategoryCard";
@@ -134,8 +134,7 @@ export default function AdminDashboardPage() {
     setIsModalOpen(true);
   };
 
-  const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async () => {
     const success = await handleSave(formModel, formMode);
     if (success) setIsModalOpen(false);
   };
@@ -149,7 +148,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <AppShell>
+    <ProductAppShell>
       <main className="flex-1 overflow-auto p-6 scrollbar-thin ambient-grid bg-surface-0">
         <section className="mx-auto max-w-5xl space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
           <AdminToolbar
@@ -214,6 +213,6 @@ export default function AdminDashboardPage() {
         setErrorMessage={setErrorMessage}
         providers={providers}
       />
-    </AppShell>
+    </ProductAppShell>
   );
 }

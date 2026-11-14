@@ -5,10 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { SovkoraLogo } from "@krizaka/ui";
 import { Alert } from "@krizaka/ui/alert";
-import { Button } from "@krizaka/ui/button";
 import { AuthLayout } from "@krizaka/ui/auth-layout";
-import { Field, Input } from "@krizaka/ui/field";
+import { createKrizakaForm } from "@krizaka/ui/form";
+import { z } from "zod";
 import { consoleCopy } from "@/console/core/copy/console";
+
+/** The operator's credentials: what the identity service checks, so nothing is refused before it answers. */
+const signInForm = createKrizakaForm({
+  schema: z.object({ email: z.string(), password: z.string() }),
+  defaultValues: { email: "", password: "" },
+});
 
 /** The closed site's variant: the same screen disabled, under a calm banner that points at the public demo. */
 export interface ClosedPreview {
@@ -34,33 +40,28 @@ export function LoginForm({ preview }: Readonly<{ preview?: ClosedPreview }>) {
   const [pending, setPending] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const signInWithCredentials = async (event: React.SubmitEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (preview) return;
-    const form = new FormData(event.currentTarget);
-    setPending(true);
-    setError(null);
-    try {
-      const result = await signIn("credentials", {
-        email: String(form.get("email") ?? ""),
-        password: String(form.get("password") ?? ""),
-        redirect: false,
-      });
-      if (result?.ok) {
-        router.replace(safeCallback(params.get("callbackUrl")));
-        router.refresh();
+  const form = signInForm.useForm({
+    onSubmit: async (values) => {
+      if (preview) {
         return;
       }
-      setError(copy.refused);
-    } catch {
-      setError(copy.unreachable);
-    }
-    setPending(false);
-  };
-
-  const onSubmit: React.SubmitEventHandler<HTMLFormElement> = (event) => {
-    void signInWithCredentials(event);
-  };
+      setPending(true);
+      setError(null);
+      try {
+        const result = await signIn("credentials", { email: values.email, password: values.password, redirect: false });
+        if (result?.ok) {
+          router.replace(safeCallback(params.get("callbackUrl")));
+          router.refresh();
+          return;
+        }
+        setError(copy.refused);
+      } catch {
+        setError(copy.unreachable);
+      }
+      setPending(false);
+    },
+  });
+  const locked = pending || Boolean(preview);
 
   return (
     <div className="brand-orazaka">
@@ -94,42 +95,19 @@ export function LoginForm({ preview }: Readonly<{ preview?: ClosedPreview }>) {
           </Alert>
         )}
         {error && <Alert tone="danger">{error}</Alert>}
-        <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
-          <Field.Root>
-            <Field.Label htmlFor="login-email">{copy.email}</Field.Label>
-            <Input
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="username"
-              required
-              disabled={pending || Boolean(preview)}
-              invalid={Boolean(error)}
-            />
-          </Field.Root>
-          <Field.Root>
-            <Field.Label htmlFor="login-password">{copy.password}</Field.Label>
-            <Input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              disabled={pending || Boolean(preview)}
-              invalid={Boolean(error)}
-            />
-          </Field.Root>
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            loading={pending}
-            disabled={Boolean(preview)}
-            className="w-full"
-          >
+        <form.Form className="flex flex-col gap-4">
+          <form.TextField name="email" label={copy.email} type="email" autoComplete="username" disabled={locked} />
+          <form.TextField
+            name="password"
+            label={copy.password}
+            type="password"
+            autoComplete="current-password"
+            disabled={locked}
+          />
+          <form.Submit variant="primary" size="lg" disabled={Boolean(preview)} className="w-full">
             {copy.submit}
-          </Button>
-        </form>
+          </form.Submit>
+        </form.Form>
       </AuthLayout>
     </div>
   );

@@ -1,5 +1,5 @@
 import { localise, w, type Word } from "@/core/context/words";
-import type { LegalContent } from "@/features/landing/components/LegalPage";
+import type { LegalContent } from "@/features/landing/components/LegalDocument";
 import type { Locale } from "@/core/context/translations.types";
 
 /** A legal text in both languages; its sections are named so each one is told apart, and drawn in the order written. */

@@ -5,7 +5,7 @@ import { ThemeProvider } from "@krizaka/ui/theme";
 import { translations, type Locale } from "@/core/context/translations";
 import { AuthFlagsProvider } from "@/core/context/AuthFlagsContext";
 import type { AuthFlags } from "@/core/config/auth-flags";
-import { LandingPage } from "@/features/landing/components/LandingPage";
+import { ProductLanding } from "@/features/landing/components/ProductLanding";
 
 let mockLocale: Locale = "en";
 const mockSetLocale = jest.fn();
@@ -32,7 +32,7 @@ beforeAll(() => {
 
 const OPEN: AuthFlags = { login: true, signup: true, github: false, google: false };
 
-function renderLanding(locale: Locale, page: React.ReactNode = <LandingPage />, flags: AuthFlags = OPEN) {
+function renderLanding(locale: Locale, page: React.ReactNode = <ProductLanding />, flags: AuthFlags = OPEN) {
   mockLocale = locale;
   return render(
     <AuthFlagsProvider flags={flags}>
@@ -46,9 +46,9 @@ const sectionOf = (id: string) => document.getElementById(id)!.closest("section"
 const MEASURED = { ok: 128, all: 143, models: 9, day: "2026-10-17" };
 const SECTION_IDS = ["features", "records"] as const;
 
-describe("LandingPage", () => {
+describe("ProductLanding", () => {
   it("states one promise in one line, one primary action and a quiet second one — no pill, no checkmark row", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const h = translations.en.landing.hero;
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(h.title);
     const hero = screen.getByRole("heading", { level: 1 }).closest("header") as HTMLElement;
@@ -61,7 +61,7 @@ describe("LandingPage", () => {
   });
 
   it("shows the real product in the hero: the recorded chat of the page's language and theme, poster first, never a mock chat", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const look = document.documentElement.classList.contains("light") ? "light" : "dark";
     const take = screen.getByTestId("clip-take") as HTMLVideoElement;
     expect(take.muted).toBe(true);
@@ -83,7 +83,7 @@ describe("LandingPage", () => {
   });
 
   it("follows the language: the French page films the French take", () => {
-    renderLanding("fr", <LandingPage measured={MEASURED} />);
+    renderLanding("fr", <ProductLanding measured={MEASURED} />);
     expect(screen.getByTestId("clip-take")).toHaveAttribute(
       "poster",
       expect.stringMatching(/take-fr-(dark|light)-poster/),
@@ -92,7 +92,7 @@ describe("LandingPage", () => {
   });
 
   it("counts its figures from the measured runs it is given, never from a typed number", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const labels = translations.en.landing.figures;
     for (const label of [labels.runs, labels.models, labels.telemetry]) {
       expect(screen.getByText(label)).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe("LandingPage", () => {
   });
 
   it("tells the story in order: what it does, then the one proof", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const main = screen.getByRole("main");
     const els = SECTION_IDS.map((id) => document.getElementById(id));
     els.forEach((el) => expect(main.contains(el)).toBe(true));
@@ -111,7 +111,7 @@ describe("LandingPage", () => {
   });
 
   it("has three capabilities, each a captioned clip of the real app (never a fake chat)", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const features = sectionOf("features");
     const tiles = features.querySelectorAll("ul > li");
     expect(tiles).toHaveLength(3);
@@ -129,7 +129,7 @@ describe("LandingPage", () => {
   });
 
   it("proves it with three run records — model, where it ran, time, cost and the run id — read from the comparison's data", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     const records = sectionOf("records");
     const items = records.querySelectorAll("ul > li");
     expect(items).toHaveLength(3);
@@ -142,7 +142,7 @@ describe("LandingPage", () => {
   });
 
   it("is small: the sections of the epic #231 are gone (platforms strip, family, comparison, questions)", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     for (const id of ["platforms", "engine", "why", "faq"]) {
       expect(document.getElementById(id)).toBeNull();
     }
@@ -151,13 +151,13 @@ describe("LandingPage", () => {
   });
 
   it("closes with one call: the way in — no « Talk to us »", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />);
+    renderLanding("en", <ProductLanding measured={MEASURED} />);
     expect(screen.queryByRole("link", { name: /talk to us/i })).toBeNull();
     expect(screen.getByText(translations.en.landing.cta.title)).toBeInTheDocument();
   });
 
   it("never says the hero's action again at the end (krizaka/orazaka#443): the closing call is the quickstart", () => {
-    const { container } = renderLanding("en", <LandingPage measured={MEASURED} />);
+    const { container } = renderLanding("en", <ProductLanding measured={MEASURED} />);
     const hero = screen.getByRole("heading", { level: 1 }).closest("header") as HTMLElement;
     const heroHref = within(hero).getAllByRole("link")[0].getAttribute("href");
     const closing = screen.getByRole("link", { name: translations.en.landing.cta.quickstart });
@@ -167,17 +167,17 @@ describe("LandingPage", () => {
   });
 
   it("speaks French when the visitor chose it", () => {
-    renderLanding("fr", <LandingPage measured={MEASURED} />);
+    renderLanding("fr", <ProductLanding measured={MEASURED} />);
     expect(screen.getByText(translations.fr.landing.cta.title)).toBeInTheDocument();
     expect(screen.getByText(translations.fr.landing.features.items.studios.title)).toBeInTheDocument();
   });
 });
 
-describe("LandingPage while sign-in and sign-up are closed (the default)", () => {
+describe("ProductLanding while sign-in and sign-up are closed (the default)", () => {
   const CLOSED: AuthFlags = { login: false, signup: false, github: false, google: false };
 
   it("hides every sign-up entry point but keeps Sign in visible, leading to /login", () => {
-    const { container } = renderLanding("en", <LandingPage measured={MEASURED} />, CLOSED);
+    const { container } = renderLanding("en", <ProductLanding measured={MEASURED} />, CLOSED);
     const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));
     expect(hrefs).not.toContain("/register");
     expect(screen.queryByRole("link", { name: /Get started|Create your workspace/ })).toBeNull();
@@ -186,7 +186,7 @@ describe("LandingPage while sign-in and sign-up are closed (the default)", () =>
   });
 
   it("offers the documentation as the one action, and the recorded runs as the quiet one", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />, CLOSED);
+    renderLanding("en", <ProductLanding measured={MEASURED} />, CLOSED);
     const hero = screen.getByRole("heading", { level: 1 }).closest("header") as HTMLElement;
     const [primary, secondary] = within(hero).getAllByRole("link");
     expect(primary).toHaveTextContent(translations.en.landing.closed.heroPrimary);
@@ -195,7 +195,7 @@ describe("LandingPage while sign-in and sign-up are closed (the default)", () =>
   });
 
   it("keeps the Krizaka signature with the version in the footer", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />, CLOSED);
+    renderLanding("en", <ProductLanding measured={MEASURED} />, CLOSED);
     const footer = screen.getByTestId("app-version");
     expect(footer).toHaveTextContent("A Krizaka product");
     expect(footer).toHaveTextContent(/v\S+/);
@@ -207,7 +207,7 @@ describe("LandingPage while sign-in and sign-up are closed (the default)", () =>
   });
 
   it("wears the family's bar: no version, the repository, one main action, no family switcher", () => {
-    renderLanding("en", <LandingPage measured={MEASURED} />, CLOSED);
+    renderLanding("en", <ProductLanding measured={MEASURED} />, CLOSED);
     const bar = document.querySelector("header[data-floating]") as HTMLElement;
     expect(screen.queryByRole("navigation", { name: "Krizaka family" })).toBeNull();
     expect(bar).not.toHaveTextContent(/dev · v/);

@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@krizaka/ui/button";
 import { Card } from "@krizaka/ui/card";
 import React from "react";
 import { Icon, SentinelMini } from "@krizaka/orazaka-design-system";
@@ -44,14 +45,19 @@ export function WelcomeHero({ t, onPrompt }: Readonly<WelcomeHeroProps>) {
       <div className="mt-8 grid w-full grid-cols-1 gap-3 stagger-children sm:grid-cols-3">
         {cards.map(({ label, icon }) => (
           <Card.Root key={label} asChild interactive>
-            <button type="button" onClick={() => onPrompt(label)} className="text-left">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onPrompt(label)}
+              className="h-auto w-full justify-start p-0 text-left"
+            >
               <Card.Body className="gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-fg-accent">
                   <Icon name={icon} className="h-4 w-4" />
                 </span>
                 <span className="text-sm font-medium text-fg">{label}</span>
               </Card.Body>
-            </button>
+            </Button>
           </Card.Root>
         ))}
       </div>

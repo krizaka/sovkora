@@ -1,7 +1,7 @@
 import { cn } from "@krizaka/ui/cn";
 
 /** The heading of a public-page section: a mono eyebrow in the accent, the title, an optional lead. */
-export function SectionHeading({
+export function LandingSectionHeading({
   eyebrow,
   title,
   lead,

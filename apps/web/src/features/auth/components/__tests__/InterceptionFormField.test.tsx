@@ -2,11 +2,6 @@ import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { InterceptionFormField } from "@/features/auth/components/InterceptionFormField";
 
-jest.mock("@krizaka/orazaka-design-system", () => ({
-  ...jest.requireActual("@krizaka/orazaka-design-system"),
-  Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
-}));
-
 const textField = {
   name: "fullName",
   label: "Full Name",
@@ -60,6 +55,27 @@ describe("InterceptionFormField", () => {
   it("renders textarea", () => {
     render(<InterceptionFormField field={textareaField} value="" onChange={jest.fn()} locale="en" />);
     expect(screen.getByPlaceholderText("Tell us about yourself")).toBeInTheDocument();
+  });
+
+  it("names each control by its label", () => {
+    const { rerender } = render(<InterceptionFormField field={textField} value="" onChange={jest.fn()} locale="en" />);
+    expect(screen.getByRole("textbox", { name: /Full Name/ })).toBeInTheDocument();
+    rerender(<InterceptionFormField field={textareaField} value="" onChange={jest.fn()} locale="en" />);
+    expect(screen.getByRole("textbox", { name: /Bio/ })).toBeInTheDocument();
+    rerender(<InterceptionFormField field={selectField} value="en" onChange={jest.fn()} locale="en" />);
+    expect(screen.getByRole("combobox", { name: /Language/ })).toBeInTheDocument();
+  });
+
+  it("calls onChange on textarea and select", () => {
+    const onChange = jest.fn();
+    const { rerender } = render(
+      <InterceptionFormField field={textareaField} value="" onChange={onChange} locale="en" />,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: /Bio/ }), { target: { value: "Hi" } });
+    expect(onChange).toHaveBeenCalledWith("Hi");
+    rerender(<InterceptionFormField field={selectField} value="en" onChange={onChange} locale="en" />);
+    fireEvent.change(screen.getByRole("combobox", { name: /Language/ }), { target: { value: "fr" } });
+    expect(onChange).toHaveBeenCalledWith("fr");
   });
 
   it("calls onChange on text input", () => {

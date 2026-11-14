@@ -5,7 +5,7 @@ import { CheckIcon, CopyIcon } from "@krizaka/icons";
 import { Button } from "@krizaka/ui/button";
 
 /** Copies a text to the clipboard and says so (aria-live); says so too when the browser refuses. */
-export function CopyButton({
+export function ClipboardCopyButton({
   text,
   label,
   done,

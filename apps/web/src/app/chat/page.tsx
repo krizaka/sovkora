@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react";
 import { ChatWindow } from "@/features/chat-session/components/ChatWindow";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { useAuth } from "@/core/hooks/useAuth";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -31,12 +31,12 @@ export default function ChatPage() {
   if (isLoading || !isAuthenticated) return null;
 
   return (
-    <AppShell>
+    <ProductAppShell>
       <main className="flex-1 flex flex-col overflow-hidden bg-surface-0">
         <Suspense fallback={<output className="p-6 text-fg-muted text-sm animate-pulse">Loading chat...</output>}>
           <ChatContent />
         </Suspense>
       </main>
-    </AppShell>
+    </ProductAppShell>
   );
 }

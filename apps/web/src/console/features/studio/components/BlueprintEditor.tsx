@@ -1,5 +1,6 @@
 "use client";
 
+import { Input, Textarea } from "@krizaka/ui/field";
 import { useState } from "react";
 import { Button } from "@krizaka/orazaka-design-system";
 import { studiosCopy, type StudiosLocale } from "@/console/core/copy/studios";
@@ -108,32 +109,29 @@ export function BlueprintEditor({ studioKey, featureKeys, onSaved, locale }: Rea
       <div className="grid gap-3 sm:grid-cols-3">
         <label className="flex flex-col gap-1">
           <span className="text-xs text-fg-muted">{words.version}</span>
-          <input
+          <Input
             value={version}
             onChange={(event) => setVersion(event.target.value)}
             placeholder="1.1.0"
             disabled={isBusy}
-            className="h-9 rounded border border-border-subtle bg-surface-2 px-2 text-sm text-fg disabled:opacity-50"
           />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-xs text-fg-muted">{words.credits}</span>
-          <input
+          <Input
             value={estimatedCredits}
             onChange={(event) => setEstimatedCredits(event.target.value)}
             inputMode="numeric"
             disabled={isBusy}
-            className="h-9 rounded border border-border-subtle bg-surface-2 px-2 text-sm text-fg disabled:opacity-50"
           />
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-xs text-fg-muted">{words.changelog}</span>
-          <input
+          <Input
             value={changelog}
             onChange={(event) => setChangelog(event.target.value)}
             placeholder={words.changelogPlaceholder}
             disabled={isBusy}
-            className="h-9 rounded border border-border-subtle bg-surface-2 px-2 text-sm text-fg disabled:opacity-50"
           />
         </label>
       </div>
@@ -189,13 +187,13 @@ function JsonField({ label, value, onChange, disabled, rows }: Readonly<JsonFiel
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs text-fg-muted">{label}</span>
-      <textarea
+      <Textarea
         value={value}
         rows={rows}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
         spellCheck={false}
-        className="rounded border border-border-subtle bg-surface-2 p-2 font-mono text-[12px] leading-relaxed text-fg disabled:opacity-50"
+        className="font-mono text-[12px] leading-relaxed"
       />
     </label>
   );

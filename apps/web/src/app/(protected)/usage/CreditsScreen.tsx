@@ -8,7 +8,7 @@ import { useRouteState } from "@krizaka/ui/router";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { systemNow } from "@/core/jobs/systemClock";
 import { DEFAULT_PERIOD_KEY, PERIOD_KEYS, type Period, usageRows, usageSummary } from "@/core/jobs/usageStats";
-import { CreditsMeter } from "@/features/billing/components/CreditsMeter";
+import { WalletCreditsMeter } from "@/features/billing/components/WalletCreditsMeter";
 import { usePlan } from "@/features/billing/hooks/usePlan";
 import { useWallet } from "@/features/billing/hooks/useWallet";
 import { ActivityCharts } from "@/features/insights/components/ActivityCharts";
@@ -58,7 +58,7 @@ export function CreditsScreen() {
         </span>
       </header>
 
-      <CreditsMeter wallet={wallet} available={available} plan={plan} loading={walletLoading} />
+      <WalletCreditsMeter wallet={wallet} available={available} plan={plan} loading={walletLoading} />
 
       <section className="flex flex-col gap-4" aria-labelledby="usage-title">
         <header className="flex flex-col gap-3 px-1 sm:flex-row sm:items-end sm:justify-between">

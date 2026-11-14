@@ -7,14 +7,14 @@ import { useRouter } from "next/navigation";
 import { Skeleton, Icon } from "@krizaka/orazaka-design-system";
 import { useAuth } from "@/core/hooks/useAuth";
 import { Greeting } from "@/core/components/Greeting";
-import { AppShell } from "@/components/layout/AppShell";
+import { ProductAppShell } from "@/components/layout/ProductAppShell";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useChatStream } from "@/features/chat-session/hooks/useChatStream";
 import { useWallet } from "@/features/billing/hooks/useWallet";
 import { InterceptorPipeline } from "@/features/dashboard/components/InterceptorPipeline";
 import { RecentSessions } from "@/features/dashboard/components/RecentSessions";
 import { JobsGallery } from "@/app/jobs/JobsGallery";
-import { CreditsMeter } from "@/features/billing/components/CreditsMeter";
+import { WalletCreditsMeter } from "@/features/billing/components/WalletCreditsMeter";
 import { usePlan } from "@/features/billing/hooks/usePlan";
 import { ActivityCharts } from "@/features/insights/components/ActivityCharts";
 import { UsageExport } from "@/features/insights/components/UsageControls";
@@ -95,7 +95,7 @@ export function DashboardHome() {
   const recentThreads = [...(threads || [])].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 3);
 
   return (
-    <AppShell>
+    <ProductAppShell>
       <main className="flex-1 overflow-auto p-6 scrollbar-thin ambient-grid">
         <article className="mx-auto max-w-6xl space-y-6 stagger-children">
           <header className="flex flex-wrap items-center justify-between gap-3">
@@ -122,7 +122,13 @@ export function DashboardHome() {
 
           <section className="grid gap-4 lg:grid-cols-2">
             <span className="flex flex-col gap-2">
-              <CreditsMeter wallet={wallet} available={available} plan={plan} loading={walletLoading} href="/usage" />
+              <WalletCreditsMeter
+                wallet={wallet}
+                available={available}
+                plan={plan}
+                loading={walletLoading}
+                href="/usage"
+              />
               <span className="flex justify-end">
                 <UsageExport jobs={jobs} runs={runs} days={days} />
               </span>
@@ -153,6 +159,6 @@ export function DashboardHome() {
           </section>
         </article>
       </main>
-    </AppShell>
+    </ProductAppShell>
   );
 }

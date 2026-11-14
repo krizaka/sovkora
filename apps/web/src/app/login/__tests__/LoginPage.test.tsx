@@ -46,6 +46,7 @@ jest.mock("@/core/context/LocaleContext", () => ({
         footer: { license: "Apache-2.0", by: "A Krizaka product" },
       },
       a11y: jest.requireActual("@/core/context/translations.automation").a11y.en,
+      interception: { fieldRequired: (label: string) => `${label} is required` },
       auth: {
         loginTitle: "Welcome Back",
         loginSubtitle: "Sign in to your account",

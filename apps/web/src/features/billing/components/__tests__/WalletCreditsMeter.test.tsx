@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { CreditsMeter } from "@/features/billing/components/CreditsMeter";
+import { WalletCreditsMeter } from "@/features/billing/components/WalletCreditsMeter";
 import { translations } from "@/core/context/translations";
 
 jest.mock("@/core/context/LocaleContext", () => ({
@@ -10,10 +10,10 @@ jest.mock("@/core/context/LocaleContext", () => ({
 const PLAN = { label: "Free", monthlyCreditGrant: 500 } as never;
 
 function renderMeter(plan: never | null) {
-  return render(<CreditsMeter wallet={null} available={0} plan={plan} loading={false} href="/credits" />);
+  return render(<WalletCreditsMeter wallet={null} available={0} plan={plan} loading={false} href="/credits" />);
 }
 
-describe("CreditsMeter with nothing left", () => {
+describe("WalletCreditsMeter with nothing left", () => {
   it("says « this period » when the plan grants credits each period (krizaka/orazaka#443)", () => {
     renderMeter(PLAN);
     expect(screen.getByText(translations.en.insights.usage.noCreditsLeft)).toBeInTheDocument();

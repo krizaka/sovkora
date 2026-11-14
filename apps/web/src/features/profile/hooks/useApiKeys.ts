@@ -28,14 +28,12 @@ interface UseApiKeys {
   keys: ApiKeyInfo[];
   canCreate: boolean;
   isCreateOpen: boolean;
-  draftName: string;
   isSaving: boolean;
   error: CreateError;
   generated: GeneratedKey | null;
   openCreate: () => void;
   closeCreate: () => void;
-  setDraftName: (value: string) => void;
-  submit: () => Promise<void>;
+  submit: (name: string) => Promise<void>;
   dismissGenerated: () => void;
   remove: (id: string) => Promise<void>;
 }
@@ -52,7 +50,6 @@ const API_KEYS_KEY = ["api-keys"] as const;
  */
 export function useApiKeys(fetchHeaders: () => Promise<Record<string, string>>): UseApiKeys {
   const [isCreateOpen, setCreateOpen] = React.useState(false);
-  const [draftName, setDraftName] = React.useState("");
   const [isSaving, setIsSaving] = React.useState(false);
   const [error, setError] = React.useState<CreateError>("none");
   const [generated, setGenerated] = React.useState<GeneratedKey | null>(null);
@@ -74,19 +71,17 @@ export function useApiKeys(fetchHeaders: () => Promise<Record<string, string>>):
   const canCreate = keys.length < MAX_API_KEYS;
 
   const openCreate = () => {
-    setDraftName("");
     setError("none");
     setCreateOpen(true);
   };
 
   const closeCreate = () => {
     setCreateOpen(false);
-    setDraftName("");
     setError("none");
   };
 
-  const submit = async () => {
-    const name = draftName.trim();
+  const submit = async (rawName: string) => {
+    const name = rawName.trim();
     if (!name) return;
     setIsSaving(true);
     setError("none");
@@ -106,7 +101,6 @@ export function useApiKeys(fetchHeaders: () => Promise<Record<string, string>>):
       }
       const created = (await res.json()) as GeneratedKey;
       setCreateOpen(false);
-      setDraftName("");
       setGenerated({ name: created.name, key: created.key });
       await load();
     } catch {
@@ -135,13 +129,11 @@ export function useApiKeys(fetchHeaders: () => Promise<Record<string, string>>):
     keys,
     canCreate,
     isCreateOpen,
-    draftName,
     isSaving,
     error,
     generated,
     openCreate,
     closeCreate,
-    setDraftName,
     submit,
     dismissGenerated,
     remove,

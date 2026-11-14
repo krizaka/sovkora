@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Input } from "@krizaka/ui/field";
 import { EditIcon, MenuIcon } from "@krizaka/icons";
 import { IconButton } from "@krizaka/ui/button";
 
@@ -54,7 +55,7 @@ export function ChatHeader({ threadTitle, onOpenDrawer, onRename, t }: Readonly<
         <section className="flex flex-col flex-1 min-w-0">
           <section className="flex items-center gap-2">
             {isEditing ? (
-              <input
+              <Input
                 type="text"
                 id="rename-session-input"
                 value={editTitle}
@@ -62,7 +63,7 @@ export function ChatHeader({ threadTitle, onOpenDrawer, onRename, t }: Readonly<
                 onBlur={handleSave}
                 onKeyDown={handleKeyDown}
                 autoFocus
-                className="text-sm font-semibold text-fg bg-surface-2 border border-border-default rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-ring max-w-md w-full"
+                className="h-auto max-w-md w-full px-2 py-0.5 text-sm font-semibold"
               />
             ) : (
               <>

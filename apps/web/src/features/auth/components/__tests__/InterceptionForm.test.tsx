@@ -1,9 +1,10 @@
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { InterceptionForm } from "@/features/auth/components/InterceptionForm";
 
 const mockPush = jest.fn();
 const mockUpdate = jest.fn();
+const mockResolve = jest.fn();
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
@@ -39,21 +40,28 @@ jest.mock("@/features/auth/hooks/useInterception", () => ({
       id: "onboarding",
       title: "Complete Your Profile",
       description: "Fill in the required fields",
-      fields: [{ name: "fullName", label: "Full Name", type: "text", required: true, defaultValue: "" }],
+      fields: [
+        { name: "fullName", label: "Full Name", type: "text", required: true, defaultValue: "" },
+        {
+          name: "language",
+          label: "Language",
+          type: "select",
+          required: false,
+          defaultValue: "en",
+          options: [
+            { value: "en", label: "English" },
+            { value: "fr", label: "Francais" },
+          ],
+        },
+      ],
     },
     isLoading: false,
     error: null,
   }),
   useResolveInterception: () => ({
-    resolve: jest.fn(),
+    resolve: (...args: unknown[]) => mockResolve(...args),
     isPending: false,
   }),
-}));
-
-jest.mock("@/features/auth/components/InterceptionFormField", () => ({
-  InterceptionFormField: ({ field }: { field: { label: string } }) => (
-    <div data-testid={`field-${field.label}`}>{field.label}</div>
-  ),
 }));
 
 jest.mock("@krizaka/orazaka-design-system", () => ({
@@ -76,6 +84,22 @@ describe("InterceptionForm", () => {
       expect(screen.getByText("Complete Your Profile")).toBeInTheDocument();
     });
     expect(screen.getByText("Save Preferences")).toBeInTheDocument();
-    expect(screen.getByText("Full Name")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Full Name/)).toBeInTheDocument();
+  });
+
+  it("refuses a missing required field and names it", async () => {
+    mockResolve.mockClear();
+    render(<InterceptionForm schemaId="onboarding" />);
+    fireEvent.click(screen.getByRole("button", { name: "Save Preferences" }));
+    expect(await screen.findByText("Full Name is required")).toBeInTheDocument();
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("resolves with the typed values laid over the schema's defaults", async () => {
+    mockResolve.mockClear();
+    render(<InterceptionForm schemaId="onboarding" />);
+    fireEvent.change(screen.getByLabelText(/Full Name/), { target: { value: "Eric" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save Preferences" }));
+    await waitFor(() => expect(mockResolve).toHaveBeenCalledWith({ fullName: "Eric", language: "en" }));
   });
 });

@@ -5,10 +5,10 @@ import { Input, Button } from "@krizaka/orazaka-design-system";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useMcpServers } from "@/features/profile/hooks/useMcpServers";
 
+import { Select } from "@krizaka/ui/field";
+import { ControlledForm } from "@/components/forms/ControlledForm";
 import { SettingsSection } from "@krizaka/ui/settings-layout";
 
-const selectClass =
-  "flex h-10 w-full rounded-md border border-border-subtle bg-surface-1 px-3 py-2 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-border-subtle";
 const inputClass = "bg-surface-1 border-border-subtle text-fg";
 const labelClass = "text-sm font-medium text-fg opacity-80";
 
@@ -94,7 +94,7 @@ export function McpServersSection({ fetchHeaders }: Readonly<McpServersSectionPr
           );
         })()}
       </section>
-      <form onSubmit={handleSaveServer} className="space-y-3 py-4">
+      <ControlledForm onSubmit={handleSaveServer} className="space-y-3 py-4">
         <div className="space-y-2">
           <label className={labelClass}>{t.settings.mcpLabel}</label>
           <Input
@@ -107,15 +107,14 @@ export function McpServersSection({ fetchHeaders }: Readonly<McpServersSectionPr
         </div>
         <div className="space-y-2">
           <label className={labelClass}>{t.settings.mcpTransportType}</label>
-          <select
-            className={selectClass}
+          <Select
             value={serverTransport}
             onChange={(e) => setServerTransport(e.target.value as "remote" | "local")}
             disabled={!isAdmin}
           >
             <option value="remote">{t.settings.mcpRemoteLabel}</option>
             {isAdmin && <option value="local">{t.settings.mcpLocalLabel}</option>}
-          </select>
+          </Select>
         </div>
         {serverTransport === "remote" ? (
           <>
@@ -170,7 +169,7 @@ export function McpServersSection({ fetchHeaders }: Readonly<McpServersSectionPr
         >
           {t.settings.mcpRegister}
         </Button>
-      </form>
+      </ControlledForm>
     </SettingsSection>
   );
 }

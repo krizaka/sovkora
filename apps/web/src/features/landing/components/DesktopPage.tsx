@@ -12,7 +12,7 @@ import { LandingFooter } from "@/features/landing/components/LandingFooter";
 import { AppVideosSection, MacVideo } from "@/features/landing/components/AppVideosSection";
 import { DesktopCapture } from "@/features/landing/components/DesktopCapture";
 import { PhoneSection } from "@/features/landing/components/PhoneSection";
-import { SectionHeading } from "@/features/landing/components/SectionHeading";
+import { LandingSectionHeading } from "@/features/landing/components/LandingSectionHeading";
 import { DownloadBlock } from "@/features/landing/components/DesktopDownloadBlock";
 import type { DesktopDownload } from "@/features/landing/components/DesktopDownloadBlock";
 import { macVideo } from "@/features/landing/utils/app-videos";
@@ -98,7 +98,7 @@ export function DesktopPage({
 
         <SectionBackdrop id="first-launch" className="border-b border-border-subtle">
           <article className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-5 lg:py-20">
-            <SectionHeading eyebrow={d.hero.eyebrow} title={d.firstLaunch.title} lead={d.firstLaunch.lead} />
+            <LandingSectionHeading eyebrow={d.hero.eyebrow} title={d.firstLaunch.title} lead={d.firstLaunch.lead} />
             <ol className="grid gap-4 md:grid-cols-3">
               {d.firstLaunch.steps.map((step, i) => {
                 const Icon = STEP_ICONS[i];
@@ -132,7 +132,7 @@ export function DesktopPage({
 
         <SectionBackdrop className="border-b border-border-subtle">
           <article className="mx-auto max-w-6xl space-y-10 px-4 py-16 sm:px-5 lg:py-20">
-            <SectionHeading eyebrow={d.hero.eyebrow} title={d.modes.title} lead={d.modes.lead} />
+            <LandingSectionHeading eyebrow={d.hero.eyebrow} title={d.modes.title} lead={d.modes.lead} />
             <ul className="grid gap-4 md:grid-cols-3">
               {d.modes.items.map((item) => (
                 <li
@@ -158,7 +158,7 @@ export function DesktopPage({
 
         <SectionBackdrop className="border-b border-border-subtle">
           <article className="mx-auto max-w-6xl space-y-8 px-4 py-16 sm:px-5 lg:py-20">
-            <SectionHeading eyebrow={d.hero.eyebrow} title={d.services.title} lead={d.services.lead} />
+            <LandingSectionHeading eyebrow={d.hero.eyebrow} title={d.services.title} lead={d.services.lead} />
             <dl
               aria-label={d.services.title}
               className="divide-y divide-border-subtle rounded-2xl border border-border-default bg-surface-1/70"

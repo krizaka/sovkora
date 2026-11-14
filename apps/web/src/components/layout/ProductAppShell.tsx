@@ -22,7 +22,7 @@ const ACCOUNT_PLACES: ReadonlySet<string> = new Set([AppSectionId.Settings, AppS
  * the whole family). The sections come from core/config/app-sections.ts, their words from `t.appNav`; Settings and
  * Admin are the account menu's places (Settings, Administration), never repeated on the rail.
  */
-export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
+export function ProductAppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const { user, isAuthenticated, logout } = useAuth();
   const { locale, setLocale, t } = useTranslation();
   const [bellOpen, setBellOpen] = React.useState(false);

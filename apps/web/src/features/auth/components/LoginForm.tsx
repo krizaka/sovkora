@@ -4,10 +4,18 @@ import * as React from "react";
 import Link from "next/link";
 import { Alert } from "@krizaka/ui/alert";
 import { Button } from "@krizaka/ui/button";
-import { Field, Input } from "@krizaka/ui/field";
+import { createKrizakaForm } from "@krizaka/ui/form";
+import { z } from "zod";
 import { useAuthFlags } from "@/core/context/AuthFlagsContext";
 import { useTranslation } from "@/core/context/LocaleContext";
+import { InputField } from "@/features/auth/components/InputField";
 import { AuthScreen } from "@/features/auth/components/AuthScreen";
+
+/** The credentials: each is required, said in the person's language through the screen's own words. */
+const signInCredentials = createKrizakaForm({
+  schema: z.object({ email: z.string().min(1, "auth.email"), password: z.string().min(1, "auth.password") }),
+  defaultValues: { email: "", password: "" },
+});
 
 interface LoginCardProps {
   /** Closed site: the real screen, every field and button disabled, nothing wired to the backend. */
@@ -37,14 +45,19 @@ export function LoginCard({
 }: Readonly<LoginCardProps>) {
   const { t } = useTranslation();
   const flags = useAuthFlags();
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const providers = preview ? { github: false, google: false } : { github: flags.github, google: flags.google };
-
-  const submit = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!preview) onSubmit?.(email, password);
+  const words: Record<string, string> = {
+    "auth.email": t.interception.fieldRequired(t.auth.emailLabel),
+    "auth.password": t.interception.fieldRequired(t.auth.passwordLabel),
   };
+  const form = signInCredentials.useForm({
+    i18n: { t: (key) => words[key] },
+    onSubmit: ({ email, password }) => {
+      if (!preview) {
+        onSubmit?.(email, password);
+      }
+    },
+  });
+  const providers = preview ? { github: false, google: false } : { github: flags.github, google: flags.google };
 
   return (
     <AuthScreen
@@ -61,41 +74,35 @@ export function LoginCard({
         ) : undefined
       }
     >
-      <form id="form-login" onSubmit={submit} className="flex flex-col gap-4">
+      <form.Form id="form-login">
         {notice}
         {error && <Alert tone="danger">{error}</Alert>}
-        <Field.Root>
-          <Field.Label htmlFor="login-email">{t.auth.emailLabel}</Field.Label>
-          <Input
-            id="login-email"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={preview}
-            autoComplete="email"
-            invalid={Boolean(error)}
-          />
-        </Field.Root>
-        <Field.Root>
-          <Field.Label htmlFor="login-password">{t.auth.passwordLabel}</Field.Label>
-          <Input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={preview}
-            autoComplete="current-password"
-            invalid={Boolean(error)}
-          />
-          <Field.Hint>
+        <InputField
+          name="email"
+          id="login-email"
+          label={t.auth.emailLabel}
+          type="email"
+          placeholder="name@example.com"
+          required
+          disabled={preview}
+          autoComplete="email"
+          invalid={Boolean(error)}
+        />
+        <InputField
+          name="password"
+          id="login-password"
+          label={t.auth.passwordLabel}
+          type="password"
+          required
+          disabled={preview}
+          autoComplete="current-password"
+          invalid={Boolean(error)}
+          hint={
             <Link href="/forgot-password" className="text-fg-accent hover:underline">
               {t.auth.forgotPasswordLink}
             </Link>
-          </Field.Hint>
-        </Field.Root>
+          }
+        />
         <Button
           id="btn-login-submit"
           type="submit"
@@ -107,7 +114,7 @@ export function LoginCard({
         >
           {isLoading ? t.auth.signingInBtn : t.auth.signInBtn}
         </Button>
-      </form>
+      </form.Form>
 
       {(providers.github || providers.google) && (
         <nav className="flex flex-col gap-3" aria-label={t.a11y.socialLogin}>

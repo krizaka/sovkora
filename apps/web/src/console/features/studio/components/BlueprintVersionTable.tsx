@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@krizaka/ui/button";
 import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@krizaka/ui/data-table";
 import { studiosCopy, type StudiosLocale, type StudiosWords } from "@/console/core/copy/studios";
@@ -41,8 +42,10 @@ function VersionActionsCell({
   return (
     <span className="space-x-2">
       {version.status === "DRAFT" && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           disabled={busy !== null}
           onClick={() => {
             onAct(version.version, () => StudioAdminApi.publish(studioKey, version.version));
@@ -50,11 +53,13 @@ function VersionActionsCell({
           className="text-xs text-accent disabled:opacity-50"
         >
           {words.publish}
-        </button>
+        </Button>
       )}
       {version.status === "PUBLISHED" && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           disabled={busy !== null}
           title={words.deprecateTitle}
           onClick={() => {
@@ -63,7 +68,7 @@ function VersionActionsCell({
           className="text-xs text-fg-muted disabled:opacity-50"
         >
           {words.deprecate}
-        </button>
+        </Button>
       )}
     </span>
   );

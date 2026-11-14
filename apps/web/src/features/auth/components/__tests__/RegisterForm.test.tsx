@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
 
 const mockRegister = jest.fn();
@@ -14,6 +14,7 @@ jest.mock("@/features/auth/hooks/useRegister", () => ({
 jest.mock("@/core/context/LocaleContext", () => ({
   useTranslation: () => ({
     t: {
+      interception: { fieldRequired: (label: string) => `${label} is required` },
       auth: {
         usernameLabel: "Username",
         emailLabel: "Email",
@@ -71,14 +72,53 @@ describe("RegisterForm", () => {
     expect(screen.getByText("Terms notice")).toBeInTheDocument();
   });
 
-  it("validates short username", () => {
+  const fill = (values: { username: string; email: string; password: string; confirm: string }) => {
+    fireEvent.change(screen.getByLabelText(/Username/), { target: { value: values.username } });
+    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: values.email } });
+    fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: values.password } });
+    fireEvent.change(screen.getByLabelText(/Confirm Password/), { target: { value: values.confirm } });
+    fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
+  };
+
+  it("validates short username", async () => {
     render(<RegisterForm onSuccess={onSuccess} onError={onError} />);
-    fireEvent.change(screen.getByLabelText(/Username/), { target: { value: "ab" } });
-    fireEvent.change(screen.getByLabelText(/Email/), { target: { value: "a@b.com" } });
-    fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: "12345678" } });
-    fireEvent.change(screen.getByLabelText(/Confirm Password/), { target: { value: "12345678" } });
-    const form = document.getElementById("form-register")!;
-    fireEvent.submit(form);
-    expect(onError).toHaveBeenCalledWith("Username min 3 chars");
+    fill({ username: "ab", email: "a@b.com", password: "12345678", confirm: "12345678" });
+    await waitFor(() => expect(onError).toHaveBeenCalledWith("Username min 3 chars"));
+    expect(mockRegister).not.toHaveBeenCalled();
+  });
+
+  it("validates a short password", async () => {
+    render(<RegisterForm onSuccess={onSuccess} onError={onError} />);
+    fill({ username: "alice", email: "a@b.com", password: "1234", confirm: "1234" });
+    await waitFor(() => expect(onError).toHaveBeenCalledWith("Password min 8 chars"));
+    expect(mockRegister).not.toHaveBeenCalled();
+  });
+
+  it("validates that the passwords match", async () => {
+    render(<RegisterForm onSuccess={onSuccess} onError={onError} />);
+    fill({ username: "alice", email: "a@b.com", password: "12345678", confirm: "87654321" });
+    await waitFor(() => expect(onError).toHaveBeenCalledWith("Passwords do not match"));
+    expect(mockRegister).not.toHaveBeenCalled();
+  });
+
+  it("asks for an email before registering", async () => {
+    render(<RegisterForm onSuccess={onSuccess} onError={onError} />);
+    fill({ username: "alice", email: "", password: "12345678", confirm: "12345678" });
+    expect(await screen.findByText("Email is required")).toBeInTheDocument();
+    expect(mockRegister).not.toHaveBeenCalled();
+  });
+
+  it("registers the trimmed username with the chosen language", async () => {
+    render(<RegisterForm onSuccess={onSuccess} onError={onError} />);
+    fireEvent.change(screen.getByLabelText(/Language/), { target: { value: "fr" } });
+    fill({ username: " alice ", email: "a@b.com", password: "12345678", confirm: "12345678" });
+    await waitFor(() =>
+      expect(mockRegister).toHaveBeenCalledWith({
+        username: "alice",
+        email: "a@b.com",
+        password: "12345678",
+        language: "fr",
+      }),
+    );
   });
 });

@@ -1,16 +1,17 @@
 "use client";
 
 import { IconButton } from "@krizaka/ui/button";
+import { Checkbox } from "@krizaka/ui/checkbox";
+import { Select } from "@krizaka/ui/field";
+import { ControlledForm } from "@/components/forms/ControlledForm";
 import * as React from "react";
 import { Button, Icon } from "@krizaka/orazaka-design-system";
 import { Input } from "@krizaka/orazaka-design-system";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { CatalogModel } from "./CategoryCard";
-import { CATEGORY_META, Tooltip, CategorySelector } from "./ModelDialogParts";
+import { CATEGORY_META, HelpTooltip, CategorySelector } from "./ModelDialogParts";
 import { ModelDialogHeader } from "./ModelDialogHeader";
 import { buildModelCategories } from "./modelDialogCategories";
-
-import { cn } from "@krizaka/ui/cn";
 
 interface ModelDialogProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ interface ModelDialogProps {
   setFormModel: React.Dispatch<React.SetStateAction<CatalogModel>>;
   formMode: "create" | "edit";
   saving: boolean;
-  onSubmit: (e: React.SubmitEvent<HTMLFormElement>) => void;
+  onSubmit: () => void | Promise<void>;
   errorMessage: string | null;
   setErrorMessage: (msg: string | null) => void;
   providers: string[];
@@ -50,9 +51,10 @@ export function ModelDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay animate-in fade-in duration-200">
-      <button
+      <Button
         type="button"
-        className="fixed inset-0 bg-transparent border-none cursor-default"
+        variant="ghost"
+        className="fixed inset-0 h-auto w-auto cursor-default rounded-none border-none bg-transparent hover:bg-transparent"
         aria-label={t.a11y.closeDialog}
         onClick={() => !saving && onClose()}
       />
@@ -85,7 +87,7 @@ export function ModelDialog({
         )}
 
         {/* Form content */}
-        <form
+        <ControlledForm
           id="model-dialog-form"
           onSubmit={onSubmit}
           className="flex-1 overflow-y-auto p-5 space-y-5 scrollbar-thin"
@@ -94,7 +96,7 @@ export function ModelDialog({
           <div className="space-y-2">
             <label className={labelClass}>
               {t.admin.categoryLabel}
-              <Tooltip text={t.admin.helpCategory} />
+              <HelpTooltip text={t.admin.helpCategory} />
             </label>
             <CategorySelector
               categories={categories}
@@ -109,26 +111,26 @@ export function ModelDialog({
             <div className="space-y-1.5">
               <label className={labelClass}>
                 {t.admin.providerLabel}
-                <Tooltip text={t.admin.helpProvider} />
+                <HelpTooltip text={t.admin.helpProvider} />
               </label>
-              <select
+              <Select
                 value={formModel.providerName || "ollama"}
                 disabled={saving}
                 onChange={(e) => setFormModel({ ...formModel, providerName: e.target.value })}
-                className={cn(inputClass, "w-full h-10 px-3 py-2")}
+                className="w-full"
               >
                 {providers.map((prov) => (
                   <option key={prov} value={prov}>
                     {prov}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
 
             <div className="space-y-1.5">
               <label className={labelClass}>
                 {t.admin.modelNameLabel}
-                <Tooltip text={t.admin.helpModelName} />
+                <HelpTooltip text={t.admin.helpModelName} />
               </label>
               <Input
                 value={formModel.modelName}
@@ -145,7 +147,7 @@ export function ModelDialog({
             <div className="space-y-1.5">
               <label className={labelClass}>
                 {t.admin.modelLabelLabel}
-                <Tooltip text={t.admin.helpModelLabel} />
+                <HelpTooltip text={t.admin.helpModelLabel} />
               </label>
               <Input
                 value={formModel.modelLabel}
@@ -159,7 +161,7 @@ export function ModelDialog({
             <div className="space-y-1.5">
               <label className={labelClass}>
                 {t.admin.optionsLabel}
-                <Tooltip text={t.admin.helpOptions} />
+                <HelpTooltip text={t.admin.helpOptions} />
               </label>
               <Input
                 value={formModel.options}
@@ -173,20 +175,19 @@ export function ModelDialog({
 
           {/* Default checkbox */}
           <div className="flex items-center gap-3 bg-surface-2 p-3.5 rounded-xl border border-border-subtle cursor-pointer hover:border-border-default transition-all duration-200">
-            <input
-              type="checkbox"
+            <Checkbox
               id="isDefaultCheckbox"
               checked={formModel.isDefault || false}
               disabled={saving}
-              onChange={(e) => setFormModel({ ...formModel, isDefault: e.target.checked })}
-              className="h-4 w-4 rounded border-border-default text-accent focus:ring-ring cursor-pointer"
-            />
-            <label htmlFor="isDefaultCheckbox" className="flex flex-col gap-0.5 select-none cursor-pointer">
-              <span className="text-xs font-semibold text-fg">{t.admin.setAsDefaultLabel}</span>
-              <span className="text-[10px] text-fg-muted">{t.admin.helpDefault}</span>
-            </label>
+              onCheckedChange={(checked) => setFormModel({ ...formModel, isDefault: checked === true })}
+            >
+              <span className="flex flex-col gap-0.5 select-none cursor-pointer">
+                <span className="text-xs font-semibold text-fg">{t.admin.setAsDefaultLabel}</span>
+                <span className="text-[10px] text-fg-muted">{t.admin.helpDefault}</span>
+              </span>
+            </Checkbox>
           </div>
-        </form>
+        </ControlledForm>
 
         {/* Footer */}
         <footer className="flex items-center justify-between p-5 border-t border-border-subtle bg-surface-0">

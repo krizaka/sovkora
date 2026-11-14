@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { queryWrapper } from "@/core/testing/queryWrapper";
 import { McpServersSection } from "@/features/profile/components/McpServersSection";
 
@@ -90,5 +90,24 @@ describe("McpServersSection", () => {
   it("renders transport type selector for admin", () => {
     render(<McpServersSection fetchHeaders={fetchHeaders} />, { wrapper: queryWrapper() });
     expect(screen.getByText("Transport Type")).toBeInTheDocument();
+  });
+
+  it("registers a remote server through the form and says so", async () => {
+    const fetchMock = jest.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+    global.fetch = fetchMock as unknown as typeof fetch;
+    render(<McpServersSection fetchHeaders={fetchHeaders} />, { wrapper: queryWrapper() });
+    expect(screen.getByRole("button", { name: "Register Server" })).toBeDisabled();
+    fireEvent.change(screen.getByPlaceholderText("Enter server name"), { target: { value: "Docs" } });
+    fireEvent.change(screen.getByPlaceholderText("https://..."), { target: { value: "https://mcp.example/sse" } });
+    fireEvent.click(screen.getByRole("button", { name: "Register Server" }));
+    expect(await screen.findByText("Saved")).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === "POST");
+    expect(JSON.parse(post?.[1].body)).toMatchObject({ label: "Docs", url: "https://mcp.example/sse" });
+  });
+
+  it("offers the transport choice to an admin", () => {
+    render(<McpServersSection fetchHeaders={fetchHeaders} />, { wrapper: queryWrapper() });
+    expect(screen.getByRole("combobox")).toHaveValue("remote");
+    expect(screen.getByRole("option", { name: "Local STDIO" })).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
-import * as React from "react";
 import { Button } from "@krizaka/ui/button";
-import { Field, Input, Select } from "@krizaka/ui/field";
+import { createKrizakaForm } from "@krizaka/ui/form";
+import { z } from "zod";
+import { InputField } from "@/features/auth/components/InputField";
 import { useRegister } from "@/features/auth/hooks/useRegister";
 import { useTranslation } from "@/core/context/LocaleContext";
 
@@ -9,6 +10,18 @@ const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English" },
   { code: "fr", label: "Français" },
 ] as const;
+
+/** What the person types; the length and match guards speak through the parent's banner, the e-mail through its field. */
+const registration = createKrizakaForm({
+  schema: z.object({
+    username: z.string(),
+    email: z.string().min(1, "auth.email"),
+    password: z.string(),
+    confirmPassword: z.string(),
+    language: z.string(),
+  }),
+  defaultValues: { username: "", email: "", password: "", confirmPassword: "", language: "en" },
+});
 
 /**
  * Properties required by the {@link RegisterForm} component.
@@ -25,118 +38,81 @@ interface RegisterFormProps {
  * validates values on the client side, and submits to the Next.js BFF endpoint.
  */
 export function RegisterForm({ onSuccess, onError }: Readonly<RegisterFormProps>) {
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [username, setUsername] = React.useState("");
-  const [language, setLanguage] = React.useState("en");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
-
   const { t } = useTranslation();
   const { register, isPending } = useRegister({ onSuccess, onError });
+  const words: Record<string, string> = { "auth.email": t.interception.fieldRequired(t.auth.emailLabel) };
 
-  const handleRegister = (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onError("");
-    onSuccess("");
+  const form = registration.useForm({
+    i18n: { t: (key) => words[key] },
+    onSubmit: ({ username, email, password, confirmPassword, language }) => {
+      onError("");
+      onSuccess("");
 
-    // Client-side guards
-    if (username.trim().length < 3) {
-      onError(t.auth.usernameMinLength);
-      return;
-    }
-    if (password.length < 8) {
-      onError(t.auth.passwordMinLength);
-      return;
-    }
-    if (password !== confirmPassword) {
-      onError(t.auth.passwordsDoNotMatch);
-      return;
-    }
+      // Client-side guards
+      if (username.trim().length < 3) {
+        onError(t.auth.usernameMinLength);
+        return;
+      }
+      if (password.length < 8) {
+        onError(t.auth.passwordMinLength);
+        return;
+      }
+      if (password !== confirmPassword) {
+        onError(t.auth.passwordsDoNotMatch);
+        return;
+      }
 
-    register({
-      username: username.trim(),
-      email,
-      password,
-      language,
-    });
-  };
-
-  const field = (id: string, label: string, input: React.ReactNode) => (
-    <Field.Root>
-      <Field.Label htmlFor={id}>{label}</Field.Label>
-      {input}
-    </Field.Root>
-  );
+      register({ username: username.trim(), email, password, language });
+    },
+  });
 
   return (
-    <form id="form-register" onSubmit={handleRegister} className="flex flex-col gap-4">
-      {field(
-        "reg-username",
-        t.auth.usernameLabel,
-        <Input
-          id="reg-username"
-          type="text"
-          placeholder="your_name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          minLength={3}
-          autoComplete="username"
-        />,
-      )}
-      {field(
-        "reg-email",
-        t.auth.emailLabel,
-        <Input
-          id="reg-email"
-          type="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />,
-      )}
-      {field(
-        "reg-password",
-        t.auth.passwordLabel,
-        <Input
-          id="reg-password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={8}
-          autoComplete="new-password"
-        />,
-      )}
-      {field(
-        "reg-confirm-password",
-        t.auth.confirmPasswordLabel,
-        <Input
-          id="reg-confirm-password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-          autoComplete="new-password"
-        />,
-      )}
-      {field(
-        "reg-language",
-        t.auth.preferredLanguageLabel,
-        <Select id="reg-language" value={language} onChange={(e) => setLanguage(e.target.value)}>
-          {SUPPORTED_LANGUAGES.map((lang) => (
-            <option key={lang.code} value={lang.code}>
-              {lang.label}
-            </option>
-          ))}
-        </Select>,
-      )}
+    <form.Form id="form-register">
+      <InputField
+        name="username"
+        id="reg-username"
+        label={t.auth.usernameLabel}
+        type="text"
+        placeholder="your_name"
+        required
+        minLength={3}
+        autoComplete="username"
+      />
+      <InputField
+        name="email"
+        id="reg-email"
+        label={t.auth.emailLabel}
+        type="email"
+        placeholder="name@example.com"
+        required
+        autoComplete="email"
+      />
+      <InputField
+        name="password"
+        id="reg-password"
+        label={t.auth.passwordLabel}
+        type="password"
+        required
+        minLength={8}
+        autoComplete="new-password"
+      />
+      <InputField
+        name="confirmPassword"
+        id="reg-confirm-password"
+        label={t.auth.confirmPasswordLabel}
+        type="password"
+        required
+        autoComplete="new-password"
+      />
+      <form.Select
+        name="language"
+        label={t.auth.preferredLanguageLabel}
+        options={SUPPORTED_LANGUAGES.map((lang) => ({ value: lang.code, label: lang.label }))}
+      />
       <Button id="btn-register-submit" type="submit" variant="primary" size="lg" loading={isPending} className="w-full">
         {isPending ? t.auth.creatingAccountBtn : t.auth.createAccountBtn}
       </Button>
       <p className="text-center text-xs text-fg-secondary">{t.auth.termsNotice}</p>
-    </form>
+    </form.Form>
   );
 }

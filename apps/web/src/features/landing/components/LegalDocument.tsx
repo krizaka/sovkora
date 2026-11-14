@@ -16,7 +16,7 @@ export type LegalContent = {
 };
 
 /** The page of a legal text (privacy, terms): header, the card, the sections in two columns. The texts stay in each route's CONTENT. */
-export function LegalPage({ content }: { content: Record<Locale, LegalContent> }) {
+export function LegalDocument({ content }: { content: Record<Locale, LegalContent> }) {
   const { locale } = useTranslation();
   const c = content[locale] || content.en;
 
