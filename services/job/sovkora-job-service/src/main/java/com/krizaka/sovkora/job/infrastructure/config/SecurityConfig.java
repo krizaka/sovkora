@@ -1,10 +1,18 @@
 package com.krizaka.sovkora.job.infrastructure.config;
 
 import com.krizaka.security.web.SecurityBaseline;
+import com.krizaka.sovkora.job.application.service.PodTokenService;
+import com.krizaka.sovkora.job.domain.model.PodTokenPolicy;
+import com.krizaka.sovkora.job.infrastructure.support.PodTokenDecoder;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,10 +28,63 @@ import org.springframework.security.web.SecurityFilterChain;
  * <p>The chain is the Krizaka security baseline every service shares: actuator health/info and
  * preflight open, everything else authenticated against the shared HS256 session secret, with the
  * {@code roles} claim mapped straight onto authorities.
+ *
+ * <p>A RunPod pod is the one caller that is not a service (krizaka-internal#3645): it presents its
+ * own token, minted here, and the baseline reserves {@code /internal/v1/**} for {@code SERVICE}
+ * before any rule of this service runs. So a request bearing a pod token goes through a chain of
+ * its own, ordered first: the four routes the media worker calls, and nothing else.
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+  /**
+   * The pods' chain: only requests whose bearer token names the pod key reach it, and it accepts a
+   * live pod token on the media worker's four routes ({@code docs/WORKER_PROTOCOL.md}) only —
+   * registration, heartbeat, a job's output upload and a job's input image. Every other route,
+   * {@code /internal/v1/**} and {@code /api/**} alike, is denied. A forged header gains nothing:
+   * the token is then verified against the pod key, its claims and its revocation row.
+   *
+   * @param http the builder
+   * @param roles the {@code roles}-claim converter, with no authority prefix
+   * @param properties the pod token key
+   * @param tokens the revocation rows
+   * @param clock the source of "now" for {@code exp}
+   * @return the built chain
+   * @throws Exception if the chain cannot be built
+   */
+  @Bean
+  @Order(1)
+  public SecurityFilterChain podTokenFilterChain(
+      HttpSecurity http,
+      JwtAuthenticationConverter roles,
+      PodTokenProperties properties,
+      PodTokenService tokens,
+      Clock clock)
+      throws Exception {
+    PodTokenDecoder pods = new PodTokenDecoder(properties.signingKey(), tokens, clock);
+    return http.securityMatcher(PodTokenDecoder::carriesPodToken)
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/error")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/internal/v1/workers")
+                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .requestMatchers(HttpMethod.POST, "/internal/v1/workers/*/heartbeat")
+                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .requestMatchers(HttpMethod.PUT, "/internal/v1/jobs/*/output/*")
+                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .requestMatchers(HttpMethod.GET, "/internal/v1/jobs/*/input/image")
+                    .hasAuthority(PodTokenPolicy.ROLE)
+                    .anyRequest()
+                    .denyAll())
+        .oauth2ResourceServer(
+            oauth2 -> oauth2.jwt(jwt -> jwt.decoder(pods).jwtAuthenticationConverter(roles)))
+        .build();
+  }
 
   /**
    * The filter chain: the Krizaka security baseline, then a valid session JWT for everything else.
@@ -40,6 +101,7 @@ public class SecurityConfig {
    * @throws Exception if the chain cannot be built
    */
   @Bean
+  @Order(2)
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http, JwtAuthenticationConverter roles) throws Exception {
     return SecurityBaseline.apply(http, auth -> {})
