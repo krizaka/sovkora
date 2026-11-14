@@ -14,7 +14,7 @@ public record PodKey(String value) {
   /** The prefix of a pod token's {@code sub} claim. */
   public static final String SUBJECT_PREFIX = "gpu-pod:";
 
-  private static final Pattern SHAPE = Pattern.compile("[0-9]{14}-[0-9a-f]{6}");
+  private static final Pattern SHAPE = Pattern.compile("\\d{14}-[0-9a-f]{6}");
 
   public PodKey {
     if (!SHAPE.matcher(value).matches()) {

@@ -12,6 +12,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import javax.crypto.SecretKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -33,6 +35,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
  * decoder back off for the whole service.
  */
 public final class PodTokenDecoder implements JwtDecoder {
+
+  private static final Logger logger = LoggerFactory.getLogger(PodTokenDecoder.class);
 
   private static final String BEARER = "Bearer ";
   private static final OAuth2Error REFUSED =
@@ -82,6 +86,8 @@ public final class PodTokenDecoder implements JwtDecoder {
       JWSHeader header = JWSHeader.parse(new Base64URL(token.substring(0, dot)));
       return PodTokenPolicy.KEY_ID.equals(header.getKeyID());
     } catch (ParseException | IllegalArgumentException e) {
+      // Not a JOSE header: the session chain reads the bearer, and refuses it there.
+      logger.debug("a bearer token without a JOSE header is not a pod token", e);
       return false;
     }
   }
@@ -110,6 +116,7 @@ public final class PodTokenDecoder implements JwtDecoder {
             ? OAuth2TokenValidatorResult.success()
             : OAuth2TokenValidatorResult.failure(REFUSED);
       } catch (IllegalArgumentException e) {
+        logger.debug("a pod token with a malformed jti or subject", e);
         return OAuth2TokenValidatorResult.failure(REFUSED);
       }
     };
