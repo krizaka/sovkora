@@ -187,6 +187,13 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
                   "SELECT count(*) FROM orazaka_models WHERE category = 'chat' AND is_default"))
           .as("only one chat default")
           .isEqualTo(1);
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM orazaka_models WHERE model_name = 'mistral-3-14B'"
+                      + " AND status = 'available' AND runs_on = 'provider'"))
+          .as("the hosted chat model is published and hosted, so a Studio's chat step can pick it")
+          .isEqualTo(1);
     }
   }
 
