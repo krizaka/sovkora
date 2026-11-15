@@ -176,7 +176,7 @@ model {
     }
     uikit = library 'UI kit' {
       #retiring
-      description 'The design system and shared code of the three apps (@krizaka/orazaka-design-system, @krizaka/orazaka-shared, on npm); folds into Krizaka UI (ADR-029), then its repository is deleted.'
+      description 'The design system and shared code of the three apps (the two retired npm packages of the design system and of the shared types); folds into Krizaka UI (ADR-029), then its repository is deleted.'
       technology 'TypeScript, React'
       metadata {
         repo 'krizaka-ui'

@@ -1,5 +1,5 @@
 {
-  "product": "orazaka",
+  "product": "sovkora",
   "source": "generated from code by scripts/generate-docs.mjs — do not hand-edit",
   "roles": [
     {
@@ -42,7 +42,7 @@
     {
       "name": "krizaka-java",
       "url": "https://github.com/krizaka/krizaka-java",
-      "path": ".krizaka-java",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj",
       "kind": "maven",
       "layer": "krizaka",
       "description": "The Krizaka Java building blocks (com.krizaka on Maven Central).",
@@ -213,7 +213,7 @@
       "id": "cli",
       "path": "apps/cli",
       "repository": "cli",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "client",
       "layer": "app",
       "runtime": "node",
@@ -228,7 +228,7 @@
       "id": "desktop",
       "path": "apps/desktop",
       "repository": "desktop",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "client",
       "layer": "app",
       "runtime": "node",
@@ -243,7 +243,7 @@
       "id": "mobile",
       "path": "apps/mobile",
       "repository": "mobile",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "client",
       "layer": "app",
       "runtime": "node",
@@ -258,7 +258,7 @@
       "id": "web",
       "path": "apps/web",
       "repository": "web",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "client",
       "layer": "app",
       "runtime": "node",
@@ -273,7 +273,7 @@
       "id": "sovkora-automation-service",
       "path": "services/automation/sovkora-automation-service",
       "repository": "automation",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -288,7 +288,7 @@
       "id": "sovkora-conversation-service",
       "path": "services/conversation/sovkora-conversation-service",
       "repository": "conversation",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -303,7 +303,7 @@
       "id": "sovkora-edge-service",
       "path": "services/edge/sovkora-edge-service",
       "repository": "edge",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -318,7 +318,7 @@
       "id": "sovkora-job-service",
       "path": "services/job/sovkora-job-service",
       "repository": "job",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -333,7 +333,7 @@
       "id": "sovkora-knowledge-service",
       "path": "services/knowledge/sovkora-knowledge-service",
       "repository": "knowledge",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -348,7 +348,7 @@
       "id": "sovkora-studio-service",
       "path": "services/studio/sovkora-studio-service",
       "repository": "studio",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "jvm",
@@ -363,7 +363,7 @@
       "id": "worker-media",
       "path": "workers/media",
       "repository": "worker-media",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "service",
       "layer": "app",
       "runtime": "python",
@@ -376,7 +376,7 @@
     },
     {
       "id": "krizaka-billing-service",
-      "path": ".krizaka-java/krizaka-billing/krizaka-billing-service",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-service",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
@@ -391,7 +391,7 @@
     },
     {
       "id": "krizaka-notifications-service",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-service",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-notifications-service",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
@@ -406,7 +406,7 @@
     },
     {
       "id": "krizaka-users-service",
-      "path": ".krizaka-java/krizaka-users/krizaka-users-service",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-service",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "service",
@@ -423,7 +423,7 @@
       "id": "sovkora-crypto",
       "path": "contracts/sovkora-crypto",
       "repository": "contracts",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -438,7 +438,7 @@
       "id": "sovkora-engine-architecture",
       "path": "engine/sovkora-engine-architecture",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -453,7 +453,7 @@
       "id": "sovkora-engine-assets",
       "path": "engine/sovkora-engine-assets",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -468,7 +468,7 @@
       "id": "sovkora-engine-persistence",
       "path": "engine/sovkora-engine-persistence",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -483,7 +483,7 @@
       "id": "sovkora-engine-persistence-bridge",
       "path": "engine/sovkora-engine-persistence-bridge",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -498,7 +498,7 @@
       "id": "sovkora-engine-springai",
       "path": "engine/sovkora-engine-springai",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -513,7 +513,7 @@
       "id": "sovkora-studio-client",
       "path": "services/studio/sovkora-studio-client",
       "repository": "studio",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "adapter",
       "layer": "framework",
       "runtime": "jvm",
@@ -526,7 +526,7 @@
     },
     {
       "id": "krizaka-billing-client",
-      "path": ".krizaka-java/krizaka-billing/krizaka-billing-client",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-client",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -541,7 +541,7 @@
     },
     {
       "id": "krizaka-payments",
-      "path": ".krizaka-java/krizaka-payments",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-payments",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -556,7 +556,7 @@
     },
     {
       "id": "krizaka-quality",
-      "path": ".krizaka-java/krizaka-quality",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-quality",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -571,7 +571,7 @@
     },
     {
       "id": "krizaka-rewrite-style",
-      "path": ".krizaka-java/krizaka-rewrite-style",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-rewrite-style",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -586,7 +586,7 @@
     },
     {
       "id": "krizaka-users-client",
-      "path": ".krizaka-java/krizaka-users/krizaka-users-client",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-client",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -601,7 +601,7 @@
     },
     {
       "id": "krizaka-users-persistence",
-      "path": ".krizaka-java/krizaka-users/krizaka-users-persistence",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-persistence",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "adapter",
@@ -618,7 +618,7 @@
       "id": "sovkora-engine-business",
       "path": "engine/sovkora-engine-business",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "application",
       "layer": "framework",
       "runtime": "jvm",
@@ -633,7 +633,7 @@
       "id": "sovkora-engine-interceptors",
       "path": "engine/sovkora-engine-interceptors",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "application",
       "layer": "framework",
       "runtime": "jvm",
@@ -648,7 +648,7 @@
       "id": "sovkora-engine-tools",
       "path": "engine/sovkora-engine-tools",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "application",
       "layer": "framework",
       "runtime": "jvm",
@@ -663,7 +663,7 @@
       "id": "sovkora-engine-core",
       "path": "engine/sovkora-engine-core",
       "repository": "engine",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "domain",
       "layer": "framework",
       "runtime": "jvm",
@@ -738,7 +738,7 @@
     },
     {
       "id": "krizaka-users-core",
-      "path": ".krizaka-java/krizaka-users/krizaka-users-core",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-core",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "domain",
@@ -789,7 +789,7 @@
       "id": "sovkora-jobs-api",
       "path": "contracts/sovkora-jobs-api",
       "repository": "contracts",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "contract",
       "layer": "framework",
       "runtime": "jvm",
@@ -804,7 +804,7 @@
       "id": "sovkora-persistence-api",
       "path": "contracts/sovkora-persistence-api",
       "repository": "contracts",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "contract",
       "layer": "framework",
       "runtime": "jvm",
@@ -837,7 +837,7 @@
       "id": "sovkora-studio-api",
       "path": "services/studio/sovkora-studio-api",
       "repository": "studio",
-      "owner": "orazaka",
+      "owner": "sovkora",
       "role": "contract",
       "layer": "framework",
       "runtime": "jvm",
@@ -850,7 +850,7 @@
     },
     {
       "id": "krizaka-billing-api",
-      "path": ".krizaka-java/krizaka-billing/krizaka-billing-api",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-api",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "contract",
@@ -865,7 +865,7 @@
     },
     {
       "id": "krizaka-users-api",
-      "path": ".krizaka-java/krizaka-users/krizaka-users-api",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-api",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "contract",
@@ -880,7 +880,7 @@
     },
     {
       "id": "krizaka-app-config",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-app-config",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-app-config",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -895,7 +895,7 @@
     },
     {
       "id": "krizaka-idempotency",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-idempotency",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-idempotency",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -910,7 +910,7 @@
     },
     {
       "id": "krizaka-messaging",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-messaging",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-messaging",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -925,7 +925,7 @@
     },
     {
       "id": "krizaka-notifications-api",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-api",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-notifications-api",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -940,7 +940,7 @@
     },
     {
       "id": "krizaka-observability",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-observability",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-observability",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -955,7 +955,7 @@
     },
     {
       "id": "krizaka-persistence",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-persistence",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-persistence",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -970,7 +970,7 @@
     },
     {
       "id": "krizaka-ratelimit",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-ratelimit",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-ratelimit",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -985,7 +985,7 @@
     },
     {
       "id": "krizaka-security",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-security",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-security",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1000,7 +1000,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-app-config",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1015,7 +1015,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-idempotency",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1030,7 +1030,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-observability",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1045,7 +1045,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-persistence",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1060,7 +1060,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-rabbitmq",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1075,7 +1075,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-ratelimit",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1090,7 +1090,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-security",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1105,7 +1105,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-web",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1120,7 +1120,7 @@
     },
     {
       "id": "krizaka-spring-boot-starter-webhooks",
-      "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1135,7 +1135,7 @@
     },
     {
       "id": "krizaka-web",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-web",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-web",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -1150,7 +1150,7 @@
     },
     {
       "id": "krizaka-webhooks",
-      "path": ".krizaka-java/krizaka-service-kit/krizaka-webhooks",
+      "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-webhooks",
       "repository": "krizaka-java",
       "owner": "krizaka",
       "role": "platform",
@@ -2527,7 +2527,7 @@
     "modules": [
       {
         "id": "krizaka-billing-service",
-        "path": ".krizaka-java/krizaka-billing/krizaka-billing-service",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-service",
         "repository": "krizaka-java",
         "role": "service",
         "packaging": "jar",
@@ -2536,7 +2536,7 @@
       },
       {
         "id": "krizaka-users-service",
-        "path": ".krizaka-java/krizaka-users/krizaka-users-service",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-service",
         "repository": "krizaka-java",
         "role": "service",
         "packaging": "jar",
@@ -2545,7 +2545,7 @@
       },
       {
         "id": "krizaka-billing-client",
-        "path": ".krizaka-java/krizaka-billing/krizaka-billing-client",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-client",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2554,7 +2554,7 @@
       },
       {
         "id": "krizaka-bom",
-        "path": ".krizaka-java/krizaka-bom",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-bom",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "pom",
@@ -2563,7 +2563,7 @@
       },
       {
         "id": "krizaka-parent",
-        "path": ".krizaka-java/krizaka-parent",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-parent",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "pom",
@@ -2572,7 +2572,7 @@
       },
       {
         "id": "krizaka-payments",
-        "path": ".krizaka-java/krizaka-payments",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-payments",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2581,7 +2581,7 @@
       },
       {
         "id": "krizaka-quality",
-        "path": ".krizaka-java/krizaka-quality",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-quality",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2590,7 +2590,7 @@
       },
       {
         "id": "krizaka-rewrite-style",
-        "path": ".krizaka-java/krizaka-rewrite-style",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-rewrite-style",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2599,7 +2599,7 @@
       },
       {
         "id": "krizaka-test-support",
-        "path": ".krizaka-java/krizaka-test-support",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-test-support",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2608,7 +2608,7 @@
       },
       {
         "id": "krizaka-users-client",
-        "path": ".krizaka-java/krizaka-users/krizaka-users-client",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-client",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2617,7 +2617,7 @@
       },
       {
         "id": "krizaka-users-persistence",
-        "path": ".krizaka-java/krizaka-users/krizaka-users-persistence",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-persistence",
         "repository": "krizaka-java",
         "role": "adapter",
         "packaging": "jar",
@@ -2626,7 +2626,7 @@
       },
       {
         "id": "krizaka-users-core",
-        "path": ".krizaka-java/krizaka-users/krizaka-users-core",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-core",
         "repository": "krizaka-java",
         "role": "domain",
         "packaging": "jar",
@@ -2635,7 +2635,7 @@
       },
       {
         "id": "krizaka-billing-api",
-        "path": ".krizaka-java/krizaka-billing/krizaka-billing-api",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-billing/krizaka-billing-api",
         "repository": "krizaka-java",
         "role": "contract",
         "packaging": "jar",
@@ -2644,7 +2644,7 @@
       },
       {
         "id": "krizaka-users-api",
-        "path": ".krizaka-java/krizaka-users/krizaka-users-api",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-users/krizaka-users-api",
         "repository": "krizaka-java",
         "role": "contract",
         "packaging": "jar",
@@ -2653,7 +2653,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-app-config",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-app-config",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2662,7 +2662,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-idempotency",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-idempotency",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2671,7 +2671,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-observability",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-observability",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2680,7 +2680,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-persistence",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-persistence",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2689,7 +2689,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-rabbitmq",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-rabbitmq",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2698,7 +2698,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-ratelimit",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-ratelimit",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2707,7 +2707,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-security",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-security",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2716,7 +2716,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-web",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-web",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2725,7 +2725,7 @@
       },
       {
         "id": "krizaka-spring-boot-starter-webhooks",
-        "path": ".krizaka-java/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/starters/krizaka-spring-boot-starter-webhooks",
         "repository": "krizaka-java",
         "role": "starter",
         "packaging": "jar",
@@ -2734,7 +2734,7 @@
       },
       {
         "id": "krizaka-app-config",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-app-config",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-app-config",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2743,7 +2743,7 @@
       },
       {
         "id": "krizaka-idempotency",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-idempotency",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-idempotency",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2752,7 +2752,7 @@
       },
       {
         "id": "krizaka-messaging",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-messaging",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-messaging",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2761,7 +2761,7 @@
       },
       {
         "id": "krizaka-notifications-api",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-api",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-notifications-api",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2770,7 +2770,7 @@
       },
       {
         "id": "krizaka-notifications-service",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-notifications-service",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-notifications-service",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2779,7 +2779,7 @@
       },
       {
         "id": "krizaka-observability",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-observability",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-observability",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2788,7 +2788,7 @@
       },
       {
         "id": "krizaka-persistence",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-persistence",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-persistence",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2797,7 +2797,7 @@
       },
       {
         "id": "krizaka-ratelimit",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-ratelimit",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-ratelimit",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2806,7 +2806,7 @@
       },
       {
         "id": "krizaka-security",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-security",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-security",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2815,7 +2815,7 @@
       },
       {
         "id": "krizaka-web",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-web",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-web",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -2824,7 +2824,7 @@
       },
       {
         "id": "krizaka-webhooks",
-        "path": ".krizaka-java/krizaka-service-kit/krizaka-webhooks",
+        "path": "../../tmp/teams/sovkora-3616a-scratch/kj/krizaka-service-kit/krizaka-webhooks",
         "repository": "krizaka-java",
         "role": "platform",
         "packaging": "jar",
@@ -4502,12 +4502,12 @@
             "en": {
               "label": "Outbound Prospecting",
               "tagline": "Your prospect list becomes a sequence ready to send.",
-              "description": "Describe your target and your offer: Orazaka writes a per-prospect angle, then a sequence ready to leave for your channel."
+              "description": "Describe your target and your offer: Sovkora writes a per-prospect angle, then a sequence ready to leave for your channel."
             },
             "fr": {
               "label": "Prospection Outbound",
               "tagline": "Votre liste de prospects devient une séquence prête à envoyer.",
-              "description": "Décrivez votre cible et votre offre : Orazaka rédige un angle par prospect, puis une séquence prête à partir dans votre canal."
+              "description": "Décrivez votre cible et votre offre : Sovkora rédige un angle par prospect, puis une séquence prête à partir dans votre canal."
             }
           }
         },
@@ -4642,13 +4642,13 @@
       "text": {
         "en": {
           "label": "Contributor",
-          "tagline": "The model turn behind Orazaka's code agent on your Mac.",
-          "description": "Carries the model turns of the Orazaka app's code agent, so that access, consent and credits are checked on every turn. The tools, the approvals, git and the audit stay on your Mac."
+          "tagline": "The model turn behind Sovkora's code agent on your Mac.",
+          "description": "Carries the model turns of the Sovkora app's code agent, so that access, consent and credits are checked on every turn. The tools, the approvals, git and the audit stay on your Mac."
         },
         "fr": {
           "label": "Contributeur",
-          "tagline": "Le tour de modèle derrière l'agent de code d'Orazaka sur votre Mac.",
-          "description": "Porte les tours de modèle de l'agent de code de l'app Orazaka, pour que l'accès, le consentement et les crédits soient vérifiés à chaque tour. Les outils, les approbations, git et le journal restent sur votre Mac."
+          "tagline": "Le tour de modèle derrière l'agent de code de Sovkora sur votre Mac.",
+          "description": "Porte les tours de modèle de l'agent de code de l'app Sovkora, pour que l'accès, le consentement et les crédits soient vérifiés à chaque tour. Les outils, les approbations, git et le journal restent sur votre Mac."
         }
       },
       "categoryText": {
@@ -6623,12 +6623,12 @@
             "en": {
               "label": "Trade Showcase",
               "tagline": "Your job sites become a showcase that sells.",
-              "description": "Drop in photos of your work: Orazaka describes them, then composes a branded showcase visual."
+              "description": "Drop in photos of your work: Sovkora describes them, then composes a branded showcase visual."
             },
             "fr": {
               "label": "Vitrine Artisan",
               "tagline": "Vos chantiers deviennent une vitrine qui vend.",
-              "description": "Déposez les photos de vos réalisations : Orazaka les décrit, puis compose un visuel de vitrine à votre image."
+              "description": "Déposez les photos de vos réalisations : Sovkora les décrit, puis compose un visuel de vitrine à votre image."
             }
           }
         }
@@ -7530,7 +7530,7 @@
         "name": "agent",
         "top": "agent",
         "isTop": true,
-        "description": "Manage Orazaka local executing agent",
+        "description": "Manage Sovkora local executing agent",
         "args": [],
         "aliases": [],
         "options": []
@@ -8090,7 +8090,7 @@
         "name": "dev",
         "top": "dev",
         "isTop": true,
-        "description": "Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)",
+        "description": "Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)",
         "args": [],
         "aliases": [],
         "options": [
@@ -8854,7 +8854,7 @@
         "name": "start",
         "top": "start",
         "isTop": true,
-        "description": "Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
+        "description": "Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
         "args": [],
         "aliases": [],
         "options": [
@@ -8899,7 +8899,7 @@
         "name": "status",
         "top": "status",
         "isTop": true,
-        "description": "Show live status of all Orazaka services",
+        "description": "Show live status of all Sovkora services",
         "args": [],
         "aliases": [],
         "options": [
@@ -8919,7 +8919,7 @@
         "name": "stop",
         "top": "stop",
         "isTop": true,
-        "description": "Teardown the Orazaka infrastructure — containers, workers, and state",
+        "description": "Teardown the Sovkora infrastructure — containers, workers, and state",
         "args": [],
         "aliases": [],
         "options": [
@@ -9129,7 +9129,7 @@
           {
             "id": "workspace",
             "title": "Workspace",
-            "detail": "no Orazaka workspace here"
+            "detail": "no Sovkora workspace here"
           },
           {
             "id": "3",
@@ -9145,7 +9145,7 @@
       },
       {
         "command": "start",
-        "description": "Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
+        "description": "Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
         "phases": [
           {
             "id": "1",
@@ -9186,7 +9186,7 @@
       },
       {
         "command": "dev",
-        "description": "Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)",
+        "description": "Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)",
         "processes": [
           {
             "key": "edge",

@@ -1,8 +1,8 @@
 pack:
   label: Contributeur
-  tagline: Le tour de modèle derrière l'agent de code d'Orazaka sur votre Mac.
+  tagline: Le tour de modèle derrière l'agent de code de Sovkora sur votre Mac.
   description: >-
-    Porte les tours de modèle de l'agent de code de l'app Orazaka, pour que l'accès, le consentement et les crédits soient
+    Porte les tours de modèle de l'agent de code de l'app Sovkora, pour que l'accès, le consentement et les crédits soient
     vérifiés à chaque tour. Les outils, les approbations, git et le journal restent sur votre Mac.
 studios:
   code-issue-to-pr:

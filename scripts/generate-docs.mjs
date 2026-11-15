@@ -291,7 +291,7 @@ function extractArchitecture() {
   }));
 
   for (const m of [...reactor, ...extra]) {
-    const owner = m.repository.layer === "krizaka" ? "krizaka" : "orazaka";
+    const owner = m.repository.layer === "krizaka" ? "krizaka" : "sovkora";
     modules.push({
       id: m.id,
       path: m.path,
@@ -416,7 +416,7 @@ function extractArchitecture() {
   }));
 
   return {
-    product: "orazaka",
+    product: "sovkora",
     source: "generated from code by scripts/generate-docs.mjs — do not hand-edit",
     roles: ROLES,
     repositories,
@@ -1937,9 +1937,9 @@ const mdBusiness = (b) => {
     "",
     "```sequence",
     "participant client: Client · CLI · agent",
-    "participant conversation: @orazaka-conversation-service",
-    "participant business: @orazaka-business",
-    "participant core: @orazaka-core",
+    "participant conversation: @sovkora-conversation-service",
+    "participant business: @sovkora-engine-business",
+    "participant core: @sovkora-engine-core",
     "client -> conversation: POST /api/v1/intent (IntentController)",
     "conversation -> business: an immutable Intention",
     "business -> business: UseCaseDispatcher resolves the UseCase by capability (UseCaseRegistry)",

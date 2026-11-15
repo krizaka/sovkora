@@ -110,3 +110,17 @@ test("the repository itself is at or under its ratchet, with live allowances", (
   const { code, out } = (() => { const log = console.log, err = console.error, buf = []; console.log = console.error = (m) => buf.push(m); try { return { code: main([], root), out: buf.join("\n") }; } finally { console.log = log; console.error = err; } })();
   assert.equal(code, 0, out);
 });
+
+test("the architecture model files tolerate no retired name, whatever the ratchet allows", () => {
+  for (const path of ["docs/architecture/x.c4", "docs/architecture/target-modules.md", "docs/_generated/architecture.json", "apps/web/content/docs/model.json"]) {
+    const { code, out } = run(repo({ [path]: `a ${NAME} b\n` }, { ratchet: { docs: 9, apps: 9 } }));
+    assert.equal(code, 1, path);
+    assert.match(out, /architecture model/, path);
+  }
+});
+
+test("a model file may carry an allowed token (a live identifier) and nothing else", () => {
+  const allow = { paths: [], tokens: [{ token: `${NAME}.events`, reason: "live exchange", row: "K1" }] };
+  assert.equal(run(repo({ "docs/_generated/architecture.json": `"exchange": "${NAME}.events"\n` }, { allow, ratchet: {} })).code, 0);
+  assert.equal(run(repo({ "docs/_generated/architecture.json": `"exchange": "${NAME}.events", "x": "${NAME}"\n` }, { allow, ratchet: {} })).code, 1);
+});

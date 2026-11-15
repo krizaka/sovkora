@@ -1,8 +1,8 @@
 pack:
   label: Contributor
-  tagline: The model turn behind Orazaka's code agent on your Mac.
+  tagline: The model turn behind Sovkora's code agent on your Mac.
   description: >-
-    Carries the model turns of the Orazaka app's code agent, so that access, consent and credits are checked on every turn.
+    Carries the model turns of the Sovkora app's code agent, so that access, consent and credits are checked on every turn.
     The tools, the approvals, git and the audit stay on your Mac.
 studios:
   code-issue-to-pr:

@@ -1,6 +1,6 @@
 /**
  * @file status.command.ts
- * @description Live dashboard showing all Orazaka service statuses,
+ * @description Live dashboard showing all Sovkora service statuses,
  * ports, PIDs, and health indicators.
  */
 
@@ -44,7 +44,7 @@ const SERVICES: ServiceEntry[] = [
 ];
 
 export const statusCommand = new Command("status")
-  .description("Show live status of all Orazaka services")
+  .description("Show live status of all Sovkora services")
   .option("--json", "Output status as JSON")
   .option("--watch", "Refresh every 5 seconds")
   .action(async (options: { json?: boolean; watch?: boolean }) => {
@@ -127,7 +127,7 @@ export const statusCommand = new Command("status")
           (isAppleSilicon() ? ` ${chalk.gray("| Apple Silicon ✔")}` : ""),
       );
 
-      await note(lines.join("\n"), "🥷 Orazaka Service Status");
+      await note(lines.join("\n"), "🥷 Sovkora Service Status");
     };
 
     if (options.watch) {
@@ -149,7 +149,7 @@ export const statusCommand = new Command("status")
         });
       });
     } else {
-      await intro(chalk.cyan.bold("🥷 Orazaka Status"));
+      await intro(chalk.cyan.bold("🥷 Sovkora Status"));
       await renderStatus();
 
       const logDir = resolveLogDir();

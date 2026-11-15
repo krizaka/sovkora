@@ -1,6 +1,6 @@
 /**
  * @file dev.command.ts
- * @description Parallel development orchestrator for the Orazaka full-stack.
+ * @description Parallel development orchestrator for the Sovkora full-stack.
  * Spawns the Router (Spring Boot) backend, Web Client (which serves the operator console), and Mobile
  * Expo servers with color-coded prefixed output and premium DevX logging.
  *
@@ -254,7 +254,7 @@ export function resolveEnabledServices(opts: DevOptions): Record<ServiceKey, boo
 }
 
 export const devCommand = new Command("dev")
-  .description("Launch the full Orazaka application stack in parallel (9 services + Web, Mobile)")
+  .description("Launch the full Sovkora application stack in parallel (9 services + Web, Mobile)")
   .option(
     "--only <services>",
     "Launch only these services (comma-separated: edge,router,identity,automation,knowledge,job,billing,studio,notifications,web,mobile)",
@@ -312,7 +312,7 @@ export const devCommand = new Command("dev")
         label: "IDENTITY",
         color: chalk.white,
         command: "./mvnw",
-        // Run from the workspace root, like the e2e harness: Orazaka's onboarding schemas are
+        // Run from the workspace root, like the e2e harness: Sovkora's onboarding schemas are
         // file:infra/users/… paths in .env (USERS_ONBOARDING_SCHEMA).
         args: ["spring-boot:run", "-pl", KRIZAKA_BUILD_MODULES.identity, `-Dspring-boot.run.workingDirectory=${root}`],
         cwd: root,
@@ -427,7 +427,7 @@ export const devCommand = new Command("dev")
     console.log("");
     console.log(chalk.cyan.bold("  ┌" + "─".repeat(BOX_W) + "┐"));
     console.log(
-      chalk.cyan.bold("  │") + chalk.white.bold(pad("  🥷  Orazaka Dev Stack", BOX_W)) + chalk.cyan.bold("│"),
+      chalk.cyan.bold("  │") + chalk.white.bold(pad("  🥷  Sovkora Dev Stack", BOX_W)) + chalk.cyan.bold("│"),
     );
     console.log(chalk.cyan.bold("  ├" + "─".repeat(BOX_W) + "┤"));
 

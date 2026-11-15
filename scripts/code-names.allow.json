@@ -71,6 +71,126 @@
       "token": "orazaka.data.table",
       "reason": "The data-analytics worker's capability keys (orazaka.data.table.facts, .dashboard, krizaka-internal#3628): the registry's feature-key grammar is ^orazaka\\. (packs/pack.schema.json $defs.featureKey), stored in capability rows; renamed with every other key by a data migration of krizaka-internal#2684.",
       "row": "K2"
+    },
+    {
+      "token": "orazaka.core.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.validation.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.screening.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.automation.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.studio.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.photo.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.safety.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.message.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.identity.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.echo.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka.code.",
+      "reason": "A live capability feature key (registry grammar of the feature keys, stored in capability rows and in pack manifests); renamed with every other key by a data migration of krizaka-internal#2684, never by editing the model that reports it.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka-media",
+      "reason": "A pack key and folder (the media toolkit pack), published in the model as the pack's identifier; renamed with the packs by krizaka-internal#2684.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka-worker-",
+      "reason": "A worker's live name (the identifier packs declare in `workers`, the image and the queue it consumes); renamed with the broker topology by krizaka-internal#2684.",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "orazaka-release.json",
+      "reason": "The release manifest file the CLI reads (a live file name).",
+      "row": "K3",
+      "scope": "model"
+    },
+    {
+      "token": "@krizaka/orazaka-cli",
+      "reason": "The CLI's published npm package (an npm tombstone path stays; the package renames with the CLI).",
+      "row": "K3",
+      "scope": "model"
+    },
+    {
+      "token": "\"alias\": \"orazaka\"",
+      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
+      "row": "K3",
+      "scope": "model"
+    },
+    {
+      "token": "\"bin\": \"orazaka\"",
+      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
+      "row": "K3",
+      "scope": "model"
+    },
+    {
+      "token": "\"alias\":\"orazaka\"",
+      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
+      "row": "K3",
+      "scope": "model"
+    },
+    {
+      "token": "\"default\": \"orazaka\"",
+      "reason": "The CLI's default database name option (a live database name of the job plane).",
+      "row": "K2",
+      "scope": "model"
+    },
+    {
+      "token": "`orazaka ",
+      "reason": "A CLI command typed by a user, quoted in the CLI's own help text; renamed with the CLI.",
+      "row": "K3",
+      "scope": "model"
     }
   ]
 }

@@ -17,9 +17,9 @@ interceptor pipeline.
 
 ```sequence
 participant client: Client · CLI · agent
-participant conversation: @orazaka-conversation-service
-participant business: @orazaka-business
-participant core: @orazaka-core
+participant conversation: @sovkora-conversation-service
+participant business: @sovkora-engine-business
+participant core: @sovkora-engine-core
 client -> conversation: POST /api/v1/intent (IntentController)
 conversation -> business: an immutable Intention
 business -> business: UseCaseDispatcher resolves the UseCase by capability (UseCaseRegistry)

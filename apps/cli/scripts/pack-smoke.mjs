@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * What npm users get, tested before it is published: packs @krizaka/orazaka-cli and its `orazaka`
- * alias, installs both tarballs in an empty project outside any Orazaka workspace, and runs the
+ * alias, installs both tarballs in an empty project outside any Sovkora workspace, and runs the
  * `orazaka` bin from there — the same path `npx orazaka …` and `npx @krizaka/orazaka-cli …` take.
  *
  *   node scripts/pack-smoke.mjs            (npm run test:pack; CI runs it on every pull request)
@@ -131,7 +131,7 @@ try {
     const outside = run(bin, [command], elsewhere);
     check(
       `orazaka ${command} outside a workspace explains how to get one`,
-      outside.status === 1 && outside.out.includes("Orazaka workspace") && outside.out.includes("npx orazaka install"),
+      outside.status === 1 && outside.out.includes("Sovkora workspace") && outside.out.includes("npx orazaka install"),
       outside.out,
     );
   }

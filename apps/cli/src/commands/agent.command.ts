@@ -5,7 +5,7 @@
  *
  * It **never executes** what the server sends. Running a shell command received over the network is remote code
  * execution by design; ADR-079 (krizaka/orazaka, docs/adr/ADR-079-automations-and-local-agents.md) retires it: work on
- * the user's machine is done by the Orazaka runner (the Mac app today, a headless runner later), with tools behind
+ * the user's machine is done by the Sovkora runner (the Mac app today, a headless runner later), with tools behind
  * approvals and no shell in v1. A payload that reaches this listener is recorded and reported as refused.
  */
 
@@ -72,7 +72,7 @@ async function postJobReport(
 }
 
 export const REFUSAL =
-  "Refused: this listener never runs commands sent by the server (ADR-079). Use the Orazaka runner — the Mac app's Automations — whose tools ask before any side effect.";
+  "Refused: this listener never runs commands sent by the server (ADR-079). Use the Sovkora runner — the Mac app's Automations — whose tools ask before any side effect.";
 
 /**
  * Records and reports the refusal of a payload: nothing is executed, whatever it carries.
@@ -227,7 +227,7 @@ function startHeartbeatSync(userId: string, token: string): void {
   }, 15000);
 }
 
-export const agentCommand = new Command("agent").description("Manage Orazaka local executing agent").addCommand(
+export const agentCommand = new Command("agent").description("Manage Sovkora local executing agent").addCommand(
   new Command("listen").description("Start CLI agent listener and reverse tunnel").action(async () => {
     const config = requireAuth();
     let userId = config.userId;
@@ -254,7 +254,7 @@ export const agentCommand = new Command("agent").description("Manage Orazaka loc
     // Initialize local SQLite table
     getDb();
 
-    console.log(chalk.cyan("🥷 Starting Orazaka Local Agent Listener..."));
+    console.log(chalk.cyan("🥷 Starting Sovkora Local Agent Listener..."));
     console.log(chalk.gray(`Gateway: ${ROUTER_URL}`));
     console.log(chalk.gray(`User ID: ${userId}`));
 

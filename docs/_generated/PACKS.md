@@ -48,7 +48,7 @@ capability rows, a price, catalogue entries — and changes no code.
  {
   "key": "code-contributor",
   "title": "Contributor",
-  "tagline": "The model turn behind Orazaka's code agent on your Mac.",
+  "tagline": "The model turn behind Sovkora's code agent on your Mac.",
   "tier": "DATA",
   "category": "Developer tools",
   "studios": 2
@@ -739,7 +739,7 @@ capability rows, a price, catalogue entries — and changes no code.
    "key": "outbound-prospection",
    "label": "Outbound Prospecting",
    "summary": "Your prospect list becomes a sequence ready to send.",
-   "description": "Describe your target and your offer: Orazaka writes a per-prospect angle, then a sequence ready to leave for your channel.",
+   "description": "Describe your target and your offer: Sovkora writes a per-prospect angle, then a sequence ready to leave for your channel.",
    "inputs": [
     {
      "key": "prospects",
@@ -827,8 +827,8 @@ capability rows, a price, catalogue entries — and changes no code.
 {
  "key": "code-contributor",
  "title": "Contributor",
- "tagline": "The model turn behind Orazaka's code agent on your Mac.",
- "description": "Carries the model turns of the Orazaka app's code agent, so that access, consent and credits are checked on every turn. The tools, the approvals, git and the audit stay on your Mac.",
+ "tagline": "The model turn behind Sovkora's code agent on your Mac.",
+ "description": "Carries the model turns of the Sovkora app's code agent, so that access, consent and credits are checked on every turn. The tools, the approvals, git and the audit stay on your Mac.",
  "version": "1.1.0",
  "tier": "DATA",
  "kind": null,
@@ -1939,7 +1939,7 @@ capability rows, a price, catalogue entries — and changes no code.
    "key": "trade-showcase",
    "label": "Trade Showcase",
    "summary": "Your job sites become a showcase that sells.",
-   "description": "Drop in photos of your work: Orazaka describes them, then composes a branded showcase visual.",
+   "description": "Drop in photos of your work: Sovkora describes them, then composes a branded showcase visual.",
    "inputs": [
     {
      "key": "photos",

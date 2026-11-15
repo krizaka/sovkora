@@ -47,7 +47,7 @@ type ServiceName =
 
 export const startCommand = new Command("start")
   .description(
-    "Start Orazaka infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
+    "Start Sovkora infrastructure — dev mode (Docker middleware + AI engines) or full mode (also Router + UI)",
   )
   .option("--mode <mode>", "Startup mode: dev (default, infra + AI engines) or full (also Router + Next.js UI)", "dev")
   .option(
@@ -73,7 +73,7 @@ export const startCommand = new Command("start")
       const onlyService = options.only as ServiceName | undefined;
 
       await intro(
-        chalk.cyan.bold(mode === "dev" ? "🥷 Orazaka Dev Infrastructure" : "🥷 Orazaka Full Infrastructure Bootstrap"),
+        chalk.cyan.bold(mode === "dev" ? "🥷 Sovkora Dev Infrastructure" : "🥷 Sovkora Full Infrastructure Bootstrap"),
       );
 
       requireWorkspace("start");

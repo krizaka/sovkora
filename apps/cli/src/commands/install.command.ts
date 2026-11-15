@@ -174,7 +174,7 @@ export const installCommand = new Command("install")
 
     // ─── Workspace: clone the platform when there is none ───────
     if (!locateWorkspace()) {
-      await logStep("Workspace — no Orazaka workspace here");
+      await logStep("Workspace — no Sovkora workspace here");
       const target = path.resolve(options.dir);
       let shouldClone = yes;
       if (interactive) {
