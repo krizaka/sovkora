@@ -101,3 +101,13 @@ describe("RunScreen — what is happening now (orazaka-web-client#85)", () => {
     expect(screen.getByRole("button", { name: "Cancel the run" })).toBeInTheDocument();
   });
 });
+
+describe("RunScreen — the text keeps its width on a phone (krizaka-internal#3834)", () => {
+  it("the text column takes the width and may shrink, and the card stacks below sm", () => {
+    steps = [step("video", "RUNNING")];
+    render(<RunScreen runId="r1" />);
+    const column = screen.getByRole("heading", { level: 1 }).parentElement;
+    expect(column).toHaveClass("min-w-0", "w-full", "sm:flex-1");
+    expect(column?.parentElement).toHaveClass("flex-col", "sm:flex-row");
+  });
+});

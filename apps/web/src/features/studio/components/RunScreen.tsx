@@ -110,9 +110,17 @@ export function RunScreen({ runId }: Readonly<RunScreenProps>) {
       </Button>
 
       <Card.Root>
-        <Card.Body padding="lg" className="flex-row flex-wrap items-center gap-5">
-          <Mascot bird={birdFor(run.studioKey)} mood={MOOD[run.status]} size={112} />
-          <div aria-live="polite" className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <Card.Body
+          padding="md"
+          className="flex-col items-stretch gap-5 sm:p-6 sm:flex-row sm:flex-wrap sm:items-center"
+        >
+          <Mascot
+            bird={birdFor(run.studioKey)}
+            mood={MOOD[run.status]}
+            size={112}
+            className="shrink-0 self-start sm:self-auto"
+          />
+          <div aria-live="polite" className="flex w-full min-w-0 flex-col gap-1.5 sm:w-auto sm:flex-1 sm:basis-64">
             <h1 className="font-display text-xl font-bold tracking-[-0.02em] text-fg">{headline[run.status]}</h1>
             {body[run.status] && <p className="text-sm text-fg-secondary">{body[run.status]}</p>}
             <span className="font-mono text-[11px] text-fg-muted">
@@ -131,7 +139,7 @@ export function RunScreen({ runId }: Readonly<RunScreenProps>) {
             )}
           </div>
           {!isTerminalRun(run.status) && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {run.status === "AWAITING_INPUT" && (
                 <Button variant="primary" size="sm" onClick={() => void act(() => StudioApi.approveRun(run.id))}>
                   {t.studio.approve}

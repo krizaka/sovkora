@@ -13,6 +13,7 @@ import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { qaOnScreen } from "./qa-on-screen.mjs";
+import { assertTextReadable } from "./text-width-on-screen.mjs";
 
 const BASE = process.env.APP_BASE_URL ?? "https://dev.sovkora.com";
 const OUT = path.resolve(process.argv[2] ?? "web-steps");
@@ -96,6 +97,7 @@ for (const theme of ["dark", "light"]) {
     const start = (Date.now() - t0) / 1000 + 0.3;
     await act();
     if (await qaOnScreen(page)) throw new Error(`${id}/${theme}: « qa » is on screen — a demo shows a persona`);
+    await assertTextReadable(page, `${id}/${theme}`);
     await ctx.close();
     const src = path.join(
       raw,
