@@ -221,7 +221,9 @@ export function toolPathVerdict(
   { ciConclusion, ciRunId = null, proofCommittedAt, coreDeployedAt, readError = null },
   required,
 ) {
-  if (readError) return { ok: false, message: `could not read the proof (${readError})` };
+  if (readError) {
+    return { ok: false, message: `could not read the proof (${readError})` };
+  }
   if (!proofCommittedAt) {
     return {
       ok: false,
@@ -267,7 +269,9 @@ export function toolPathVerdict(
  */
 export async function githubGet(path, { token, fetchImpl = fetch } = {}) {
   const headers = { Accept: "application/vnd.github+json" };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
   try {
     const res = await fetchImpl(`https://api.github.com/repos/${PROOF_REPO}/${path}`, { headers });
     return { status: res.status, body: res.ok ? await res.json() : null };
@@ -281,7 +285,9 @@ export async function toolPathFacts(coreDeployedAt, { token = process.env.GITHUB
   let readError = null;
   const get = async (path) => {
     const { status, body } = await githubGet(path, { token, fetchImpl });
-    if (status !== 200) readError ??= status === null ? "network" : `HTTP ${status}`;
+    if (status !== 200) {
+      readError ??= status === null ? "network" : `HTTP ${status}`;
+    }
     return body;
   };
   const commits = await get(`commits?sha=main&per_page=1&path=${encodeURIComponent(PROOF_TEST)}`);
