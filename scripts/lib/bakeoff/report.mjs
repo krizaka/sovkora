@@ -1,7 +1,14 @@
 // The « Law retrieval bake-off » section of the Measured runs page, from docs/measurements/law-bakeoff.json. Nothing is typed by hand: re-run the bake-off, regenerate.
 const pct = (x) => (x == null ? "—" : `${Math.round(x * 100)} %`);
 const ms = (x) => (x == null ? "—" : `${(x / 1000).toFixed(1)} s`);
-const usd = (x) => (x == null ? "—" : x === 0 ? "$0 (local)" : `$${x.toFixed(4)}`);
+const usd = (x) => {
+  if (x == null) return "—";
+  return x === 0 ? "$0 (local)" : `$${x.toFixed(4)}`;
+};
+const code = (x) => `\`${x}\``;
+const verdictOf = (decision) =>
+  decision.winner ? `${code(decision.winner)} (ranking: ${decision.ranking.map(code).join(", ")})` : "no model is safe on this set";
+const disqualifiedOf = (list) => (list.length ? `: ${list.map((x) => `${code(x.id)} (${x.wrongAccepted})`).join(", ")}` : " (none was)");
 const row = (cells) => `| ${cells.join(" | ")} |`;
 
 export function mdLawBakeoff(d) {
@@ -17,7 +24,7 @@ export function mdLawBakeoff(d) {
     lines(L, row([`**${m.id}**`, m.local ? "local (Ollama)" : "DigitalOcean serverless", `**${a.wrongAccepted}**`, `${a.verified} / ${a.claims} (${pct(a.verifiedRate)})`, pct(a.quoteFoundRate), pct(a.recall), pct(a.statedRate), pct(a.frenchWording), `${ms(a.latencyP50)} / ${ms(a.latencyP95)}`, usd(m.costPerRunUsd), pct(m.stability)]));
   }
   L.push("");
-  L.push(`**Verdict:** ${d.decision.winner ? `\`${d.decision.winner}\` (ranking: ${d.decision.ranking.map((x) => `\`${x}\``).join(", ")})` : "no model is safe on this set"}. A model with one wrong citation accepted is disqualified${d.decision.disqualified.length ? `: ${d.decision.disqualified.map((x) => `\`${x.id}\` (${x.wrongAccepted})`).join(", ")}` : " (none was)"}. Among the safe ones the best accuracy wins; on a tie, the cheapest, local first. The winner is set by a routing row for the step (DB), never in code.`, "");
+  L.push(`**Verdict:** ${verdictOf(d.decision)}. A model with one wrong citation accepted is disqualified${disqualifiedOf(d.decision.disqualified)}. Among the safe ones the best accuracy wins; on a tie, the cheapest, local first. The winner is set by a routing row for the step (DB), never in code.`, "");
   L.push(`Spent: **$${d.spentUsd.toFixed(4)}** of the $${d.maxUsd.toFixed(2)} cap (prices of ${d.priceDate}). Run ids: ${d.runIds.length} runs, recorded in \`docs/measurements/law-bakeoff.json\`.`, "");
   if (d.notMeasured?.length) {
     L.push("Steps not measured yet:", "");

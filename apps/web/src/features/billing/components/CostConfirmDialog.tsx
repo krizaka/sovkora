@@ -42,7 +42,7 @@ export function CostConfirmDialog({
   actionLabel,
   onConfirm,
   onCancel,
-}: CostConfirmDialogProps) {
+}: Readonly<CostConfirmDialogProps>) {
   const { t } = useTranslation();
   const { estimate, isLoading } = useCostEstimate(open ? capability : null, modelName);
 

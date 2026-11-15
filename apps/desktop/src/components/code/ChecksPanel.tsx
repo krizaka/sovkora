@@ -8,7 +8,7 @@ import { codeApi, errorMessage, type CodeCheck, type CodeCheckRun } from "../../
 import { format, useI18n } from "../../lib/i18n";
 import { codeKeys, checksQuery } from "../../lib/queries";
 
-function Command({ check }: { check: CodeCheck }) {
+function Command({ check }: Readonly<{ check: CodeCheck }>) {
   const { t } = useI18n();
   return (
     <div className="space-y-1">

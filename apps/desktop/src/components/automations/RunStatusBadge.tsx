@@ -12,7 +12,7 @@ const TONE = {
   "skipped-budget": "warning",
 } as const satisfies Record<RunStatus, "accent" | "warning" | "success" | "danger" | "neutral">;
 
-export function RunStatusBadge({ status }: { status: RunStatus }) {
+export function RunStatusBadge({ status }: Readonly<{ status: RunStatus }>) {
   const { t } = useI18n();
   return (
     <Badge tone={TONE[status]} dot pulse={status === "running"}>

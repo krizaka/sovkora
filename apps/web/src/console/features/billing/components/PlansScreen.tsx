@@ -113,12 +113,12 @@ function PlanEditor({
   onChange,
   onSave,
   onCancel,
-}: {
+}: Readonly<{
   plan: Plan;
   onChange: (plan: Plan) => void;
   onSave: () => void;
   onCancel: () => void;
-}) {
+}>) {
   return (
     <Card.Root className="p-5">
       <div className="space-y-4">

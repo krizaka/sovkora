@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const attr = (tag, name) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1];
+const attr = (tag, name) => new RegExp(String.raw`\s${name}="([^"]*)"`).exec(tag)?.[1];
 
 /** One Failsafe report (TEST-<class>.xml) -> { name, tests, skipped }. */
 export function readReport(xml) {

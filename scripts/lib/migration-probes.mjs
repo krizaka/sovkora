@@ -133,7 +133,7 @@ export function deriveProbes(sqlRaw) {
       const q = (v) => (v.startsWith("'") ? v : lit(v));
       // a date literal ('1970-01-01') is a prefix of the timestamp's text
       const eq = (x) => (/^'\d{4}-\d{2}-\d{2}'$/.test(x.v) ? `${x.c}::text LIKE ${lit(x.v.slice(1, -1) + "%")}` : `${x.c}::text = ${q(x.v)}`);
-      add(`row ${table} ${used.map((x) => `${x.c}=${x.v.replaceAll("'", "")}`).join(",")}`, `EXISTS (SELECT 1 FROM ${table} WHERE ${used.map(eq).join(" AND ")})`);
+      add(`row ${table} ${used.map((x) => x.c + "=" + x.v.replaceAll("'", "")).join(",")}`, `EXISTS (SELECT 1 FROM ${table} WHERE ${used.map(eq).join(" AND ")})`);
     }
   }
   return probes;
@@ -156,5 +156,6 @@ export function probesOf(file, sql, config = {}) {
 export function judge(results) {
   if (!results.length) return "unprobed";
   const ok = results.filter((r) => r.ok).length;
-  return ok === results.length ? "present" : ok === 0 ? "missing" : "partial";
+  if (ok === results.length) return "present";
+  return ok === 0 ? "missing" : "partial";
 }

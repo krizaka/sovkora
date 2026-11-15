@@ -43,7 +43,7 @@ export function App() {
   );
 }
 
-function Shell({ snap, error, refresh, setSnap }: { snap: Snapshot | null; error: string | null; refresh: () => Promise<void>; setSnap: (s: Snapshot) => void }) {
+function Shell({ snap, error, refresh, setSnap }: Readonly<{ snap: Snapshot | null; error: string | null; refresh: () => Promise<void>; setSnap: (s: Snapshot) => void }>) {
   const { t, format, locale } = useI18n();
   const { mode } = useTheme();
   const [tab, setTab] = useState("stack");

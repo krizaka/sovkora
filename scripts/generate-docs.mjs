@@ -652,7 +652,7 @@ function extractMessaging(reactor, extra) {
         if (!keys.length) {
           const config = files.map(read).join("\n");
           const bean = stem.toLowerCase().replace(/_(\w)/g, (_, c) => c.toUpperCase());
-          keys = fileBindings.filter((k) => new RegExp(`bind\\(\\s*\\w*${bean}Queue\\s*\\)[\\s\\S]{0,120}?with\\(\\s*(?:AmqpConstants\\.)?${k}\\b`, "i").test(config));
+          keys = fileBindings.filter((k) => new RegExp(String.raw`bind\(\s*\w*${bean}Queue\s*\)[\s\S]{0,120}?with\(\s*(?:AmqpConstants\.)?${k}\b`, "i").test(config));
         }
         const binding = keys.map((k) => own.get(k)).filter((v, i, all) => v && all.indexOf(v) === i).join(", ") || null;
         const exchange = value.startsWith(`${JOBS}.`) ? JOBS : EVENTS;
@@ -671,7 +671,7 @@ function extractMessaging(reactor, extra) {
           const spel = token.trim().match(/^"#\s*(\w+)\.name\s*"$/) ?? token.trim().match(/^"#\{(\w+)\.name\}"$/);
           if (spel) {
             // `#{settlementQueue.name}`: the queue the bean of that name declares.
-            const bean = files.map(read).join("\n").match(new RegExp(`Queue\\s+${spel[1]}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?(?:new Queue\\(|QueueBuilder\\.durable\\()\\s*([^,)]+)`));
+            const bean = files.map(read).join("\n").match(new RegExp(String.raw`Queue\s+${spel[1]}\s*\([^)]*\)\s*\{[\s\S]*?(?:new Queue\(|QueueBuilder\.durable\()\s*([^,)]+)`));
             addConsumer(mod.id, bean ? resolveToken(bean[1], local) : null);
           } else addConsumer(mod.id, resolveToken(token, local));
         }
@@ -813,7 +813,7 @@ function coreInterceptorKeys() {
  * braces dropped (the text is compiled as MDX on the site), or null.
  */
 function classSummary(src, name) {
-  const at = src.search(new RegExp(`\\bclass\\s+${name}\\b`));
+  const at = src.search(new RegExp(String.raw`\bclass\s+${name}\b`));
   if (at < 0) return null;
   const doc = src.slice(0, at).match(/\/\*\*([\s\S]*?)\*\/[^/]*$/)?.[1];
   if (!doc) return null;
@@ -840,7 +840,7 @@ function extractInterceptors(pipeline) {
   return javaFiles(dir)
     // An interceptor is a class implementing the core's PromptContextInterceptor SPI (ERR-122),
     // whatever its name says: UserContextResolver and SystemContextInjector lead the core chain.
-    .filter((f) => new RegExp(`\\bclass\\s+${basename(f, ".java")}\\b[^{]*\\bimplements\\b[^{]*\\bPromptContextInterceptor\\b`).test(read(f)))
+    .filter((f) => new RegExp(String.raw`\bclass\s+${basename(f, ".java")}\b[^{]*\bimplements\b[^{]*\bPromptContextInterceptor\b`).test(read(f)))
     .map((f) => {
       const name = basename(f, ".java");
       const concern = relative(dir, f).split(/[/\\]/)[0];
@@ -1237,11 +1237,11 @@ function extractGovernance() {
       const suite = basename(f, ".java");
       for (const rule of rules.values()) {
         // `Holder.assertX(` — how most suites call it.
-        const qualified = new RegExp(`\\b${rule.holder}\\s*\\.\\s*${rule.name}\\s*\\(`);
+        const qualified = new RegExp(String.raw`\b${rule.holder}\s*\.\s*${rule.name}\s*\(`);
         // `import static ...Holder.assertX;` or `...Holder.*;` then a bare `assertX(`.
         const staticallyImported =
-          new RegExp(`import\\s+static\\s+[\\w.]*\\b${rule.holder}\\.(?:${rule.name}|\\*)\\s*;`).test(src) &&
-          new RegExp(`(?:^|[^.\\w])${rule.name}\\s*\\(`, "m").test(src);
+          new RegExp(String.raw`import\s+static\s+[\w.]*\b${rule.holder}\.(?:${rule.name}|\*)\s*;`).test(src) &&
+          new RegExp(String.raw`(?:^|[^.\w])${rule.name}\s*\(`, "m").test(src);
         if ((qualified.test(src) || staticallyImported) && !rule.suites.includes(suite)) {
           rule.suites.push(suite);
         }
@@ -1263,7 +1263,7 @@ function extractGovernance() {
   // silently rehabilitated the only genuinely orphaned rule in the library — the same correction
   // [DOOR-001] needed when a comment counted as a dispatch, and [BILL-001]'s docstring before it.
   const bodyOf = (src, name) => {
-    const decl = new RegExp(`public static (?:void|boolean) ${name}\\s*\\(`).exec(src);
+    const decl = new RegExp(String.raw`public static (?:void|boolean) ${name}\s*\(`).exec(src);
     if (!decl) return "";
     let i = src.indexOf("{", decl.index);
     if (i < 0) return "";
@@ -1293,8 +1293,8 @@ function extractGovernance() {
         if (callee === caller) continue;
         const reached =
           callee.holder === caller.holder
-            ? new RegExp(`(?:^|[^.\\w])${callee.name}\\s*\\(`, "m").test(body)
-            : new RegExp(`\\b${callee.holder}\\s*\\.\\s*${callee.name}\\s*\\(`).test(body);
+            ? new RegExp(String.raw`(?:^|[^.\w])${callee.name}\s*\(`, "m").test(body)
+            : new RegExp(String.raw`\b${callee.holder}\s*\.\s*${callee.name}\s*\(`).test(body);
         if (!reached) continue;
         for (const suite of caller.suites) {
           if (!callee.suites.includes(suite)) {

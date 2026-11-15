@@ -170,7 +170,8 @@ async function main() {
   const report = { suite: "orazaka-sovereign-smoke", base: BASE, host, startedAt: new Date().toISOString(), checks: [] };
   for (const check of CHECKS.filter((c) => !only || only.includes(c.name))) {
     const result = await runCheck(check);
-    console.log(`smoke: ${result.name.padEnd(13)} ${result.status.padEnd(7)} ${result.ms ? `${(result.ms / 1000).toFixed(0)} s` : ""} ${result.detail}`);
+    const seconds = result.ms ? (result.ms / 1000).toFixed(0) + " s" : "";
+    console.log(`smoke: ${result.name.padEnd(13)} ${result.status.padEnd(7)} ${seconds} ${result.detail}`);
     report.checks.push(result);
   }
   report.finishedAt = new Date().toISOString();

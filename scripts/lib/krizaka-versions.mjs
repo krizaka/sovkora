@@ -26,7 +26,7 @@ export function projectCoordinates(pom) {
   const parent = /<parent>([\s\S]*?)<\/parent>/.exec(bare)?.[1] ?? "";
   // Only the project's direct children: nested blocks (dependencies, build, properties…) carry other versions.
   const own = bare.replace(/<(parent|dependencyManagement|dependencies|build|properties|profiles|modules|reporting|licenses|developers|scm|distributionManagement|repositories|pluginRepositories)>[\s\S]*?<\/\1>/g, "");
-  const first = (xml, tag) => new RegExp(`<${tag}>\\s*([^<\\s]+)\\s*</${tag}>`).exec(xml)?.[1] ?? null;
+  const first = (xml, tag) => new RegExp(String.raw`<${tag}>\s*([^<\s]+)\s*</${tag}>`).exec(xml)?.[1] ?? null;
   return { artifactId: first(own, "artifactId"), version: first(own, "version") ?? first(parent, "version") };
 }
 

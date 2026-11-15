@@ -5,7 +5,7 @@ import { baseName, slotLabel, type Approval, type Decision } from "../../lib/api
 import { useI18n } from "../../lib/i18n";
 
 /** The approvals inbox: what a run wants to write, shown in full before anything is written (ADR-079 §4). */
-export function ApprovalsInbox({ approvals, onDecide }: { approvals: Approval[]; onDecide: (id: string, decision: Decision) => void }) {
+export function ApprovalsInbox({ approvals, onDecide }: Readonly<{ approvals: Approval[]; onDecide: (id: string, decision: Decision) => void }>) {
   const { t, format } = useI18n();
   if (approvals.length === 0) return null;
   return (

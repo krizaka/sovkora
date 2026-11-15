@@ -6,7 +6,7 @@ import { Switch } from "@krizaka/ui/switch";
 import { api, errorMessage, type Settings, type Snapshot } from "../lib/api";
 import { useI18n } from "../lib/i18n";
 
-export function SettingsPanel({ snap, onSaved, refresh }: { snap: Snapshot; onSaved: (s: Snapshot) => void; refresh: () => Promise<void> }) {
+export function SettingsPanel({ snap, onSaved, refresh }: Readonly<{ snap: Snapshot; onSaved: (s: Snapshot) => void; refresh: () => Promise<void> }>) {
   const { t } = useI18n();
   const [form, setForm] = useState<Settings>(snap.settings);
   const [message, setMessage] = useState<string | null>(null);

@@ -24,7 +24,7 @@ export interface TopUpDialogProps {
  * remedy that actually works today, and the refusal payload says so — the server
  * only offers `top_up_credits` to actors whose plan permits it.
  */
-export function TopUpDialog({ open, onClose }: TopUpDialogProps) {
+export function TopUpDialog({ open, onClose }: Readonly<TopUpDialogProps>) {
   const { t } = useTranslation();
   const money = useMoney();
   // The public plans are read once the dialog opens, and again only when they are stale.

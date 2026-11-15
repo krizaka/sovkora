@@ -11,7 +11,7 @@ import { useI18n } from "../../lib/i18n";
 const WEEKDAYS = [1, 2, 3, 4, 5];
 
 /** "Summarise new PDFs every morning" — the template of slice 1, on a folder shared in Files. */
-export function NewAutomationForm({ roots, defaults, onCancel, onCreated }: { roots: string[]; defaults: Defaults; onCancel: () => void; onCreated: () => void }) {
+export function NewAutomationForm({ roots, defaults, onCancel, onCreated }: Readonly<{ roots: string[]; defaults: Defaults; onCancel: () => void; onCreated: () => void }>) {
   const { t } = useI18n();
   const [name, setName] = useState(t("automations.form.nameDefault"));
   const [folder, setFolder] = useState(roots[0] ?? "");

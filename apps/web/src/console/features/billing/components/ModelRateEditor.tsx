@@ -32,7 +32,7 @@ export function ModelRateEditor({
   onPreview,
   onPublish,
   onCancel,
-}: ModelRateEditorProps) {
+}: Readonly<ModelRateEditorProps>) {
   const update = (patch: Partial<ModelRateDraft>) => onChange({ ...draft, ...patch });
 
   return (

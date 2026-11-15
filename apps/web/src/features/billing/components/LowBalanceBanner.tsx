@@ -26,7 +26,7 @@ export interface LowBalanceBannerProps {
  *
  * A @krizaka/ui Alert (tone warning: announced at once, role "alert").
  */
-export function LowBalanceBanner({ onTopUp }: LowBalanceBannerProps) {
+export function LowBalanceBanner({ onTopUp }: Readonly<LowBalanceBannerProps>) {
   const { t } = useTranslation();
   const { available, isLow } = useWallet();
   const [dismissed, setDismissed] = useState(false);

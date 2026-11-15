@@ -133,7 +133,8 @@ export function mdCinema(data) {
       "titles, synthesized foley), the voice-over and the music (ACE-Step). Each film's shots, on its GPU:",
     "",
   );
-  for (const f of data.films) lines.push(`- **${f.title}**: ${f.models.video} on ${f.gpu ?? data.gpu}${f.models.upscale ? `, upscaled by ${f.models.upscale}` : ""}`);
+  const upscaled = (f) => (f.models.upscale ? ", upscaled by " + f.models.upscale : "");
+  for (const f of data.films) lines.push(`- **${f.title}**: ${f.models.video} on ${f.gpu ?? data.gpu}${upscaled(f)}`);
   lines.push("", "| Film | Frame | Length | Shots (reshot) | Runs (failed) | GPU time of its runs | At the GPU rate | Wall time |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const f of data.films) {
     lines.push(

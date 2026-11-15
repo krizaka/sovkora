@@ -15,7 +15,7 @@ const VERSION_KEY = ["stack", "version"] as const;
 const START = { label: "start", call: { command: "start", mode: "dev" } } as const satisfies { label: string; call: CliCall };
 const STOP = { label: "stop", call: { command: "stop" } } as const satisfies { label: string; call: CliCall };
 
-export function StackPanel({ snap, goSettings }: { snap: Snapshot; goSettings: () => void }) {
+export function StackPanel({ snap, goSettings }: Readonly<{ snap: Snapshot; goSettings: () => void }>) {
   const { t, format } = useI18n();
   const queryClient = useQueryClient();
   const [lines, setLines] = useState<string[]>([]);

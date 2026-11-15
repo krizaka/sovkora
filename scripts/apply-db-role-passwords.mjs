@@ -131,7 +131,7 @@ for (const ctx of wanted) {
   execFileSync(
     toolPath("docker"),
     [...compose, "exec", "-T", "db-vector", "psql", "-U", superuser, "-d", "postgres",
-      "-v", "ON_ERROR_STOP=1", "-v", `pw=${process.env[`${ctx}_DB_PASSWORD`]}`],
+      "-v", "ON_ERROR_STOP=1", "-v", "pw=" + process.env[ctx + "_DB_PASSWORD"]],
     { cwd: ROOT, input: `ALTER ROLE ${role} PASSWORD :'pw';\n`, stdio: ["pipe", "pipe", "inherit"] },
   );
 }
