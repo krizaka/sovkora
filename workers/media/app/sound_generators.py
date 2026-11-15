@@ -144,9 +144,13 @@ def generate_foley(
     """Foley synchronised to ``video`` (MMAudio), made by its own runner in its own interpreter.
 
     MMAudio pins a different torch stack than this worker's; ``SOUND_PYTHON`` names the interpreter that
-    has it (default ``~/.orazaka/sound/venv/bin/python``), so the two never share an environment.
+    has it, so the two never share an environment. Both ``SOUND_PYTHON`` and ``SOUND_HOME`` are required for foley:
+    there is no default under the home directory (docs/DEPLOY_DEV.md, « Rebuild the local GPU and sound setup »).
     """
-    python = os.environ.get("SOUND_PYTHON") or os.path.expanduser("~/.orazaka/sound/venv/bin/python")
+    python = os.environ.get("SOUND_PYTHON")
+    home = os.environ.get("SOUND_HOME")
+    if not python or not home:
+        raise FileNotFoundError("the foley setup is not configured: set SOUND_PYTHON and SOUND_HOME")
     if not os.path.isfile(python):
         raise FileNotFoundError(f"the foley interpreter {python} is not installed (SOUND_PYTHON)")
     seed = int(seed) if seed is not None else int(time.time()) % 2**31
@@ -170,7 +174,6 @@ def generate_foley(
     ]
     # MMAudio downloads its weights (~6 GB) into ./weights and ./ext_weights of its working directory:
     # that is the sound home, never the checkout.
-    home = os.environ.get("SOUND_HOME") or os.path.expanduser("~/.orazaka/sound")
     done = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False, cwd=home)
     if done.returncode != 0:
         sys.stderr.write(done.stderr[-2000:])

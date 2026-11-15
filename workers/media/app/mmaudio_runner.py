@@ -1,8 +1,9 @@
 """Foley for a video with MMAudio — run by ``sound_generators.generate_foley`` in its own interpreter.
 
 Standalone on purpose: MMAudio (github.com/hkchengrex/MMAudio) pins its own torch stack, so it lives in
-``~/.orazaka/sound/venv`` and this file imports nothing from the worker. The code is MIT; the WEIGHTS it
-downloads are CC-BY-NC 4.0 — non-commercial (``models.yaml``, ``sound:``). Adapted from MMAudio's demo.py.
+the venv under ``SOUND_HOME`` (``<workspace>/models/sound``) and this file imports nothing from the worker.
+The code is MIT; the WEIGHTS it downloads are CC-BY-NC 4.0 — non-commercial (``models.yaml``, ``sound:``).
+Adapted from MMAudio's demo.py.
 """
 
 import argparse

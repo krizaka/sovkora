@@ -18,6 +18,11 @@ const mockOs = os as jest.Mocked<typeof os>;
 // Set up mock homedir before importing threads
 mockOs.homedir.mockReturnValue("/mock/home");
 
+// The state directory is resolved by utils/state-dir (tested apart); here it is a fixed place.
+jest.mock("../utils/state-dir", () => ({
+  statePath: (name: string) => `/mock/state/${name}`,
+}));
+
 // Now import the module under test
 import {
   loadConfig,
@@ -111,7 +116,7 @@ describe("saveConfig", () => {
     saveConfig(config);
 
     expect(mockFs.writeFileSync).toHaveBeenCalledWith(
-      path.join("/mock/home", ".orazaka-cli.json"),
+      "/mock/state/config.json",
       JSON.stringify(config, null, 2),
       "utf-8",
     );
@@ -179,7 +184,7 @@ describe("appendMessage", () => {
     const msg = { role: "user" as const, content: "test", kind: "text" as const, timestamp: Date.now() };
     appendMessage("thread-1", msg);
 
-    expect(mockFs.mkdirSync).toHaveBeenCalledWith(path.join("/mock/home", ".orazaka-threads"), { recursive: true });
+    expect(mockFs.mkdirSync).toHaveBeenCalledWith("/mock/state/threads", { recursive: true });
     expect(mockFs.writeFileSync).toHaveBeenCalled();
   });
 });

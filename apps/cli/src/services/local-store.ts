@@ -7,8 +7,7 @@
 
 import Database from "better-sqlite3";
 import type { Database as DatabaseType } from "better-sqlite3";
-import * as path from "node:path";
-import * as os from "node:os";
+import { statePath } from "../utils/state-dir";
 
 export type JobStatus = "PENDING" | "RUNNING" | "COMPLETED" | "FAILED";
 
@@ -22,8 +21,6 @@ export interface LocalJob {
   readonly synced: number;
 }
 
-const DB_PATH = path.join(os.homedir(), ".orazaka-tasks.db");
-
 let dbInstance: DatabaseType | null = null;
 
 /**
@@ -31,7 +28,7 @@ let dbInstance: DatabaseType | null = null;
  */
 export function getDb(): DatabaseType {
   if (!dbInstance) {
-    dbInstance = new Database(DB_PATH);
+    dbInstance = new Database(statePath("tasks.db"));
     dbInstance.pragma("journal_mode = WAL");
     dbInstance.exec(`
       CREATE TABLE IF NOT EXISTS orazaka_local_jobs (

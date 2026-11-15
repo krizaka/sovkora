@@ -11,6 +11,8 @@ if (!fs.existsSync(mockTempDir)) {
   fs.mkdirSync(mockTempDir, { recursive: true });
 }
 
+process.env.SOVKORA_CLI_HOME = mockTempDir;
+
 // Mock node:os homedir to point to mockTempDir. Must be hoisted and prefix with mock.
 jest.mock("node:os", () => {
   const actual = jest.requireActual("node:os");
@@ -31,7 +33,7 @@ describe("local-store persistence engine", () => {
 
   afterAll(() => {
     closeDb();
-    const dbFile = path.join(mockTempDir, ".orazaka-tasks.db");
+    const dbFile = path.join(mockTempDir, "tasks.db");
     if (fs.existsSync(dbFile)) {
       fs.unlinkSync(dbFile);
     }

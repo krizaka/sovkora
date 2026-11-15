@@ -28,7 +28,7 @@ describe("orazaka-cli E2E sandbox", () => {
     const script = `
       process.env.ORAZAKA_HOME = "${sandboxDir.replace(/\\/g, "\\\\")}";
       const Database = require("better-sqlite3");
-      const dbPath = require("path").join(process.env.ORAZAKA_HOME, ".orazaka-tasks.db");
+      const dbPath = require("path").join(process.env.ORAZAKA_HOME, "tasks.db");
       const db = new Database(dbPath);
       db.exec(\`
          CREATE TABLE IF NOT EXISTS orazaka_local_jobs (
@@ -60,12 +60,12 @@ describe("orazaka-cli E2E sandbox", () => {
 
     expect(result.stdout).toContain("DB_CREATED");
 
-    const dbPath = path.join(sandboxDir, ".orazaka-tasks.db");
+    const dbPath = path.join(sandboxDir, "tasks.db");
     expect(fs.existsSync(dbPath)).toBe(true);
   });
 
   it("should not pollute the host home directory", async () => {
-    const hostDbPath = path.join(os.homedir(), ".orazaka-tasks-e2e-check.db");
+    const hostDbPath = path.join(os.homedir(), "tasks-e2e-check.db");
 
     // Ensure we never write to the host home
     expect(fs.existsSync(hostDbPath)).toBe(false);
