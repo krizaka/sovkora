@@ -9,7 +9,7 @@ needs beyond the prompt, the seed, the duration, the aspect and the starting fra
 Configuration, by bounded context (never a vendor-named variable beyond the GPU provider's own): the key
 ``AI_GPU_RUNPOD_API_KEY`` (never logged, never in a message) and, optionally, ``AI_GPU_RUNPOD_API_URL``.
 
-The price is ``costUsd`` **per second** of clip × the seconds asked, reserved in :mod:`app.spend` before the
+The price is ``costUsd`` **per second** of clip times the seconds asked, reserved in :mod:`app.spend` before the
 call. §12 Zero-Fallback: a refusal, a failed job, a timeout or a non-https link raises; no placeholder clip.
 """
 
