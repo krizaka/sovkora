@@ -31,7 +31,7 @@ function buildTimeOnDisk(moduleDir) {
   if (!line) {
     throw new Error(`no build.time in ${moduleDir}'s build-info.properties`);
   }
-  return line.slice("build.time=".length).replace(/\\/g, "").trim();
+  return line.slice("build.time=".length).replaceAll("\\", "").trim();
 }
 
 /** Asks a running service which build it is. */

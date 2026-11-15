@@ -129,10 +129,10 @@ export function TriggerPanel({ automationId }: Readonly<{ automationId: string }
             busy={busy}
             onEnabled={(enabled) => mutations.setEnabled.mutate({ id: trigger.id, enabled })}
             onRotate={async () => {
-              if (window.confirm(w.rotateConfirm)) reveal(await mutations.rotate.mutateAsync(trigger.id));
+              if (globalThis.confirm(w.rotateConfirm)) reveal(await mutations.rotate.mutateAsync(trigger.id));
             }}
             onRemove={() => {
-              if (window.confirm(w.removeConfirm)) mutations.remove.mutate(trigger.id);
+              if (globalThis.confirm(w.removeConfirm)) mutations.remove.mutate(trigger.id);
             }}
           />
         ))}

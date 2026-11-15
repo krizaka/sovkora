@@ -91,7 +91,7 @@ function scalar(raw) {
   if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
   if (/^'/.test(t)) {
     let text = "";
-    for (const m of t.matchAll(/'((?:[^']|'')*)'/g)) text += m[1].replace(/''/g, "'");
+    for (const m of t.matchAll(/'((?:[^']|'')*)'/g)) text += m[1].replaceAll("''", "'");
     return text;
   }
   return { expr: t }; // anything computed (a psql variable, a function): not data this reader can state
@@ -150,7 +150,7 @@ function modelUpdate(stmt) {
     const eq = part.indexOf("=");
     set[part.slice(0, eq).trim()] = scalar(part.slice(eq + 1));
   }
-  return { name: m[2].replace(/''/g, "'"), set };
+  return { name: m[2].replaceAll("''", "'"), set };
 }
 
 /**

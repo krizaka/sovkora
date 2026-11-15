@@ -63,7 +63,7 @@ let sessionTeardownStarted = false;
 async function invalidateSession(): Promise<void> {
   if (typeof window === "undefined") return;
   if (sessionTeardownStarted) return;
-  if (window.location.pathname === LOGIN_PATH) return;
+  if (globalThis.location.pathname === LOGIN_PATH) return;
 
   sessionTeardownStarted = true;
   await signOut({ callbackUrl: LOGIN_PATH });
