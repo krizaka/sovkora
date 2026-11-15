@@ -58,9 +58,15 @@ def run(answers, *, seconds=4, image=b"PNG", env=ENV, clock=None, download=lambd
 
 class TestCatalogue(unittest.TestCase):
     def test_the_rows_are_runpod_models_priced_per_second_with_a_source(self):
-        for name, price, size in (("seedance-2-5-i2v-480p", 0.18, (480, 854)), ("seedance-2-5-i2v-1080p", 0.90, (1080, 1920))):
+        for name, price, size in (
+            ("seedance-2-5-i2v-480p", 0.18, (480, 854)),
+            ("seedance-2-5-i2v-1080p", 0.90, (1080, 1920)),
+        ):
             model = video_models.find(name)
-            self.assertEqual(("remote", "runpod-public-endpoint", "16jsvx5ncmm24x"), (model.pipeline, model.provider, model.remote_model))
+            self.assertEqual(
+                ("remote", "runpod-public-endpoint", "16jsvx5ncmm24x"),
+                (model.pipeline, model.provider, model.remote_model),
+            )
             self.assertEqual(price, model.cost_usd)
             self.assertEqual(size, model.size_for("9:16"))
             self.assertTrue(model.image_to_video and model.requires_image)
@@ -93,7 +99,14 @@ class TestGenerate(unittest.TestCase):
         self.assertEqual(("POST", "https://runpod.test/v2/16jsvx5ncmm24x/run", KEY), (method, url, key))
         sent = body["input"]
         self.assertEqual(
-            {"resolution": "480p", "generate_audio": False, "prompt": "the boss turns", "duration": 4, "aspect_ratio": "9:16", "seed": 7},
+            {
+                "resolution": "480p",
+                "generate_audio": False,
+                "prompt": "the boss turns",
+                "duration": 4,
+                "aspect_ratio": "9:16",
+                "seed": 7,
+            },
             {k: v for k, v in sent.items() if k != "image"},
         )
         self.assertTrue(sent["image"].startswith("data:image/png;base64,"))
@@ -183,7 +196,13 @@ class TestRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root, patch.dict(os.environ, {"UPLOAD_DIR": root, "TMPDIR": root}):
             out = os.path.join(root, "u", "j", "output", "video.mp4")
             body = main.run_remote(
-                {"prompt": "x", "aspect": "9:16", "durationSeconds": 4, "image_path": self._png(root), "output_path": out},
+                {
+                    "prompt": "x",
+                    "aspect": "9:16",
+                    "durationSeconds": 4,
+                    "image_path": self._png(root),
+                    "output_path": out,
+                },
                 MODEL,
                 generate=fake,
             )

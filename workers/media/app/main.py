@@ -55,7 +55,9 @@ MODEL_REGISTRY: dict[str, str] = {
 
 # Served by a provider, routed by Sovkora (app/remote_providers.py): nothing runs on this host. A model is
 # provider-served because its row in models.yaml says ``pipeline: remote`` — adding one is that row, not code.
-MODEL_REGISTRY.update({name: "Remote" for name, model in video_models.video_models().items() if model.pipeline == "remote"})
+MODEL_REGISTRY.update(
+    {name: "Remote" for name, model in video_models.video_models().items() if model.pipeline == "remote"}
+)
 
 # ── Host-memory guard (per user mandate) ──────────────────────────────────────
 # Approximate peak unified-memory footprint per model (GB). The preflight uses

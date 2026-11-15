@@ -18,5 +18,7 @@ def provider_for(model: VideoModel) -> RemoteVideoProvider:
     adapter = PROVIDERS.get(model.provider or "")
     if adapter is None:
         known = ", ".join(sorted(PROVIDERS))
-        raise InvalidVideoRequest(f"model '{model.name}' names the provider '{model.provider}'; this worker speaks {known}")
+        raise InvalidVideoRequest(
+            f"model '{model.name}' names the provider '{model.provider}'; this worker speaks {known}"
+        )
     return adapter

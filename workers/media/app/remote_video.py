@@ -165,7 +165,9 @@ def _download_result(result: dict, content_id: str, job_id: str, base: str, key:
 class DigitalOceanVideoProvider:
     """DigitalOcean serverless inference behind the provider port: text-to-video, one price per clip."""
 
-    def generate(self, model: VideoModel, prompt: str, width: int, height: int, seed: int | None, progress=None, **options):
+    def generate(
+        self, model: VideoModel, prompt: str, width: int, height: int, seed: int | None, progress=None, **options
+    ):
         """``options`` are the port's ``image`` and ``seconds`` (this provider takes neither) and a test's transport."""
         if options.pop("image", None) is not None:
             raise RemoteVideoError(f"model '{model.name}' makes video from text only")

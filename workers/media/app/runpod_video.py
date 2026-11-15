@@ -131,13 +131,22 @@ class RunpodVideoProvider:
         endpoint = f"{base_url(env)}/{urllib.parse.quote(model.remote_model, safe='')}"
         started = clock()
         job = self._json(
-            call("POST", f"{endpoint}/run", key, {"input": request_input(model, prompt, width, height, seed, asked, image)})
+            call(
+                "POST",
+                f"{endpoint}/run",
+                key,
+                {"input": request_input(model, prompt, width, height, seed, asked, image)},
+            )
         )
         job_id = job.get("id")
         if not job_id:
             raise RemoteVideoError("the provider accepted the request but returned no job id")
-        timeout = int((os.environ if env is None else env).get("MEDIA_REMOTE_TIMEOUT_SECONDS") or DEFAULT_TIMEOUT_SECONDS)
-        result = self._wait(job, str(job_id), f"{endpoint}/status/{job_id}", timeout, started, clock, sleep, progress, key, call)
+        timeout = int(
+            (os.environ if env is None else env).get("MEDIA_REMOTE_TIMEOUT_SECONDS") or DEFAULT_TIMEOUT_SECONDS
+        )
+        result = self._wait(
+            job, str(job_id), f"{endpoint}/status/{job_id}", timeout, started, clock, sleep, progress, key, call
+        )
         output = result.get("output") if isinstance(result.get("output"), dict) else {}
         url = output.get("result")
         if not isinstance(url, str) or urllib.parse.urlsplit(url).scheme != "https":
