@@ -44,4 +44,13 @@ test.describe("the text width check of a screen", () => {
     await page.setContent(html(`<span style="display:block;width:200px">${SENTENCE}</span>`));
     expect(await textSqueezedOnScreen(page)).toHaveLength(1);
   });
+
+  test("names every squeezed block in one failure, not only the first", async ({ page }) => {
+    await page.setContent(
+      html(
+        `<p style="width:90px">${SENTENCE}</p><p style="width:90px">Second block that is squeezed too, as narrow as the first</p>`,
+      ),
+    );
+    await expect(assertTextReadable(page, "demo")).rejects.toThrow(/2 squeezed blocks[\s\S]*Second block/);
+  });
 });

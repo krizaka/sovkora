@@ -103,10 +103,16 @@ export function RunForm({ studioKey, inputSchema, estimatedCredits, isSubmitting
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="text-xs text-fg-muted">
-          {t.studio.estimatedCost}: <span className="font-semibold text-fg">{estimatedCredits}</span>{" "}
-          {t.studio.creditsPerRun}
-        </span>
+        <p data-testid="estimated-cost" className="basis-full text-xs text-fg-muted sm:min-w-0 sm:flex-1 sm:basis-0">
+          {estimatedCredits > 0 ? (
+            <>
+              {t.studio.estimatedCost}: <span className="font-semibold text-fg">{estimatedCredits}</span>{" "}
+              {t.studio.creditsPerRun}
+            </>
+          ) : (
+            `${t.studio.estimatedCost}: ${t.studio.costNotSet}`
+          )}
+        </p>
         <Button
           variant="primary"
           size="md"

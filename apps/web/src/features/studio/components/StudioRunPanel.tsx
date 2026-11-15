@@ -97,7 +97,7 @@ export function StudioRunPanel({ studio, installation }: Readonly<StudioRunPanel
 
   return (
     <Card.Root>
-      <Card.Body padding="lg" className="gap-4">
+      <Card.Body padding="md" className="gap-4 sm:p-6">
         <h2 className="text-base font-semibold text-fg">{t.studio.runTitle}</h2>
         <RunForm
           studioKey={studio.studioKey}

@@ -81,14 +81,18 @@ export async function textSqueezedOnScreen(page) {
   });
 }
 
-/** Throws when a block of text on the page is squeezed: a recording or a spec of a screen calls it once the screen has settled. */
+/** Throws when a block of text on the page is squeezed, naming every one (a screen with two fails once, not twice): a recording or a spec calls it once the screen has settled. */
 export async function assertTextReadable(page, label) {
   const squeezed = await textSqueezedOnScreen(page);
-  if (squeezed.length > 0) {
-    const first = squeezed[0];
-    throw new Error(
-      `${label}: the text is squeezed — « ${first.text} » is ${first.width}px wide with ${first.longestLineWords} word(s) on its longest line` +
-        ` (at least ${MIN_COLUMN_PX}px and more than ${MAX_SQUEEZED_WORDS_PER_LINE} words wanted)`,
-    );
+  if (squeezed.length === 0) {
+    return;
   }
+  const lines = squeezed.map(
+    (b) => `  - « ${b.text} » is ${b.width}px wide with ${b.longestLineWords} word(s) on its longest line`,
+  );
+  const many = squeezed.length > 1 ? ` (${squeezed.length} squeezed blocks)` : "";
+  throw new Error(
+    `${label}: the text is squeezed${many}\n${lines.join("\n")}\n` +
+      `(at least ${MIN_COLUMN_PX}px and more than ${MAX_SQUEEZED_WORDS_PER_LINE} words wanted)`,
+  );
 }
