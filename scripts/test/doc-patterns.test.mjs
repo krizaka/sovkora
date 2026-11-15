@@ -28,7 +28,7 @@ test("key builder", () => {
 
 test("rabbit listener and convertAndSend", () => {
   assert.equal([...'@RabbitListener(queues = Q.NAME )'.matchAll(RABBIT_LISTENER)][0][1].trim(), "Q.NAME");
-  assert.equal([...'@RabbitListener(queues = {A, B} , x)'.matchAll(RABBIT_LISTENER)][0][1], "{A, B}");
+  assert.equal([...'@RabbitListener(queues = {A, B} , x)'.matchAll(RABBIT_LISTENER)][0][1].trim(), "{A, B}");
   fast(() => [...("@RabbitListener(queues = a" + hostile(" b")).matchAll(RABBIT_LISTENER)]);
   const m = [...'convertAndSend(EX,  KEY + "x", payload)'.matchAll(CONVERT_AND_SEND)][0];
   assert.deepEqual([m[1].trim(), m[2].trim()], ["EX", 'KEY + "x"']);
@@ -51,8 +51,10 @@ test("javadoc", () => {
   fast(() => ("{@a" + hostile(" ")).replace(JAVADOC_INLINE_TAG, "x"));
   assert.equal("a\n  // c\n * d\nb".replace(COMMENT_LINE, ""), "a\n\n\nb");
   fast(() => hostile("\n").replace(COMMENT_LINE, ""));
-  assert.deepEqual("@param <T> the type".match(PARAM_TAG).slice(1), ["<T>", "the type"]);
-  assert.deepEqual("@param x".match(PARAM_TAG).slice(1), ["x", ""]);
+  assert.equal("@param <T> the type".match(PARAM_TAG)[1], "<T>");
+  assert.equal("@param x".match(PARAM_TAG)[1], "x");
+  assert.equal("@param x   ".match(PARAM_TAG)[1], "x");
+  assert.equal("@paramx".match(PARAM_TAG), null);
   fast(() => ("@param a" + hostile(" ")).match(PARAM_TAG));
 });
 

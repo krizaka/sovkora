@@ -7,5 +7,5 @@ export function assertionOf(line) {
 
 /** A request line: what makes a `###` region an actual request rather than a banner. */
 export function hasRequestLine(region) {
-  return /^[^\S\n]*(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+\S/m.test(region);
+  return /^[ \t]*(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+\S/m.test(region);
 }

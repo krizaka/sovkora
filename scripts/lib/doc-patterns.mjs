@@ -10,13 +10,13 @@ export const GATEWAY_ROUTE = /-[^\S\n]*path-prefix:[^\S\n]*(\S+)[^\S\n]*\n\s*tar
 export const KEY_BUILDER = /static\s+String\s+(\w+)\(\s*String\s+\w+\s*\)\s*\{\s*return\s+([^;\s][^;]*);/g;
 
 /** The queue argument of a `@RabbitListener(queues = ...)`: a `{...}` list or one expression (untrimmed). */
-export const RABBIT_LISTENER = /@RabbitListener\(\s*queues\s*=\s*(\{[^}]*\}|[^,)\s]+(?:[^\S\n]+[^,)\s]+)*)\s*[,)]/g;
+export const RABBIT_LISTENER = /@RabbitListener\(\s*queues\s*=\s*(\{[^}]*\}\s*|[^,)\s][^,)]*)[,)]/g;
 
 /** `convertAndSend(exchange, routingKey,`: both captures are untrimmed. */
-export const CONVERT_AND_SEND = /convertAndSend\(\s*([^,()]+),([^,]+?),/g;
+export const CONVERT_AND_SEND = /convertAndSend\(([^,()]+),([^,]+),/g;
 
 /** A `- "job.x"` binding line of a worker.yaml. */
-export const WORKER_BINDING = /^[^\S\n]*-[^\S\n]*"(job\.[^"]+)"/gm;
+export const WORKER_BINDING = /^[ \t]*-[ \t]*"(job\.[^"]+)"/gm;
 
 /** A `{name}` placeholder (no nesting). */
 export const BRACE_PLACEHOLDER = /\{[^{}]+\}/g;
@@ -30,16 +30,16 @@ export const FIRST_JAVADOC_LINE = /\/\*\*[^\S\n]*\n\s*\*\s*(\S[^\n]*)/;
 export const JAVADOC_INLINE_TAG = /\{@\w+\s+([^}\s][^}]*)\}/g;
 
 /** A comment-only line of Java source. */
-export const COMMENT_LINE = /^[^\S\n]*(?:\/\/|\*|\/\*).*$/gm;
+export const COMMENT_LINE = /^[ \t]*(?:\/\/|\*|\/\*).*$/gm;
 
 /** A `logStep("Phase X ...")` / `logStep("Workspace ...")` call: the whole text. */
 export const LOG_STEP = /logStep\(\s*"((?:Phase\s+\w|Workspace)[^"]*)"\s*\)/g;
 
 /** A port line of the CLI config: `name: intEnv(KEY, 8080)`. */
-export const CLI_PORT = /^[^\S\n]+(\w+):[^\S\n]*intEnv\([^,]+,\s*(\d+)\)/gm;
+export const CLI_PORT = /^[ \t]+(\w+):[ \t]*intEnv\([^,]+,\s*(\d+)\)/gm;
 
 /** A `@param name text` Javadoc line. */
-export const PARAM_TAG = /^@param\s+(<?\w+>?)\s*(\S.*|)$/;
+export const PARAM_TAG = /^@param\s+(<?\w+>?)(?:\s|$)/;
 
 /** A `${property:default}` reference. */
 export const PROPERTY_REF = /^\$\{([^:}]+)(?::([^}]*))?\}$/;

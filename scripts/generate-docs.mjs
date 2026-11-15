@@ -1786,7 +1786,7 @@ function paramTags(src, name) {
   const tags = [];
   for (const line of lines) {
     const m = line.match(PARAM_TAG);
-    if (m) tags.push({ name: m[1], text: m[2] });
+    if (m) tags.push({ name: m[1], text: line.slice(m[0].length).trim() });
     else if (tags.length && line.trim() && !line.trim().startsWith("@")) tags.at(-1).text += " " + line.trim();
     else if (line.trim().startsWith("@")) tags.push({ name: null, text: "" });
   }
@@ -1815,7 +1815,7 @@ function recordComponents(src, name) {
 /** The constants of an enum, comments stripped. */
 function enumValues(src, name) {
   // Comments first: a constant's javadoc may hold the ";" that would end the scan early.
-  const code = stripBlockComments(src).replace(/\/\/.*$/gm, "");
+  const code = stripBlockComments(src).replace(/\/\/[^\n]*/g, "");
   const m = new RegExp(String.raw`enum\s+${name}\s*\{([\s\S]*?)(?:;|\})`).exec(code);
   if (!m) return [];
   return m[1]
