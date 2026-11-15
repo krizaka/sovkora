@@ -408,6 +408,21 @@ def _whole_seconds(payload: dict[str, Any]) -> int | None:
         raise video_models.InvalidVideoRequest(f"the duration '{asked}' is not a number of seconds") from None
 
 
+def _remote_starting_image(model: video_models.VideoModel, payload: dict[str, Any]) -> bytes | None:
+    """The photo a provider-served clip starts from (PNG bytes), or a refusal by name (§12).
+
+    A model that is not ``imageToVideo`` refuses a photo; one that is ``requiresImage`` refuses a text-only job.
+    """
+    asked = _asked_for_an_image(payload)
+    if asked and not model.image_to_video:
+        raise video_models.InvalidVideoRequest(
+            f"model '{model.name}' makes video from text only; leave the starting image empty"
+        )
+    if model.requires_image and not asked:
+        raise video_models.InvalidVideoRequest(f"model '{model.name}' starts from a photo; give a starting image")
+    return _png_bytes(starting_image(payload)) if asked else None
+
+
 def run_remote(payload: dict[str, Any], model_name: str, process=None, generate=None) -> dict[str, Any]:
     """One clip from a provider-served model, as the response body of the pipeline.
 
@@ -415,14 +430,7 @@ def run_remote(payload: dict[str, Any], model_name: str, process=None, generate=
     from elsewhere, and ``metrics.provider`` says so.
     """
     model = video_models.find(model_name)
-    asked_image = _asked_for_an_image(payload)
-    if asked_image and not model.image_to_video:
-        raise video_models.InvalidVideoRequest(
-            f"model '{model_name}' makes video from text only; leave the starting image empty"
-        )
-    if model.requires_image and not asked_image:
-        raise video_models.InvalidVideoRequest(f"model '{model_name}' starts from a photo; give a starting image")
-    image = _png_bytes(starting_image(payload)) if asked_image else None
+    image = _remote_starting_image(model, payload)
     generate = generate or remote_providers.provider_for(model).generate
     prompt = (payload.get("prompt") or "").strip()
     width, height = model.size_for(payload.get("aspect"), payload.get("width"), payload.get("height"))
