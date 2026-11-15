@@ -278,28 +278,38 @@ public final class LoggedContentRules {
       }
       markSinks();
       for (AbstractInsnNode insn : method.instructions) {
-        if (!(insn instanceof MethodInsnNode call) || !isLogging(call)) {
-          continue;
-        }
-        String where =
-            owner.name.replace('/', '.') + "." + method.name + ":" + lineOf(insn) + " " + call.name;
-        calls.add(where);
-        Frame<SourceValue> frame = frames[method.instructions.indexOf(insn)];
-        if (frame == null) {
-          continue;
-        }
-        int arguments = Type.getArgumentTypes(call.desc).length;
-        int first = frame.getStackSize() - arguments;
-        for (int index = 0; index < arguments; index++) {
-          for (SourceValue value : candidates(frame.getStack(first + index))) {
-            if (isContent(value, new HashSet<>(), false)
-                || intersects(roots(value, new HashSet<>()), contentRoots)) {
-              violations.add(where + " — argument " + (index + 1) + " carries content");
-              break;
-            }
-          }
+        if (insn instanceof MethodInsnNode call && isLogging(call)) {
+          scanLoggingCall(insn, call, calls, violations);
         }
       }
+    }
+
+    private void scanLoggingCall(
+        AbstractInsnNode insn, MethodInsnNode call, List<String> calls, List<String> violations) {
+      String where =
+          owner.name.replace('/', '.') + "." + method.name + ":" + lineOf(insn) + " " + call.name;
+      calls.add(where);
+      Frame<SourceValue> frame = frames[method.instructions.indexOf(insn)];
+      if (frame == null) {
+        return;
+      }
+      int arguments = Type.getArgumentTypes(call.desc).length;
+      int first = frame.getStackSize() - arguments;
+      for (int index = 0; index < arguments; index++) {
+        if (argumentCarriesContent(frame.getStack(first + index))) {
+          violations.add(where + " — argument " + (index + 1) + " carries content");
+        }
+      }
+    }
+
+    private boolean argumentCarriesContent(SourceValue argument) {
+      for (SourceValue value : candidates(argument)) {
+        if (isContent(value, new HashSet<>(), false)
+            || intersects(roots(value, new HashSet<>()), contentRoots)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     private static boolean isLogging(MethodInsnNode call) {
@@ -345,33 +355,7 @@ public final class LoggedContentRules {
         AbstractInsnNode insn, Set<AbstractInsnNode> seen, boolean textOnly) {
       Frame<SourceValue> frame = frames[method.instructions.indexOf(insn)];
       return switch (insn) {
-        case MethodInsnNode call -> {
-          Type returned = Type.getReturnType(call.desc);
-          if (CONTENT_ACCESSORS.contains(call.owner + "#" + call.name)
-              || (!textOnly
-                  && returned.getSort() == Type.OBJECT
-                  && CONTENT_TYPES.contains(returned.getInternalName()))) {
-            yield true;
-          }
-          if (!CARRYING_RETURNS.contains(returned.getDescriptor()) || frame == null) {
-            yield false;
-          }
-          // Content passed IN survives a call that returns text or an object. Content the call is
-          // made ON survives only a text or collection operation: message.jobId() reads a job
-          // command and returns an id, not the payload.
-          int arguments = Type.getArgumentTypes(call.desc).length;
-          // A fresh visited set when the question narrows to text, so an instruction already judged
-          // as a whole object is judged again as text rather than skipped.
-          Set<AbstractInsnNode> textSeen = textOnly ? seen : new HashSet<>();
-          boolean fromArguments = anyInputIsContent(frame, arguments, textSeen, true);
-          boolean fromReceiver =
-              call.getOpcode() != Opcodes.INVOKESTATIC
-                  && CARRYING_OWNERS.contains(call.owner)
-                  && frame.getStackSize() > arguments
-                  && isContent(
-                      frame.getStack(frame.getStackSize() - arguments - 1), textSeen, true);
-          yield fromArguments || fromReceiver;
-        }
+        case MethodInsnNode call -> producesContentFromCall(call, frame, seen, textOnly);
         case InvokeDynamicInsnNode concat ->
             frame != null
                 && anyInputIsContent(
@@ -400,6 +384,37 @@ public final class LoggedContentRules {
       };
     }
 
+    private boolean producesContentFromCall(
+        MethodInsnNode call,
+        Frame<SourceValue> frame,
+        Set<AbstractInsnNode> seen,
+        boolean textOnly) {
+      Type returned = Type.getReturnType(call.desc);
+      if (CONTENT_ACCESSORS.contains(call.owner + "#" + call.name)
+          || (!textOnly
+              && returned.getSort() == Type.OBJECT
+              && CONTENT_TYPES.contains(returned.getInternalName()))) {
+        return true;
+      }
+      if (!CARRYING_RETURNS.contains(returned.getDescriptor()) || frame == null) {
+        return false;
+      }
+      // Content passed IN survives a call that returns text or an object. Content the call is
+      // made ON survives only a text or collection operation: message.jobId() reads a job
+      // command and returns an id, not the payload.
+      int arguments = Type.getArgumentTypes(call.desc).length;
+      // A fresh visited set when the question narrows to text, so an instruction already judged
+      // as a whole object is judged again as text rather than skipped.
+      Set<AbstractInsnNode> textSeen = textOnly ? seen : new HashSet<>();
+      boolean fromArguments = anyInputIsContent(frame, arguments, textSeen, true);
+      boolean fromReceiver =
+          call.getOpcode() != Opcodes.INVOKESTATIC
+              && CARRYING_OWNERS.contains(call.owner)
+              && frame.getStackSize() > arguments
+              && isContent(frame.getStack(frame.getStackSize() - arguments - 1), textSeen, true);
+      return fromArguments || fromReceiver;
+    }
+
     private boolean anyInputIsContent(
         Frame<SourceValue> frame, int count, Set<AbstractInsnNode> seen, boolean textOnly) {
       int size = frame.getStackSize();
@@ -418,21 +433,23 @@ public final class LoggedContentRules {
     private List<SourceValue> candidates(SourceValue argument) {
       List<SourceValue> values = new ArrayList<>(List.of(argument));
       for (AbstractInsnNode source : argument.insns) {
-        if (source.getOpcode() != Opcodes.ANEWARRAY) {
-          continue;
-        }
-        for (AbstractInsnNode insn : method.instructions) {
-          Frame<SourceValue> frame = frames[method.instructions.indexOf(insn)];
-          if (insn.getOpcode() != Opcodes.AASTORE || frame == null || frame.getStackSize() < 3) {
-            continue;
-          }
-          SourceValue array = frame.getStack(frame.getStackSize() - 3);
-          if (tracesTo(array, source)) {
-            values.add(frame.getStack(frame.getStackSize() - 1));
-          }
+        if (source.getOpcode() == Opcodes.ANEWARRAY) {
+          addStoredElements(source, values);
         }
       }
       return values;
+    }
+
+    private void addStoredElements(AbstractInsnNode arrayOrigin, List<SourceValue> values) {
+      for (AbstractInsnNode insn : method.instructions) {
+        Frame<SourceValue> frame = frames[method.instructions.indexOf(insn)];
+        if (insn.getOpcode() == Opcodes.AASTORE
+            && frame != null
+            && frame.getStackSize() >= 3
+            && tracesTo(frame.getStack(frame.getStackSize() - 3), arrayOrigin)) {
+          values.add(frame.getStack(frame.getStackSize() - 1));
+        }
+      }
     }
 
     private boolean tracesTo(SourceValue value, AbstractInsnNode origin) {

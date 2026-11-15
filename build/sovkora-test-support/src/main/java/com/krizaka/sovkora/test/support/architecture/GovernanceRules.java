@@ -672,15 +672,7 @@ public final class GovernanceRules {
     List<Path> declarations = new ArrayList<>();
     List<String> offenders = new ArrayList<>();
     for (Path file : PackPurityRules.productionSources(repositoryRoot)) {
-      String name = file.getFileName().toString().replace(JAVA_EXTENSION, "");
-      if (permitted.contains(name) || name.endsWith("Test") || name.endsWith("IT")) {
-        continue;
-      }
-      String source = readSource(file);
-      // A DECLARATION, not a use. A mapper names every field because it copies them one by one,
-      // and flagging it would make this rule fire on exactly the code that keeps the models in
-      // step. What is looked at is a record's component list, or a class's own fields.
-      String declaration = capabilityDeclarationBody(source, name);
+      String declaration = declaredCapabilityShape(file, permitted);
       if (declaration.isEmpty()) {
         continue;
       }
@@ -702,6 +694,20 @@ public final class GovernanceRules {
             + " three were wrong; each cost a separate production failure to find (ADR-057). A new"
             + " whole-shape copy starts that again:\n  "
             + String.join("\n  ", offenders));
+  }
+
+  /**
+   * A DECLARATION, not a use. A mapper names every field because it copies them one by one, and
+   * flagging it would make [CAP-001] fire on exactly the code that keeps the models in step. What
+   * is looked at is a record's component list, or a class's own fields; a permitted type or a test
+   * has none.
+   */
+  private static String declaredCapabilityShape(Path file, Set<String> permitted) {
+    String name = file.getFileName().toString().replace(JAVA_EXTENSION, "");
+    if (permitted.contains(name) || name.endsWith("Test") || name.endsWith("IT")) {
+      return "";
+    }
+    return capabilityDeclarationBody(readSource(file), name);
   }
 
   /**
@@ -731,30 +737,36 @@ public final class GovernanceRules {
             .filter(file -> "CapabilityDeclaration.java".equals(file.getFileName().toString()))
             .toList());
     for (Path file : PackPurityRules.productionSources(repositoryRoot)) {
-      String name = file.getFileName().toString();
-      if ("CapabilityDeclaration.java".equals(name) || name.endsWith(TEST_JAVA_SUFFIX)) {
-        continue;
-      }
-      String source = readSource(file);
-      if (!source.contains("httpMethod")) {
-        continue;
-      }
-      if ("GovernanceRules.java".equals(name) || "PackPurityRules.java".equals(name)) {
-        // The rules' own text names the thing they forbid; that is what a rule is.
-        continue;
-      }
-      if (source.contains("\"POST\"") && source.contains("uriPath")) {
-        offenders.add(name + " defaults httpMethod itself instead of calling defaultHttpMethod");
-      }
-      if (source.contains("name = \"http_method\", nullable = false")) {
-        offenders.add(name + " maps http_method as NOT NULL, which the schema no longer is");
-      }
+      offenders.addAll(endpointRuleOffences(file));
     }
     assertTrue(
         offenders.isEmpty(),
         "[CAP-002] the endpoint rule belongs to CapabilityDeclaration; call"
             + " defaultHttpMethod/requireWholeEndpoint rather than restating it (ADR-057 §2):\n  "
             + String.join("\n  ", offenders));
+  }
+
+  private static List<String> endpointRuleOffences(Path file) {
+    String name = file.getFileName().toString();
+    // The rules' own text names the thing they forbid; that is what a rule is.
+    if ("CapabilityDeclaration.java".equals(name)
+        || name.endsWith(TEST_JAVA_SUFFIX)
+        || "GovernanceRules.java".equals(name)
+        || "PackPurityRules.java".equals(name)) {
+      return List.of();
+    }
+    String source = readSource(file);
+    if (!source.contains("httpMethod")) {
+      return List.of();
+    }
+    List<String> offences = new ArrayList<>();
+    if (source.contains("\"POST\"") && source.contains("uriPath")) {
+      offences.add(name + " defaults httpMethod itself instead of calling defaultHttpMethod");
+    }
+    if (source.contains("name = \"http_method\", nullable = false")) {
+      offences.add(name + " maps http_method as NOT NULL, which the schema no longer is");
+    }
+    return offences;
   }
 
   /** One source file, or empty when it cannot be read — a rule must not fail on a locked file. */

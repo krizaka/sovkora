@@ -1,6 +1,6 @@
 import { translations } from "@/core/context/translations";
 import { hasMedia, mediaPaths } from "@/core/media/cdn";
-import { COMPARE_IMAGES, COMPARE_INSPIRATIONS, COMPARE_MODELS, imagesOf } from "@/features/landing/utils/model-compare";
+import { COMPARE_FILE, COMPARE_IMAGES, COMPARE_INSPIRATIONS, COMPARE_MODELS, imagesOf } from "@/features/landing/utils/model-compare";
 
 describe("Compare models", () => {
   it("lists every image the media manifest publishes — no hand list — each with the record of its run", () => {
@@ -41,5 +41,18 @@ describe("Compare models", () => {
       );
       expect(new Set(images.map((image) => image.model.id)).size).toBe(images.length);
     }
+  });
+});
+
+describe("COMPARE_FILE", () => {
+  const base = `${COMPARE_FILE.source.slice(1, COMPARE_FILE.source.indexOf("\\/(")).replaceAll("\\/", "/")}/`;
+
+  it("reads slug--slug names and stays linear on a hostile one", () => {
+    expect(COMPARE_FILE.exec(`${base}a-b--c-d.webp`)?.slice(1)).toEqual(["a-b", "c-d"]);
+    expect(COMPARE_FILE.test(`${base}a--b.png`)).toBe(false);
+    const started = performance.now();
+    expect(COMPARE_FILE.test(`${base}${"-".repeat(100_000)}.png`)).toBe(false);
+    expect(COMPARE_FILE.test(`${base}a${"-".repeat(100_000)}`)).toBe(false);
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 });

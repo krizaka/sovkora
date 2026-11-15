@@ -167,46 +167,80 @@ public class LawImportService {
 
   private Plan reconcile(Run run, LawTarget target, LawSnapshot snapshot) {
     Set<String> languages = snapshot.languages();
-    Map<String, LawArticleVersion> current = new LinkedHashMap<>();
+    List<LawArticleVersion> stored =
+        store.currentVersions(target.jurisdiction(), target.instrument());
     Set<String> knownLanguages = new HashSet<>();
-    for (LawArticleVersion version :
-        store.currentVersions(target.jurisdiction(), target.instrument())) {
-      LawArticle stored = version.article();
-      knownLanguages.add(stored.language());
-      if (languages.contains(stored.language()) && target.covers(stored.ref())) {
-        current.put(key(stored), version);
-      }
-    }
+    stored.forEach(version -> knownLanguages.add(version.article().language()));
+    Map<String, LawArticleVersion> current = currentWithin(stored, languages, target);
     Set<String> incomingLanguages = new HashSet<>();
-    List<LawChange> changes = new ArrayList<>();
-    List<LawArticle> toStore = new ArrayList<>();
-    List<LawArticle> unchanged = new ArrayList<>();
-    List<String> failures = new ArrayList<>();
     Set<String> seen = new HashSet<>();
+    Plan plan =
+        new Plan(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     for (LawArticle article : snapshot.articles()) {
-      if (!article.instrument().equals(target.instrument()) || !target.covers(article.ref())) {
-        continue;
-      }
-      incomingLanguages.add(article.language());
-      String key = key(article);
-      seen.add(key);
-      LawArticleVersion previous = current.get(key);
-      if (previous == null) {
-        if (knownLanguages.contains(article.language())) {
-          changes.add(new LawChange(LawChange.Kind.ADDED, null, article, run.today));
-        } else {
-          toStore.add(article);
-        }
-      } else if (previous.article().contentHash().equals(article.contentHash())) {
-        unchanged.add(article);
-      } else if (!article.inForceFrom().isAfter(previous.article().inForceFrom())) {
-        failures.add(
-            describe(LawChange.Kind.CHANGED, article)
-                + ": the text changed but not its in-force date, nothing was changed");
-      } else {
-        changes.add(new LawChange(LawChange.Kind.CHANGED, previous.article(), article, run.today));
+      if (article.instrument().equals(target.instrument()) && target.covers(article.ref())) {
+        incomingLanguages.add(article.language());
+        seen.add(key(article));
+        classify(plan, run, article, current, knownLanguages);
       }
     }
+    requireEveryStoredLanguageIncoming(languages, current, incomingLanguages, target);
+    for (Map.Entry<String, LawArticleVersion> entry : current.entrySet()) {
+      if (!seen.contains(entry.getKey())) {
+        plan.changes()
+            .add(
+                new LawChange(LawChange.Kind.REMOVED, entry.getValue().article(), null, run.today));
+      }
+    }
+    return plan;
+  }
+
+  /**
+   * The stored versions the snapshot speaks for: its languages, and the articles the target covers.
+   */
+  private static Map<String, LawArticleVersion> currentWithin(
+      List<LawArticleVersion> stored, Set<String> languages, LawTarget target) {
+    Map<String, LawArticleVersion> current = new LinkedHashMap<>();
+    for (LawArticleVersion version : stored) {
+      LawArticle article = version.article();
+      if (languages.contains(article.language()) && target.covers(article.ref())) {
+        current.put(key(article), version);
+      }
+    }
+    return current;
+  }
+
+  /** Files one incoming article as new, unchanged, moved or refused. */
+  private static void classify(
+      Plan plan,
+      Run run,
+      LawArticle article,
+      Map<String, LawArticleVersion> current,
+      Set<String> knownLanguages) {
+    LawArticleVersion previous = current.get(key(article));
+    if (previous == null) {
+      if (knownLanguages.contains(article.language())) {
+        plan.changes().add(new LawChange(LawChange.Kind.ADDED, null, article, run.today));
+      } else {
+        plan.toStore().add(article);
+      }
+    } else if (previous.article().contentHash().equals(article.contentHash())) {
+      plan.unchanged().add(article);
+    } else if (!article.inForceFrom().isAfter(previous.article().inForceFrom())) {
+      plan.failures()
+          .add(
+              describe(LawChange.Kind.CHANGED, article)
+                  + ": the text changed but not its in-force date, nothing was changed");
+    } else {
+      plan.changes()
+          .add(new LawChange(LawChange.Kind.CHANGED, previous.article(), article, run.today));
+    }
+  }
+
+  private static void requireEveryStoredLanguageIncoming(
+      Set<String> languages,
+      Map<String, LawArticleVersion> current,
+      Set<String> incomingLanguages,
+      LawTarget target) {
     for (String language : languages) {
       boolean stored =
           current.values().stream().anyMatch(v -> v.article().language().equals(language));
@@ -220,13 +254,6 @@ public class LawImportService {
                 + ", nothing was changed");
       }
     }
-    for (Map.Entry<String, LawArticleVersion> entry : current.entrySet()) {
-      if (!seen.contains(entry.getKey())) {
-        changes.add(
-            new LawChange(LawChange.Kind.REMOVED, entry.getValue().article(), null, run.today));
-      }
-    }
-    return new Plan(unchanged, toStore, changes, failures);
   }
 
   private void apply(Run run, LawChange change) {

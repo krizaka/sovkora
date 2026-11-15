@@ -161,21 +161,27 @@ public class FormSchemaService {
     for (Map.Entry<String, JsonNode> field : root.path(PROPERTIES).properties()) {
       JsonNode options = field.getValue().path(OPTIONS);
       String aspectField = options.path("aspectField").asString("");
-      Object model = inputs.get(field.getKey());
-      if (aspectField.isBlank() || model == null || String.valueOf(model).isBlank()) {
-        continue;
-      }
-      Object aspect = inputs.get(aspectField);
-      if (aspect != null && !String.valueOf(aspect).isBlank()) {
-        continue;
-      }
-      List<String> supported = aspectsOf(options, String.valueOf(model).strip());
-      if (!supported.isEmpty()) {
+      Optional<String> aspect = defaultAspect(options, aspectField, inputs, field.getKey());
+      if (aspect.isPresent()) {
         filled = filled == null ? new java.util.HashMap<>(inputs) : filled;
-        filled.put(aspectField, supported.getFirst());
+        filled.put(aspectField, aspect.get());
       }
     }
     return filled == null ? inputs : Map.copyOf(filled);
+  }
+
+  /** The first aspect the chosen model makes, when a model is chosen and its aspect is blank. */
+  private static Optional<String> defaultAspect(
+      JsonNode options, String aspectField, Map<String, Object> inputs, String modelField) {
+    Object model = inputs.get(modelField);
+    if (aspectField.isBlank() || isBlankValue(model) || !isBlankValue(inputs.get(aspectField))) {
+      return Optional.empty();
+    }
+    return aspectsOf(options, String.valueOf(model).strip()).stream().findFirst();
+  }
+
+  private static boolean isBlankValue(Object value) {
+    return value == null || String.valueOf(value).isBlank();
   }
 
   /**
@@ -294,25 +300,7 @@ public class FormSchemaService {
       if (choice.hint() != null) {
         entry.put("description", choice.hint());
       }
-      ObjectNode meta = entry.putObject("x-meta");
-      meta.put("provider", choice.provider());
-      meta.put("runsOn", choice.runsOn());
-      if (choice.speed() != null) {
-        meta.put("speed", choice.speed());
-      }
-      if (choice.typicalSeconds() != null) {
-        meta.put("typicalSeconds", choice.typicalSeconds());
-      }
-      if (choice.priceCents() != null) {
-        meta.put("priceCents", choice.priceCents());
-      }
-      meta.put("available", choice.available());
-      if (choice.unavailableReason() != null) {
-        meta.put("unavailableReason", choice.unavailableReason());
-      }
-      if (choice.unavailableCode() != null) {
-        meta.put("unavailableCode", choice.unavailableCode());
-      }
+      writeMeta(entry.putObject("x-meta"), choice);
       if (choice.isDefault()) {
         defaultValue = choice.value();
       }
@@ -320,6 +308,27 @@ public class FormSchemaService {
     spec.remove("enum");
     if (defaultValue != null) {
       spec.put("default", defaultValue);
+    }
+  }
+
+  private static void writeMeta(ObjectNode meta, ModelChoice choice) {
+    meta.put("provider", choice.provider());
+    meta.put("runsOn", choice.runsOn());
+    if (choice.speed() != null) {
+      meta.put("speed", choice.speed());
+    }
+    if (choice.typicalSeconds() != null) {
+      meta.put("typicalSeconds", choice.typicalSeconds());
+    }
+    if (choice.priceCents() != null) {
+      meta.put("priceCents", choice.priceCents());
+    }
+    meta.put("available", choice.available());
+    if (choice.unavailableReason() != null) {
+      meta.put("unavailableReason", choice.unavailableReason());
+    }
+    if (choice.unavailableCode() != null) {
+      meta.put("unavailableCode", choice.unavailableCode());
     }
   }
 

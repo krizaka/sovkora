@@ -216,5 +216,10 @@ describe("useInputSchema — the words come from the pack, in the page's languag
     expect(shortHelper("y".repeat(300))!.length).toBeLessThanOrEqual(HELPER_MAX);
     expect(shortHelper("a ".repeat(200))!.endsWith("…")).toBe(true);
     expect(shortHelper(null)).toBeNull();
+    expect(shortHelper(`${"word, ".repeat(10)}${"x".repeat(30)} ${",".repeat(100_000)}`)!.endsWith("…")).toBe(true);
+    expect(shortHelper(`${"word ".repeat(40)}end,;:`)!.endsWith("…")).toBe(true);
+    const started = performance.now();
+    shortHelper(`${"a".repeat(45)}${",".repeat(100_000)}`);
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 });

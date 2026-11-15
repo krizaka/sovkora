@@ -197,7 +197,11 @@ public class EmbeddingClientImpl implements EmbeddingClient {
 
   /** {@code ai_providers} stores the host root; the OpenAI route needs {@code /v1}. */
   static String embeddingsUrl(String baseUrl) {
-    String trimmed = baseUrl.replaceAll("/+$", "");
+    int end = baseUrl.length();
+    while (end > 0 && baseUrl.charAt(end - 1) == '/') {
+      end--;
+    }
+    String trimmed = baseUrl.substring(0, end);
     return (trimmed.endsWith("/v1") || trimmed.contains("/v1/") ? trimmed : (trimmed + "/v1"))
         + "/embeddings";
   }

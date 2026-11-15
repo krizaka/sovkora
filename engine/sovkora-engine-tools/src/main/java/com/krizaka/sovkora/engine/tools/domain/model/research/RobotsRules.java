@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -77,16 +78,26 @@ public final class RobotsRules {
           inRules = false;
         }
         agents.add(value.toLowerCase(Locale.ROOT));
-      } else if ("allow".equals(key) || "disallow".equals(key)) {
+      } else if (isRuleDirective(key)) {
         inRules = true;
-        if (!value.isEmpty()) {
-          String rulePath = UriPaths.canonical(value);
-          current.add(new Rule("allow".equals(key), rulePath, compile(rulePath)));
-        }
+        ruleOf(key, value).ifPresent(current::add);
       }
     }
     oursFound |= file(agents, current, token, ours, star);
     return new RobotsRules(oursFound ? ours : star, true);
+  }
+
+  private static boolean isRuleDirective(String key) {
+    return "allow".equals(key) || "disallow".equals(key);
+  }
+
+  /** The rule an {@code allow}/{@code disallow} line states; an empty value states none. */
+  private static Optional<Rule> ruleOf(String key, String value) {
+    if (value.isEmpty()) {
+      return Optional.empty();
+    }
+    String rulePath = UriPaths.canonical(value);
+    return Optional.of(new Rule("allow".equals(key), rulePath, compile(rulePath)));
   }
 
   private static boolean file(

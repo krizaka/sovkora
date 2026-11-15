@@ -68,30 +68,32 @@ public final class PublicAddresses {
   private static boolean isPublicV4(byte[] b) {
     int a = b[0] & 0xff;
     int c = b[1] & 0xff;
-    if (a == 0 || a == 10 || a == 127 || a >= 224) {
-      return false; // this network, private, loopback, multicast and reserved
-    }
-    if (a == 100 && c >= 64 && c <= 127) {
-      return false; // CGNAT 100.64.0.0/10
-    }
-    if (a == 169 && c == 254) {
-      return false; // link-local, including 169.254.169.254
-    }
-    if (a == 172 && c >= 16 && c <= 31) {
-      return false;
-    }
-    if (a == 192 && c == 168) {
-      return false;
-    }
-    if (a == 192 && c == 0 && (((b[2] & 0xff) == 0) || ((b[2] & 0xff) == 2))) {
-      return false; // IETF assignments 192.0.0/24, documentation 192.0.2/24
-    }
-    if (a == 198 && (c == 18 || c == 19)) {
-      return false; // benchmarking
-    }
-    if (a == 198 && c == 51 && ((b[2] & 0xff) == 100)) {
-      return false; // documentation
-    }
-    return !(a == 203 && c == 0 && ((b[2] & 0xff) == 113)); // documentation
+    int d = b[2] & 0xff;
+    return !isReservedBlockV4(a, c) && !isDocumentationOrBenchmarkingV4(a, c, d);
+  }
+
+  /** Private, loopback, multicast, CGNAT, link-local and the other ranges named by two octets. */
+  private static boolean isReservedBlockV4(int a, int c) {
+    boolean thisNetworkPrivateLoopbackMulticastOrReserved =
+        a == 0 || a == 10 || a == 127 || a >= 224;
+    boolean cgnat = a == 100 && c >= 64 && c <= 127; // 100.64.0.0/10
+    boolean linkLocal = a == 169 && c == 254; // including 169.254.169.254
+    boolean private172 = a == 172 && c >= 16 && c <= 31;
+    boolean private192 = a == 192 && c == 168;
+    return thisNetworkPrivateLoopbackMulticastOrReserved
+        || cgnat
+        || linkLocal
+        || private172
+        || private192;
+  }
+
+  /** IETF assignments, documentation and benchmarking ranges, which need the third octet too. */
+  private static boolean isDocumentationOrBenchmarkingV4(int a, int c, int d) {
+    boolean ietfOrDocumentation =
+        a == 192 && c == 0 && (d == 0 || d == 2); // 192.0.0/24, 192.0.2/24
+    boolean benchmarking = a == 198 && (c == 18 || c == 19);
+    boolean documentation198 = a == 198 && c == 51 && d == 100;
+    boolean documentation203 = a == 203 && c == 0 && d == 113;
+    return ietfOrDocumentation || benchmarking || documentation198 || documentation203;
   }
 }

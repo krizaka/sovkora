@@ -77,7 +77,11 @@ public class UniversalProxyChatProvider {
     if (baseUrl == null || baseUrl.isBlank()) {
       return baseUrl;
     }
-    String trimmed = baseUrl.replaceAll("/+$", "");
+    int end = baseUrl.length();
+    while (end > 0 && baseUrl.charAt(end - 1) == '/') {
+      end--;
+    }
+    String trimmed = baseUrl.substring(0, end);
     return (trimmed.endsWith("/v1") || trimmed.contains("/v1/")) ? trimmed : (trimmed + "/v1");
   }
 }

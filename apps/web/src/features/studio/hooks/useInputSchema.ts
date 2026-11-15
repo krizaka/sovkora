@@ -72,7 +72,14 @@ export function shortHelper(text: string | null): string | null {
   const sentence = /^.{1,138}?[.!?](?!\S)/.exec(clean);
   if (sentence) return sentence[0];
   const cut = clean.slice(0, HELPER_MAX - 1);
-  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)).replace(/[\s,;:·(]+$/, "")}…`;
+  return `${trimTrailingBreaks(cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)))}…`;
+}
+
+/** Drops the whitespace and the opening or separating punctuation a cut left at the end (a scan, so a long run costs O(n)). */
+function trimTrailingBreaks(text: string): string {
+  let end = text.length;
+  while (end > 0 && /[\s,;:·(]/.test(text[end - 1])) end--;
+  return text.slice(0, end);
 }
 
 /** What the catalogue says about one model: shown beside its name so a person can choose, not guess. */

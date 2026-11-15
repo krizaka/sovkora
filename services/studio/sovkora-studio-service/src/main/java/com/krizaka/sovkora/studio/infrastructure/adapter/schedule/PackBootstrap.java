@@ -82,31 +82,12 @@ public class PackBootstrap {
     int installed = 0;
     int pending = 0;
     for (Path directory : discovered) {
-      PackBundle bundle;
-      try {
-        bundle = packBundleResolver.read(directory);
-      } catch (RuntimeException malformed) {
-        // Not retried: a manifest fault is not a dependency that is still starting.
-        logger.error("Shipped bundle at {} cannot be read and was skipped", directory, malformed);
-        continue;
-      }
-      if (packInstallRepository.isApplied(bundle)) {
-        continue;
-      }
-      try {
-        int studios = packInstallerService.install(bundle);
-        installed++;
-        logger.info(
-            "Bootstrapped pack {} v{} — {} Studio(s)", bundle.key(), bundle.version(), studios);
-      } catch (RuntimeException failure) {
-        pending++;
-        // The throwable, not its message. PackInstallerService wraps the real fault as the CAUSE of
-        // a "failed and was rolled back" message that says nothing on its own, so logging
-        // getMessage() left this loop retrying every 30 seconds, forever, without once saying why —
-        // which is how a pack that could not install survived two e2e runs as an empty composer row
-        // (ADR-069 §0.3).
-        logger.warn(
-            "Pack {} is shipped here and not installed yet — retrying", bundle.key(), failure);
+      switch (installOne(directory)) {
+        case INSTALLED -> installed++;
+        case PENDING -> pending++;
+        case SKIPPED -> {
+          // Unreadable or already applied: nothing to retry.
+        }
       }
     }
     if (pending == 0) {
@@ -114,6 +95,41 @@ public class PackBootstrap {
       if (installed > 0) {
         logger.info("Pack bootstrap complete — {} bundle(s) installed", installed);
       }
+    }
+  }
+
+  private enum Attempt {
+    INSTALLED,
+    PENDING,
+    SKIPPED
+  }
+
+  private Attempt installOne(Path directory) {
+    PackBundle bundle;
+    try {
+      bundle = packBundleResolver.read(directory);
+    } catch (RuntimeException malformed) {
+      // Not retried: a manifest fault is not a dependency that is still starting.
+      logger.error("Shipped bundle at {} cannot be read and was skipped", directory, malformed);
+      return Attempt.SKIPPED;
+    }
+    if (packInstallRepository.isApplied(bundle)) {
+      return Attempt.SKIPPED;
+    }
+    try {
+      int studios = packInstallerService.install(bundle);
+      logger.info(
+          "Bootstrapped pack {} v{} — {} Studio(s)", bundle.key(), bundle.version(), studios);
+      return Attempt.INSTALLED;
+    } catch (RuntimeException failure) {
+      // The throwable, not its message. PackInstallerService wraps the real fault as the CAUSE of
+      // a "failed and was rolled back" message that says nothing on its own, so logging
+      // getMessage() left this loop retrying every 30 seconds, forever, without once saying why —
+      // which is how a pack that could not install survived two e2e runs as an empty composer row
+      // (ADR-069 §0.3).
+      logger.warn(
+          "Pack {} is shipped here and not installed yet — retrying", bundle.key(), failure);
+      return Attempt.PENDING;
     }
   }
 }

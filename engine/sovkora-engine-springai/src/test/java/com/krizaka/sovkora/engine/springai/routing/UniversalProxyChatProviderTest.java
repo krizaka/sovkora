@@ -49,4 +49,16 @@ class UniversalProxyChatProviderTest {
         new UniversalProxyChatProvider().chatModel("http://localhost:11434", "not-required", "m");
     assertThat(model).isNotNull();
   }
+
+  @Test
+  void withApiVersion_stripsEveryTrailingSlashInLinearTime() {
+    assertThat(UniversalProxyChatProvider.withApiVersion("http://h:1///"))
+        .isEqualTo("http://h:1/v1");
+    String hostile = "http://h:1" + "/".repeat(100_000) + "x" + "/".repeat(100_000);
+    assertThat(
+            org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(
+                java.time.Duration.ofSeconds(1),
+                () -> UniversalProxyChatProvider.withApiVersion(hostile)))
+        .endsWith("x/v1");
+  }
 }

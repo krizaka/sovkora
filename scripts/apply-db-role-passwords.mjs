@@ -34,6 +34,7 @@ import { join } from "node:path";
 import { byText } from "./lib/source-scan.mjs";
 import { composeRoot } from "./lib/compose-root.mjs";
 import { toolPath } from "./lib/tool-path.mjs";
+import { parseDotEnvLine } from "./lib/dotenv-line.mjs";
 
 const ROOT = composeRoot(process.argv[2] ?? process.cwd());
 const initdb = join(ROOT, "infra", "initdb");
@@ -66,10 +67,8 @@ function loadDotEnv(root) {
     return; // running with the variables already exported is legitimate
   }
   for (const line of text.split("\n")) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)$/.exec(line);
-    if (!match) continue;
-    const value = match[2].trim().replace(/^["']|["']$/g, "");
-    if (process.env[match[1]] === undefined) process.env[match[1]] = value;
+    const entry = parseDotEnvLine(line);
+    if (entry && process.env[entry.key] === undefined) process.env[entry.key] = entry.value;
   }
 }
 

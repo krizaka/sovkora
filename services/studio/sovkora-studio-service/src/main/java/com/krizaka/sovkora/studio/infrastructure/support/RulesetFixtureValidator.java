@@ -63,17 +63,7 @@ final class RulesetFixtureValidator {
     for (Path file : currentVersions(rulesets)) {
       JsonNode ruleset = read(file, objectMapper);
       for (JsonNode rule : ruleset.path("rules")) {
-        if ("JUDGMENT".equals(rule.path("method").asString(""))) {
-          continue;
-        }
-        String ruleId = rule.path("ruleId").asString("(unnamed rule)");
-        JsonNode fixtures = rule.path("fixtures");
-        if (!fixtures.has("pass") || !fixtures.has("fail")) {
-          violations.add(ruleId + " ships no fixture pair");
-          continue;
-        }
-        check(rule, fixtures.get("pass"), true, ruleId, violations);
-        check(rule, fixtures.get("fail"), false, ruleId, violations);
+        checkRule(rule, violations);
       }
     }
     if (!violations.isEmpty()) {
@@ -83,6 +73,20 @@ final class RulesetFixtureValidator {
               + " ships rules that cannot fail, so their verdicts say nothing about a document:\n  "
               + String.join("\n  ", violations));
     }
+  }
+
+  private static void checkRule(JsonNode rule, List<String> violations) {
+    if ("JUDGMENT".equals(rule.path("method").asString(""))) {
+      return;
+    }
+    String ruleId = rule.path("ruleId").asString("(unnamed rule)");
+    JsonNode fixtures = rule.path("fixtures");
+    if (!fixtures.has("pass") || !fixtures.has("fail")) {
+      violations.add(ruleId + " ships no fixture pair");
+      return;
+    }
+    check(rule, fixtures.get("pass"), true, ruleId, violations);
+    check(rule, fixtures.get("fail"), false, ruleId, violations);
   }
 
   /** One side of a rule's pair — a fragment, or several the rule claims it handles. */

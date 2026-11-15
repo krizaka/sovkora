@@ -117,7 +117,12 @@ public final class WhisperTranscriptionClient implements AudioTranscriber {
    * the suffix.
    */
   static String withoutVersionSuffix(String baseUrl) {
-    String trimmed = baseUrl.strip().replaceAll("/+$", "");
+    String stripped = baseUrl.strip();
+    int end = stripped.length();
+    while (end > 0 && stripped.charAt(end - 1) == '/') {
+      end--;
+    }
+    String trimmed = stripped.substring(0, end);
     return trimmed.replaceFirst("(?i)/v1$", "");
   }
 

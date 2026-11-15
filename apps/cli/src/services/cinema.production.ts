@@ -214,7 +214,7 @@ export function repairJson(body: string): string {
     .map((part, i) =>
       i % 2 === 1
         ? part
-        : part.replace(/:\s*(-?\d[^",\n{}[\]A-Za-z%]*[A-Za-z%][^",\n{}[\]]*)\s*(?=[,\n}\]])/g, ': "$1"'),
+        : part.replace(/:\s*(-?\d[^",\n{}[\]A-Za-z%]*[A-Za-z%][^",\n{}[\]]*)(?=[,\n}\]])/g, ': "$1"'),
     )
     .join("");
   return quoted

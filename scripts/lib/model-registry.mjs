@@ -123,7 +123,9 @@ function insertedRows(stmt) {
   const head = /^INSERT\s+INTO\s+orazaka_models\s*\(([^)]*)\)\s*VALUES\s*/i.exec(stmt);
   if (!head) return [];
   const cols = head[1].split(",").map((c) => c.trim());
-  let rest = stmt.slice(head[0].length).replace(/\s+ON\s+CONFLICT[\s\S]*$/i, "");
+  let rest = stmt.slice(head[0].length);
+  const conflict = /(?<=\s)ON\s+CONFLICT/i.exec(rest);
+  if (conflict) rest = rest.slice(0, conflict.index).trimEnd();
   const rows = [];
   for (let i = 0; i < rest.length; i++) {
     if (rest[i] !== "(") continue;
@@ -143,14 +145,18 @@ function insertedRows(stmt) {
 
 /** `UPDATE orazaka_models SET a = .., b = .. WHERE model_name = '..'` → { name, set }, or null. */
 function modelUpdate(stmt) {
-  const m = /^UPDATE\s+orazaka_models\s+SET\s+([\s\S]*?)\s+WHERE\s+model_name\s*=\s*'((?:[^']|'')*)'$/i.exec(stmt);
+  const head = /^UPDATE\s+orazaka_models\s+SET\s+/i.exec(stmt);
+  if (!head) return null;
+  const where = /(?<=\s)WHERE\s+model_name\s*=\s*'((?:[^']|'')*)'$/gi;
+  where.lastIndex = head[0].length;
+  const m = where.exec(stmt);
   if (!m) return null;
   const set = {};
-  for (const part of splitTop(m[1])) {
+  for (const part of splitTop(stmt.slice(head[0].length, m.index).trimEnd())) {
     const eq = part.indexOf("=");
     set[part.slice(0, eq).trim()] = scalar(part.slice(eq + 1));
   }
-  return { name: m[2].replaceAll("''", "'"), set };
+  return { name: m[1].replaceAll("''", "'"), set };
 }
 
 /**
@@ -217,7 +223,7 @@ export function buildModels(sql, { smoke = null, licenceSources = [] } = {}) {
     if (row.status === "internal") continue;
     models.push({
       id: row.model_name,
-      name: String(row.model_label).replace(/\s*\((?:\d+:\d+, )?(?:9:16, GPU|MPS)\)\s*$/, "").trim(),
+      name: String(row.model_label).trim().replace(/\((?:\d+:\d+, )?(?:9:16, GPU|MPS)\)$/, "").trim(),
       vendor: row.vendor,
       family: row.family,
       category: row.category,
@@ -276,8 +282,8 @@ export function licenceDisagreements(rows, sources) {
 export function readmeLicences(text) {
   const out = new Map();
   for (const line of text.split("\n")) {
-    const m = /^\|\s*`([^`]+)\.yaml`\s*\|(.*)\|\s*([^|]*?)\s*\|\s*$/.exec(line);
-    if (m) out.set(m[1], m[3]);
+    const m = /^\|\s*`([^`]+)\.yaml`\s*\|(.*)\|([^|]*)\|\s*$/.exec(line);
+    if (m) out.set(m[1], m[3].trim());
   }
   return out;
 }
@@ -289,8 +295,9 @@ export function manifestLicences(text) {
   for (const line of text.split("\n")) {
     const entry = /^ {2}([\w.\-]+):\s*$/.exec(line);
     if (entry) id = entry[1];
-    const lic = /^ {4}licence:\s*(.+?)\s*$/.exec(line);
-    if (lic && id) out.set(id, lic[1].replace(/^["']|["']$/g, ""));
+    const lic = /^ {4}licence:([^\n]*)$/.exec(line);
+    const value = lic?.[1].trim();
+    if (value && id) out.set(id, value.replace(/^["']|["']$/g, ""));
   }
   return out;
 }

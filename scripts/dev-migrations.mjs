@@ -63,7 +63,7 @@ export function migrationFiles(root, manifest = JSON.parse(readFileSync(join(roo
 /** The databases a migration file switches to with `\c <db>` (in order, once each); a file without any belongs to its own database. */
 export function databasesOf(sql) {
   const out = [];
-  for (const m of sql.matchAll(/^\s*\\c(?:onnect)?\s+(\S+)/gm)) if (!out.includes(m[1])) out.push(m[1]);
+  for (const m of sql.matchAll(/^[^\S\n]*\\c(?:onnect)?[^\S\n]+(\S+)/gm)) if (!out.includes(m[1])) out.push(m[1]);
   return out;
 }
 

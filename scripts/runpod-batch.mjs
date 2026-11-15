@@ -27,7 +27,7 @@ export function planFromPrompts(text, refs = {}) {
   return {
     clips: prompts.map((line, i) => {
       const id = `r${String(i + 1).padStart(width, "0")}`;
-      const m = /^\[([^\]]*)\]\s*(.+)$/.exec(line);
+      const m = /^\[([^\]]*)\]\s*(\S.*)$/.exec(line);
       if (!m) return { id, scene: line };
       const references = m[1].split(",").map((n) => n.trim()).filter(Boolean).map((name) => {
         if (!refs[name]) throw new Error(`${id}: the reference "${name}" is not in --refs`);

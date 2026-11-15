@@ -119,22 +119,24 @@ public class CitationVerificationService implements CitationVerifier {
     List<Citation> passing = new ArrayList<>();
     for (Citation citation : claim.citations()) {
       Optional<FetchedDocument> document = readDocument(citation, read);
-      if (document.isEmpty()) {
-        continue;
-      }
-      furthest = further(furthest, ClaimReason.QUOTE_NOT_FOUND);
-      if (citation.quote().length() > maxQuote
-          || !QuoteNormalizer.contains(document.get().text(), citation.quote())) {
-        continue;
-      }
-      furthest = further(furthest, ClaimReason.UNSUPPORTED);
-      if (supported(claim.text(), citation, document.get())) {
-        passing.add(citation);
+      if (document.isPresent()) {
+        furthest = further(furthest, ClaimReason.QUOTE_NOT_FOUND);
+        if (quoteFound(citation, document.get(), maxQuote)) {
+          furthest = further(furthest, ClaimReason.UNSUPPORTED);
+          if (supported(claim.text(), citation, document.get())) {
+            passing.add(citation);
+          }
+        }
       }
     }
     return passing.isEmpty()
         ? downgrade(claim, furthest)
         : new Claim(claim.text(), ClaimStatus.VERIFIED, null, passing);
+  }
+
+  private static boolean quoteFound(Citation citation, FetchedDocument document, int maxQuote) {
+    return citation.quote().length() <= maxQuote
+        && QuoteNormalizer.contains(document.text(), citation.quote());
   }
 
   /**

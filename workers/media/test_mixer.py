@@ -127,5 +127,26 @@ class TestTheMasterIsMeasured(unittest.TestCase):
         self.assertGreater(rms(1.0) - rms(3.8), 3.0)  # at least 3 dB down under the voice
 
 
+class ReadR128Test(unittest.TestCase):
+    SUMMARY = "Summary:\n\n  Integrated loudness:\n    I:         -14.0 LUFS\n    Threshold: -24.0 LUFS\n\n  Loudness range:\n    LRA:         6.5 LU\n\n  True peak:\n    Peak:       -1.2 dBFS\n"
+
+    def test_reads_the_three_values_of_a_summary(self):
+        self.assertEqual(mixer._read_r128(self.SUMMARY), ("-14.0", "6.5", "-1.2"))
+        self.assertEqual(mixer._read_r128("I: -9 LUFS LRA: 1 LU Peak: -inf dBFS")[2], "-inf")
+
+    def test_a_summary_missing_a_reading_reads_as_none(self):
+        self.assertIsNone(mixer._read_r128("nothing here"))
+        self.assertIsNone(mixer._read_r128("I: -14.0 LUFS\nLRA: 6.5 LU\n"))
+        self.assertIsNone(mixer._read_r128("LRA: 6.5 LU Peak: -1 dBFS I: -14.0 LUFS"))
+
+    def test_hostile_input_is_linear(self):
+        import time
+
+        started = time.perf_counter()
+        for hostile in ("I: 1 LUFS " * 20000, "I: 1 LUFS LRA: 1 LU " * 10000, "I:" + " " * 100000 + "x"):
+            self.assertIsNone(mixer._read_r128(hostile))
+        self.assertLess(time.perf_counter() - started, 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()
