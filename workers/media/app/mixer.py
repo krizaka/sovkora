@@ -166,7 +166,7 @@ _R128_PEAK = re.compile(r"Peak:\s+(-?[\d.inf]+) dBFS")
 
 
 def _read_r128(summary: str) -> tuple[str, str, str] | None:
-    """The three readings of an ebur128 summary, each searched after the one before (one pass, no backtracking between them)."""
+    """The three ebur128 readings, each searched after the one before."""
     integrated = _R128_INTEGRATED.search(summary)
     if not integrated:
         return None
