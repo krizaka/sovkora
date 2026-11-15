@@ -105,6 +105,7 @@
         "test_titles.py",
         "test_voice_direction.py",
         "test_remote_video.py",
+        "test_runpod_video.py",
         "test_sound_models.py",
         "test_main.py",
         "test_measure.py",

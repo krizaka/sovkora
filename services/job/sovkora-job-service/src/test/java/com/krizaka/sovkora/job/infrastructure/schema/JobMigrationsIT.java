@@ -105,7 +105,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(job(database).migrate().migrationsExecuted)
         .as("first run on an empty database")
-        .isEqualTo(4);
+        .isEqualTo(5);
     assertThat(job(database).migrate().migrationsExecuted).as("second run").isZero();
     job(database).validate();
 
@@ -124,6 +124,13 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
                   "SELECT count(*) FROM orazaka_models WHERE model_name = 'flux-1-schnell'"))
           .as("the catalogue the initdb file lacked")
           .isEqualTo(1);
+      assertThat(
+              count(
+                  statement,
+                  "SELECT count(*) FROM orazaka_models m JOIN ai_providers p ON p.name = m.provider_name"
+                      + " WHERE p.name = 'runpod-public-endpoint' AND m.model_name LIKE 'seedance-2-5-i2v-%'"))
+          .as("the two Seedance rows on their provider (V5)")
+          .isEqualTo(2);
     }
   }
 
@@ -147,7 +154,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     // Baselining at the default 1 would mark V1 applied and skip it; baselining at 0 runs it.
     assertThat(job(database).migrate().migrationsExecuted)
         .as("job V1 on a database another context filled")
-        .isEqualTo(4);
+        .isEqualTo(5);
     assertThat(
             flyway(database, otherLocation, "flyway_history_conversation")
                 .migrate()
@@ -168,7 +175,7 @@ class JobMigrationsIT extends AbstractContainerIntegrationTest {
     bootstrapExtension(database);
     Flyway dev = flyway(database, "classpath:db/migration,classpath:db/dev", "flyway_history_job");
 
-    assertThat(dev.migrate().migrationsExecuted).as("V1 to V4 and the dev route").isEqualTo(5);
+    assertThat(dev.migrate().migrationsExecuted).as("V1 to V5 and the dev route").isEqualTo(6);
     assertThat(dev.migrate().migrationsExecuted).as("second run").isZero();
     dev.validate();
 

@@ -7408,6 +7408,50 @@
       "lastVerified": null
     },
     {
+      "id": "seedance-2-5-i2v-1080p",
+      "name": "Seedance 2.5 I2V 1080p (Runpod)",
+      "vendor": "ByteDance",
+      "family": "Seedance 2.5",
+      "category": "video",
+      "capabilities": [
+        "video"
+      ],
+      "runsOn": "provider",
+      "runtime": "Runpod Public Endpoints",
+      "provider": "runpod-public-endpoint",
+      "openWeights": false,
+      "licence": {
+        "name": "Provider terms (ByteDance Seedance, served by Runpod)",
+        "url": "https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "seedance-2-5-i2v-480p",
+      "name": "Seedance 2.5 I2V 480p (Runpod)",
+      "vendor": "ByteDance",
+      "family": "Seedance 2.5",
+      "category": "video",
+      "capabilities": [
+        "video"
+      ],
+      "runsOn": "provider",
+      "runtime": "Runpod Public Endpoints",
+      "provider": "runpod-public-endpoint",
+      "openWeights": false,
+      "licence": {
+        "name": "Provider terms (ByteDance Seedance, served by Runpod)",
+        "url": "https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
       "id": "wan2-2-t2v-a14b",
       "name": "Wan 2.2 T2V A14B (serverless)",
       "vendor": "Alibaba (Wan-AI)",

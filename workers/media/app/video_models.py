@@ -78,6 +78,11 @@ class VideoModel:
     remote_model: str | None = None
     provider: str | None = None
     cost_usd: float | None = None
+    #: The range of seconds a provider-served model accepts (``seconds: [min, max]``) and the fixed input fields
+    #: its row declares (``providerInput``: resolution, audio…), passed to the provider verbatim.
+    min_seconds: int | None = None
+    max_seconds: int | None = None
+    provider_input: dict = field(default_factory=dict)
     #: Whether the model can start from a photo (``imageToVideo``): Wan 2.2 TI2V 5B only.
     image_to_video: bool = False
     #: Smaller sizes of the same aspect, tried in order when the card runs out of memory at the one
@@ -162,6 +167,16 @@ def load_manifest(path: Path | None = None) -> dict:
         return yaml.safe_load(handle)
 
 
+def _optional(spec: dict, key: str, cast):
+    """``cast`` of the row's value, or None when the row does not declare it."""
+    return cast(spec[key]) if spec.get(key) is not None else None
+
+
+def _optional_item(spec: dict, key: str, index: int) -> int | None:
+    """One end of a ``[min, max]`` pair of the row, or None when the row declares no pair."""
+    return int(spec[key][index]) if spec.get(key) else None
+
+
 def video_models(manifest: dict | None = None) -> dict[str, VideoModel]:
     """Every video model of the manifest, by catalogue name."""
     manifest = manifest or load_manifest()
@@ -177,7 +192,7 @@ def video_models(manifest: dict | None = None) -> dict[str, VideoModel]:
             multiple=int(spec["multiple"]),
             sizes={ratio: tuple(size) for ratio, size in (spec.get("sizes") or {}).items()},
             guidance=float(spec.get("guidance", 5.0)),
-            guidance_two=float(spec["guidanceTwo"]) if spec.get("guidanceTwo") is not None else None,
+            guidance_two=_optional(spec, "guidanceTwo", float),
             repo=spec.get("repo"),
             revision=spec.get("revision"),
             text_encoder_from=spec.get("textEncoderFrom"),
@@ -186,7 +201,10 @@ def video_models(manifest: dict | None = None) -> dict[str, VideoModel]:
             hardware=tuple(spec.get("hardware") or ()),
             remote_model=spec.get("remoteModel"),
             provider=spec.get("provider"),
-            cost_usd=float(spec["costUsd"]) if spec.get("costUsd") is not None else None,
+            cost_usd=_optional(spec, "costUsd", float),
+            min_seconds=_optional_item(spec, "seconds", 0),
+            max_seconds=_optional_item(spec, "seconds", 1),
+            provider_input=dict(spec.get("providerInput") or {}),
             image_to_video=bool(spec.get("imageToVideo", False)),
             fallback_sizes={
                 ratio: tuple(tuple(size) for size in ladder)

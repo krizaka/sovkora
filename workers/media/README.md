@@ -29,6 +29,7 @@ On the Mac, inference never runs in Docker (AGENTS.md §1): this worker runs on 
 | `wan2.2-ti2v-5b` | Wan 2.2 TI2V 5B, text- **and image-to-video** (a photo is cut to the aspect around its subject, never letterboxed; on a small card the size steps down 1280×704 → 960×544 → 832×480 and the run says which) | Apache-2.0 | 704×1280 · 1280×704 | 5 s @ 24 fps | `big` (48 GB), `small` (20 GB, CPU offload) |
 | `wan2.1-t2v-1.3b` | Wan 2.1 T2V 1.3B, text-to-video | Apache-2.0 | 480×832 | 5 s @ 16 fps | `small` (20 GB), `big` |
 | `wan2-2-t2v-a14b` | Wan 2.2 T2V A14B, text-to-video, **served by DigitalOcean serverless inference and routed by Sovkora** (`app/remote_video.py`; nothing runs on this host) | Apache-2.0 | 832×480 (16:9 only) | 5 s @ 16 fps, $0.60/clip | `AI_INFERENCE_KEY` |
+| `seedance-2-5-i2v-480p` · `-1080p` | Seedance 2.5 image-to-video (ByteDance), **served by Runpod Public Endpoints and routed by Sovkora** (`app/runpod_video.py`); a starting image is required | Provider terms | 480×854 · 1080×1920 | 4–30 s, $0.18/s · $0.90/s | `AI_GPU_RUNPOD_API_KEY` |
 | `flux-2-klein-4b` | FLUX.2 [klein] 4B via sd-server | Apache-2.0 | any size | image | both |
 
 `models.yaml` says how each model is fetched (pinned revisions, checksums) and shaped; the platform's catalogue
@@ -52,6 +53,39 @@ What the deployment declares (never assumed):
 ```bash
 python -m app.fetch_models big     # weights of a profile onto MEDIA_MODELS_DIR (/models), verified, once
 ```
+
+## Provider-served video: the port and how to add a Runpod public-endpoint model
+
+A model with `pipeline: remote` is made by a provider; its `provider` picks the adapter behind the port
+(`app/remote_provider.py`, `app/remote_providers.py`): `do-inference` is DigitalOcean serverless inference
+(`app/remote_video.py`, one price per clip), `runpod-public-endpoint` is Runpod Public Endpoints
+(`app/runpod_video.py`: `POST /run`, poll `/status/<id>`, download the https `output.result`). The worker registers every
+`pipeline: remote` row by itself, so **adding the next Runpod public-endpoint model is one row** in `models.yaml` (plus its
+catalogue row, a Flyway migration of the job service like `V5__runpod_seedance.sql`), no code:
+
+```yaml
+  my-model-480p:
+    label: "My model 480p (Runpod)"
+    licence: Provider terms (Vendor, served by Runpod)
+    licenceUrl: https://docs.runpod.io/public-endpoints/models/<page>   # the pricing source
+    pipeline: remote
+    provider: runpod-public-endpoint
+    remoteModel: <endpoint id>      # from the model's page: .../v2/<endpoint id>/runsync
+    costUsd: 0.18                   # USD PER SECOND of clip for this provider; reserved × seconds before the call
+    seconds: [4, 30]                # what the provider accepts; outside it the job is refused by name
+    imageToVideo: true              # accepts a starting image (else it is refused); requiresImage: true if it needs one
+    providerInput: {resolution: 480p, generate_audio: false}   # fixed input fields, sent verbatim
+    fps: 24
+    maxFrames: 721
+    steps: 0
+    multiple: 2
+    sizes: {"9:16": [480, 854]}     # the aspect asked becomes `aspect_ratio`
+    hardware: [remote]
+```
+
+The key is `AI_GPU_RUNPOD_API_KEY` (optionally `AI_GPU_RUNPOD_API_URL`), read from the worker's environment, never logged.
+Every call first `reserve`s `costUsd × seconds` against the daily ceilings (`app/spend.py`); a refusal fails the job
+before the provider is called.
 
 ## Hosted-only mode (a cheap CPU consumer)
 
