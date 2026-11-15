@@ -27,8 +27,8 @@ order: 7
 
 ```sequence
 participant browser: Browser (NextAuth)
-participant bff: @orazaka-web-client
-participant edge: @orazaka-edge
+participant bff: @web
+participant edge: @sovkora-edge-service
 participant users: @krizaka-users-service
 participant core: @krizaka-users-core
 participant persistence: @krizaka-users-persistence
@@ -56,8 +56,8 @@ bff --> browser: session cookie
 ```sequence
 participant browser: Browser (NextAuth)
 participant provider: Google / GitHub
-participant bff: @orazaka-web-client
-participant edge: @orazaka-edge
+participant bff: @web
+participant edge: @sovkora-edge-service
 participant users: @krizaka-users-service
 participant core: @krizaka-users-core
 participant persistence: @krizaka-users-persistence
@@ -89,8 +89,8 @@ bff --> browser: session cookie
 
 ```sequence
 participant client: Browser / CLI
-participant bff: @orazaka-web-client
-participant edge: @orazaka-edge
+participant bff: @web
+participant edge: @sovkora-edge-service
 participant users: @krizaka-users-service
 participant core: @krizaka-users-core
 participant persistence: @krizaka-users-persistence

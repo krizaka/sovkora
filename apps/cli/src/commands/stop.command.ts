@@ -44,11 +44,11 @@ function terminateProcess(pid: number, _name: string): boolean {
 }
 
 export const stopCommand = new Command("stop")
-  .description("Teardown the Orazaka infrastructure — containers, workers, and state")
+  .description("Teardown the Sovkora infrastructure — containers, workers, and state")
   .option("--purge", "Also purge database data and upload directories")
   .option("-y, --yes", "Skip confirmation prompts")
   .action(async (options: { purge?: boolean; yes?: boolean }) => {
-    await intro(chalk.red.bold("🛑 Orazaka Infrastructure Teardown"));
+    await intro(chalk.red.bold("🛑 Sovkora Infrastructure Teardown"));
 
     const workspaceRoot = resolveWorkspaceRoot();
     const pidFile = resolvePidFile();
@@ -58,7 +58,7 @@ export const stopCommand = new Command("stop")
       const shouldContinue = await confirm({
         message: options.purge
           ? "This will stop ALL services AND delete database data. Continue?"
-          : "This will stop all running Orazaka services. Continue?",
+          : "This will stop all running Sovkora services. Continue?",
         initialValue: true,
         active: "Yes, stop everything",
         inactive: "Cancel",

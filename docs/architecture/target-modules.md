@@ -35,7 +35,7 @@ A service may depend on Tier 1 + Tier 2 + **its own** Tier 3, never another cont
 | **worker-media** | `workers/media/` | Native (Metal/CUDA) Python worker: image/video generation and media composition. An **external process** speaking only the AMQP wire contract — imports no service/engine code. | — (wire contract only) | `workers/media/app/*` (the media worker) |
 | **web** | `apps/web/` | Next.js 16 (App Router) customer site + operator console on `admin.*`, with its mandatory BFF (server routes). | — (edge API over HTTP) | `apps/web` |
 | **mobile** | `apps/mobile/` | Expo 57 / React Native client; calls the edge with Bearer tokens (never the BFF). | — (edge API over HTTP) | `apps/mobile` |
-| **cli** | `apps/cli/` | The `orazaka` developer CLI: install, start, dev, test, docs and pack tooling, with an offline SQLite queue. On npm as `@krizaka/orazaka-cli`. | — | `apps/cli` |
+| **cli** | `apps/cli/` | The developer CLI (its command and npm package keep the former name until the rename, K3): install, start, dev, test, docs and pack tooling, with an offline SQLite queue.  | — | `apps/cli` |
 | **desktop** | `apps/desktop/` | Sovkora for Mac (Tauri 2, Rust + React): local runtime, code workspace, Mac engines, one signed app (ADR-079). | — (runs the CLI as a sidecar) | `apps/desktop` |
 | **packs** | `packs/` | Reference packs for the Studio marketplace (document-validation, media, prospection, real-estate, wellbeing…) and `pack.schema.json`. Apache-2.0. Pack workers are Python. | — | `packs/*` |
 
@@ -54,7 +54,7 @@ A service may depend on Tier 1 + Tier 2 + **its own** Tier 3, never another cont
 | **Desktop → GitHub** (read issue, push branch, open PR; user approves each write) | `#planned` | sovkora ADR-093 | a `desktop` feature |
 | **Operator audit read model** (broker → users) | `#planned` | sovkora ADR-085 | a `users`/broker binding |
 | **Production web + per-product API key** | `#planned` | #2136, #2132 | deferred (local phase, §0) |
-| **UI kit** (`@krizaka/orazaka-design-system`, `-shared`) | `#retiring` | .github ADR-029 | folds into `@krizaka/ui`, then its repo is deleted |
+| **UI kit** (the retired npm design-system and shared-types packages) | `#retiring` | .github ADR-029 | folds into `@krizaka/ui`, then its repo is deleted |
 | **Kridoc client** (the sealed media, the uploads and the archived job files through the Kridoc API; a pack reads a customer document only through a consent grant) | `#planned` | .github ADR-032 (Proposed), [krizaka-internal#3028](https://github.com/krizaka/krizaka-internal/issues/3028) | an adapter of the existing `DurableAssetStore` port: no domain code changes; the databases stay Sovkora's |
 
 ## Target feature list (from the C2 and the generated docs)

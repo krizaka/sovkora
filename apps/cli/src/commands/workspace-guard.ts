@@ -30,7 +30,7 @@ export function requireWorkspace(command: string): string {
     return root;
   }
   console.error(
-    chalk.red(`✖ \`orazaka ${command}\` runs inside an Orazaka workspace, and none was found above ${process.cwd()}.`),
+    chalk.red(`✖ \`orazaka ${command}\` runs inside a Sovkora workspace, and none was found above ${process.cwd()}.`),
   );
   console.error(`\n${WORKSPACE_HELP}\n`);
   process.exit(1);

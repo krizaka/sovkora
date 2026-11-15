@@ -4,7 +4,7 @@
  *
  * The retired code names (krizaka-internal#2684) may only disappear from this repository, never come back.
  * Over `git ls-files`, paths AND contents, case-insensitive; lockfiles are not read.
- *  - scripts/code-names.allow.json : what is kept on purpose (globs `paths`, exact `tokens`), each with a `reason` and the
+ *  - scripts/code-names.allow.json : what is kept on purpose (globs `paths`, exact `tokens`; a token with `"scope": "model"` counts only in the architecture model files), each with a `reason` and the
  *    `row` (id of a line of the mapping table in docs/NAMING.md). An entry that matches nothing, or whose row is missing, fails.
  *  - scripts/code-names.ratchet.json : the hit count per top-level folder. A count may only fall.
  *  - --update lowers the ratchet to today's counts; it never raises one (it creates the file when it does not exist).
@@ -21,6 +21,8 @@ const LOCKFILE = /(^|\/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock|Cargo\.lo
 const ALLOW = "scripts/code-names.allow.json";
 const RATCHET = "scripts/code-names.ratchet.json";
 const NAMING = "docs/NAMING.md";
+/** The architecture model and what is published from it: the cockpit and the site draw these, so no retired name is tolerated there (krizaka-internal#3616). */
+export const MODEL_FILES = /^docs\/architecture\/.+\.(c4|md)$|^docs\/_generated\/architecture\.json$|^apps\/web\/content\/docs\/model\.json$/;
 
 export function globToRegExp(glob) {
   let re = "";
@@ -47,10 +49,13 @@ export function namingRows(markdown) {
 function withoutTokens(s, tokens, path) {
   let out = s;
   for (const t of tokens) {
+    if (t.e.scope === "model" && path !== ALLOW && !MODEL_FILES.test(path)) continue;
     if (out.includes(t.e.token)) {
       out = out.split(t.e.token).join("");
       t.used ||= path !== ALLOW;
     }
+    // the allow-list quotes a token as JSON, escaped
+    if (path === ALLOW) out = out.split(JSON.stringify(t.e.token).slice(1, -1)).join("");
   }
   return out;
 }
@@ -74,9 +79,14 @@ export function scan(files, allow) {
   const globs = (allow.paths ?? []).map((e) => ({ e, re: globToRegExp(e.glob), used: false }));
   const tokens = (allow.tokens ?? []).map((e) => ({ e, used: false }));
   const counts = {};
+  const model = [];
   for (const { path, text } of files) {
     const hits = hitsOf(path, text, tokens);
     const glob = globs.find((g) => g.re.test(path));
+    if (!glob && hits > 0 && MODEL_FILES.test(path)) {
+      model.push(path);
+      continue;
+    }
     if (glob) {
       // the whole file is kept, path and content
       if (hits > 0) {
@@ -88,15 +98,16 @@ export function scan(files, allow) {
       counts[folderOf(path)] = (counts[folderOf(path)] ?? 0) + hits;
     }
   }
-  return { counts, deadGlobs: globs.filter((g) => !g.used).map((g) => g.e), deadTokens: tokens.filter((t) => !t.used).map((t) => t.e) };
+  return { counts, model, deadGlobs: globs.filter((g) => !g.used).map((g) => g.e), deadTokens: tokens.filter((t) => !t.used).map((t) => t.e) };
 }
 
-export function judge({ counts, deadGlobs, deadTokens }, allow, ratchet, rows) {
+export function judge({ counts, model = [], deadGlobs, deadTokens }, allow, ratchet, rows) {
   const errors = [];
   for (const [folder, n] of Object.entries(counts)) {
     const max = ratchet[folder] ?? 0;
     if (n > max) errors.push(`${folder}: ${n} hits, the ratchet allows ${max}. A retired code name came back: rename it (docs/NAMING.md), or keep it on purpose in ${ALLOW} with its row.`);
   }
+  for (const path of model) errors.push(`${path}: a retired code name in the architecture model (no ratchet here, none is tolerated): use the current name, or keep a live identifier through a token of ${ALLOW}.`);
   for (const e of deadGlobs) errors.push(`dead allowance (matches no hit): path ${e.glob}`);
   for (const e of deadTokens) errors.push(`dead allowance (matches no hit): token ${e.token}`);
   for (const [kind, key, e] of [...(allow.paths ?? []).map((e) => ["path", e.glob, e]), ...(allow.tokens ?? []).map((e) => ["token", e.token, e])]) {
