@@ -30,4 +30,18 @@ test.describe("the text width check of a screen", () => {
     await page.setContent(html(`<ol><li style="margin-left:100px"><p>${SENTENCE}</p></li></ol>`));
     expect(await textSqueezedOnScreen(page)).toEqual([]);
   });
+
+  test("lets a label cut to one line with an ellipsis pass, as a thread title in a sidebar", async ({ page }) => {
+    await page.setContent(
+      html(
+        `<span style="display:block;width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${SENTENCE}</span>`,
+      ),
+    );
+    expect(await textSqueezedOnScreen(page)).toEqual([]);
+  });
+
+  test("still refuses the same narrow text when it wraps", async ({ page }) => {
+    await page.setContent(html(`<span style="display:block;width:200px">${SENTENCE}</span>`));
+    expect(await textSqueezedOnScreen(page)).toHaveLength(1);
+  });
 });

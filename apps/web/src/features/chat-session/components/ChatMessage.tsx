@@ -160,10 +160,15 @@ export const ChatMessage: React.FC<Props> = ({ message, index = 0, streaming = f
       }}
       className={cn("flex w-full mb-4", isUser ? "justify-end" : "justify-start")}
     >
-      <div className={cn("flex max-w-[75%] gap-3 items-start", isUser ? "flex-row-reverse" : "flex-row")}>
+      <div
+        className={cn(
+          "flex min-w-0 max-w-full gap-3 items-start sm:max-w-[75%]",
+          isUser ? "flex-row-reverse" : "flex-row",
+        )}
+      >
         <figure
           className={cn(
-            "h-9 w-9 rounded-2xl flex items-center justify-center text-[11px] font-bold border select-none flex-shrink-0 transition-colors duration-200",
+            "hidden h-9 w-9 rounded-2xl sm:flex items-center justify-center text-[11px] font-bold border select-none flex-shrink-0 transition-colors duration-200",
             isUser
               ? "bg-accent-soft border-accent/20 text-accent"
               : "bg-surface-2 border-border-subtle text-fg-secondary",
@@ -174,7 +179,7 @@ export const ChatMessage: React.FC<Props> = ({ message, index = 0, streaming = f
 
         <section
           className={cn(
-            "p-4 rounded-2xl border text-[13px] leading-[1.7] text-fg transition-shadow duration-200",
+            "min-w-0 p-3 sm:p-4 rounded-2xl border text-[13px] leading-[1.7] text-fg transition-shadow duration-200",
             isUser
               ? "bg-accent-soft border-accent/10 rounded-tr-md"
               : "bg-surface-1 border-border-subtle rounded-tl-md",
