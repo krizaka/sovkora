@@ -1016,7 +1016,7 @@ function summaryAbove(src, index) {
     .filter((l) => l && !l.startsWith("@"))
     .join(" ");
   const sentence = text.split(/(?<=\.)\s/)[0] ?? "";
-  return sentence.replace(/\{@\w+\s+([^}]*)\}/g, "$1").replace(/[{}]/g, "").replaceAll("\\", "\\\\").replaceAll("|", "\\|").trim();
+  return sentence.replace(/\{@\w+\s([^}]*)\}/g, (_, text) => text.trimStart()).replace(/[{}]/g, "").replaceAll("\\", "\\\\").replaceAll("|", "\\|").trim();
 }
 
 /**
