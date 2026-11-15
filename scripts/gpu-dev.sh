@@ -53,9 +53,9 @@ SECRET_SOURCE="${GPU_SECRET_SOURCE:-@dev}"
 LEDGER="${GPU_LEDGER:-$HOME/Documents/krizaka/orazaka-gpu-ledger.tsv}"
 # The local state (the Mac worker env, the guard's idle record) lives in the HQ's tmp folder, resolved by kz-config; never in the home folder.
 KZ_CONFIG="${KZ_CONFIG:-$HOME/.local/bin/kz-config}"
-if [ -n "${GPU_LOCAL_DIR:-}" ]; then
+if [[ -n "${GPU_LOCAL_DIR:-}" ]]; then
   LOCAL="$GPU_LOCAL_DIR"
-elif [ -x "$KZ_CONFIG" ]; then
+elif [[ -x "$KZ_CONFIG" ]]; then
   LOCAL="$("$KZ_CONFIG" tmp)/gpu-dev"
 else
   LOCAL="" # refused below by every command that keeps state; `user-data` renders to a file it is given
