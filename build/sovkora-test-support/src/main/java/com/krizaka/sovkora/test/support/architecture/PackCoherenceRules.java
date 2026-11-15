@@ -262,7 +262,8 @@ public final class PackCoherenceRules {
     List<String> tuples = new ArrayList<>();
     StringBuilder current = new StringBuilder();
     int depth = 0;
-    for (int i = 0; i < values.length(); i++) {
+    int i = 0;
+    while (i < values.length()) {
       char c = values.charAt(i);
       if (c == '\'') {
         int end = endOfLiteral(values, i);
@@ -285,6 +286,7 @@ public final class PackCoherenceRules {
       } else if (depth > 0) {
         current.append(c);
       }
+      i++;
     }
     return tuples;
   }
@@ -312,7 +314,8 @@ public final class PackCoherenceRules {
     List<String> parts = new ArrayList<>();
     StringBuilder current = new StringBuilder();
     int depth = 0;
-    for (int i = 0; i < tuple.length(); i++) {
+    int i = 0;
+    while (i < tuple.length()) {
       char c = tuple.charAt(i);
       switch (c) {
         case '\'' -> {
@@ -338,6 +341,7 @@ public final class PackCoherenceRules {
         }
         default -> current.append(c);
       }
+      i++;
     }
     if (!current.toString().isBlank()) {
       parts.add(current.toString());

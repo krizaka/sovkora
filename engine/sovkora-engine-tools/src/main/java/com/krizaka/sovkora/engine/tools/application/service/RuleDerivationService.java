@@ -75,8 +75,7 @@ public class RuleDerivationService {
       throw new IllegalStateException("a derivation model call costs at least one credit");
     }
     LawRetrievalResult law = retrievals.retrieve(kind);
-    if (law.outcome() != LawRetrievalResult.Outcome.CACHED
-        && law.outcome() != LawRetrievalResult.Outcome.RETRIEVED) {
+    if (!hasText(law)) {
       return RuleDerivationResult.nothing(Outcome.NOT_RETRIEVED, law.outcome());
     }
     Map<CitedArticle, List<Claim>> grounded = verifiedClaimsByArticle(law);
@@ -118,6 +117,11 @@ public class RuleDerivationService {
         written,
         spent,
         notDerived);
+  }
+
+  private static boolean hasText(LawRetrievalResult law) {
+    return law.outcome() == LawRetrievalResult.Outcome.CACHED
+        || law.outcome() == LawRetrievalResult.Outcome.RETRIEVED;
   }
 
   /**
