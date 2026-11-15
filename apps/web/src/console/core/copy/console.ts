@@ -8,7 +8,7 @@ import { brandOf } from "@krizaka/org";
  */
 
 export const consoleCopy = {
-  product: brandOf("orazaka").commercialName,
+  product: brandOf("sovkora").commercialName,
   console: "Operations",
   /** The dev-deployment line under the name (`{code}` is the code name); never shown in production. */
   nav: {

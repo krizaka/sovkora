@@ -40,7 +40,7 @@
     "@krizaka/intl": "^0.4.1",
     "@krizaka/orazaka-design-system": "^3.4.0",
     "@krizaka/orazaka-shared": "^1.4.0",
-    "@krizaka/org": "^0.7.2",
+    "@krizaka/org": "^1.5.0",
     "@krizaka/query": "^0.3.0",
     "@krizaka/settings": "0.5.2",
     "@krizaka/tailwind": "^3.79.0",

@@ -36,8 +36,8 @@ importers:
         specifier: ^1.4.0
         version: 1.5.0
       '@krizaka/org':
-        specifier: ^0.7.2
-        version: 0.7.2
+        specifier: ^1.5.0
+        version: 1.8.0
       '@krizaka/query':
         specifier: ^0.3.0
         version: 0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.3(@babel/core@7.29.7)(@playwright/test@1.64.1)(@types/node@25.9.9)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
@@ -1039,8 +1039,8 @@ packages:
     resolution: {integrity: sha512-1jWL3L4xdj8v31jukrha6gBnT/G6NNu92D2bTHIAzsFVePjwtwsUn4b2zvoMH02HysR05Xgoggsy59qsS1oSVA==}
     deprecated: Renamed to @krizaka/sovkora-shared
 
-  '@krizaka/org@0.7.2':
-    resolution: {integrity: sha512-it+Mj9XJID2vHkWXwLbbELdUNqqieSlbey/ltvjCWMWNMXefrt0lZ4S/BRP1TfB5GG/XsFLf1P19FuxiiU+o/w==}
+  '@krizaka/org@1.8.0':
+    resolution: {integrity: sha512-7aN/y5Pmdq3wJaRicfbCrKBfe/odr0hSel8bH/FakiCJEClHrLp6SSbVX/nvvFecourlg3jN0ElXRkjNQHg8HA==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -6463,7 +6463,7 @@ snapshots:
     dependencies:
       zod: 4.6.7
 
-  '@krizaka/org@0.7.2': {}
+  '@krizaka/org@1.8.0': {}
 
   '@krizaka/organize@0.4.0': {}
 
