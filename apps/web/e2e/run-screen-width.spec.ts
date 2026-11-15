@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { encode } from "next-auth/jwt";
+import { signInAsDemoUser } from "./support/mock-session";
 import { assertTextReadable } from "../scripts/text-width-on-screen.mjs";
 
 /**
@@ -9,7 +9,6 @@ import { assertTextReadable } from "../scripts/text-width-on-screen.mjs";
  *
  * Mocked (no backend), as the other suites.
  */
-const E2E_SECRET = "e2e-only-secret-not-used-anywhere-else";
 const RUN_ID = "11111111-1111-1111-1111-111111111111";
 
 const step = (stepId: string, ordinal: number, status: string) => ({
@@ -50,11 +49,7 @@ const STATES = {
 } as const;
 
 async function mockRun(page: Page, state: (typeof STATES)[keyof typeof STATES]) {
-  const token = await encode({
-    token: { name: "Eric", email: "eric@orazaka.dev", id: "e2e-user", role: "user" },
-    secret: E2E_SECRET,
-  });
-  await page.context().addCookies([{ name: "next-auth.session-token", value: token, url: "http://localhost:3000" }]);
+  await signInAsDemoUser(page);
   await page.route("**/api/v1/**", async (route) => {
     const url = route.request().url();
     const json = (body: unknown) =>
