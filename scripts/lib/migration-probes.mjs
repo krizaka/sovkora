@@ -13,7 +13,7 @@ const DEFAULT_DB = { "krizaka-billing": "krizaka_billing_db", "krizaka-users": "
 const RENAMED = { orazaka_billing_db: "krizaka_billing_db" };
 
 const lit = (s) => `'${s.replaceAll("'", "''")}'`;
-const ident = (s) => s.replace(/"/g, "").split(".").pop();
+const ident = (s) => s.replaceAll("\"", "").split(".").pop();
 
 /** SQL without `--` comments (string and dollar-quoted bodies are kept as they are). */
 export function stripComments(sql) {
@@ -120,12 +120,12 @@ export function deriveProbes(sqlRaw) {
   for (const m of sql.matchAll(/create\s+or\s+replace\s+function\s+([\w."]+)/gi)) add(`function ${ident(m[1])}`, `EXISTS (SELECT 1 FROM pg_proc WHERE proname = ${lit(ident(m[1]))})`);
   for (const m of sql.matchAll(/insert\s+into\s+([\w."]+)\s*\(([^)]*)\)\s*values/gi)) {
     const table = ident(m[1]);
-    const cols = m[2].split(",").map((c) => c.trim().replace(/"/g, ""));
+    const cols = m[2].split(",").map((c) => c.trim().replaceAll("\"", ""));
     // The row is identified by the ON CONFLICT columns when there are some, else by every plain string value it carries (a number may have been repriced since).
     const tail = sql.slice(m.index + m[0].length);
     const end = tail.search(/;[ \t]*(\n|$)/);
     const target = (end < 0 ? tail : tail.slice(0, end)).match(/on\s+conflict\s*\(([^)]*)\)/i);
-    const keyCols = target ? target[1].split(",").map((c) => c.trim().replace(/"/g, "")) : null;
+    const keyCols = target ? target[1].split(",").map((c) => c.trim().replaceAll("\"", "")) : null;
     for (const row of valueRows(sql, m.index + m[0].length)) {
       const plain = (v) => /^'(?:[^']|'')*'$/.test(v) || /^-?\d+$/.test(v);
       const used = cols.map((c, i) => ({ c, v: row[i] })).filter((x) => x.v !== undefined && plain(x.v) && (keyCols ? keyCols.includes(x.c) : x.v.startsWith("'")));

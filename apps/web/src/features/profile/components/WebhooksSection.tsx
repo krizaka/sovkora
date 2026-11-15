@@ -62,7 +62,7 @@ function EndpointActionsCell({
         label={w.actions.rotate}
         disabled={isSaving}
         onClick={() => {
-          if (window.confirm(w.rotateConfirm)) onRotate(endpoint);
+          if (globalThis.confirm(w.rotateConfirm)) onRotate(endpoint);
         }}
       >
         <Icon name="key" size={15} />
@@ -72,7 +72,7 @@ function EndpointActionsCell({
         size="sm"
         label={w.actions.delete}
         onClick={() => {
-          if (window.confirm(w.deleteConfirm)) onRemove(endpoint);
+          if (globalThis.confirm(w.deleteConfirm)) onRemove(endpoint);
         }}
       >
         <TrashIcon size={15} />

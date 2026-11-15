@@ -24,8 +24,8 @@ export function useDrawerParam(name: string) {
       else next.delete(name);
       const text = next.toString();
       const url = text ? pathname + "?" + text : pathname;
-      if (key) window.history.pushState(null, "", url);
-      else window.history.replaceState(null, "", url);
+      if (key) globalThis.history.pushState(null, "", url);
+      else globalThis.history.replaceState(null, "", url);
     },
     [name, params, pathname],
   );

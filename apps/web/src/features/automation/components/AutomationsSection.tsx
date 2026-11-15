@@ -57,7 +57,7 @@ export function AutomationsSection() {
               busy={busy}
               onEnabled={(enabled) => mutations.setEnabled.mutate({ id: automation.id, enabled })}
               onDelete={() => {
-                if (window.confirm(a.deleteConfirm)) mutations.remove.mutate(automation.id);
+                if (globalThis.confirm(a.deleteConfirm)) mutations.remove.mutate(automation.id);
               }}
             />
           </li>

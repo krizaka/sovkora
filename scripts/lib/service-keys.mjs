@@ -50,7 +50,7 @@ export const CHECK_PATH = "/api/v1/studios/installations";
 
 /** The environment variable that holds `product`'s key in the check (`verikora` → `SERVICE_KEY_VERIKORA`). */
 export function keyVariable(product) {
-  return `SERVICE_KEY_${product.toUpperCase().replace(/-/g, "_")}`;
+  return `SERVICE_KEY_${product.toUpperCase().replaceAll("-", "_")}`;
 }
 
 /**

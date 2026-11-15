@@ -1,6 +1,6 @@
 /** jsdom has no matchMedia: this one answers « reduce » for the reduced-motion query and « no » for the rest. */
 export function mockReducedMotion(): void {
-  Object.defineProperty(window, "matchMedia", {
+  Object.defineProperty(globalThis, "matchMedia", {
     writable: true,
     value: (query: string) => ({
       matches: query.includes("reduce"),

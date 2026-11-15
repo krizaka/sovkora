@@ -28,7 +28,7 @@ export function Clip({
   React.useEffect(() => {
     const el = video.current;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (!el || saveData || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || saveData || globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const io = new IntersectionObserver(
       ([entry]) => (entry.isIntersecting ? void el.play().catch(() => {}) : el.pause()),
       { threshold: 0.3 },

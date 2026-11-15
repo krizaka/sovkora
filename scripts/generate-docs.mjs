@@ -944,7 +944,7 @@ function covers(pattern, concrete) {
     "^" +
       pattern
         .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
-        .replace(/\*\*/g, ".*")
+        .replaceAll("**", ".*")
         .replace(/(?<!\.)\*/g, "[^/]*") +
       "$",
   );
@@ -1016,7 +1016,7 @@ function summaryAbove(src, index) {
     .filter((l) => l && !l.startsWith("@"))
     .join(" ");
   const sentence = text.split(/(?<=\.)\s/)[0] ?? "";
-  return sentence.replace(/\{@\w+\s+([^}]*)\}/g, "$1").replace(/[{}]/g, "").replace(/\\/g, "\\\\").replace(/\|/g, "\\|").trim();
+  return sentence.replace(/\{@\w+\s([^}]*)\}/g, (_, text) => text.trimStart()).replace(/[{}]/g, "").replaceAll("\\", "\\\\").replaceAll("|", "\\|").trim();
 }
 
 /**
@@ -1753,8 +1753,8 @@ function docText(doc) {
     .join(" "))
     .replace(/\{@\w+\s+([^}]*)\}/g, "`$1`")
     .replace(/[{}]/g, "")
-    .replace(/\\/g, "\\\\")
-    .replace(/\|/g, "\\|")
+    .replaceAll("\\", "\\\\")
+    .replaceAll("|", "\\|")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -2163,7 +2163,7 @@ function extractSchedules() {
         const rate = value("fixedRateString") ?? value("fixedRate");
         const describe = (kind, v) => {
           if (!v) return null;
-          const literal = v[1] ?? v[2].replace(/_/g, "");
+          const literal = v[1] ?? v[2].replaceAll("_", "");
           const prop = literal.match(/^\$\{([^:}]+):?([^}]*)\}$/);
           const shown = (v) => (kind === "cron" ? `\`${v}\`` : v);
           return prop ? `${kind} ${shown(prop[2] || "?")} (\`${prop[1]}\`)` : `${kind} ${shown(literal)}`;
@@ -2207,7 +2207,7 @@ function extractJobs(arch) {
   });
   const statusSrc = read(autoFile("AutomationJobStatus.java") ?? "");
   const constants = read(autoFile("AmqpConstants.java") ?? "");
-  const constant = (n) => constants.match(new RegExp(String.raw`${n}\s*=\s*([^;]+);`))?.[1]?.replace(/AUTOMATION_QUEUE\s*\+\s*"([^"]*)"/, (_, x) => `${constants.match(/AUTOMATION_QUEUE\s*=\s*"([^"]+)"/)?.[1]}${x}`).replace(/"/g, "");
+  const constant = (n) => constants.match(new RegExp(String.raw`${n}\s*=\s*([^;]+);`))?.[1]?.replace(/AUTOMATION_QUEUE\s*\+\s*"([^"]*)"/, (_, x) => `${constants.match(/AUTOMATION_QUEUE\s*=\s*"([^"]+)"/)?.[1]}${x}`).replaceAll("\"", "");
   const yml = read(autoDir ? join(autoDir, "src/main/resources/application.yml") : "");
   const quartz = {
     store: yml.match(/job-store-type:\s*(\S+)/)?.[1],
@@ -2379,7 +2379,7 @@ function parseYaml(text) {
     if (v === "false") return false;
     if (/^-?\d+(\.\d+)?$/.test(v)) return Number(v);
     if (v.startsWith('"')) return JSON.parse(v);
-    if (v.startsWith("'")) return v.slice(1, -1).replace(/''/g, "'");
+    if (v.startsWith("'")) return v.slice(1, -1).replaceAll("''", "'");
     return v;
   };
   const balance = (s) => [...s].reduce((n, c) => n + ("[{".includes(c) ? 1 : "]}".includes(c) ? -1 : 0), 0);

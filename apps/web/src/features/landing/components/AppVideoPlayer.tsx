@@ -7,14 +7,14 @@ import { VideoSources } from "@/core/clips/VideoSources";
 
 const REDUCE = "(prefers-reduced-motion: reduce)";
 const subscribe = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
+  const query = globalThis.matchMedia(REDUCE);
   query.addEventListener("change", notify);
   return () => query.removeEventListener("change", notify);
 };
 const useReducedMotion = () =>
   useSyncExternalStore(
     subscribe,
-    () => window.matchMedia(REDUCE).matches,
+    () => globalThis.matchMedia(REDUCE).matches,
     () => true,
   );
 

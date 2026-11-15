@@ -4,7 +4,7 @@ import * as React from "react";
 
 const REDUCE = "(prefers-reduced-motion: reduce)";
 const subscribe = (notify: () => void) => {
-  const query = window.matchMedia(REDUCE);
+  const query = globalThis.matchMedia(REDUCE);
   query.addEventListener("change", notify);
   return () => query.removeEventListener("change", notify);
 };
@@ -13,7 +13,7 @@ const subscribe = (notify: () => void) => {
 export function useStillMotion(): boolean {
   const reduced = React.useSyncExternalStore(
     subscribe,
-    () => window.matchMedia(REDUCE).matches,
+    () => globalThis.matchMedia(REDUCE).matches,
     () => true,
   );
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;

@@ -19,7 +19,11 @@ export function useCatalogueQuery() {
 
   const setQuery = useCallback(
     (next: Partial<CatalogueQuery>) => {
-      window.history.replaceState(null, "", `${pathname}${writeQuery(new URLSearchParams(params.toString()), next)}`);
+      globalThis.history.replaceState(
+        null,
+        "",
+        `${pathname}${writeQuery(new URLSearchParams(params.toString()), next)}`,
+      );
     },
     [params, pathname],
   );

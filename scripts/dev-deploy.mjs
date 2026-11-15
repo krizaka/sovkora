@@ -166,7 +166,7 @@ function data() {
   if (!inferenceKey) throw new Error("AI_INFERENCE_KEY is not in the secrets file yet");
   const sql = readFileSync(join(DEPLOY, "dev-data.sql"), "utf8");
   // The key goes in on stdin (\set), never on the command line where `ps` would show it.
-  const key = inferenceKey.replace(/'/g, "''");
+  const key = inferenceKey.replaceAll("'", "''");
   psql(env, "orazaka_db", "orazaka_db", "DATABASE_PASSWORD_ORAZAKA_DB", [], `\\set ai_inference_key '${key}'\n${sql}`);
   console.log("orazaka_db: dev routing data applied");
 }
@@ -390,7 +390,7 @@ export function assertDevCluster(host) {
  * a wallet already at the bound changes nothing, a spent one is refilled to the bound.
  */
 export function creditTopUpSql(actorId, bound, reason) {
-  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const q = (s) => `'${String(s).replaceAll("'", "''")}'`;
   if (!actorId) throw new Error("no actor id");
   if (!Number.isInteger(bound) || bound <= 0) throw new Error(`the credit bound must be a positive integer: ${bound}`);
   return `BEGIN;
@@ -406,11 +406,11 @@ COMMIT;
 
 /** The id of a persona's account, found by e-mail (the display name may have been changed by `names`: « Éric »). */
 export function personaActorSql(persona) {
-  return `SELECT id FROM users WHERE lower(email) = lower('${String(persona.email).replace(/'/g, "''")}') LIMIT 1`;
+  return `SELECT id FROM users WHERE lower(email) = lower('${String(persona.email).replaceAll("'", "''")}') LIMIT 1`;
 }
 
 export function seedSql(accounts) {
-  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const q = (s) => `'${String(s).replaceAll("'", "''")}'`;
   const rows = accounts.map((a) => {
     const hashField = a.hash ? `password_hash = ${q(a.hash)}, ` : "";
     const hashConflict = a.hash ? "password_hash = EXCLUDED.password_hash, " : "";
@@ -434,7 +434,7 @@ export function seedSql(accounts) {
 
 /** Renames each account's username in place, keyed by e-mail — never inserts a new row (idempotent). */
 export function namesSql(accounts) {
-  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const q = (s) => `'${String(s).replaceAll("'", "''")}'`;
   const rows = accounts.map((a) =>
     `UPDATE users SET username = ${q(a.username)} WHERE lower(email) = lower(${q(a.email)}) AND username != ${q(a.username)};`,
   );
@@ -495,7 +495,7 @@ function seedPersona(name) {
   assertDevCluster(env.DATABASE_HOST);
   const persona = personaAccount(name);
   const hashNow = psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB",
-    ["-t", "-A", "-c", `SELECT password_hash FROM users WHERE lower(email) = lower('${String(persona.email).replace(/'/g, "''")}') LIMIT 1`]).trim();
+    ["-t", "-A", "-c", `SELECT password_hash FROM users WHERE lower(email) = lower('${String(persona.email).replaceAll("'", "''")}') LIMIT 1`]).trim();
   const plan = planPersonaPassword({ stored: storedSecret(`APP_QA_ORAZAKA_${persona.secret}_PASSWORD`), hash: hashNow, matches: bcryptMatches, generate: password });
   psql(env, "krizaka_users_db", "krizaka_users_db", "DATABASE_PASSWORD_KRIZAKA_USERS_DB", [], seedSql([{ ...persona, hash: plan.setHash ? bcrypt(plan.password) : undefined }]));
   storeSecret(`APP_QA_ORAZAKA_${persona.secret}_EMAIL`, persona.email);
@@ -517,7 +517,7 @@ const EDGE_URL = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 /** The account a product calls Orazaka with: a plain ROLE_USER, never an admin, on the `service` rate-limit tier (ADR-083). */
 export function serviceAccount(product) {
   if (!/^[a-z][a-z0-9-]{1,30}$/.test(product ?? "")) throw new Error(`not a product id: ${product}`);
-  const id = product.replace(/-/g, "_");
+  const id = product.replaceAll("-", "_");
   return { key: product, username: `svc_${id}`, email: `svc+${product}@orazaka.com`, tier: "service", roles: ["ROLE_USER"] };
 }
 
@@ -544,7 +544,7 @@ export function parseScopes(raw) {
  * Studio, with its reason — idempotent, a re-run refreshes the reason and lifts an expiry.
  */
 export function grantSql(actorId, studios, product) {
-  const q = (s) => `'${String(s).replace(/'/g, "''")}'`;
+  const q = (s) => `'${String(s).replaceAll("'", "''")}'`;
   if (!actorId) throw new Error("no actor id");
   if (!studios.length) throw new Error("no Studio to grant");
   for (const s of studios) if (!/^[a-z0-9-]+$/.test(s)) throw new Error(`not a Studio key: ${s}`);
@@ -561,7 +561,7 @@ ON CONFLICT (actor_id, entitlement_key) DO UPDATE SET reason = EXCLUDED.reason, 
  * `ultimate` entitlements plus `retention.none`, with the product's service account subscribed to it. Idempotent.
  */
 export function planSql(product, actorId) {
-  const q = (v) => `'${String(v).replace(/'/g, "''")}'`;
+  const q = (v) => `'${String(v).replaceAll("'", "''")}'`;
   if (!/^[a-z][a-z0-9-]{1,30}$/.test(product)) throw new Error(`not a product id: ${product}`);
   const plan = `svc-${product}`;
   return `BEGIN;
@@ -664,11 +664,10 @@ export const BROKER_PERMISSIONS = { orazaka: ".*", "gpu-worker": "^orazaka\\..*"
  * hashes the passwords itself), permissions, no guest. Deleted (shred) after it ran.
  */
 export function brokerUsersScript(passwords) {
-  const q = (v) => `'${String(v).replace(/'/g, "'\\''")}'`;
+  const q = (v) => `'${String(v).replaceAll("'", "'\\''")}'`;
   const lines = ["set -e", "docker exec rabbitmq rabbitmqctl delete_user guest || true"];
   for (const [user, re] of Object.entries(BROKER_PERMISSIONS)) {
-    lines.push(`docker exec rabbitmq rabbitmqctl add_user ${q(user)} ${q(passwords[user])}`);
-    lines.push(`docker exec rabbitmq rabbitmqctl set_permissions -p / ${q(user)} ${q(re)} ${q(re)} ${q(re)}`);
+    lines.push(`docker exec rabbitmq rabbitmqctl add_user ${q(user)} ${q(passwords[user])}`, `docker exec rabbitmq rabbitmqctl set_permissions -p / ${q(user)} ${q(re)} ${q(re)} ${q(re)}`);
   }
   return `${lines.join("\n")}\n`;
 }

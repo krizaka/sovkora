@@ -13,10 +13,10 @@ export function stripTags(text) {
 
 /** A Markdown table cell: the backslash is escaped first, then the pipe. */
 export function mdCell(text) {
-  return String(text).replace(/\\/g, "\\\\").replace(/\|/g, "\\|");
+  return String(text).replaceAll("\\", "\\\\").replaceAll("|", "\\|");
 }
 
 /** XML character references, `&amp;` last so `&amp;lt;` reads `&lt;`, not `<`. */
 export function xmlDecode(text) {
-  return String(text).replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  return String(text).replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&amp;", "&");
 }

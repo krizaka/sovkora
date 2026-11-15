@@ -134,8 +134,7 @@ export function mdCinema(data) {
     "",
   );
   for (const f of data.films) lines.push(`- **${f.title}**: ${f.models.video} on ${f.gpu ?? data.gpu}${f.models.upscale ? `, upscaled by ${f.models.upscale}` : ""}`);
-  lines.push("");
-  lines.push("| Film | Frame | Length | Shots (reshot) | Runs (failed) | GPU time of its runs | At the GPU rate | Wall time |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
+  lines.push("", "| Film | Frame | Length | Shots (reshot) | Runs (failed) | GPU time of its runs | At the GPU rate | Wall time |", "| --- | --- | --- | --- | --- | --- | --- | --- |");
   for (const f of data.films) {
     lines.push(
       row([
@@ -150,13 +149,7 @@ export function mdCinema(data) {
       ]),
     );
   }
-  lines.push("", "### What it cost per minute of finished film", "");
-  lines.push("| Measure | Value |", "| --- | --- |");
-  lines.push(row(["Finished film", `${data.filmMinutes} min`]));
-  lines.push(row(["GPU pod sessions billed (setup, reviews and reshoots included)", `$${data.billedUsd.toFixed(2)}`]));
-  lines.push(row(["**Billed per minute of finished film**", `**$${data.usdPerFilmMinute?.toFixed(2)}**`]));
-  lines.push(row(["The runs' own GPU time per minute of film (what the Studio's estimate multiplies)", `$${data.gpuUsdPerFilmMinute?.toFixed(2)}`]));
-  lines.push(row(["Wall time per minute of film (one pod, runs in sequence)", `${data.wallMinutesPerFilmMinute} min`]));
+  lines.push("", "### What it cost per minute of finished film", "", "| Measure | Value |", "| --- | --- |", row(["Finished film", `${data.filmMinutes} min`]), row(["GPU pod sessions billed (setup, reviews and reshoots included)", `$${data.billedUsd.toFixed(2)}`]), row(["**Billed per minute of finished film**", `**$${data.usdPerFilmMinute?.toFixed(2)}**`]), row(["The runs' own GPU time per minute of film (what the Studio's estimate multiplies)", `$${data.gpuUsdPerFilmMinute?.toFixed(2)}`]), row(["Wall time per minute of film (one pod, runs in sequence)", `${data.wallMinutesPerFilmMinute} min`]));
   if (data.note) lines.push("", `> ${data.note}`);
   lines.push("", "| Pod session | GPU | Hours | Rate | Billed |", "| --- | --- | --- | --- | --- |");
   for (const s of data.sessions) lines.push(row([s.label, s.gpu, s.hours.toFixed(2), `$${s.rate.toFixed(2)}/h`, `$${(s.hours * s.rate).toFixed(2)}`]));
