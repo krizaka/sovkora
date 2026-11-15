@@ -18,8 +18,8 @@ let threadsDir: string;
 
 beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "cli-test-"));
-  configPath = path.join(tmpDir, ".orazaka-cli.json");
-  threadsDir = path.join(tmpDir, ".orazaka-threads");
+  configPath = path.join(tmpDir, "config.json");
+  threadsDir = path.join(tmpDir, "threads");
 });
 
 afterEach(() => {

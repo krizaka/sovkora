@@ -51,7 +51,15 @@ ENV_FILE="${ORAZAKA_DEV_ENV_FILE:-}"
 SECRET_TOOL="${KRIZAKA_SECRET_TOOL:-$HOME/.krizaka-worktrees/tools/secret.sh}"
 SECRET_SOURCE="${GPU_SECRET_SOURCE:-@dev}"
 LEDGER="${GPU_LEDGER:-$HOME/Documents/krizaka/orazaka-gpu-ledger.tsv}"
-LOCAL="${GPU_LOCAL_DIR:-$HOME/.orazaka/gpu-dev}"
+# The local state (the Mac worker env, the guard's idle record) lives in the HQ's tmp folder, resolved by kz-config; never in the home folder.
+KZ_CONFIG="${KZ_CONFIG:-$HOME/.local/bin/kz-config}"
+if [ -n "${GPU_LOCAL_DIR:-}" ]; then
+  LOCAL="$GPU_LOCAL_DIR"
+elif [ -x "$KZ_CONFIG" ]; then
+  LOCAL="$("$KZ_CONFIG" tmp)/gpu-dev"
+else
+  echo "gpu-dev: set GPU_LOCAL_DIR (kz-config not found at $KZ_CONFIG)" >&2; exit 1
+fi
 
 die() { echo "gpu-dev: $*" >&2; exit 1; }
 say() { echo "gpu-dev: $*"; }

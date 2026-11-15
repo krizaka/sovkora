@@ -2,17 +2,17 @@
  * @file threads.ts
  * @description Local thread management for persistent conversation history.
  * Mirrors orazaka-ui's useThreadManagement and useMessageHistory hooks.
- * Threads and messages are persisted to ~/.orazaka-threads/.
+ * Threads and messages are persisted under the CLI state directory (utils/state-dir.ts).
  */
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as os from "node:os";
 import * as crypto from "node:crypto";
+import { statePath } from "./utils/state-dir";
 import type { ChatThread, StoredMessage, CliConfig } from "./types/local.types";
 
-const CONFIG_PATH = path.join(os.homedir(), ".orazaka-cli.json");
-const THREADS_DIR = path.join(os.homedir(), ".orazaka-threads");
+const configPath = (): string => statePath("config.json");
+const threadsDir = (): string => statePath("threads");
 
 // ── Config Persistence ───────────────────────────────────────────────────────
 
@@ -22,9 +22,9 @@ const THREADS_DIR = path.join(os.homedir(), ".orazaka-threads");
  * @returns The parsed config, or null if absent or malformed.
  */
 export function loadConfig(): CliConfig | null {
-  if (!fs.existsSync(CONFIG_PATH)) return null;
+  if (!fs.existsSync(configPath())) return null;
   try {
-    const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+    const raw = JSON.parse(fs.readFileSync(configPath(), "utf-8"));
     if (raw && typeof raw.token === "string" && typeof raw.username === "string") {
       return {
         token: raw.token,
@@ -45,7 +45,7 @@ export function loadConfig(): CliConfig | null {
  * @param config - The config object to write.
  */
 export function saveConfig(config: CliConfig): void {
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+  fs.writeFileSync(configPath(), JSON.stringify(config, null, 2), "utf-8");
 }
 
 /**
@@ -138,7 +138,7 @@ export function updateThreadTitle(threadId: string, title: string): void {
  * @returns The absolute path to the thread's JSON file.
  */
 function threadFilePath(threadId: string): string {
-  return path.join(THREADS_DIR, `${threadId}.json`);
+  return path.join(threadsDir(), `${threadId}.json`);
 }
 
 /**
@@ -164,7 +164,7 @@ export function loadMessages(threadId: string): StoredMessage[] {
  * @param message - The message to append.
  */
 export function appendMessage(threadId: string, message: StoredMessage): void {
-  fs.mkdirSync(THREADS_DIR, { recursive: true });
+  fs.mkdirSync(threadsDir(), { recursive: true });
   const messages = loadMessages(threadId);
   messages.push(message);
   fs.writeFileSync(threadFilePath(threadId), JSON.stringify(messages, null, 2), "utf-8");

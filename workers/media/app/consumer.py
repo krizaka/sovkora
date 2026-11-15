@@ -189,10 +189,10 @@ def _keyring():
     global _KEYRING  # noqa: PLW0603 — one process, one keyring, loaded lazily so a worker that
     # never writes an asset does not require one to start.
     if _KEYRING is None:
-        path = os.environ.get(
-            "ORAZAKA_ASSETS_MASTER_KEY_FILE",
-            os.path.join(os.path.expanduser("~"), ".orazaka", "master.key"),
-        )
+        path = os.environ.get("ORAZAKA_ASSETS_MASTER_KEY_FILE")
+        if not path:
+            # No default under the home directory: the key file is named by configuration, never guessed.
+            raise RuntimeError("ORAZAKA_ASSETS_MASTER_KEY_FILE is not set: the worker needs the asset master keyring path")
         _KEYRING = envelope.MasterKeyring(path)
     return _KEYRING
 

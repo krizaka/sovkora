@@ -423,7 +423,7 @@ before it is published; a clip that drifts, shows text or morphs is regenerated,
 The Mac's Metal worker can drain the same queue:
 
 ```bash
-scripts/gpu-dev.sh mac                   # writes ~/.orazaka/gpu-dev/mac-worker.env (0600, 12 h)
+scripts/gpu-dev.sh mac                   # writes <hq tmp>/gpu-dev/mac-worker.env (0600, 12 h); `kz-config tmp` names the folder
 # then the two commands it prints: a chisel client (brew install chisel) and the worker with that env
 ```
 
@@ -433,6 +433,19 @@ vision steps run on the Mac while it is connected. The worker hands its outputs 
 (`MEDIA_IMAGE_PORT=8087`) and `node scripts/mac-engines-router.mjs` on `:8086`, which answers `/v1/audio/*` from LocalAI and
 the rest from sd-server; the dev provider `localai` points at `gpu-relay:8086` (`infra/deploy/dev-data.sql`). Run one host at a time: two workers on one queue
 share the jobs, and a Wan job reaching the Mac runs on Metal (slowly) or fails by name.
+
+### Rebuild the local GPU and sound setup
+
+Nothing here depends on a hand-made folder in the home directory; every path comes from configuration.
+
+| What | Where it lives | How to rebuild |
+|:---|:---|:---|
+| GPU dev state (Mac worker env, the guard's idle record) | `GPU_LOCAL_DIR`, else `$(kz-config tmp)/gpu-dev` | Nothing to restore: `scripts/gpu-dev.sh mac` writes it again and `scripts/runpod-guard.py` recreates its record |
+| Foley (MMAudio) interpreter and weights | `SOUND_HOME` = `$(kz-config models)/sound`; `SOUND_PYTHON` = `$SOUND_HOME/venv/bin/python` | `mkdir -p "$SOUND_HOME" && uv venv "$SOUND_HOME/venv"`, then install MMAudio (github.com/hkchengrex/MMAudio, its own torch stack, never the worker's venv) into it; the ~6 GB weights download into `SOUND_HOME` at the first foley run. Non-commercial weights: evaluation only |
+| Asset keyring | the file the keyring variables of the services and the worker name (docs/ASSET_ENCRYPTION.md) | Restore it from the private store (docs/ASSET_ENCRYPTION.md); no default path |
+| Product CLI state (login, threads, offline queue, version cache) | the platform's config directory under `sovkora-cli` (`SOVKORA_CLI_HOME` overrides) | `orazaka login`; on first run the CLI moves what its former home-folder names held |
+
+Export `SOUND_HOME`, `SOUND_PYTHON` and the worker's keyring variable before starting it: the foley step and every sealed asset fail by name when one is missing.
 
 ### Wan 2.2 A14B — a provider's model, run by Sovkora
 

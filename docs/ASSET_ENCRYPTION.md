@@ -85,9 +85,11 @@ it, and says so rather than degrading to plaintext.
 CP="engine/sovkora-engine-assets/target/classes:$(ls ~/.m2/repository/org/slf4j/slf4j-api/*/slf4j-api-*.jar | tail -1)"
 TOOL=com.krizaka.orazaka.assets.infrastructure.tool.AssetEncryptionTool
 
-java -cp "$CP" $TOOL keygen  ~/.orazaka/master.key k1              # create, or rotate: keygen … k2
-java -cp "$CP" $TOOL migrate ~/.orazaka/master.key var/orazaka-uploads
-java -cp "$CP" $TOOL verify  ~/.orazaka/master.key var/orazaka-uploads
+KEYRING="$ASSETS_MASTER_KEY_FILE"   # the keyring path comes from configuration; there is no default folder for it
+
+java -cp "$CP" $TOOL keygen  "$KEYRING" k1                  # create, or rotate: keygen … k2
+java -cp "$CP" $TOOL migrate "$KEYRING" var/orazaka-uploads
+java -cp "$CP" $TOOL verify  "$KEYRING" var/orazaka-uploads
 ```
 
 `migrate` is **resumable because it holds no state**: a file is converted if and only if it opens
@@ -101,8 +103,13 @@ and checks it yields the length its header claims — the difference between "th
 | Key | Default | |
 |:---|:---|:---|
 | `orazaka.assets.encryption.enabled` | `true` | off means new writes are in the clear; a migration state, and a loud one |
-| `orazaka.assets.encryption.master-key-file` | `${user.home}/.orazaka/master.key` | never `.env` |
+| `orazaka.assets.encryption.master-key-file` | `ASSETS_MASTER_KEY_FILE` (the services' yml still falls back to a `.sovkora` file under the home directory; set the variable, never rely on it) | never `.env` |
 | `orazaka.assets.encryption.block-size` | `65536` | the granularity of a `Range` read |
 | `orazaka.assets.encryption.accept-plaintext` | `false` | **migration only.** A permanent tolerance is a permanent door |
 
-The Python worker reads `ORAZAKA_ASSETS_MASTER_KEY_FILE` and `ORAZAKA_ASSETS_ENCRYPTION_ENABLED`.
+The Python worker reads `ORAZAKA_ASSETS_MASTER_KEY_FILE` (**required: no default path**; the worker refuses to seal or open an asset without it) and `ORAZAKA_ASSETS_ENCRYPTION_ENABLED`.
+
+**The dev keyring.** It is a secret kept in the maintainer's private store, never in a repository or a hand-made home folder.
+To rebuild a machine, restore the file from the private store to a path you choose, `chmod 600` it, and point
+the services and the worker (variables above) at it. A lost keyring makes every sealed asset
+unreadable: back it up apart from the asset store.

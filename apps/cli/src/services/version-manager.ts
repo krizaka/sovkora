@@ -7,7 +7,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as os from "node:os";
+import { statePath } from "../utils/state-dir";
 import chalk from "chalk";
 import { execSync } from "node:child_process";
 
@@ -44,8 +44,8 @@ export class VersionManager {
 
   constructor(currentVersion: string) {
     this.currentVersion = currentVersion;
-    this.cacheDir = path.join(os.homedir(), ".orazaka-cli");
-    this.cachePath = path.join(this.cacheDir, "version-cache.json");
+    this.cachePath = statePath("version-cache.json");
+    this.cacheDir = path.dirname(this.cachePath);
     this.ensureCacheDir();
   }
 

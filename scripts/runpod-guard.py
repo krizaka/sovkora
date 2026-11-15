@@ -21,6 +21,7 @@ The key comes from the environment, never an argument. RUNPOD_API_BASE points th
 import base64
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.error
@@ -33,7 +34,25 @@ BILLING = ("PROVISIONING", "STARTING", "RUNNING")  # statuses that bill compute
 IDLE_MINUTES = float(os.environ.get("GPU_IDLE_MINUTES", "20"))
 MAX_HOURS = float(os.environ.get("GPU_MAX_HOURS", "6"))
 IDLE_UTIL = float(os.environ.get("GPU_IDLE_UTIL", "5"))
-STATE = os.path.expanduser(os.environ.get("GPU_LOCAL_DIR", "~/.orazaka/gpu-dev")) + "/runpod-idle.json"
+
+
+def _local_dir():
+    """GPU_LOCAL_DIR, else the HQ's tmp folder from kz-config (`<tmp>/gpu-dev`); never a folder of the home directory."""
+    explicit = os.environ.get("GPU_LOCAL_DIR")
+    if explicit:
+        return os.path.expanduser(explicit)
+    tool = os.environ.get("KZ_CONFIG") or os.path.join(os.path.expanduser("~"), ".local", "bin", "kz-config")
+    try:
+        tmp = subprocess.run([tool, "tmp"], capture_output=True, text=True, check=True, timeout=10).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        tmp = ""
+    if not tmp:
+        sys.exit("runpod-guard: set GPU_LOCAL_DIR (kz-config tmp is not available)")
+    return os.path.join(tmp, "gpu-dev")
+
+
+def state_path():
+    return os.path.join(_local_dir(), "runpod-idle.json")
 
 
 def decide(pods, idle_since, now):
@@ -104,7 +123,7 @@ def act(key, pod_id, action="terminate"):
 
 def load_state():
     try:
-        return json.load(open(STATE))
+        return json.load(open(state_path()))
     except (OSError, ValueError):
         return {}
 
@@ -112,8 +131,10 @@ def load_state():
 def once(key):
     pods = running(key)
     to_stop, idle = decide(pods, load_state(), time.time())
-    os.makedirs(os.path.dirname(STATE), exist_ok=True)
-    json.dump(idle, open(STATE, "w"))
+    state = state_path()
+    os.makedirs(os.path.dirname(state), exist_ok=True)
+    with open(state, "w") as handle:
+        json.dump(idle, handle)
     for pid, reason in to_stop:
         act(key, pid, ACTION)
         print(f"runpod-guard: {'stopped' if ACTION == 'stop' else 'terminated'} {pid} — {reason}", flush=True)
