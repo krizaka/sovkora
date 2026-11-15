@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -33,6 +34,8 @@ jobs:
       - working-directory: apps/web
         run: node scripts/videos-preflight.mjs --base https://dev.sovkora.com
         env:
+          # Reads the proof's commit and CI jobs of this repository: the unauthenticated API quota is shared by the runner's IP.
+          GITHUB_TOKEN: ${{ github.token }}
           ORAZAKA_USER_EMAIL: ${{ secrets.APP_QA_ORAZAKA_PERSONA_EMAIL }}
           ORAZAKA_USER_PASSWORD: ${{ secrets.APP_QA_ORAZAKA_PERSONA_PASSWORD }}
 

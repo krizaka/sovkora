@@ -12,6 +12,8 @@ import {
   lastRunWhereProofRan,
   report,
   rollbackVerdict,
+  githubGet,
+  toolPathFacts,
   toolPathVerdict,
   toolVerdict,
   webVerdict,
@@ -292,5 +294,53 @@ describe("the chat answer", () => {
   });
   it("fails on a whitespace-only answer", () => {
     assert.equal(chatAnswerVerdict("  \n", "do-inference").ok, false);
+  });
+});
+
+describe("the GitHub reads of the tool-call proof", () => {
+  const reply =
+    (status, body = {}) =>
+    async () => ({ ok: status === 200, status, json: async () => body });
+
+  it("sends the token as a Bearer header when there is one, and none otherwise", async () => {
+    const seen = [];
+    const spy = async (url, init) => (seen.push(init.headers), { ok: true, status: 200, json: async () => ({}) });
+    await githubGet("x", { token: "t0k", fetchImpl: spy });
+    await githubGet("x", { fetchImpl: spy });
+    assert.equal(seen[0].Authorization, "Bearer t0k");
+    assert.equal(seen[1].Authorization, undefined);
+  });
+
+  it("returns the status with the body", async () => {
+    assert.deepEqual(await githubGet("x", { fetchImpl: reply(200, { a: 1 }) }), { status: 200, body: { a: 1 } });
+    assert.deepEqual(await githubGet("x", { fetchImpl: reply(403) }), { status: 403, body: null });
+  });
+
+  it("reports a refused read as unreadable, never as not on main", async () => {
+    const facts = await toolPathFacts(null, { token: "t0k", fetchImpl: reply(403) });
+    assert.equal(facts.readError, "HTTP 403");
+    const v = toolPathVerdict(facts, false);
+    assert.equal(v.ok, false);
+    assert.match(v.message, /could not read the proof \(HTTP 403\)/);
+    assert.doesNotMatch(v.message, /not on main/);
+    assert.doesNotMatch(JSON.stringify(facts) + v.message, /t0k/);
+  });
+
+  it("reports a failed request as a network error", async () => {
+    const facts = await toolPathFacts(null, {
+      fetchImpl: async () => {
+        throw new Error("down");
+      },
+    });
+    assert.match(toolPathVerdict(facts, false).message, /could not read the proof \(network\)/);
+  });
+});
+
+describe("the preflight step reads the proof with the workflow token, read-only", () => {
+  const code = readFileSync(new URL("../../../.github/workflows/web-videos.yml", import.meta.url), "utf8");
+  const job = code.slice(code.indexOf("  preflight:"), code.indexOf("  showcase-web:"));
+  it("passes GITHUB_TOKEN and asks for contents and actions read only", () => {
+    assert.match(job, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
+    assert.match(job, /contents: read\n\s+actions: read/);
   });
 });
