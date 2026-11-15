@@ -2,7 +2,8 @@
 
 Standalone on purpose: MMAudio (github.com/hkchengrex/MMAudio) pins its own torch stack, so it lives in
 the venv under ``SOUND_HOME`` (``<workspace>/models/sound``) and this file imports nothing from the worker.
-The code is MIT; the WEIGHTS it downloads are CC-BY-NC 4.0 — non-commercial (``models.yaml``, ``sound:``). Adapted from MMAudio's demo.py.
+The code is MIT; the WEIGHTS it downloads are CC-BY-NC 4.0 — non-commercial (``models.yaml``, ``sound:``).
+Adapted from MMAudio's demo.py.
 """
 
 import argparse
