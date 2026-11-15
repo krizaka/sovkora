@@ -20,6 +20,7 @@ import {
   newProduction,
   nextStep,
   parseScript,
+  repairJson,
   seedFor,
 } from "../services/cinema.production";
 
@@ -129,6 +130,14 @@ describe("the script is parsed once", () => {
     expect(extractJson('{"v": "line one\nline two"}')).toEqual({ v: "line one line two" });
     expect(extractJson('{"lens": 35mm,\n "tempo": 68 BPM\n}')).toEqual({ lens: "35mm", tempo: "68 BPM" });
     expect(extractJson('{"style": "a 16:9 frame, 3:2 ratio"}')).toEqual({ style: "a 16:9 frame, 3:2 ratio" });
+  });
+
+  test("a bare value with units is quoted, and a hostile run of spaces stays linear", () => {
+    expect(repairJson('{"lens": 35mm  \n}')).toBe('{"lens": "35mm  "\n}');
+    const started = performance.now();
+    repairJson(`{"a": 1x${" ".repeat(100_000)}{`);
+    repairJson(`{"a": 1x${" ".repeat(100_000)}"`);
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 
   test("unknown values are corrected, the count is bounded, unknown characters dropped", () => {

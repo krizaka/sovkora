@@ -13,6 +13,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.crypto.Cipher;
@@ -78,33 +79,19 @@ public final class FileMasterKeyProvider implements MasterKeyProvider {
               + " `sovkora assets keygen`, keep it outside the repository, and mode it 0600.");
     }
     requireOwnerOnly(keyFile);
-    try {
-      for (String raw : Files.readAllLines(keyFile)) {
-        String line = raw.trim();
-        if (line.isEmpty() || line.startsWith("#")) {
-          continue;
-        }
-        int equals = line.indexOf('=');
-        if (equals < 0) {
-          continue;
-        }
-        String name = line.substring(0, equals).trim();
-        String value = line.substring(equals + 1).trim();
-        if ("active".equals(name)) {
-          active = value;
-        } else {
-          byte[] material = Base64.getDecoder().decode(value);
-          if (material.length != KEY_BYTES) {
-            throw new IllegalStateException(
-                "master key '" + name + "' is " + material.length + " bytes; 32 are required");
-          }
-          keys.put(name, new SecretKeySpec(material, "AES"));
-        }
+    for (String raw : readLines(keyFile)) {
+      String line = raw.trim();
+      if (!isKeyLine(line)) {
+        continue;
       }
-    } catch (IOException e) {
-      throw new UncheckedIOException("could not read the master keyring at " + keyFile, e);
-    } catch (IllegalArgumentException notBase64) {
-      throw new IllegalStateException("the master keyring contains a malformed key", notBase64);
+      int equals = line.indexOf('=');
+      String name = line.substring(0, equals).trim();
+      String value = line.substring(equals + 1).trim();
+      if ("active".equals(name)) {
+        active = value;
+      } else {
+        keys.put(name, decodeKey(name, value));
+      }
     }
 
     if (keys.isEmpty()) {
@@ -121,6 +108,33 @@ public final class FileMasterKeyProvider implements MasterKeyProvider {
         "Asset master keyring loaded: {} key(s), active '{}'. Rotation is a change to that line.",
         keys.size(),
         active);
+  }
+
+  private static List<String> readLines(Path keyFile) {
+    try {
+      return Files.readAllLines(keyFile);
+    } catch (IOException e) {
+      throw new UncheckedIOException("could not read the master keyring at " + keyFile, e);
+    }
+  }
+
+  /** A {@code name = value} line: blanks, comments and lines with no {@code =} carry no key. */
+  private static boolean isKeyLine(String line) {
+    return !line.isEmpty() && !line.startsWith("#") && line.indexOf('=') >= 0;
+  }
+
+  private static SecretKey decodeKey(String name, String value) {
+    byte[] material;
+    try {
+      material = Base64.getDecoder().decode(value);
+    } catch (IllegalArgumentException notBase64) {
+      throw new IllegalStateException("the master keyring contains a malformed key", notBase64);
+    }
+    if (material.length != KEY_BYTES) {
+      throw new IllegalStateException(
+          "master key '" + name + "' is " + material.length + " bytes; 32 are required");
+    }
+    return new SecretKeySpec(material, "AES");
   }
 
   /**

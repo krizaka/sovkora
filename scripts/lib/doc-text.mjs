@@ -6,7 +6,7 @@ export function stripTags(text) {
   let out = String(text);
   for (let previous = ""; previous !== out; ) {
     previous = out;
-    out = out.replace(/<[^>]+>/g, "");
+    out = out.replace(/<[^<>]+>/g, "");
   }
   return out;
 }

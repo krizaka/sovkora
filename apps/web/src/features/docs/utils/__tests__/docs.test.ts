@@ -19,7 +19,7 @@ import {
   tocOf,
 } from "@/features/docs/utils/docs";
 import { diagramData } from "@/features/docs/components/DocDiagram";
-import { loadModel, parseSequence, parseStates } from "@/features/docs/utils/diagrams";
+import { loadModel, parseArchitecture, parseSequence, parseStates } from "@/features/docs/utils/diagrams";
 
 const sources = { "docs/CORE.md": "core", "docs/_generated/CLI.md": "cli", "SECURITY.md": "security" };
 
@@ -198,6 +198,30 @@ describe("the schema blocks of the published docs", () => {
     expect(() => parseSequence("participant a: A\nif x\na -> a: y", model)).toThrow(/never closed/);
     expect(() => parseSequence("participant a: @no-such-module\na -> a: y", model)).toThrow(/not a module/);
     expect(() => parseStates("a -> b: x")).toThrow(/no transition from start/);
+  });
+
+  it("reads a sequence block the same way and stays linear on hostile lines", () => {
+    const b = parseSequence(
+      "participant a-b: Alpha\nparticipant c: Gamma\n## Intro\nif ok\na-b --> c : done\nelse\nc -> a-b: back\nend",
+      model,
+    );
+    expect(b.participants.map((p) => p.key)).toEqual(["a-b", "c"]);
+    expect(b.items.map((i) => i.type)).toEqual(["section", "step", "step"]);
+    expect(b.items[1]).toMatchObject({ from: "a-b", to: "c", text: "done", reply: true });
+    const hostile = [
+      "a" + "-".repeat(100_000),
+      "a:" + " ".repeat(100_000) + "\nx",
+      "participant a:" + " ".repeat(100_000) + "\nx",
+      "##" + " ".repeat(100_000) + "\nx",
+      "a" + "-".repeat(100_000) + "> b",
+    ];
+    const started = performance.now();
+    for (const line of hostile) {
+      expect(() => parseSequence(line, model)).toThrow();
+      expect(() => parseArchitecture(line, model)).toThrow();
+    }
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect(parseArchitecture("mode:  build", model).mode).toBe("build");
   });
 
   it("reads a state block in reading order", () => {

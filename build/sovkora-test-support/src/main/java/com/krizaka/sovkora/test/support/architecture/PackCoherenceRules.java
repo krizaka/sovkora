@@ -261,71 +261,67 @@ public final class PackCoherenceRules {
   private static List<String> tuplesOf(String values) {
     List<String> tuples = new ArrayList<>();
     StringBuilder current = new StringBuilder();
-    boolean inQuote = false;
     int depth = 0;
-    for (int i = 0; i < values.length(); i++) {
+    int i = 0;
+    while (i < values.length()) {
       char c = values.charAt(i);
-      if (inQuote) {
-        if (c == '\'' && i + 1 < values.length() && values.charAt(i + 1) == '\'') {
-          current.append("''");
-          i++;
-          continue;
-        }
-        if (c == '\'') {
-          inQuote = false;
-        }
-        current.append(c);
-        continue;
-      }
       if (c == '\'') {
-        inQuote = true;
-        current.append(c);
-        continue;
-      }
-      if (c == '(') {
+        int end = endOfLiteral(values, i);
+        current.append(values, i, end + 1);
+        i = end;
+      } else if (c == '(') {
         depth++;
         if (depth == 1) {
           current.setLength(0);
-          continue;
+        } else {
+          current.append(c);
         }
       } else if (c == ')') {
         depth--;
         if (depth == 0) {
           tuples.add(current.toString());
-          continue;
+        } else if (depth > 0) {
+          current.append(c);
         }
-      }
-      if (depth > 0) {
+      } else if (depth > 0) {
         current.append(c);
       }
+      i++;
     }
     return tuples;
+  }
+
+  /**
+   * Index of the last character of the string literal opening at {@code start}: its closing quote
+   * (a doubled quote is an escaped one), or the end of the text when the literal never closes.
+   */
+  private static int endOfLiteral(String text, int start) {
+    int index = start + 1;
+    while (index < text.length()) {
+      if (text.charAt(index) != '\'') {
+        index++;
+      } else if (index + 1 < text.length() && text.charAt(index + 1) == '\'') {
+        index += 2;
+      } else {
+        return index;
+      }
+    }
+    return text.length() - 1;
   }
 
   /** Splits on commas that are neither inside a string literal nor inside nested parentheses. */
   private static List<String> splitTopLevel(String tuple) {
     List<String> parts = new ArrayList<>();
     StringBuilder current = new StringBuilder();
-    boolean inQuote = false;
     int depth = 0;
-    for (int i = 0; i < tuple.length(); i++) {
+    int i = 0;
+    while (i < tuple.length()) {
       char c = tuple.charAt(i);
-      if (inQuote) {
-        if (c == '\'' && i + 1 < tuple.length() && tuple.charAt(i + 1) == '\'') {
-          current.append("''");
-          i++;
-          continue;
-        }
-        if (c == '\'') {
-          inQuote = false;
-        }
-        current.append(c);
-        continue;
-      }
       switch (c) {
         case '\'' -> {
-          inQuote = true;
-          current.append(c);
+          int end = endOfLiteral(tuple, i);
+          current.append(tuple, i, end + 1);
+          i = end;
         }
         case '(' -> {
           depth++;
@@ -345,6 +341,7 @@ public final class PackCoherenceRules {
         }
         default -> current.append(c);
       }
+      i++;
     }
     if (!current.toString().isBlank()) {
       parts.add(current.toString());

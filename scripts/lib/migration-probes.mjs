@@ -107,12 +107,13 @@ export function deriveProbes(sqlRaw) {
   const add = (label, expr) => probes.push({ label, sql: expr });
   for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?([\w."]+)/gi)) add(`table ${ident(m[1])}`, `to_regclass(${lit(ident(m[1]))}) IS NOT NULL`);
   for (const m of sql.matchAll(/drop\s+table\s+(?:if\s+exists\s+)?([\w."]+)/gi)) add(`no table ${ident(m[1])}`, `to_regclass(${lit(ident(m[1]))}) IS NULL`);
-  for (const m of sql.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)\s+([^;]*);/gi)) {
+  for (const m of sql.matchAll(/alter\s+table\s+(?:if\s+exists\s+)?(?:only\s+)?([\w."]+)(?:\s+([^;\s][^;]*))?;/gi)) {
     const table = ident(m[1]);
-    for (const c of m[2].matchAll(/add\s+column\s+(?:if\s+not\s+exists\s+)?([\w"]+)/gi))
+    const actions = m[2] ?? "";
+    for (const c of actions.matchAll(/add\s+column\s+(?:if\s+not\s+exists\s+)?([\w"]+)/gi))
       add(`column ${table}.${ident(c[1])}`, `EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = ${lit(table)} AND column_name = ${lit(ident(c[1]))})`);
-    for (const c of m[2].matchAll(/add\s+constraint\s+([\w"]+)/gi)) add(`constraint ${ident(c[1])}`, `EXISTS (SELECT 1 FROM pg_constraint WHERE conname = ${lit(ident(c[1]))})`);
-    for (const c of m[2].matchAll(/drop\s+column\s+(?:if\s+exists\s+)?([\w"]+)/gi))
+    for (const c of actions.matchAll(/add\s+constraint\s+([\w"]+)/gi)) add(`constraint ${ident(c[1])}`, `EXISTS (SELECT 1 FROM pg_constraint WHERE conname = ${lit(ident(c[1]))})`);
+    for (const c of actions.matchAll(/drop\s+column\s+(?:if\s+exists\s+)?([\w"]+)/gi))
       add(`no column ${table}.${ident(c[1])}`, `NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = ${lit(table)} AND column_name = ${lit(ident(c[1]))})`);
   }
   for (const m of sql.matchAll(/create\s+(?:unique\s+)?index\s+(?:concurrently\s+)?(?:if\s+not\s+exists\s+)?([\w"]+)/gi)) add(`index ${ident(m[1])}`, `to_regclass(${lit(ident(m[1]))}) IS NOT NULL`);

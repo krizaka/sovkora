@@ -33,6 +33,11 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSy
 import { join, basename, relative, resolve } from "node:path";
 import { buildModels, catalogue, manifestLicences, readmeLicences } from "./lib/model-registry.mjs";
 import { walk } from "./lib/walk.mjs";
+import {
+  BRACE_PLACEHOLDER, CLI_PORT, COMMENT_LINE, CONVERT_AND_SEND, FIRST_JAVADOC_LINE, GATEWAY_ROUTE, JAVADOC_INLINE_TAG, KEY_BUILDER,
+  PARAM_TAG, PATH_VARIABLE, PROPERTY_REF, RABBIT_LISTENER, TRAILING_NUMBER, WORKER_BINDING, YAML_KEY_LINE,
+  logSteps, paramOf, splitConcatenation, splitStepText, stripBlockComments,
+} from "./lib/doc-patterns.mjs";
 import { byNumber, byText, requestMatcherRules, servicePortOf } from "./lib/source-scan.mjs";
 import { mdCell, stripTags, xmlDecode } from "./lib/doc-text.mjs";
 import { packsSection } from "./lib/pack-blocks.mjs";
@@ -346,7 +351,7 @@ function extractArchitecture() {
   // 2. Route tables (the edge): `- path-prefix: X` + `target: ${VAR:http://localhost:PORT}`.
   for (const s of jvmServices) {
     const yml = read(join(s.dir, "src/main/resources/application.yml"));
-    for (const m of yml.matchAll(/-\s*path-prefix:\s*(\S+)\s*\n\s*target:\s*\$\{[\w.-]+:https?:\/\/[\w.-]+:(\d+)\}/g)) {
+    for (const m of yml.matchAll(GATEWAY_ROUTE)) {
       const to = byPort.get(Number(m[2]));
       if (to) addFlow({ from: s.id, to, kind: "http", via: `route ${m[1]}` });
     }
@@ -587,7 +592,7 @@ function extractMessaging(reactor, extra) {
   // (krizaka.messaging.exchanges, EVENTS_EXCHANGE / DLX_EXCHANGE in the workspace env).
   // The contract's key builders — `jobDoneKey(jobId)` is `JOB_EVENT_PREFIX + jobId + JOB_EVENT_DONE_SUFFIX`.
   const keyBuilders = new Map(
-    [...contractFiles.map(read).join("\n").matchAll(/static\s+String\s+(\w+)\(\s*String\s+\w+\s*\)\s*\{\s*return\s+([^;]+);/g)].map((m) => [m[1], m[2]]),
+    [...contractFiles.map(read).join("\n").matchAll(KEY_BUILDER)].map((m) => [m[1], m[2]]),
   );
   // A routing key or a queue name as the code writes it: a literal, a constant, or a concatenation
   // of both with runtime values (`"job." + jobId + ".done"` → `job.{…}.done`).
@@ -597,7 +602,7 @@ function extractMessaging(reactor, extra) {
     if (/^(exchanges\.deadLetter\(\)|deadLetterExchange)$/.test(token)) return DLX;
     const call = token.match(/^(?:[\w]+\.)?(\w+)\(([^()]*)\)$/);
     if (call && keyBuilders.has(call[1])) return resolveToken(keyBuilders.get(call[1]), local);
-    const parts = token.split(/\s*\+\s*/);
+    const parts = splitConcatenation(token);
     let known = false;
     const text = parts
       .map((part) => {
@@ -666,7 +671,7 @@ function extractMessaging(reactor, extra) {
       const src = read(file);
       const local = constantsOf(src, moduleConstants);
       routedByCapability = /\bCapabilityRoutingClient\b/.test(src);
-      for (const m of src.matchAll(/@RabbitListener\(\s*queues\s*=\s*(\{[^}]*\}|[^,)\n]+)\s*[,)]/g)) {
+      for (const m of src.matchAll(RABBIT_LISTENER)) {
         for (const token of m[1].replace(/[{}]/g, " ").split(",")) {
           const spel = token.trim().match(/^"#\s*(\w+)\.name\s*"$/) ?? token.trim().match(/^"#\{(\w+)\.name\}"$/);
           if (spel) {
@@ -676,7 +681,7 @@ function extractMessaging(reactor, extra) {
           } else addConsumer(mod.id, resolveToken(token, local));
         }
       }
-      for (const m of src.matchAll(/convertAndSend\(\s*([^,()]+),\s*([^,]+?),/g)) {
+      for (const m of src.matchAll(CONVERT_AND_SEND)) {
         const ex = resolveToken(m[1], local);
         addProducer(mod.id, ex, resolveToken(m[2], local) ?? (ex ? "(dynamic)" : null));
       }
@@ -712,12 +717,12 @@ function extractMessaging(reactor, extra) {
         const queue = pyConst.get(m[1]);
         addConsumer(w.id, queue);
         // The worker binds its queue from its declaration (worker.yaml `bindings`, ADR-038).
-        const declared = [...read(join(w.dir, "worker.yaml")).matchAll(/^\s*-\s*"(job\.[^"]+)"/gm)].map((b) => b[1]);
+        const declared = [...read(join(w.dir, "worker.yaml")).matchAll(WORKER_BINDING)].map((b) => b[1]);
         const q = queues.find((x) => x.name === queue);
         if (q && declared.length) q.binding = [...new Set([...(q.binding ? q.binding.split(", ") : []), ...declared])].join(", ");
       }
       const ex = src.match(/EVENTS_EXCHANGE\s*=\s*'([^']+)'/)?.[1];
-      const key = src.match(/routing_key=f"([^"]+)"/)?.[1]?.replace(/\{[^}]+\}/g, "{…}");
+      const key = src.match(/routing_key=f"([^"]+)"/)?.[1]?.replace(BRACE_PLACEHOLDER, "{…}");
       if (ex && key) addProducer(w.id, ex, key);
     }
   }
@@ -785,8 +790,8 @@ function extractUseCases() {
       // The first javadoc line, with inline tags ({@code X}, {@link X}) rendered as code — stopping
       // at the first "@" truncated "a first-class {@code Intention}" to an unclosed "{", which is
       // not valid MDX on the site.
-      const javadoc = (src.match(/\/\*\*\s*\n\s*\*\s*([^\n]+)/)?.[1] ?? "")
-        .replace(/\{@\w+\s+([^}]*)\}/g, "`$1`")
+      const javadoc = (src.match(FIRST_JAVADOC_LINE)?.[1] ?? "")
+        .replace(JAVADOC_INLINE_TAG, "`$1`")
         .replace(/[{}]/g, "")
         .trim();
       return { name, capability, domain, summary: javadoc };
@@ -822,7 +827,7 @@ function classSummary(src, name) {
     .map((l) => l.replace(/^\s*\*\s?/, ""))
     .filter((l) => !l.startsWith("@"))
     .join(" "))
-    .replace(/\{@\w+\s+([^}]*)\}/g, "`$1`")
+    .replace(JAVADOC_INLINE_TAG, "`$1`")
     .replace(/[{}]/g, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -886,7 +891,7 @@ function accessRules(serviceDir) {
   const lanes = [];
   for (const f of javaFiles(serviceDir)) {
     if (!f.endsWith("SecurityConfig.java")) continue;
-    const code = read(f).replace(/^\s*(\/\/|\*|\/\*).*$/gm, "");
+    const code = read(f).replace(COMMENT_LINE, "");
     // krizaka-security's SecurityBaseline.apply(http, serviceRules) declares the shared rules
     // first and `anyRequest().authenticated()` last, around the service's own: the same order
     // Spring Security will evaluate them in (krizaka-java krizaka-service-kit, ADR-073).
@@ -959,7 +964,7 @@ function covers(pattern, concrete) {
  * @param method the HTTP verb, so a method-scoped rule (preflight) applies only to its own
  */
 function accessFor(rules, path, method) {
-  const concrete = path.replace(/\{[^}]*\}/g, "x");
+  const concrete = path.replace(PATH_VARIABLE, "x");
   const lane = (rules.lanes ?? []).find((r) => (!r.httpMethod || r.httpMethod === method) && covers(r.pattern, concrete));
   for (const { pattern, label, httpMethod } of rules) {
     if (httpMethod && httpMethod !== method) continue;
@@ -1155,15 +1160,15 @@ function extractCliJourney(commands) {
   const phases = (name) => {
     const code = src(name);
     const fullFrom = code.search(/if\s*\(\s*mode\s*===\s*"full"/);
-    return [...code.matchAll(/logStep\(\s*"((?:Phase\s+(\w+)|Workspace)[^"]*)"\s*\)/g)].map((m) => {
-      const [head, ...rest] = m[1].split(/\s+—\s+|:\s+/);
-      const title = (m[2] ? rest.join(" — ") : head).replace(/\.\.\.$/, "").trim();
+    return logSteps(code).map((m) => {
+      const [head, ...rest] = splitStepText(m.text);
+      const title = (m.phase ? rest.join(" — ") : head).replace(/\.\.\.$/, "").trim();
       const only = fullFrom >= 0 && m.index > fullFrom ? "--mode full" : "";
-      return { id: m[2] ? m[2].toLowerCase() : head.toLowerCase(), title, detail: m[2] ? only : rest.join(" — ") };
+      return { id: m.phase ? m.phase.toLowerCase() : head.toLowerCase(), title, detail: m.phase ? only : rest.join(" — ") };
     });
   };
   const ports = Object.fromEntries(
-    [...read(join(cliRoot, "src/utils/config.ts")).matchAll(/^\s+(\w+):\s*intEnv\([^,]+,\s*(\d+)\)/gm)].map((m) => [m[1], Number(m[2])]),
+    [...read(join(cliRoot, "src/utils/config.ts")).matchAll(CLI_PORT)].map((m) => [m[1], Number(m[2])]),
   );
   const processes = [...src("dev").matchAll(/serviceKey:\s*"(\w+)",\s*label:\s*"([^"]+)"[\s\S]*?port:\s*PORTS\.(\w+)/g)].map((m) => ({
     key: m[1],
@@ -1751,7 +1756,7 @@ function docText(doc) {
     .map((l) => l.replace(/^\s*\*\s?/, ""))
     .filter((l) => !l.trim().startsWith("@"))
     .join(" "))
-    .replace(/\{@\w+\s+([^}]*)\}/g, "`$1`")
+    .replace(JAVADOC_INLINE_TAG, "`$1`")
     .replace(/[{}]/g, "")
     .replaceAll("\\", "\\\\")
     .replaceAll("|", "\\|")
@@ -1780,8 +1785,8 @@ function paramTags(src, name) {
   const lines = doc.split("\n").map((l) => l.replace(/^\s*\*\s?/, ""));
   const tags = [];
   for (const line of lines) {
-    const m = line.match(/^@param\s+(<?\w+>?)\s*(.*)$/);
-    if (m) tags.push({ name: m[1], text: m[2] });
+    const m = line.match(PARAM_TAG);
+    if (m) tags.push({ name: m[1], text: line.slice(m[0].length).trim() });
     else if (tags.length && line.trim() && !line.trim().startsWith("@")) tags.at(-1).text += " " + line.trim();
     else if (line.trim().startsWith("@")) tags.push({ name: null, text: "" });
   }
@@ -1804,13 +1809,13 @@ function recordComponents(src, name) {
     } else current += ch;
   }
   if (current.trim()) parts.push(current);
-  return parts.map((p) => p.trim().replace(/\s+/g, " ")).map((p) => ({ type: p.replace(/\s+\w+$/, ""), name: p.match(/(\w+)$/)?.[1] }));
+  return parts.map(paramOf);
 }
 
 /** The constants of an enum, comments stripped. */
 function enumValues(src, name) {
   // Comments first: a constant's javadoc may hold the ";" that would end the scan early.
-  const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  const code = stripBlockComments(src).replace(/\/\/[^\n]*/g, "");
   const m = new RegExp(String.raw`enum\s+${name}\s*\{([\s\S]*?)(?:;|\})`).exec(code);
   if (!m) return [];
   return m[1]
@@ -2047,7 +2052,7 @@ function extractTools() {
 
   const sql = readInitDb();
   const tables = ["platform_tool_configs", "platform_mcp_servers", "user_mcp_servers", "orazaka_tools_cache"].map((t) => ({ table: t, columns: tableColumns(sql, t) }));
-  const seeded = [...sql.matchAll(/INSERT INTO platform_tool_configs[^;]*?VALUES\s*([\s\S]*?)(?:ON CONFLICT|;)/g)].flatMap((m) =>
+  const seeded = [...sql.matchAll(/INSERT INTO platform_tool_configs[^;]*?VALUES([\s\S]*?)(?:ON CONFLICT|;)/g)].flatMap((m) =>
     [...m[1].matchAll(/\('([^']+)'/g)].map((r) => r[1]),
   );
 
@@ -2164,11 +2169,11 @@ function extractSchedules() {
         const describe = (kind, v) => {
           if (!v) return null;
           const literal = v[1] ?? v[2].replaceAll("_", "");
-          const prop = literal.match(/^\$\{([^:}]+):?([^}]*)\}$/);
+          const prop = literal.match(PROPERTY_REF);
           const shown = (v) => (kind === "cron" ? `\`${v}\`` : v);
           return prop ? `${kind} ${shown(prop[2] || "?")} (\`${prop[1]}\`)` : `${kind} ${shown(literal)}`;
         };
-        const ms = (text) => text.replace(/(\d+)(?= \(|$)/, (n) => (Number(n) >= 1000 ? `${Number(n) / 1000} s` : `${n} ms`));
+        const ms = (text) => text.replace(TRAILING_NUMBER, (n) => (Number(n) >= 1000 ? `${Number(n) / 1000} s` : `${n} ms`));
         const schedule = cron ? describe("cron", cron) : delay ? ms(describe("every", delay)) : rate ? ms(describe("every", rate)) : "—";
         const name = basename(f, ".java");
         rows.push({
@@ -2364,9 +2369,9 @@ function parseYaml(text) {
       if (quote) {
         if (c === quote) quote = null;
       } else if (c === '"' || c === "'") quote = c;
-      else if (c === "#" && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i).replace(/\s+$/, "");
+      else if (c === "#" && (i === 0 || /\s/.test(line[i - 1]))) return line.slice(0, i).trimEnd();
     }
-    return line.replace(/\s+$/, "");
+    return line.trimEnd();
   };
   const lines = raw.map((l) => ({ indent: l.match(/^ */)[0].length, text: stripComment(l).trim(), raw: l }));
   let i = 0;
@@ -2441,7 +2446,7 @@ function parseYaml(text) {
     while (i < lines.length) {
       skip();
       if (i >= lines.length || lines[i].indent !== at || lines[i].text.startsWith("- ")) break;
-      const m = lines[i].text.match(/^("[^"]+"|'[^']+'|[^:]+?):(?:\s+(.*))?$/);
+      const m = lines[i].text.match(YAML_KEY_LINE);
       if (!m) throw new Error(`parseYaml: cannot read line ${i + 1}: ${lines[i].raw}`);
       const key = scalar(m[1].trim());
       const rest = (m[2] ?? "").trim();
@@ -2670,7 +2675,7 @@ function extractAdmin(api) {
       provider: /CredentialsProvider/.test(options) ? "credentials" : null,
     };
   }
-  const norm = (path) => path.replace(/\{[^}]*\}/g, "{}");
+  const norm = (path) => path.replace(PATH_VARIABLE, "{}");
   const consoleRows = api.filter((r) => called.has(norm(r.path)));
   const adminOnly = api.filter((r) => r.access === "ADMIN" || /then ADMIN$/.test(r.access));
   screens.sort((x, y) => x.route.localeCompare(y.route));

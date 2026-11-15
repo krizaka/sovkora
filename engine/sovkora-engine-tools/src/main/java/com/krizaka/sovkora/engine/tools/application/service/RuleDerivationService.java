@@ -75,8 +75,7 @@ public class RuleDerivationService {
       throw new IllegalStateException("a derivation model call costs at least one credit");
     }
     LawRetrievalResult law = retrievals.retrieve(kind);
-    if (law.outcome() != LawRetrievalResult.Outcome.CACHED
-        && law.outcome() != LawRetrievalResult.Outcome.RETRIEVED) {
+    if (!hasText(law)) {
       return RuleDerivationResult.nothing(Outcome.NOT_RETRIEVED, law.outcome());
     }
     Map<CitedArticle, List<Claim>> grounded = verifiedClaimsByArticle(law);
@@ -95,31 +94,18 @@ public class RuleDerivationService {
       if (stopped || spent + ceiling > cap) {
         stopped = true;
         notDerived.add(article);
-        continue;
-      }
-      if (proposed.size() >= maxRules) {
+      } else if (proposed.size() >= maxRules) {
         break;
+      } else {
+        Optional<RuleDerivationModel.Answer> answer =
+            proposeFrom(kind, corpus, entry, maxRules - proposed.size());
+        if (answer.isEmpty()) {
+          notDerived.add(article);
+        } else {
+          spent += answer.get().credits();
+          proposed.addAll(answer.get().rules());
+        }
       }
-      Optional<StatuteVersion> text =
-          corpus.inForce(article.instrument(), article.ref(), article.language());
-      if (text.isEmpty() || !text.get().contentHash().equals(article.contentHash())) {
-        // The corpus moved since the retrieval: never propose from a text it no longer holds, and
-        // say so, so the result accounts for every article that had verified claims.
-        notDerived.add(article);
-        continue;
-      }
-      RuleDerivationModel.Answer answer =
-          model.propose(
-              new RuleDerivationModel.Prompt(
-                  kind.jurisdiction(),
-                  kind.kindId(),
-                  kind.language(),
-                  kind.asOf(),
-                  toModel(article, text.get()),
-                  entry.getValue(),
-                  maxRules - proposed.size()));
-      spent += answer.credits();
-      proposed.addAll(answer.rules());
     }
 
     List<VettedProposal> vetted = new RuleProposalVet(corpus, kind.asOf(), maxRules).vet(proposed);
@@ -131,6 +117,39 @@ public class RuleDerivationService {
         written,
         spent,
         notDerived);
+  }
+
+  private static boolean hasText(LawRetrievalResult law) {
+    return law.outcome() == LawRetrievalResult.Outcome.CACHED
+        || law.outcome() == LawRetrievalResult.Outcome.RETRIEVED;
+  }
+
+  /**
+   * The model's proposals for one article, or empty when the corpus moved since the retrieval:
+   * never propose from a text it no longer holds, and say so, so the result accounts for every
+   * article that had verified claims.
+   */
+  private Optional<RuleDerivationModel.Answer> proposeFrom(
+      LawRetrievalRequest kind,
+      InForceArticles corpus,
+      Map.Entry<CitedArticle, List<Claim>> entry,
+      int remainingRules) {
+    CitedArticle article = entry.getKey();
+    Optional<StatuteVersion> text =
+        corpus.inForce(article.instrument(), article.ref(), article.language());
+    if (text.isEmpty() || !text.get().contentHash().equals(article.contentHash())) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        model.propose(
+            new RuleDerivationModel.Prompt(
+                kind.jurisdiction(),
+                kind.kindId(),
+                kind.language(),
+                kind.asOf(),
+                toModel(article, text.get()),
+                entry.getValue(),
+                remainingRules)));
   }
 
   /** The verified claims of each article, the articles in the retrieval's order. */

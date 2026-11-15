@@ -6,7 +6,7 @@ import { sha256 } from "./verify.mjs";
 const decode = (s) =>
   s.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'").replace(/&#(\d+);/gu, (_, n) => String.fromCodePoint(Number(n))).replaceAll("&amp;", "&");
 
-const textOf = (xml) => decode(xml.replace(/<[^>]+>/gu, " ")).replace(/[ \t\r\n]+/gu, " ").trim();
+const textOf = (xml) => decode(xml.replace(/<[^<>]+>/gu, " ")).replace(/[ \t\r\n]+/gu, " ").trim();
 
 /** The text of article `ref` of a statute XML: its label, then one paragraph per subsection (the shape the engine's passages have). */
 export function articleFromXml(xml, ref) {

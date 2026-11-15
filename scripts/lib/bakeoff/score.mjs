@@ -2,12 +2,20 @@
 import { createHash } from "node:crypto";
 import { verifyClaim } from "./verify.mjs";
 
+/** The body of a ```-fenced answer (an optional `json` tag dropped, the edges trimmed), or null when the text is not fenced. */
+function unfence(s) {
+  const mark = "```";
+  if (s.length < 2 * mark.length || !s.startsWith(mark) || !s.endsWith(mark)) return null;
+  const body = s.slice(mark.length, -mark.length);
+  return (body.startsWith("json") ? body.slice("json".length) : body).trim();
+}
+
 export function parseAnswer(text) {
   let s = String(text ?? "").trim();
   let fenced = false;
-  const fence = s.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/u);
-  if (fence) {
-    s = fence[1];
+  const fence = unfence(s);
+  if (fence !== null) {
+    s = fence;
     fenced = true;
   }
   if (!s.startsWith("{")) return { ok: false, fenced, claims: [] };

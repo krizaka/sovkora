@@ -48,27 +48,8 @@ public final class LawStatuteXmlParser {
     List<LawArticle> articles = new ArrayList<>();
     NodeList sections = document.getElementsByTagName("Section");
     for (int i = 0; i < sections.getLength(); i++) {
-      Element section = (Element) sections.item(i);
-      String code = section.getAttribute("Code");
-      if (!code.startsWith("se:")) {
-        continue;
-      }
-      String ref = code.substring("se:".length());
-      String text = bodyText(section);
-      if (isRepealed(text)) {
-        continue;
-      }
-      String dated = required(section, "date-eev", ref);
-      articles.add(
-          new LawArticle(
-              "QC",
-              instrument,
-              ref,
-              language,
-              LocalDate.parse(dated, BASIC_DATE),
-              text,
-              OfficialUrls.of("QC", instrument, language, ref),
-              sourceUrl));
+      quebecArticle((Element) sections.item(i), instrument, language, sourceUrl)
+          .ifPresent(articles::add);
     }
     return articles;
   }
@@ -88,29 +69,58 @@ public final class LawStatuteXmlParser {
     List<LawArticle> articles = new ArrayList<>();
     NodeList sections = document.getElementsByTagName("Section");
     for (int i = 0; i < sections.getLength(); i++) {
-      Element section = (Element) sections.item(i);
-      Element label = firstChild(section, "Label");
-      if (label == null) {
-        continue;
-      }
-      String ref = label.getTextContent().trim();
-      String text = bodyText(section);
-      if (isRepealed(text)) {
-        continue;
-      }
-      String dated = required(section, "lims:inforce-start-date", ref);
-      articles.add(
-          new LawArticle(
-              "CA",
-              instrument,
-              ref,
-              language,
-              LocalDate.parse(dated),
-              text,
-              OfficialUrls.of("CA", instrument, language, ref),
-              sourceUrl));
+      justiceArticle((Element) sections.item(i), instrument, language, sourceUrl)
+          .ifPresent(articles::add);
     }
     return articles;
+  }
+
+  private Optional<LawArticle> quebecArticle(
+      Element section, String instrument, String language, String sourceUrl) {
+    String code = section.getAttribute("Code");
+    if (!code.startsWith("se:")) {
+      return Optional.empty();
+    }
+    String ref = code.substring("se:".length());
+    String text = bodyText(section);
+    if (isRepealed(text)) {
+      return Optional.empty();
+    }
+    String dated = required(section, "date-eev", ref);
+    return Optional.of(
+        new LawArticle(
+            "QC",
+            instrument,
+            ref,
+            language,
+            LocalDate.parse(dated, BASIC_DATE),
+            text,
+            OfficialUrls.of("QC", instrument, language, ref),
+            sourceUrl));
+  }
+
+  private Optional<LawArticle> justiceArticle(
+      Element section, String instrument, String language, String sourceUrl) {
+    Element label = firstChild(section, "Label");
+    if (label == null) {
+      return Optional.empty();
+    }
+    String ref = label.getTextContent().trim();
+    String text = bodyText(section);
+    if (isRepealed(text)) {
+      return Optional.empty();
+    }
+    String dated = required(section, "lims:inforce-start-date", ref);
+    return Optional.of(
+        new LawArticle(
+            "CA",
+            instrument,
+            ref,
+            language,
+            LocalDate.parse(dated),
+            text,
+            OfficialUrls.of("CA", instrument, language, ref),
+            sourceUrl));
   }
 
   /**

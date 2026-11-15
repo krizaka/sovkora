@@ -30,15 +30,10 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { byText } from "./lib/source-scan.mjs";
 import { toolPath } from "./lib/tool-path.mjs";
+import { assertionOf, hasRequestLine } from "./lib/http-contract-lines.mjs";
 
 /** A result line httpyac prints for an assertion that ran. */
 const REPORTED = /^\s*(✓|✖)\s/;
-
-/** An assertion line in a .http source. */
-const DECLARED = /^\?\?\s+(.+)$/;
-
-/** A request line: what makes a `###` region an actual request rather than a banner. */
-const REQUEST_LINE = /^\s*(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+\S/m;
 
 /**
  * Every assertion the suite declares, with where it came from.
@@ -54,14 +49,14 @@ function declared(directory) {
     const text = readFileSync(join(directory, name), "utf8");
     for (const region of text.split(/^###/m).filter((r) => r.trim())) {
       regions += 1;
-      if (REQUEST_LINE.test(region)) {
+      if (hasRequestLine(region)) {
         requests += 1;
       }
     }
     for (const line of text.split("\n")) {
-      const match = DECLARED.exec(line);
-      if (match) {
-        assertions.push({ file: name, text: match[1].trim() });
+      const assertion = assertionOf(line);
+      if (assertion !== null) {
+        assertions.push({ file: name, text: assertion });
       }
     }
   }

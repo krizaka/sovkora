@@ -86,53 +86,72 @@ public class PinnedHttpClient implements SafeHttp {
     long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(limits.timeoutMs());
     URI hop = uri;
     for (int hops = 0; hops <= limits.maxRedirects(); hops++) {
-      String scheme = hop.getScheme() == null ? "" : hop.getScheme().toLowerCase(Locale.ROOT);
-      if (!("https".equals(scheme) || "http".equals(scheme)) || hop.getHost() == null) {
-        return refused(FetchRefusal.SCHEME);
+      Step step = visit(hop, limits, deadline, hopCheck);
+      if (step instanceof Redirect(URI next)) {
+        hop = next;
+      } else {
+        return ((Done) step).outcome();
       }
-      List<InetAddress> addresses;
-      try {
-        addresses = resolver.resolve(hop.getHost());
-      } catch (UnknownHostException unknown) {
-        log.debug("DNS resolution failed for host: {}", unknown.getMessage(), unknown);
-        return refused(FetchRefusal.HTTP_ERROR);
-      }
-      if (addresses.isEmpty() || !addresses.stream().allMatch(addressPolicy)) {
-        return refused(FetchRefusal.SSRF);
-      }
-      Optional<FetchRefusal> refusal = hopCheck.apply(hop);
-      if (refusal.isPresent()) {
-        return refused(refusal.get());
-      }
-      HopAnswer answer;
-      try {
-        answer = read(hop, addresses, limits, deadline);
-      } catch (InterruptedIOException slow) {
-        log.debug("HTTP request timed out", slow);
-        return refused(FetchRefusal.TIMEOUT);
-      } catch (TooLargeException tooLarge) {
-        log.debug("HTTP response too large", tooLarge);
-        return refused(FetchRefusal.SIZE);
-      } catch (IOException failed) {
-        log.debug("HTTP request failed: {}", failed.getMessage(), failed);
-        return refused(FetchRefusal.HTTP_ERROR);
-      }
-      if (answer.status() >= 300 && answer.status() < 400) {
-        if (answer.location() == null) {
-          return refused(FetchRefusal.REDIRECTS);
-        }
-        try {
-          hop = hop.resolve(answer.location()).normalize();
-        } catch (IllegalArgumentException badLocation) {
-          log.debug(
-              "Redirect location is not a valid URI: {}", badLocation.getMessage(), badLocation);
-          return refused(FetchRefusal.REDIRECTS);
-        }
-        continue;
-      }
-      return new Outcome(Optional.of(answer.response(hop)), Optional.empty());
     }
     return refused(FetchRefusal.REDIRECTS);
+  }
+
+  /** What one hop led to: the end of the fetch, or the next address to fetch. */
+  private sealed interface Step permits Done, Redirect {}
+
+  private record Done(Outcome outcome) implements Step {}
+
+  private record Redirect(URI next) implements Step {}
+
+  private Step visit(
+      URI hop, FetchLimits limits, long deadline, Function<URI, Optional<FetchRefusal>> hopCheck) {
+    String scheme = hop.getScheme() == null ? "" : hop.getScheme().toLowerCase(Locale.ROOT);
+    if (!("https".equals(scheme) || "http".equals(scheme)) || hop.getHost() == null) {
+      return new Done(refused(FetchRefusal.SCHEME));
+    }
+    List<InetAddress> addresses;
+    try {
+      addresses = resolver.resolve(hop.getHost());
+    } catch (UnknownHostException unknown) {
+      log.debug("DNS resolution failed for host: {}", unknown.getMessage(), unknown);
+      return new Done(refused(FetchRefusal.HTTP_ERROR));
+    }
+    if (addresses.isEmpty() || !addresses.stream().allMatch(addressPolicy)) {
+      return new Done(refused(FetchRefusal.SSRF));
+    }
+    Optional<FetchRefusal> refusal = hopCheck.apply(hop);
+    if (refusal.isPresent()) {
+      return new Done(refused(refusal.get()));
+    }
+    HopAnswer answer;
+    try {
+      answer = read(hop, addresses, limits, deadline);
+    } catch (InterruptedIOException slow) {
+      log.debug("HTTP request timed out", slow);
+      return new Done(refused(FetchRefusal.TIMEOUT));
+    } catch (TooLargeException tooLarge) {
+      log.debug("HTTP response too large", tooLarge);
+      return new Done(refused(FetchRefusal.SIZE));
+    } catch (IOException failed) {
+      log.debug("HTTP request failed: {}", failed.getMessage(), failed);
+      return new Done(refused(FetchRefusal.HTTP_ERROR));
+    }
+    if (answer.status() >= 300 && answer.status() < 400) {
+      return redirectTarget(hop, answer);
+    }
+    return new Done(new Outcome(Optional.of(answer.response(hop)), Optional.empty()));
+  }
+
+  private static Step redirectTarget(URI hop, HopAnswer answer) {
+    if (answer.location() == null) {
+      return new Done(refused(FetchRefusal.REDIRECTS));
+    }
+    try {
+      return new Redirect(hop.resolve(answer.location()).normalize());
+    } catch (IllegalArgumentException badLocation) {
+      log.debug("Redirect location is not a valid URI: {}", badLocation.getMessage(), badLocation);
+      return new Done(refused(FetchRefusal.REDIRECTS));
+    }
   }
 
   private static Outcome refused(FetchRefusal reason) {

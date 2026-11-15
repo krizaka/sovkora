@@ -139,26 +139,32 @@ public final class GovernanceSubjects {
       return false;
     }
     for (JavaMethodCall call : unit.getMethodCallsFromSelf()) {
-      JavaClass owner = call.getTargetOwner();
-      String name = call.getName();
-      if (owner.isAssignableTo(ArchRule.class)
-          && ("check".equals(name) || "evaluate".equals(name))) {
+      if (isGuardCall(call) || delegatesToAGuard(call, visited)) {
         return true;
-      }
-      if ((owner.isEquivalentTo(GovernanceSubjects.class)
-              || owner.getName().equals(KRIZAKA_RULES_PACKAGE + ".Subjects"))
-          && "require".equals(name)) {
-        return true;
-      }
-      if (RULES_PACKAGE.equals(owner.getPackageName())
-          || KRIZAKA_RULES_PACKAGE.equals(owner.getPackageName())) {
-        java.util.Optional<JavaMethod> target = call.getTarget().resolveMember();
-        if (target.isPresent() && reachesAGuard(target.get(), visited)) {
-          return true;
-        }
       }
     }
     return false;
+  }
+
+  private static boolean isGuardCall(JavaMethodCall call) {
+    JavaClass owner = call.getTargetOwner();
+    String name = call.getName();
+    boolean checksARule =
+        owner.isAssignableTo(ArchRule.class) && ("check".equals(name) || "evaluate".equals(name));
+    boolean requiresASubject =
+        (owner.isEquivalentTo(GovernanceSubjects.class)
+                || owner.getName().equals(KRIZAKA_RULES_PACKAGE + ".Subjects"))
+            && "require".equals(name);
+    return checksARule || requiresASubject;
+  }
+
+  private static boolean delegatesToAGuard(JavaMethodCall call, Set<String> visited) {
+    String ownerPackage = call.getTargetOwner().getPackageName();
+    if (!RULES_PACKAGE.equals(ownerPackage) && !KRIZAKA_RULES_PACKAGE.equals(ownerPackage)) {
+      return false;
+    }
+    java.util.Optional<JavaMethod> target = call.getTarget().resolveMember();
+    return target.isPresent() && reachesAGuard(target.get(), visited);
   }
 
   private static String emptyMessage(String rule, String population) {

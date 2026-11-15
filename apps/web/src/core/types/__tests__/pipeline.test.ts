@@ -10,6 +10,13 @@ describe("humanizeInterceptor", () => {
     expect(humanizeInterceptor("SemanticRouterInterceptor")).toBe("Semantic Router");
     expect(humanizeInterceptor("TranslationInterceptor")).toBe("Translation");
     expect(humanizeInterceptor("ClosedLoopValidationInterceptor")).toBe("Closed Loop Validation");
+    expect(humanizeInterceptor("HTTPServerInterceptor")).toBe("HTTP Server");
+  });
+
+  test("stays linear on a long run of capitals", () => {
+    const started = performance.now();
+    humanizeInterceptor("A".repeat(100_000));
+    expect(performance.now() - started).toBeLessThan(1000);
   });
 });
 

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.Optional;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
@@ -54,19 +55,21 @@ public final class WebhookSignature {
     byte[] expected = mac(key, webhookId, timestamp, body);
     boolean matched = false;
     for (String candidate : header == null ? new String[0] : header.strip().split("\\s+")) {
-      if (!candidate.startsWith(VERSION)) {
-        continue;
+      if (candidate.startsWith(VERSION)) {
+        Optional<byte[]> given = decode(candidate);
+        matched |= given.isPresent() && MessageDigest.isEqual(expected, given.get());
       }
-      byte[] given;
-      try {
-        given = Base64.getDecoder().decode(candidate.substring(VERSION.length()));
-      } catch (IllegalArgumentException malformed) {
-        log.debug("Webhook signature candidate is not valid base64; skipping", malformed);
-        continue;
-      }
-      matched |= MessageDigest.isEqual(expected, given);
     }
     return matched;
+  }
+
+  private static Optional<byte[]> decode(String candidate) {
+    try {
+      return Optional.of(Base64.getDecoder().decode(candidate.substring(VERSION.length())));
+    } catch (IllegalArgumentException malformed) {
+      log.debug("Webhook signature candidate is not valid base64; skipping", malformed);
+      return Optional.empty();
+    }
   }
 
   private static byte[] mac(byte[] key, String webhookId, String timestamp, byte[] body) {

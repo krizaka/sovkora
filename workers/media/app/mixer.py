@@ -160,7 +160,23 @@ def mix_graph(cues: list[Cue], lines: list[Line], foley: str | None, seconds: fl
     return ";".join(parts), files
 
 
-_R128 = re.compile(r"I:\s+(-?[\d.]+) LUFS.*?LRA:\s+([\d.]+) LU.*?Peak:\s+(-?[\d.inf]+) dBFS", re.S)
+_R128_INTEGRATED = re.compile(r"I:\s+(-?[\d.]+) LUFS")
+_R128_RANGE = re.compile(r"LRA:\s+([\d.]+) LU")
+_R128_PEAK = re.compile(r"Peak:\s+(-?[\d.inf]+) dBFS")
+
+
+def _read_r128(summary: str) -> tuple[str, str, str] | None:
+    """The three ebur128 readings, each searched after the one before."""
+    integrated = _R128_INTEGRATED.search(summary)
+    if not integrated:
+        return None
+    loudness_range = _R128_RANGE.search(summary, integrated.end())
+    if not loudness_range:
+        return None
+    peak = _R128_PEAK.search(summary, loudness_range.end())
+    if not peak:
+        return None
+    return integrated.group(1), loudness_range.group(1), peak.group(1)
 
 
 def measure(path: str, ffmpeg: str = "ffmpeg") -> dict:
@@ -172,13 +188,13 @@ def measure(path: str, ffmpeg: str = "ffmpeg") -> dict:
         check=True,
     ).stderr
     summary = err[err.rfind("Summary:") :]
-    found = _R128.search(summary)
+    found = _read_r128(summary)
     if not found:
         raise MixError("ebur128 printed no summary")
-    peak = found.group(3)
+    lufs, loudness_range, peak = found
     return {
-        "lufs": float(found.group(1)),
-        "lra": float(found.group(2)),
+        "lufs": float(lufs),
+        "lra": float(loudness_range),
         "truePeak": -120.0 if "inf" in peak else float(peak),
     }
 

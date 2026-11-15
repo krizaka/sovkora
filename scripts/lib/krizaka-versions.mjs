@@ -33,7 +33,7 @@ export function projectCoordinates(pom) {
 /** `<name>value</name>` properties of a pom's `<properties>` block. */
 export function properties(pom) {
   const block = /<properties>([\s\S]*?)<\/properties>/.exec(stripComments(pom))?.[1] ?? "";
-  return Object.fromEntries([...block.matchAll(/<([\w.-]+)>\s*([^<]*?)\s*<\/\1>/g)].map((m) => [m[1], m[2]]));
+  return Object.fromEntries([...block.matchAll(/<([\w.-]+)>([^<]*)<\/\1>/g)].map((m) => [m[1], m[2].trim()]));
 }
 
 /** Every `<dependencyManagement>` entry of a BOM: { group, artifactId, version } with `${…}` resolved from its properties. */

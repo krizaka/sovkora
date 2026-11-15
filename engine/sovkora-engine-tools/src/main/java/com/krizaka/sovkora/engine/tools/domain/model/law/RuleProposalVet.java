@@ -237,38 +237,41 @@ public final class RuleProposalVet {
   private List<VetFinding> law(ProposedRule rule) {
     List<VetFinding> findings = new ArrayList<>();
     for (LawBlock block : rule.law()) {
-      String article = block.instrument() + " art. " + block.ref() + " (" + block.language() + ")";
-      Optional<StatuteVersion> inForce =
-          articles.inForce(block.instrument(), block.ref(), block.language());
-      if (inForce.isEmpty()) {
-        findings.add(
-            new VetFinding(
-                VetReason.LAW_VERSION_UNKNOWN,
-                article + ": the corpus holds no version in force on " + asOf));
-        continue;
-      }
-      StatuteVersion version = inForce.get();
-      if (!version.contentHash().equals(block.contentHash())) {
-        findings.add(
-            new VetFinding(
-                VetReason.LAW_VERSION_UNKNOWN,
-                article
-                    + ": the version cited ("
-                    + block.contentHash().substring(0, 12)
-                    + ") is not the one in force on "
-                    + asOf
-                    + " ("
-                    + version.contentHash().substring(0, 12)
-                    + ")"));
-        continue;
-      }
-      if (!QuoteNormalizer.contains(version.text(), block.quote())) {
-        findings.add(
-            new VetFinding(
-                VetReason.QUOTE_NOT_IN_ARTICLE, article + ": the quote is not in its text"));
-      }
+      lawFinding(block).ifPresent(findings::add);
     }
     return findings;
+  }
+
+  private Optional<VetFinding> lawFinding(LawBlock block) {
+    String article = block.instrument() + " art. " + block.ref() + " (" + block.language() + ")";
+    Optional<StatuteVersion> inForce =
+        articles.inForce(block.instrument(), block.ref(), block.language());
+    if (inForce.isEmpty()) {
+      return Optional.of(
+          new VetFinding(
+              VetReason.LAW_VERSION_UNKNOWN,
+              article + ": the corpus holds no version in force on " + asOf));
+    }
+    StatuteVersion version = inForce.get();
+    if (!version.contentHash().equals(block.contentHash())) {
+      return Optional.of(
+          new VetFinding(
+              VetReason.LAW_VERSION_UNKNOWN,
+              article
+                  + ": the version cited ("
+                  + block.contentHash().substring(0, 12)
+                  + ") is not the one in force on "
+                  + asOf
+                  + " ("
+                  + version.contentHash().substring(0, 12)
+                  + ")"));
+    }
+    if (!QuoteNormalizer.contains(version.text(), block.quote())) {
+      return Optional.of(
+          new VetFinding(
+              VetReason.QUOTE_NOT_IN_ARTICLE, article + ": the quote is not in its text"));
+    }
+    return Optional.empty();
   }
 
   // ── 4. the numbers ─────────────────────────────────────────────────────────────

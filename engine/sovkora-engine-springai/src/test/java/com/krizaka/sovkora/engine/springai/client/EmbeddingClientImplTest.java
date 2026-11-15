@@ -147,4 +147,17 @@ class EmbeddingClientImplTest {
         .isInstanceOf(com.krizaka.sovkora.engine.springai.spend.SpendBudgetExceededException.class);
     assertThat(body.get()).isNull();
   }
+
+  @Test
+  void embeddingsUrl_stripsEveryTrailingSlashInLinearTime() {
+    assertThat(EmbeddingClientImpl.embeddingsUrl("http://h:1//"))
+        .isEqualTo("http://h:1/v1/embeddings");
+    assertThat(EmbeddingClientImpl.embeddingsUrl("http://h:1/v1/"))
+        .isEqualTo("http://h:1/v1/embeddings");
+    String hostile = "http://h:1" + "/".repeat(100_000);
+    assertThat(
+            org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(
+                java.time.Duration.ofSeconds(1), () -> EmbeddingClientImpl.embeddingsUrl(hostile)))
+        .isEqualTo("http://h:1/v1/embeddings");
+  }
 }

@@ -223,4 +223,16 @@ class WhisperTranscriptionClientTest {
     assertThat(WhisperTranscriptionClient.withoutVersionSuffix("http://h:1/v10"))
         .isEqualTo("http://h:1/v10");
   }
+
+  @Test
+  void withoutVersionSuffix_stripsEveryTrailingSlashInLinearTime() {
+    assertThat(WhisperTranscriptionClient.withoutVersionSuffix(" http://h:1/v1// "))
+        .isEqualTo("http://h:1");
+    String hostile = "http://h:1" + "/".repeat(100_000);
+    assertThat(
+            org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(
+                java.time.Duration.ofSeconds(1),
+                () -> WhisperTranscriptionClient.withoutVersionSuffix(hostile)))
+        .isEqualTo("http://h:1");
+  }
 }
