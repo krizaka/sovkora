@@ -21,9 +21,13 @@ export async function mockEmptyBackend(page: Page, sessions: readonly unknown[] 
   await page.route("**/api/v1/**", (route) => {
     const url = route.request().url();
     let body: unknown = [];
-    if (url.includes("/jobs")) body = { content: [], totalPages: 0, totalElements: 0 };
-    else if (url.includes("/settings")) body = { id: "e2e-user", username: "Eric" };
-    else if (url.includes("/chat/sessions")) body = sessions;
+    if (url.includes("/jobs")) {
+      body = { content: [], totalPages: 0, totalElements: 0 };
+    } else if (url.includes("/settings")) {
+      body = { id: "e2e-user", username: "Eric" };
+    } else if (url.includes("/chat/sessions")) {
+      body = sessions;
+    }
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
   });
 }
