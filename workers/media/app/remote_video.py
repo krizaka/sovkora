@@ -32,6 +32,8 @@ from collections.abc import Callable
 from app import spend
 from app.video_models import VideoModel
 
+#: The provider's name in the catalogue (``ai_providers``) and in ``models.yaml``.
+PROVIDER = "do-inference"
 DEFAULT_URL = "https://inference.do-ai.run"
 #: How long a job may take before the clip is given up on (the provider says 30 s to several minutes).
 DEFAULT_TIMEOUT_SECONDS = 900
@@ -158,6 +160,27 @@ def _download_result(result: dict, content_id: str, job_id: str, base: str, key:
     if not video:
         raise RemoteVideoError(f"the provider's job {job_id} returned an empty file")
     return video
+
+
+class DigitalOceanVideoProvider:
+    """DigitalOcean serverless inference behind the provider port: text-to-video, one price per clip."""
+
+    def generate(
+        self,
+        model: VideoModel,
+        prompt: str,
+        width: int,
+        height: int,
+        seed: int | None,
+        progress=None,
+        *,
+        image: bytes | None = None,
+        seconds: int | None = None,
+        **injected,
+    ) -> tuple[bytes, dict]:
+        if image is not None:
+            raise RemoteVideoError(f"model '{model.name}' makes video from text only")
+        return generate(model, prompt, width, height, seed, progress=progress, **injected)
 
 
 def probe_duration(

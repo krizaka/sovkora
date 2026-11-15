@@ -188,7 +188,7 @@ video:
     downloadGb: 6.2
     hardware: [cuda]
 
-  # Wan 2.2 T2V A14B — served by DigitalOcean serverless inference, routed by Orazaka (app/remote_video.py):
+  # Wan 2.2 T2V A14B — served by DigitalOcean serverless inference, routed by Sovkora (app/remote_video.py):
   # the catalogue row points at the provider `do-inference`, the clip is made there, and the run, its seed, its
   # metering and its sealed asset are Orazaka's. Nothing is downloaded or run on this host. 5 s per clip.
   wan2-2-t2v-a14b:
@@ -209,6 +209,53 @@ video:
     # honoured: the same prompt and seed gave byte-identical frames across four calls.
     sizes:
       "16:9": [832, 480]
+    hardware: [remote]
+
+  # Seedance 2.5 Image-to-Video (ByteDance) on Runpod Public Endpoints — routed by Sovkora (app/runpod_video.py).
+  # One row per resolution because the provider prices by resolution. Price and endpoint: docs.runpod.io/public-endpoints/
+  # models/seedance-2-5-i2v (read 2026-11-14): endpoint 16jsvx5ncmm24x, $0.18/s at 480p, $0.90/s at 1080p, 4-30 s,
+  # starting frame required (a URL or data URI of the photo), 9:16 declared. `costUsd` is PER SECOND for this
+  # provider; the worker reserves costUsd × seconds before the call. fps/maxFrames are descriptive: the metered
+  # length is the clip's own (ffprobe). `providerInput` is passed to the provider verbatim; generate_audio is off
+  # because a Studio adds its own sound.
+  seedance-2-5-i2v-480p:
+    label: "Seedance 2.5 I2V 480p (Runpod)"
+    licence: Provider terms (ByteDance Seedance, served by Runpod)
+    licenceUrl: https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v
+    pipeline: remote
+    provider: runpod-public-endpoint
+    remoteModel: 16jsvx5ncmm24x
+    costUsd: 0.18            # per second at 480p
+    imageToVideo: true
+    requiresImage: true
+    seconds: [4, 30]
+    providerInput: {resolution: 480p, generate_audio: false}
+    fps: 24
+    maxFrames: 721
+    steps: 0                 # the provider's own
+    multiple: 2
+    sizes:
+      "9:16": [480, 854]
+    hardware: [remote]
+
+  seedance-2-5-i2v-1080p:
+    label: "Seedance 2.5 I2V 1080p (Runpod)"
+    licence: Provider terms (ByteDance Seedance, served by Runpod)
+    licenceUrl: https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v
+    pipeline: remote
+    provider: runpod-public-endpoint
+    remoteModel: 16jsvx5ncmm24x
+    costUsd: 0.90            # per second at 1080p
+    imageToVideo: true
+    requiresImage: true
+    seconds: [4, 30]
+    providerInput: {resolution: 1080p, generate_audio: false}
+    fps: 24
+    maxFrames: 721
+    steps: 0
+    multiple: 2
+    sizes:
+      "9:16": [1080, 1920]
     hardware: [remote]
 
   # The Mac's model (Metal), served by app/mlx_generator.py. Listed so the aspect of a Studio reaches

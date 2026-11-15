@@ -114,6 +114,11 @@ class TestModelRouting(unittest.TestCase):
         for name, spec in manifest["video"].items():
             # OpenRAIL-M permits commercial use (with use restrictions): AnimateDiff Lightning's card says so.
             # The LTX-Video Open Weights License 0.X grants commercial use with no revenue clause (read in the model's licence file).
+            if spec["pipeline"] == "remote" and spec["provider"] == "runpod-public-endpoint":
+                # Not our weights: the clip is the provider's service, under the provider's terms, which its row links.
+                self.assertTrue(spec["licence"].startswith("Provider terms"), name)
+                self.assertTrue(spec["licenceUrl"].startswith("https://docs.runpod.io/"), name)
+                continue
             self.assertIn(
                 spec["licence"],
                 {"Apache-2.0", "MIT", "CreativeML OpenRAIL-M", "LTX-Video-Open-Weights-0.X"},

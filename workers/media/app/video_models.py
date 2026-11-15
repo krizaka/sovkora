@@ -78,6 +78,11 @@ class VideoModel:
     remote_model: str | None = None
     provider: str | None = None
     cost_usd: float | None = None
+    #: The range of seconds a provider-served model accepts (``seconds: [min, max]``) and the fixed input fields
+    #: its row declares (``providerInput``: resolution, audio…), passed to the provider verbatim.
+    min_seconds: int | None = None
+    max_seconds: int | None = None
+    provider_input: dict = field(default_factory=dict)
     #: Whether the model can start from a photo (``imageToVideo``): Wan 2.2 TI2V 5B only.
     image_to_video: bool = False
     #: Smaller sizes of the same aspect, tried in order when the card runs out of memory at the one
@@ -187,6 +192,9 @@ def video_models(manifest: dict | None = None) -> dict[str, VideoModel]:
             remote_model=spec.get("remoteModel"),
             provider=spec.get("provider"),
             cost_usd=float(spec["costUsd"]) if spec.get("costUsd") is not None else None,
+            min_seconds=int(spec["seconds"][0]) if spec.get("seconds") else None,
+            max_seconds=int(spec["seconds"][1]) if spec.get("seconds") else None,
+            provider_input=dict(spec.get("providerInput") or {}),
             image_to_video=bool(spec.get("imageToVideo", False)),
             fallback_sizes={
                 ratio: tuple(tuple(size) for size in ladder)

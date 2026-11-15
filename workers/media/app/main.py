@@ -23,7 +23,7 @@ try:
 except ImportError:
     torch = None
 
-from app import job_control, remote_video, stages, upscale, video_models
+from app import job_control, remote_providers, remote_video, stages, upscale, video_models
 from app.encoder import export_frames_to_video
 from app.generator import generate_video_frames
 from app.telemetry import resource_guard, send_progress_update
@@ -51,9 +51,11 @@ MODEL_REGISTRY: dict[str, str] = {
     "ltx-video-0.9.8-13b-distilled": "Wan",  # "Wan" is this worker's label for the diffusers video generators (app/wan_generator.py): LTX is one
     "wan2.2-i2v-a14b": "Wan",
     "wan2.2-i2v-a14b-hq": "Wan",  # the same checkpoint at its full 40-step schedule (the bake-off's winner for people in 9:16)  # the shots of a cinematic short, from their keyframes (models.yaml `cinema`, ADR-080)
-    # Served by a provider, routed by Orazaka (app/remote_video.py): nothing runs on this host.
-    "wan2-2-t2v-a14b": "Remote",
 }
+
+# Served by a provider, routed by Sovkora (app/remote_providers.py): nothing runs on this host. A model is
+# provider-served because its row in models.yaml says ``pipeline: remote`` — adding one is that row, not code.
+MODEL_REGISTRY.update({name: "Remote" for name, model in video_models.video_models().items() if model.pipeline == "remote"})
 
 # ── Host-memory guard (per user mandate) ──────────────────────────────────────
 # Approximate peak unified-memory footprint per model (GB). The preflight uses
@@ -389,19 +391,37 @@ def _write_inside_uploads(path: str, data: bytes) -> str:
     raise PermissionError(f"Access to path '{path}' is denied (outside the upload directory).")
 
 
-def run_remote(
-    payload: dict[str, Any], model_name: str, process=None, generate=remote_video.generate
-) -> dict[str, Any]:
+def _png_bytes(image: Image.Image) -> bytes:
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
+def _whole_seconds(payload: dict[str, Any]) -> int | None:
+    """The clip length asked, in whole seconds (``durationSeconds``), or None when the caller named none."""
+    asked = payload.get("durationSeconds") or payload.get("video_length")
+    try:
+        return int(float(asked)) if asked else None
+    except (TypeError, ValueError):
+        raise video_models.InvalidVideoRequest(f"the duration '{asked}' is not a number of seconds") from None
+
+
+def run_remote(payload: dict[str, Any], model_name: str, process=None, generate=None) -> dict[str, Any]:
     """One clip from a provider-served model, as the response body of the pipeline.
 
     The shape is what Wan on a GPU gives (aspect → size, seed, metering, provenance); only the pixels come
     from elsewhere, and ``metrics.provider`` says so.
     """
     model = video_models.find(model_name)
-    if payload.get("image") or payload.get("image_path"):
+    asked_image = _asked_for_an_image(payload)
+    if asked_image and not model.image_to_video:
         raise video_models.InvalidVideoRequest(
             f"model '{model_name}' makes video from text only; leave the starting image empty"
         )
+    if model.requires_image and not asked_image:
+        raise video_models.InvalidVideoRequest(f"model '{model_name}' starts from a photo; give a starting image")
+    image = _png_bytes(starting_image(payload)) if asked_image else None
+    generate = generate or remote_providers.provider_for(model).generate
     prompt = (payload.get("prompt") or "").strip()
     width, height = model.size_for(payload.get("aspect"), payload.get("width"), payload.get("height"))
     seed_text = str(payload.get("seed") or os.environ.get("ORAZAKA_VIDEO_GEN_SEED", "-1"))
@@ -419,7 +439,16 @@ def run_remote(
                 job_control.raise_if_cancelled(job_id)
                 send_progress_update(job_id, percent, phase="generating")
 
-        video, facts = generate(model, prompt, width, height, seed_val if seed_val >= 0 else None, progress=progress)
+        video, facts = generate(
+            model,
+            prompt,
+            width,
+            height,
+            seed_val if seed_val >= 0 else None,
+            progress=progress,
+            image=image,
+            seconds=_whole_seconds(payload),
+        )
         metrics.update(facts)
         metrics["model"] = model_name
         metrics["seed"] = str(seed_val) if seed_val >= 0 else "provider"
