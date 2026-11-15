@@ -135,6 +135,7 @@ const eslintConfig = defineConfig([
       "e2e/run-screen-width.spec.ts",
       "e2e/text-width-check.spec.ts",
       "e2e/chat-width.spec.ts",
+      "e2e/studio-screens-width.spec.ts",
     ],
     rules: { "no-restricted-imports": "off" },
   },

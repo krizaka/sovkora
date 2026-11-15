@@ -749,6 +749,7 @@ export interface TranslationDictionary {
     upgradePlan: string;
     estimatedCost: string;
     creditsPerRun: string;
+    costNotSet: string;
     versionHistory: string;
     noChangelog: string;
     install: string;
