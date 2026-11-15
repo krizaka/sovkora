@@ -76,9 +76,15 @@ export function shortHelper(text: string | null): string | null {
 }
 
 /** Drops the whitespace and the opening or separating punctuation a cut left at the end (a scan, so a long run costs O(n)). */
+function isBreak(char: string): boolean {
+  return char.trim() === "" || ",;:·(".includes(char);
+}
+
 function trimTrailingBreaks(text: string): string {
   let end = text.length;
-  while (end > 0 && /[\s,;:·(]/.test(text[end - 1])) end--;
+  while (end > 0 && isBreak(text[end - 1])) {
+    end--;
+  }
   return text.slice(0, end);
 }
 

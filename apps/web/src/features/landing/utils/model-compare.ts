@@ -116,8 +116,9 @@ export interface CompareImage extends CompareRecord {
   src: string;
 }
 
-export const COMPARE_FILE =
-  /^sites\/orazaka\/compare\/([a-z0-9]+(?:-[a-z0-9]+)*)--([a-z0-9]+(?:-[a-z0-9]+)*)\.webp$/;
+// Each name is dash-joined runs of [a-z0-9], so the `--` between the two names cannot be read two ways (linear match).
+const NAME = "([a-z0-9]+(?:-[a-z0-9]+)*)";
+export const COMPARE_FILE = new RegExp(`^sites/orazaka/compare/${NAME}--${NAME}\\.webp$`);
 
 function discover(): CompareImage[] {
   const found = mediaPaths("sites/orazaka/compare/")

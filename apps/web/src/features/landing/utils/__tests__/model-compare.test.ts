@@ -1,6 +1,12 @@
 import { translations } from "@/core/context/translations";
 import { hasMedia, mediaPaths } from "@/core/media/cdn";
-import { COMPARE_FILE, COMPARE_IMAGES, COMPARE_INSPIRATIONS, COMPARE_MODELS, imagesOf } from "@/features/landing/utils/model-compare";
+import {
+  COMPARE_FILE,
+  COMPARE_IMAGES,
+  COMPARE_INSPIRATIONS,
+  COMPARE_MODELS,
+  imagesOf,
+} from "@/features/landing/utils/model-compare";
 
 describe("Compare models", () => {
   it("lists every image the media manifest publishes — no hand list — each with the record of its run", () => {
