@@ -28,9 +28,15 @@ async function seedConversation(page: Page) {
     },
     { id: "m2", role: "assistant", kind: "text", content: ANSWER, timestamp: now - 1000 },
   ];
+  // The history is read from the browser's storage under the app's own key; answer that one key (whatever its prefix) for this thread.
   await page.addInitScript(
-    ([key, value]) => localStorage.setItem(key, value),
-    [`orazaka_messages_${USER_ID}_${CONVERSATION_ID}`, JSON.stringify(messages)],
+    ([suffix, value]) => {
+      const read = Storage.prototype.getItem;
+      Storage.prototype.getItem = function (key: string) {
+        return key.endsWith(suffix) ? value : read.call(this, key);
+      };
+    },
+    [`_messages_${USER_ID}_${CONVERSATION_ID}`, JSON.stringify(messages)],
   );
 }
 
