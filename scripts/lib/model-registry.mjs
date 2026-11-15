@@ -17,7 +17,9 @@ export const STATUSES = ["available", "planned", "internal"];
 /** Catalogue rows that are not models (UI accents share the table). */
 const NOT_A_MODEL = new Set(["theme"]);
 
-/** Columns the registry metadata lives in, in `orazaka_models`. */
+/** The models registry table the catalogue is read from. */
+export const MODELS_TABLE = "orazaka_models";
+/** Columns the registry metadata lives in, in the models table. */
 export const METADATA_COLUMNS = ["vendor", "family", "capabilities", "runs_on", "runtime", "open_weights", "licence", "licence_url", "commercial_use", "context_window", "status"];
 /** What a published model must carry (an `internal` one only needs its status). */
 export const REQUIRED = ["vendor", "family", "capabilities", "runs_on", "runtime", "open_weights", "licence", "commercial_use", "status"];
