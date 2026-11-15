@@ -21,20 +21,23 @@ ENV = {
 URL = "https://video.runpod.ai/abc/output.mp4"
 
 
-class Recorder:
-    def __init__(self, answers):
-        self.answers, self.calls = list(answers), []
+def recorder(answers):
+    """The transport of a test: answers in order (an exception is raised), every call kept in ``.calls``."""
+    pending, calls = list(answers), []
 
-    def __call__(self, method, url, key, body=None, timeout=60):
-        self.calls.append((method, url, key, body))
-        answer = self.answers.pop(0)
+    def call(method, url, key, body=None, timeout=60):
+        calls.append((method, url, key, body))
+        answer = pending.pop(0)
         if isinstance(answer, Exception):
             raise answer
         return 200, json.dumps(answer).encode()
 
+    call.calls = calls
+    return call
+
 
 def run(answers, *, seconds=4, image=b"PNG", env=ENV, clock=None, download=lambda url: b"MP4", model=MODEL):
-    call = Recorder(answers)
+    call = recorder(answers)
     extra = {"clock": clock} if clock else {}
     result = runpod_video.RunpodVideoProvider().generate(
         video_models.find(model),
@@ -145,7 +148,7 @@ class TestGenerate(unittest.TestCase):
     def test_a_refused_reservation_fails_the_job_before_the_provider_is_called(self):
         with tempfile.TemporaryDirectory() as root:
             env = {**ENV, "AI_SPEND_STATE_FILE": os.path.join(root, "s.json"), "AI_SPEND_DAILY_BUDGET_USD": "0.5"}
-            call_made = Recorder([])
+            call_made = recorder([])
             with self.assertRaisesRegex(remote_video.RemoteVideoError, "daily budget"):
                 runpod_video.RunpodVideoProvider().generate(
                     video_models.find(MODEL), "x", 480, 854, None, image=b"P", seconds=4, env=env, call=call_made

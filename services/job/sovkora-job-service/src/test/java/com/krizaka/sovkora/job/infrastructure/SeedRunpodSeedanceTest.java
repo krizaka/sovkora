@@ -2,8 +2,6 @@ package com.krizaka.sovkora.job.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +16,8 @@ class SeedRunpodSeedanceTest {
 
   private static String read() {
     try {
-      return Files.readString(Path.of("src/main/resources/db/migration/V5__runpod_seedance.sql"));
+      return java.nio.file.Files.readString(
+          java.nio.file.Path.of("src/main/resources/db/migration/V5__runpod_seedance.sql"));
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }
