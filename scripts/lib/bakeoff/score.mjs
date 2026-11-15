@@ -27,7 +27,8 @@ export function languageOf(text) {
   const words = text.toLowerCase().match(/[a-zà-ÿ']+/gu) ?? [];
   const fr = words.filter((w) => FR_WORDS.has(w)).length;
   const en = words.filter((w) => EN_WORDS.has(w)).length;
-  return fr === en ? "unknown" : fr > en ? "fr" : "en";
+  if (fr === en) return "unknown";
+  return fr > en ? "fr" : "en";
 }
 
 /** The fixed rubric of a claim's wording, 0 to 4: one point each for the right language, plain text, a complete sentence, a length that reads (20 to 260 characters). */

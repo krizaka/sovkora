@@ -3,7 +3,7 @@ import { baseName, type AutomationView, type Grant } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
 
 /** The permanent permissions ("approve always"): narrow, listed, revocable (ADR-079 §4). */
-export function GrantsList({ grants, automations, onRevoke }: { grants: Grant[]; automations: AutomationView[]; onRevoke: (id: string) => void }) {
+export function GrantsList({ grants, automations, onRevoke }: Readonly<{ grants: Grant[]; automations: AutomationView[]; onRevoke: (id: string) => void }>) {
   const { t, format } = useI18n();
   const nameOf = (id: string) => automations.find((a) => a.id === id)?.name ?? id;
   return (

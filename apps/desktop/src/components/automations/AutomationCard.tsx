@@ -9,7 +9,7 @@ import { RunStatusBadge } from "./RunStatusBadge";
 
 const WEEKDAYS = [1, 2, 3, 4, 5];
 
-export function AutomationCard({ automation: a, running, halted, act }: { automation: AutomationView; running: boolean; halted: boolean; act: (p: Promise<unknown>) => void }) {
+export function AutomationCard({ automation: a, running, halted, act }: Readonly<{ automation: AutomationView; running: boolean; halted: boolean; act: (p: Promise<unknown>) => void }>) {
   const { t, format } = useI18n();
   const dateLocale = t("common.dateLocale");
   const weekdays = a.schedule.days.length === WEEKDAYS.length && WEEKDAYS.every((d) => a.schedule.days.includes(d));

@@ -96,7 +96,7 @@ function checkTs() {
   for (const app of APPS) {
     const otherApps = APPS.filter((a) => a !== app);
     if (otherApps.length === 0) continue;
-    const crossApp = new RegExp(`(?:from\\s+|require\\(\\s*|import\\(\\s*)['"][^'"]*apps/(${otherApps.join("|")})/`);
+    const crossApp = new RegExp(String.raw`(?:from\s+|require\(\s*|import\(\s*)['"][^'"]*apps/(${otherApps.join("|")})/`);
     for (const file of walk(join(appsDir, app), (n) => TS.test(n))) {
       const text = read(file);
       for (const line of text.split("\n")) {

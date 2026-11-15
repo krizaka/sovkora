@@ -39,7 +39,7 @@ export function engineState(status, body) {
 /** True when the worker's models.yaml declares the model as a catalogue entry (two-space indent: `  flux-1-schnell:`). */
 export function workerListsModel(yaml, model) {
   const escaped = model.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^ {2}["']?${escaped}["']?:\\s*(#.*)?$`, "m").test(yaml);
+  return new RegExp(String.raw`^ {2}["']?${escaped}["']?:\s*(#.*)?$`, "m").test(yaml);
 }
 
 /** models.yaml of the worker at one commit, read with the app credential (never printed). */

@@ -10,7 +10,7 @@ import { RunStatusBadge } from "./RunStatusBadge";
 const STEP_TONE = { ok: "success", error: "danger", skipped: "neutral", "dry-run": "info", waiting: "warning" } as const satisfies Record<StepStatus, ActivityTone>;
 
 /** Run history, and one run's trace step by step (each step: a tool call, a model call, the approval gate). */
-export function RunHistory({ runs }: { runs: RunSummary[] }) {
+export function RunHistory({ runs }: Readonly<{ runs: RunSummary[] }>) {
   const { t, format } = useI18n();
   const [open, setOpen] = useState<string | null>(null);
   const dateLocale = t("common.dateLocale");

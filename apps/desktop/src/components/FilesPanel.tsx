@@ -11,7 +11,7 @@ import {
 import { useI18n } from "../lib/i18n";
 import { filesKeys, listingQuery, previewQuery, snapshotKeys } from "../lib/queries";
 
-export function FilesPanel({ snap }: { snap: Snapshot }) {
+export function FilesPanel({ snap }: Readonly<{ snap: Snapshot }>) {
   const { t, format } = useI18n();
   const queryClient = useQueryClient();
   const [picked, setPicked] = useState<string | null>(null);
@@ -229,7 +229,7 @@ export function FilesPanel({ snap }: { snap: Snapshot }) {
   );
 }
 
-function PreviewPane({ entry, preview, onSend, message }: { entry: Entry | null; preview: Preview | null; onSend: (e: Entry) => Promise<void>; message: string | null }) {
+function PreviewPane({ entry, preview, onSend, message }: Readonly<{ entry: Entry | null; preview: Preview | null; onSend: (e: Entry) => Promise<void>; message: string | null }>) {
   const { t } = useI18n();
   const pdfData = preview?.kind === "pdf" ? preview.data : null;
   const [pdf, setPdf] = useState<{ data: string; url: string } | null>(null);

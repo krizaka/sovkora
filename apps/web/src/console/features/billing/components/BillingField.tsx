@@ -12,7 +12,7 @@ export interface BillingFieldProps extends InputHTMLAttributes<HTMLInputElement>
  * The label association lives here rather than being re-typed at every call site — a form this size would otherwise
  * accumulate a dozen chances to forget `htmlFor`.
  */
-export function BillingField({ label, id, ...props }: BillingFieldProps) {
+export function BillingField({ label, id, ...props }: Readonly<BillingFieldProps>) {
   const fieldId = id ?? `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <Field.Root>

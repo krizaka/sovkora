@@ -9,7 +9,7 @@ import { GithubPanel } from "./GithubPanel";
 import { ReviewPanel } from "./ReviewPanel";
 
 /** The Code tab (ADR-093, slice 1): grant a repository, see what Sovkora can see, review proposed diffs per hunk. */
-export function CodePanel({ proposals = [] }: { proposals?: CodeFileProposal[] }) {
+export function CodePanel({ proposals = [] }: Readonly<{ proposals?: CodeFileProposal[] }>) {
   const { t } = useI18n();
   const [repo, setRepo] = useState<CodeRepoInfo | null>(null);
   const [error, setError] = useState<string | null>(null);

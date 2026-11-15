@@ -11,7 +11,7 @@ function auditTone(event: string): "warning" | "danger" | "neutral" {
 }
 
 /** The append-only, hash-chained audit log of this Mac, and whether its chain verifies. */
-export function AuditLogView({ refreshKey }: { refreshKey: number }) {
+export function AuditLogView({ refreshKey }: Readonly<{ refreshKey: number }>) {
   const { t, format } = useI18n();
   const auditQuery = useQuery({ queryKey: ["automations", "audit", refreshKey], queryFn: () => automationsApi.audit(200), placeholderData: keepPreviousData, retry: false });
   const audit: AuditView | null = auditQuery.data ?? null;

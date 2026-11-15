@@ -13,7 +13,7 @@ import { NewAutomationForm } from "./NewAutomationForm";
 import { RunHistory } from "./RunHistory";
 
 /** Automations (ADR-079, slice 1): the kill switch, the approvals inbox, the automations, their runs and the audit. */
-export function AutomationsPanel({ snap }: { snap: Snapshot }) {
+export function AutomationsPanel({ snap }: Readonly<{ snap: Snapshot }>) {
   const { t, format } = useI18n();
   const [overview, setOverview] = useState<Overview | null>(null);
   const [creating, setCreating] = useState(false);

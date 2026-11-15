@@ -189,7 +189,7 @@ export function PricebookScreen() {
  * The sample size is shown as prominently as the delta: a verdict drawn from
  * three events must not be presented like one drawn from three thousand.
  */
-function MarginPreviewPanel({ preview }: { preview: MarginPreview }) {
+function MarginPreviewPanel({ preview }: Readonly<{ preview: MarginPreview }>) {
   const delta = preview.proposedCredits - preview.currentCredits;
   const percent = preview.currentCredits === 0 ? 0 : Math.round((delta / preview.currentCredits) * 10000) / 100;
 

@@ -11,11 +11,11 @@ type Choice = "approved" | "rejected" | undefined;
  * The review of proposed diffs (ADR-093 §5.5): per file, side by side, every hunk approved or rejected on its own.
  * Nothing is written from here until « Write the approved changes »; a hunk left undecided is not written.
  */
-export function ReviewPanel({ files, onApply, onOpenEditor }: {
+export function ReviewPanel({ files, onApply, onOpenEditor }: Readonly<{
   files: CodeFileProposal[];
   onApply: (decisions: CodeDecision[]) => void;
   onOpenEditor?: (editor: "vs-code" | "xcode", path: string, line: number) => void;
-}) {
+}>) {
   const { t } = useI18n();
   const [choices, setChoices] = useState<Record<string, Choice>>({});
   const key = (path: string, id: number) => `${path}#${id}`;
