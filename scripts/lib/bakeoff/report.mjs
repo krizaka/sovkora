@@ -8,7 +8,8 @@ const usd = (x) => {
 const code = (x) => `\`${x}\``;
 const verdictOf = (decision) =>
   decision.winner ? `${code(decision.winner)} (ranking: ${decision.ranking.map(code).join(", ")})` : "no model is safe on this set";
-const disqualifiedOf = (list) => (list.length ? `: ${list.map((x) => `${code(x.id)} (${x.wrongAccepted})`).join(", ")}` : " (none was)");
+const disqualifiedLine = (x) => `${code(x.id)} (${x.wrongAccepted})`;
+const disqualifiedOf = (list) => (list.length ? ": " + list.map(disqualifiedLine).join(", ") : " (none was)");
 const row = (cells) => `| ${cells.join(" | ")} |`;
 
 export function mdLawBakeoff(d) {
