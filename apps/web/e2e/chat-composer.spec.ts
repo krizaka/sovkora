@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { encode } from "next-auth/jwt";
+import { mockEmptyBackend } from "./support/mock-session";
 
 /**
  * The chat composer is the kit's pill (@krizaka/ui/chat MessageComposer): one rounded field, chip and attach inside,
@@ -15,20 +16,7 @@ async function signIn(page: Page) {
     secret: E2E_SECRET,
   });
   await page.context().addCookies([{ name: "next-auth.session-token", value: token, url: "http://localhost:3000" }]);
-  await mockBackend(page);
-}
-
-/** The BFF's read endpoints, answered empty: nothing here talks to a backend (and a 4xx would sign the page out). */
-async function mockBackend(page: Page) {
-  await page.route("**/api/v1/**", (route) => {
-    const url = route.request().url();
-    const body = url.includes("/jobs")
-      ? { content: [], totalPages: 0, totalElements: 0 }
-      : url.includes("/settings")
-        ? { id: "e2e-user", username: "Eric" }
-        : [];
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
-  });
+  await mockEmptyBackend(page);
 }
 
 const pillOf = (page: Page) => page.getByTestId("chat-input").locator("..");

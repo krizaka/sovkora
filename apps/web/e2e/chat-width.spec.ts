@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { signInAsDemoUser } from "./support/mock-session";
+import { mockEmptyBackend, signInAsDemoUser } from "./support/mock-session";
 import { assertTextReadable } from "../scripts/text-width-on-screen.mjs";
 import { RECORDED_DOCUMENT, RECORDED_QUESTION } from "../scripts/tour/eric.mjs";
 
@@ -16,17 +16,7 @@ const ANSWER =
 
 async function seedConversation(page: Page) {
   await signInAsDemoUser(page);
-  await page.route("**/api/v1/**", (route) => {
-    const url = route.request().url();
-    const body = url.includes("/jobs")
-      ? { content: [], totalPages: 0, totalElements: 0 }
-      : url.includes("/settings")
-        ? { id: USER_ID, username: "Eric" }
-        : url.includes("/chat/sessions")
-          ? [{ id: CONVERSATION_ID, title: THREAD_TITLE, updatedAt: new Date().toISOString() }]
-          : [];
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
-  });
+  await mockEmptyBackend(page, [{ id: CONVERSATION_ID, title: THREAD_TITLE, updatedAt: new Date().toISOString() }]);
   const now = Date.now();
   const messages = [
     {
