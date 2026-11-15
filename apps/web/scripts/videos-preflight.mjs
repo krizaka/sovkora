@@ -213,11 +213,17 @@ export async function lastRunWhereProofRan(runs, getJobs) {
 /**
  * The free proof that a streamed turn emits a `tool-call` event (orazaka-ai-engine#169): three paid runs came back without one,
  * so no paid run starts until this test is green on main and dev runs a build made after it.
- * @param {{ ciConclusion: string | null, ciRunId?: number | null, proofCommittedAt: string | null, coreDeployedAt: string | null }} facts
+ * @param {{ ciConclusion: string | null, ciRunId?: number | null, proofCommittedAt: string | null, coreDeployedAt: string | null, readError?: string | null }} facts
  * @param {boolean} required refuse when the deploy time could not be read
  * @returns {{ ok: boolean, message: string }}
  */
-export function toolPathVerdict({ ciConclusion, ciRunId = null, proofCommittedAt, coreDeployedAt }, required) {
+export function toolPathVerdict(
+  { ciConclusion, ciRunId = null, proofCommittedAt, coreDeployedAt, readError = null },
+  required,
+) {
+  if (readError) {
+    return { ok: false, message: `could not read the proof (${readError})` };
+  }
   if (!proofCommittedAt) {
     return {
       ok: false,
@@ -254,17 +260,35 @@ export function toolPathVerdict({ ciConclusion, ciRunId = null, proofCommittedAt
   };
 }
 
-/** What the GitHub API says about the proof; null fields when it cannot be read. */
-async function toolPathFacts(coreDeployedAt) {
+/**
+ * One GitHub API read: the HTTP status goes with the body, so a refusal (rate limit, 401, 403) is never mistaken for an absence.
+ * The token, when there is one, travels only in the Authorization header.
+ * @param {string} path
+ * @param {{ token?: string, fetchImpl?: typeof fetch }} [options]
+ * @returns {Promise<{ status: number | null, body: any }>} status null when the request itself failed
+ */
+export async function githubGet(path, { token, fetchImpl = fetch } = {}) {
+  const headers = { Accept: "application/vnd.github+json" };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  try {
+    const res = await fetchImpl(`https://api.github.com/repos/${PROOF_REPO}/${path}`, { headers });
+    return { status: res.status, body: res.ok ? await res.json() : null };
+  } catch {
+    return { status: null, body: null };
+  }
+}
+
+/** What the GitHub API says about the proof; `readError` names the first read that failed ("HTTP 403", "network"). */
+export async function toolPathFacts(coreDeployedAt, { token = process.env.GITHUB_TOKEN, fetchImpl = fetch } = {}) {
+  let readError = null;
   const get = async (path) => {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${PROOF_REPO}/${path}`, {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      return res.ok ? await res.json() : null;
-    } catch {
-      return null;
+    const { status, body } = await githubGet(path, { token, fetchImpl });
+    if (status !== 200) {
+      readError ??= status === null ? "network" : `HTTP ${status}`;
     }
+    return body;
   };
   const commits = await get(`commits?sha=main&per_page=1&path=${encodeURIComponent(PROOF_TEST)}`);
   const runs = await get(
@@ -278,6 +302,7 @@ async function toolPathFacts(coreDeployedAt) {
     ciConclusion: ran?.conclusion ?? null,
     ciRunId: ran?.runId ?? null,
     coreDeployedAt,
+    readError,
   };
 }
 
