@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { signInAsDemoUser } from "./support/mock-session";
+import { mockApi } from "./support/mock-api";
 import { assertTextReadable } from "../scripts/text-width-on-screen.mjs";
 
 /**
@@ -49,31 +49,20 @@ const STATES = {
 } as const;
 
 async function mockRun(page: Page, state: (typeof STATES)[keyof typeof STATES]) {
-  await signInAsDemoUser(page);
-  await page.route("**/api/v1/**", async (route) => {
-    const url = route.request().url();
-    const json = (body: unknown) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
-    if (url.includes(`/studios/runs/${RUN_ID}`)) {
-      return json({
-        id: RUN_ID,
-        installationId: null,
-        studioKey: "video-generation",
-        blueprintVersion: "1.8.0",
-        startedAt: "2026-10-20T12:00:00Z",
-        finishedAt: null,
-        outputs: [],
-        ...state,
-      });
-    }
-    if (url.includes("/jobs")) {
-      return json({ content: [], totalPages: 0, totalElements: 0 });
-    }
-    if (url.includes("/settings")) {
-      return json({ id: "e2e-user", username: "Eric" });
-    }
-    return json([]);
-  });
+  await mockApi(page, (url) =>
+    url.includes(`/studios/runs/${RUN_ID}`)
+      ? {
+          id: RUN_ID,
+          installationId: null,
+          studioKey: "video-generation",
+          blueprintVersion: "1.8.0",
+          startedAt: "2026-10-20T12:00:00Z",
+          finishedAt: null,
+          outputs: [],
+          ...state,
+        }
+      : undefined,
+  );
 }
 
 for (const width of [360, 390]) {

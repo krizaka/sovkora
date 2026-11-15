@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { signInAsDemoUser } from "./support/mock-session";
+import { mockApi } from "./support/mock-api";
 import { assertTextReadable } from "../scripts/text-width-on-screen.mjs";
 
 /**
@@ -37,24 +37,13 @@ const detail = (estimatedCredits: number) => ({
 });
 
 async function mockStudios(page: Page, estimatedCredits: number) {
-  await signInAsDemoUser(page);
-  await page.route("**/api/v1/**", async (route) => {
-    const url = route.request().url();
-    const json = (body: unknown) =>
-      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
+  await mockApi(page, (url) => {
     if (/\/studios\/document-authenticity(\?|$)/.test(url)) {
-      return json(detail(estimatedCredits));
+      return detail(estimatedCredits);
     }
-    if (/\/studios(\?|$)/.test(url)) {
-      return json([summary("document-authenticity", "Document Authenticity", "legal")]);
-    }
-    if (url.includes("/jobs")) {
-      return json({ content: [], totalPages: 0, totalElements: 0 });
-    }
-    if (url.includes("/settings")) {
-      return json({ id: "e2e-user", username: "Eric" });
-    }
-    return json([]);
+    return /\/studios(\?|$)/.test(url)
+      ? [summary("document-authenticity", "Document Authenticity", "legal")]
+      : undefined;
   });
 }
 
