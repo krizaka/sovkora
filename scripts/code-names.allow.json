@@ -175,12 +175,6 @@
       "scope": "model"
     },
     {
-      "token": "\"alias\":\"orazaka\"",
-      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
       "token": "\"default\": \"orazaka\"",
       "reason": "The CLI's default database name option (a live database name of the job plane).",
       "row": "K2",
