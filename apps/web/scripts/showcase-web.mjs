@@ -14,6 +14,7 @@ import path from "node:path";
 import { chromium } from "@playwright/test";
 import { askRecordedQuestion } from "./tour/chat-journey.mjs";
 import { qaOnScreen } from "./qa-on-screen.mjs";
+import { assertTextReadable } from "./text-width-on-screen.mjs";
 
 const args = process.argv.slice(2);
 const outDir = path.resolve(args[0] ?? "showcase-web");
@@ -69,6 +70,7 @@ async function record(id, act, storageState) {
   const page = await ctx.newPage();
   await act(page);
   await pause(page, 1500);
+  await assertTextReadable(page, id); // a squeezed text column is never published (krizaka-internal#3834)
   const video = page.video();
   await ctx.close();
   renameSync(await video.path(), path.join(outDir, `${id}.webm`));

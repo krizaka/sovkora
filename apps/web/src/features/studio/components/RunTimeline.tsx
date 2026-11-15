@@ -96,7 +96,7 @@ export function RunTimeline({ steps }: Readonly<RunTimelineProps>) {
       <Stepper
         steps={items}
         labels={t.insights.queue.steps}
-        className="rounded-xl border border-border-default bg-surface-1 p-5"
+        className="rounded-xl border border-border-default bg-surface-1 p-4 sm:p-5"
       />
     </section>
   );

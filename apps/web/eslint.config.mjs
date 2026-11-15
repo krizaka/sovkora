@@ -128,8 +128,9 @@ const eslintConfig = defineConfig([
   },
   {
     // The UI crawl (a node script run by hand and by the e2e workflow, outside the app) shares the QA-name reader with
-    // the recording scripts, which live in scripts/: it is the only file that reaches over from e2e/ to scripts/.
-    files: ["e2e/ui-crawl.mjs"],
+    // the recording scripts, which live in scripts/; so does the run screen's width spec, which shares the text-width check
+    // of every recording (krizaka-internal#3834). They are the only files that reach over from e2e/ to scripts/.
+    files: ["e2e/ui-crawl.mjs", "e2e/run-screen-width.spec.ts", "e2e/text-width-check.spec.ts"],
     rules: { "no-restricted-imports": "off" },
   },
   // Align globally ignored build directories

@@ -32,6 +32,7 @@ import {
 } from "./tour/eric.mjs";
 import { askRecordedQuestion } from "./tour/chat-journey.mjs";
 import { DEMO_LEASE } from "./tour/documents.mjs";
+import { assertTextReadable } from "./text-width-on-screen.mjs";
 
 const BASE = (process.env.ORAZAKA_URL || "http://localhost:3000").replace(/\/$/, "");
 const OUT = path.resolve(process.env.OUT || "tour");
@@ -434,6 +435,7 @@ async function record(id, state) {
   const cut = { from: () => cuts.push({ from: at() }), to: () => (cuts.at(-1).to = at()) };
   const play = await CLIPS[id](page, cut);
   await settle(page, 800); // fonts, data, media, first paint settle before the clip starts
+  await assertTextReadable(page, `clip ${id}`); // a squeezed text column is never filmed (krizaka-internal#3834)
   const start = at();
   await play();
   const video = page.video();
