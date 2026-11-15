@@ -166,7 +166,7 @@ export const ChatWindow: React.FC<{ initialConversationId: string }> = ({ initia
             <article
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-6 space-y-5 relative scroll-smooth"
+              className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-5 relative scroll-smooth"
             >
               <ChatTimeline
                 messages={messages ?? []}

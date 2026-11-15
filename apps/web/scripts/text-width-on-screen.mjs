@@ -36,13 +36,25 @@ export function squeezedBlocks(limits) {
     return style.display !== "inline" && style.display !== "none" && style.visibility !== "hidden";
   };
 
+  /** A label cut to one line with an ellipsis (a thread title, a header) is shortened by design: it is not a column squeezed to a sliver. */
+  const isEllipsizedLine = (el) => {
+    const style = getComputedStyle(el);
+    return style.textOverflow === "ellipsis" && style.whiteSpace === "nowrap";
+  };
+
   const check = (el) => {
     const own = [...el.childNodes].filter((n) => n.nodeType === Node.TEXT_NODE);
     const text = own.map((n) => n.textContent ?? "").join(" ");
     const count = countWords(text);
     const isHeading = /^H[1-3]$/.test(el.tagName);
     const box = el.getBoundingClientRect();
-    if (count < (isHeading ? 2 : minWords) || !isDrawn(el) || box.width === 0 || box.height === 0) {
+    if (
+      count < (isHeading ? 2 : minWords) ||
+      !isDrawn(el) ||
+      isEllipsizedLine(el) ||
+      box.width === 0 ||
+      box.height === 0
+    ) {
       return null;
     }
     const longest = longestLine(own);
