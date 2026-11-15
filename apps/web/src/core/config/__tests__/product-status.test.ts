@@ -1,4 +1,5 @@
 import { translations, type Locale } from "@/core/context/translations";
+import { org } from "@krizaka/org";
 import { PRODUCT_STATUS, inDevelopment } from "@/core/config/product-status";
 
 /**
@@ -28,10 +29,14 @@ function leaves(value: unknown, path: string): [string, string][] {
 }
 
 describe("product status (one source)", () => {
-  it("is « development » and keeps public prices closed", () => {
+  it("is the status @krizaka/org gives Sovkora, never a typed value (krizaka-internal#3908)", () => {
+    expect(PRODUCT_STATUS).toBe(org.products.find((p) => p.id === "sovkora")?.status);
+  });
+
+  it("keeps public prices closed while the org says « development »", () => {
     expect(PRODUCT_STATUS).toBe("development");
     expect(inDevelopment()).toBe(true);
-    expect(inDevelopment("available")).toBe(false);
+    expect(inDevelopment("devPreview")).toBe(false);
   });
 
   describe.each(["en", "fr"] as const)("public copy (%s)", (locale: Locale) => {
