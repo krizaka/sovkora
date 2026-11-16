@@ -39,6 +39,7 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
       - name: npm 11 (trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10)
         run: npm install -g --ignore-scripts npm@11.21.1
       - name: The tag is the version of the package
@@ -74,6 +75,7 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
       - name: Deprecate (a deprecation is a message; the versions stay installable)
         run: |
           npm deprecate "@krizaka/orazaka-cli" "renamed: use sovkora"
