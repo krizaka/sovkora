@@ -1,0 +1,22 @@
+{
+  "capability": "orazaka.safety.media.assess",
+  "input": {
+    "looks": [
+      "{\"sexual_or_nudity\":false,\"graphic_violence\":false,\"minor_in_unsafe_context\":false}",
+      "{\"sexual_or_nudity\":true,\"graphic_violence\":false,\"minor_in_unsafe_context\":false}",
+      "{\"sexual_or_nudity\":false,\"graphic_violence\":false,\"minor_in_unsafe_context\":false}"
+    ],
+    "frames": 3,
+    "expectsSpeech": false
+  },
+  "assertions": [
+    {
+      "path": ["verdict"],
+      "equals": "REJECTED"
+    },
+    {
+      "path": ["report", "blockers"],
+      "includes": "SEXUAL_CONTENT"
+    }
+  ]
+}

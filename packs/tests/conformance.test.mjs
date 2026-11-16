@@ -53,7 +53,8 @@ const rows = packs.map(({ pack, capabilities, studios }) => {
 
 const table = coverageTable(rows);
 console.log(`\nPack conformance — capabilities declared vs proven on their fixtures\n\n${table}\n`);
-if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Pack conformance\n\n${table}\n`);
+if (process.env.GITHUB_STEP_SUMMARY)
+  appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Pack conformance\n\n${table}\n`);
 
 for (const { pack, capabilities } of packs) {
   for (const c of capabilities) {
@@ -85,5 +86,6 @@ test("conformance exceptions only decrease against the PR base", () => {
   if (base) assert.match(base, /^[0-9a-f]{40}$/);
   const previous = base ? exceptionsAt(base) : null;
   if (!previous) return; // the base has no ratchet yet: this change introduces it
-  for (const key of exceptions.keys()) assert.ok(previous.includes(key), `conformance exceptions may only shrink: ${key}`);
+  for (const key of exceptions.keys())
+    assert.ok(previous.includes(key), `conformance exceptions may only shrink: ${key}`);
 });

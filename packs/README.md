@@ -61,3 +61,12 @@ cd packs && npm ci && npm test   # the pack schema and the goldens
 Each pack worker's Python suites run in CI (`.github/workflows/ci.yml`, job `packs-workers`).
 
 CI runs it on every pull request that touches `packs/` (ADR-029: one repository, one CI).
+
+## Conformance: every capability proves it runs
+
+`npm test` (and a nightly sweep, `.github/workflows/packs-conformance.yml`) reads every `pack.yaml` and, for each capability under
+`requires.capabilities`, expects `<pack>/tests/conformance/<capability key>.json`: a synthetic `input` and deterministic
+`assertions` on the answer. The suite calls the pack worker's own handler on that input (no broker, no model, no network),
+checks the input against the capability's `inputSchema` and the answer against its `outputSchema`, then runs the assertions.
+The coverage table (declared against proven) is printed and written to the CI summary. A capability without a passing fixture
+fails, unless `conformance-ratchet.json` records it with its follow-up ticket; that list only shrinks.
