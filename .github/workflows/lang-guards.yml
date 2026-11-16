@@ -19,7 +19,7 @@ jobs:
   rust:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/rust-quality.yml@f34e0ba388ce63c5b3a243d4ea77fdf977d4041f # main
+    uses: krizaka/.github/.github/workflows/rust-quality.yml@cf350d9958db51a9d1ce29b2b3eab57c10ddc7a4 # main
     with:
       working-directory: apps/desktop/src-tauri
       runs-on: macos-latest
@@ -29,7 +29,7 @@ jobs:
   python-media:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-quality.yml@f34e0ba388ce63c5b3a243d4ea77fdf977d4041f # main
+    uses: krizaka/.github/.github/workflows/python-quality.yml@cf350d9958db51a9d1ce29b2b3eab57c10ddc7a4 # main
     with:
       working-directory: workers/media
       paths: "."
@@ -38,7 +38,7 @@ jobs:
   python-packs:
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-quality.yml@f34e0ba388ce63c5b3a243d4ea77fdf977d4041f # main
+    uses: krizaka/.github/.github/workflows/python-quality.yml@cf350d9958db51a9d1ce29b2b3eab57c10ddc7a4 # main
     with:
       working-directory: packs
       paths: "."
