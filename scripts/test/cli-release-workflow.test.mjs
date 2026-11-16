@@ -36,3 +36,8 @@ test("pnpm is set up from the CLI's package.json (the repository root declares n
   assert.match(workflow, /pnpm\/action-setup@[0-9a-f]{40}[^\n]*\n\s+with:\n\s+package_json_file: apps\/cli\/package\.json/);
   assert.match(pkg.packageManager, /^pnpm@\d+\.\d+\.\d+$/);
 });
+
+test("the install is filtered to the CLI, as ci.yml does (a bare install walks every app's lockfile)", () => {
+  assert.doesNotMatch(workflow, /pnpm install --frozen-lockfile\s*$/m);
+  assert.equal(workflow.match(/pnpm install --frozen-lockfile --filter \./g)?.length, 2);
+});
