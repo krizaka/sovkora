@@ -13,6 +13,9 @@ import { assertOutput } from "../golden/harness.mjs";
 const ajv = new Ajv({ strict: false, validateFormats: false, allErrors: true });
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
+/** A capability's fixture file: its key without the platform prefix, which every key of a pack shares. */
+export const fixtureName = (key) => `${key.replace(/^[a-z]+\./, "")}.json`;
+
 /** Every pack folder, with what its manifest declares. */
 export function discoverPacks(root) {
   return readdirSync(root)
@@ -21,7 +24,7 @@ export function discoverPacks(root) {
     .map((pack) => {
       const manifest = YAML.parse(readFileSync(join(root, pack, "pack.yaml"), "utf8"));
       const capabilities = (manifest.requires?.capabilities ?? []).map((c) => {
-        const fixtureFile = join(root, pack, "tests", "conformance", `${c.key}.json`);
+        const fixtureFile = join(root, pack, "tests", "conformance", fixtureName(c.key));
         return { ...c, fixtureFile, fixture: existsSync(fixtureFile) ? readJson(fixtureFile) : null };
       });
       return { pack, manifest, capabilities, studios: (manifest.studios ?? []).map((s) => s.key) };
@@ -34,7 +37,7 @@ export function orphanFixtures(root, packs) {
   for (const { pack, capabilities } of packs) {
     const dir = join(root, pack, "tests", "conformance");
     if (!existsSync(dir)) continue;
-    const declared = new Set(capabilities.map((c) => `${c.key}.json`));
+    const declared = new Set(capabilities.map((c) => fixtureName(c.key)));
     for (const file of readdirSync(dir)) if (!declared.has(file)) orphans.push(`${pack}/${file}`);
   }
   return orphans;
@@ -67,7 +70,6 @@ export function callHandlers(root, pack, requests) {
 export function judge(capability, answer) {
   const { fixture } = capability;
   if (!fixture) return "no fixture";
-  if (fixture.capability !== capability.key) return "the fixture names another capability";
   if (!Array.isArray(fixture.assertions) || fixture.assertions.length === 0) return "no assertion on the answer";
   const input = ajv.compile(capability.inputSchema ?? {});
   if (!input(fixture.input)) return `input breaks the inputSchema: ${ajv.errorsText(input.errors)}`;

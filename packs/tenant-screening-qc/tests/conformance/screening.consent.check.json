@@ -1,16 +1,21 @@
 {
-  "capability": "orazaka.screening.consent.check",
   "input": {
     "purpose": "CREDIT",
-    "consentedPurposes": ["DOCUMENTS"]
+    "consentedPurposes": [
+      "DOCUMENTS"
+    ]
   },
   "assertions": [
     {
-      "path": ["status"],
+      "path": [
+        "status"
+      ],
       "equals": "REFUSED"
     },
     {
-      "path": ["reason"],
+      "path": [
+        "reason"
+      ],
       "equals": "NO_CONSENT"
     }
   ]

@@ -1,5 +1,4 @@
 {
-  "capability": "orazaka.screening.plan",
   "input": {
     "subject": {
       "subjectId": "subj-synthetic-001",
@@ -21,15 +20,21 @@
   },
   "assertions": [
     {
-      "path": ["status"],
+      "path": [
+        "status"
+      ],
       "equals": "READY"
     },
     {
-      "path": ["payer"],
+      "path": [
+        "payer"
+      ],
       "equals": "LANDLORD"
     },
     {
-      "path": ["worstCaseCredits"],
+      "path": [
+        "worstCaseCredits"
+      ],
       "equals": 60
     }
   ]

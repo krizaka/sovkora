@@ -1,5 +1,4 @@
 {
-  "capability": "orazaka.validation.document.assemble",
   "input": {
     "screened": {
       "rulesetId": "qc-residential-lease",
@@ -196,11 +195,17 @@
   },
   "assertions": [
     {
-      "path": ["report", "rulesetId"],
+      "path": [
+        "report",
+        "rulesetId"
+      ],
       "equals": "qc-residential-lease"
     },
     {
-      "path": ["report", "findings"],
+      "path": [
+        "report",
+        "findings"
+      ],
       "type": "array"
     }
   ]

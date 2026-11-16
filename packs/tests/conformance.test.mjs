@@ -3,7 +3,14 @@ import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { callHandlers, coverageTable, discoverPacks, judge, orphanFixtures } from "./conformance/suite.mjs";
+import {
+  callHandlers,
+  coverageTable,
+  discoverPacks,
+  fixtureName,
+  judge,
+  orphanFixtures,
+} from "./conformance/suite.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const ratchet = JSON.parse(readFileSync(new URL("../conformance-ratchet.json", import.meta.url), "utf8"));
@@ -58,7 +65,7 @@ if (process.env.GITHUB_STEP_SUMMARY)
 
 for (const { pack, capabilities } of packs) {
   for (const c of capabilities) {
-    const key = `${pack}/${c.key}`;
+    const key = `${pack}/${fixtureName(c.key).replace(/\.json$/, "")}`;
     test(`${key} runs on its fixture, or is a recorded exception`, () => {
       const row = rows.find((r) => r.pack === pack);
       const failure = row.missing.find((m) => m.key === c.key);
@@ -77,7 +84,9 @@ test("every manifest's declared capability is the only source of an entry (no or
 });
 
 test("an exception names a declared capability", () => {
-  const declared = new Set(packs.flatMap((p) => p.capabilities.map((c) => `${p.pack}/${c.key}`)));
+  const declared = new Set(
+    packs.flatMap((p) => p.capabilities.map((c) => `${p.pack}/${fixtureName(c.key).replace(/\.json$/, "")}`)),
+  );
   for (const key of exceptions.keys()) assert.ok(declared.has(key), `stale conformance exception ${key}`);
 });
 

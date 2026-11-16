@@ -65,7 +65,7 @@ CI runs it on every pull request that touches `packs/` (ADR-029: one repository,
 ## Conformance: every capability proves it runs
 
 `npm test` (and a nightly sweep, `.github/workflows/packs-conformance.yml`) reads every `pack.yaml` and, for each capability under
-`requires.capabilities`, expects `<pack>/tests/conformance/<capability key>.json`: a synthetic `input` and deterministic
+`requires.capabilities`, expects `<pack>/tests/conformance/<capability key without its platform prefix>.json`: a synthetic `input` and deterministic
 `assertions` on the answer. The suite calls the pack worker's own handler on that input (no broker, no model, no network),
 checks the input against the capability's `inputSchema` and the answer against its `outputSchema`, then runs the assertions.
 The coverage table (declared against proven) is printed and written to the CI summary. A capability without a passing fixture

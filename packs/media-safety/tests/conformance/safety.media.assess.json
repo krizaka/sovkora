@@ -1,5 +1,4 @@
 {
-  "capability": "orazaka.safety.media.assess",
   "input": {
     "looks": [
       "{\"sexual_or_nudity\":false,\"graphic_violence\":false,\"minor_in_unsafe_context\":false}",
@@ -11,11 +10,16 @@
   },
   "assertions": [
     {
-      "path": ["verdict"],
+      "path": [
+        "verdict"
+      ],
       "equals": "REJECTED"
     },
     {
-      "path": ["report", "blockers"],
+      "path": [
+        "report",
+        "blockers"
+      ],
       "includes": "SEXUAL_CONTENT"
     }
   ]

@@ -1,5 +1,4 @@
 {
-  "capability": "orazaka.photo.profile.assess",
   "input": {
     "facts": "{\"photos\":[{\"index\":0,\"kind\":\"FACE\",\"faceCount\":1},{\"index\":1,\"kind\":\"FACE\",\"faceCount\":1},{\"index\":2,\"kind\":\"NO_FACE\",\"faceCount\":0},{\"index\":3,\"kind\":\"NO_FACE\",\"faceCount\":0}],\"identity\":{\"status\":\"CONSISTENT\",\"mismatch\":[],\"compared\":2}}",
     "looks": [],
@@ -9,15 +8,23 @@
   },
   "assertions": [
     {
-      "path": ["report", "rulesetId"],
+      "path": [
+        "report",
+        "rulesetId"
+      ],
       "equals": "profile-photo"
     },
     {
-      "path": ["report", "photos"],
+      "path": [
+        "report",
+        "photos"
+      ],
       "type": "array"
     },
     {
-      "path": ["passes"],
+      "path": [
+        "passes"
+      ],
       "equals": true
     }
   ]
