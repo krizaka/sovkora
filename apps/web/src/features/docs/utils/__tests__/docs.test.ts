@@ -78,10 +78,10 @@ describe("published docs", () => {
 
   it("sends 'edit' to the source file, and generated pages to the generated file", () => {
     expect(editUrl(listPages().find((d) => d.slug === "concepts")!)).toBe(
-      "https://github.com/krizaka/orazaka/edit/main/docs/CONCEPTS.md",
+      "https://github.com/krizaka/sovkora/edit/main/docs/CONCEPTS.md",
     );
     expect(editUrl(listPages().find((d) => d.slug === "cli")!)).toBe(
-      "https://github.com/krizaka/orazaka/blob/main/docs/_generated/CLI.md",
+      "https://github.com/krizaka/sovkora/blob/main/docs/_generated/CLI.md",
     );
     expect(editUrl(listPages().find((d) => d.slug === "mobile")!)).toBeNull();
   });
@@ -108,7 +108,7 @@ describe("links of a doc", () => {
 
   it("sends anything not published to GitHub — never a dead link — and drops a link out of the repository", () => {
     expect(resolveLink("BILLING_ARCHITECTURE.md", "docs/101.md", sources)).toEqual({
-      href: "https://github.com/krizaka/orazaka/blob/main/docs/BILLING_ARCHITECTURE.md",
+      href: "https://github.com/krizaka/sovkora/blob/main/docs/BILLING_ARCHITECTURE.md",
       internal: false,
     });
     expect(resolveLink("../../../elsewhere/x.md", "docs/101.md", sources)).toBeNull();
@@ -127,7 +127,7 @@ describe("links of a doc", () => {
     const out = prepareBody(body, "docs/101.md", sources);
     expect(out).toContain("[core](/docs/core)");
     expect(out).toContain("See [core](/docs/core) and out.");
-    expect(out).toContain("![shot](https://raw.githubusercontent.com/krizaka/orazaka/main/docs/assets/a.png)");
+    expect(out).toContain("![shot](https://raw.githubusercontent.com/krizaka/sovkora/main/docs/assets/a.png)");
     expect(out).toContain("> **Important.** Mind this.");
     expect(out).toContain("```md\n[core](CORE.md)\n```");
   });

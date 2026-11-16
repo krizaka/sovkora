@@ -32,7 +32,7 @@ business -> core: the use-case runs through an inbound port (AiClient, the Studi
 
 ## Where things live
 
-Ports & adapters, the same layout in every Orazaka module: `api` is the contract other modules may import,
+Ports & adapters, the same layout in every Sovkora module: `api` is the contract other modules may import,
 `application` implements it, `domain` holds the model and the ports, and the use-cases are plain classes
 discovered by Spring — adding one changes neither the core nor the router.
 

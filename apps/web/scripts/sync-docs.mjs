@@ -62,7 +62,7 @@ export function modelSlice(arch) {
     flows: arch.flows,
     pipeline: arch.pipeline,
     coreChain: arch.coreChain,
-    cli: { alias: arch.cli.alias, journey: arch.cli.journey },
+    cli: { bin: arch.cli.bin, journey: arch.cli.journey },
   };
 }
 

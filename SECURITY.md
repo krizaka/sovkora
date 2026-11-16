@@ -5,7 +5,7 @@
 ## Reporting
 
 Use GitHub's private vulnerability reporting: open the affected repository of the Sovkora platform
-(this workspace, or the component — `krizaka/orazaka-cli`, `krizaka/orazaka-edge`, …), then
+(this repository, `krizaka/sovkora`, or a Krizaka component), then
 **Security → Report a vulnerability**. If that is not possible, write to us through the
 [Krizaka contact form](https://www.krizaka.com/en/contact) without technical details, and we will open a
 private channel.
@@ -20,11 +20,11 @@ GitHub security advisory with the fixed release, and credit you unless you prefe
 | The latest Sovkora release (one version for the whole bundle) | yes |
 | The previous minor release | security fixes for 90 days after the next minor |
 | `main` | yes (development) |
-| Anything older | no — update with `orazaka update` |
+| Anything older | no — update with `sovkora update` |
 
 ## In scope
 
-The platform's services, workers, web and admin apps, the `orazaka` CLI, Sovkora Desktop, the release
+The platform's services, workers, web and admin apps, the `sovkora` CLI, Sovkora Desktop, the release
 artefacts (images on `ghcr.io/krizaka/*`, release manifests, installers) and the reference packs.
 Third-party software we ship (PostgreSQL, Ollama, stable-diffusion.cpp…) is reported upstream; tell us
 too if it affects Sovkora's defaults.
@@ -41,4 +41,4 @@ too if it affects Sovkora's defaults.
 - No telemetry: Sovkora sends nothing to Krizaka.
 
 These defaults are under construction in the delivery epic ([#75](https://github.com/krizaka/orazaka/issues/75));
-`orazaka doctor` checks them on a running installation.
+`sovkora doctor` checks them on a running installation.

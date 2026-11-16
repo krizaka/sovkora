@@ -19,7 +19,7 @@ export type DiagramData =
       calledBy: string[];
     }
   | { kind: "cli-replay"; code: string }
-  | { kind: "cli-journey"; alias: string; journey: DocsModel["cli"]["journey"] }
+  | { kind: "cli-journey"; bin: string; journey: DocsModel["cli"]["journey"] }
   | { kind: "cli-commands"; text: string }
   | { kind: "pack-index"; items: PackIndexItem[] }
   | { kind: "pack"; pack: PackData };

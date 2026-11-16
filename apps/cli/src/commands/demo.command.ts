@@ -1,6 +1,6 @@
 /**
  * @file demo.command.ts
- * @description `orazaka demo seed` — the demo persona (Eric) on the local stack, replayable.
+ * @description `sovkora demo seed` — the demo persona (Eric) on the local stack, replayable.
  *
  * Refuses anything but a local, non-deployed target (services/demo/demo.guard.ts). The password is
  * DEMO_PASSWORD, or the persona's local default; the plan is set by the development administrator
@@ -15,7 +15,7 @@ import { DemoSeeder } from "../services/demo/demo.seed";
 import { DEMO_PERSONA } from "../services/demo/demo.persona";
 
 async function seed(opts: { fresh?: boolean; runs?: boolean; withVideo?: boolean }): Promise<void> {
-  await intro(chalk.cyan("Orazaka demo persona"));
+  await intro(chalk.cyan("Sovkora demo persona"));
   const password = strEnv("DEMO_PASSWORD", DEMO_PERSONA.publicSignIn);
   try {
     const result = await new DemoSeeder({

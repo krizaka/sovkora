@@ -1,6 +1,6 @@
 /**
  * @file docs.command.ts
- * @description `orazaka docs [build|sync]` (AGENTS.md §10) — code-driven documentation.
+ * @description `sovkora docs [build|sync]` (AGENTS.md §10) — code-driven documentation.
  * `build` regenerates docs/_generated/ from the code (with `--check` for the build gate);
  * `sync` copies the docs into the Krizaka site content tree.
  */
@@ -13,7 +13,7 @@ import chalk from "chalk";
 import { intro, outro, note, logWarning, logSuccess } from "../ui/prompts";
 import { requireWorkspace } from "./workspace-guard";
 
-/** Orazaka workspace root (where the generator + docs/ live). */
+/** Sovkora workspace root (where the generator + docs/ live). */
 function resolveMonorepoRoot(): string {
   return requireWorkspace("docs");
 }
@@ -38,7 +38,7 @@ const buildCommand = new Command("build")
   .option("--check", "Fail if any generated doc is stale (build gate), without writing")
   .action(async (opts: { check?: boolean }) => {
     const root = resolveMonorepoRoot();
-    await intro(chalk.cyan(`orazaka docs build${opts.check ? " --check" : ""}`));
+    await intro(chalk.cyan(`sovkora docs build${opts.check ? " --check" : ""}`));
     const code = runGenerator(root, Boolean(opts.check));
     if (code === 0) {
       await outro(chalk.green(opts.check ? "✔ docs up to date" : "✔ docs generated"));
@@ -54,7 +54,7 @@ const syncCommand = new Command("sync")
     const root = resolveMonorepoRoot();
     const krizaka = resolveKrizakaRoot(root);
 
-    await intro(chalk.cyan("orazaka docs sync"));
+    await intro(chalk.cyan("sovkora docs sync"));
 
     // Always regenerate first so the synced docs reflect the current code.
     if (runGenerator(root, false) !== 0) {

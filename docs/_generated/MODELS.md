@@ -1,6 +1,6 @@
 ---
 title: Supported Models
-description: "Every model Orazaka supports: where it runs, its licence, its context window — read from the registry the routing reads."
+description: "Every model Sovkora supports: where it runs, its licence, its context window — read from the registry the routing reads."
 category: Models
 order: 8
 generated: true
@@ -10,7 +10,7 @@ generated: true
 
 ## Local first
 
-Orazaka supports **40 models**: **29 run on your own hardware** (Ollama, LocalAI, stable-diffusion.cpp on Metal or CUDA, the media worker) and **11 are served by a provider** — optional: a provider-hosted model needs a provider row and its API key, which only an operator adds; a fresh install has none.
+Sovkora supports **40 models**: **29 run on your own hardware** (Ollama, LocalAI, stable-diffusion.cpp on Metal or CUDA, the media worker) and **11 are served by a provider** — optional: a provider-hosted model needs a provider row and its API key, which only an operator adds; a fresh install has none.
 
 Every figure below is read from `orazaka_models` (the table the routing reads): the vendor, licence and context window are those of each model's own card; `last verified` is the date of the last passing sovereign smoke that named the model, empty until one is recorded.
 
@@ -28,7 +28,7 @@ it never covers content sexualising minors, explicit sexual content, real person
 working malware, or anything that enables serious harm. Unfiltered is not infallible either: serve the largest model
 the machine holds for clinical, legal or security work, and keep a professional in the loop.
 
-How fast and at what price they really run — time, cost and every parameter of the runs Orazaka measured — is on the [Measured runs](MEASURED_RUNS.md) page.
+How fast and at what price they really run — time, cost and every parameter of the runs Sovkora measured — is on the [Measured runs](MEASURED_RUNS.md) page.
 
 ## On your hardware
 

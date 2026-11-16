@@ -18,12 +18,12 @@ describe("one Node.js minimum, everywhere", () => {
     expect(readme).toContain(`Node.js ${String(NODE_MIN_MAJOR)}+`);
   });
 
-  test("`orazaka onboard` accepts the minimum the CLI declares (a Node 22 machine passes)", () => {
+  test("`sovkora onboard` accepts the minimum the CLI declares (a Node 22 machine passes)", () => {
     const node = PREREQUISITES.find((p) => p.name === "Node.js");
     expect(node?.minMajor).toBe(NODE_MIN_MAJOR);
   });
 
-  test("`orazaka install` checks the same version", () => {
+  test("`sovkora install` checks the same version", () => {
     const node = getRequiredTools().find((t) => t.name === "Node.js");
     expect(node?.minVersion).toBe(`${String(NODE_MIN_MAJOR)}.0.0`);
   });

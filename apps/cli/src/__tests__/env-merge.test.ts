@@ -1,7 +1,7 @@
 /**
  * @file env-merge.test.ts
- * @description Guards the non-destructive .env contract used by `orazaka install`
- * and `orazaka init`: existing developer values are never overwritten — only
+ * @description Guards the non-destructive .env contract used by `sovkora install`
+ * and `sovkora init`: existing developer values are never overwritten — only
  * missing keys are appended.
  */
 

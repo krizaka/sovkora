@@ -1,6 +1,6 @@
 /**
  * @file dev-command.test.ts
- * @description Proves the `orazaka dev` skip/only precedence so a flag never
+ * @description Proves the `sovkora dev` skip/only precedence so a flag never
  * silently launches (or skips) the wrong service — the exact class of bug
  * reported for `--skip-router` (ex `--skip-core`) and `--skip-mobile`.
  */

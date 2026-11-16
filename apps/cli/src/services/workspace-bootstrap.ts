@@ -1,7 +1,7 @@
 /**
  * @file workspace-bootstrap.ts
  * @description Turns an empty directory into a Sovkora workspace: clones the one Sovkora repository (krizaka/sovkora,
- * ADR-029). This is what makes `npx orazaka install` work on a machine that has nothing yet — the CLI on npm carries no
+ * ADR-029). This is what makes `npx sovkora install` work on a machine that has nothing yet — the CLI on npm carries no
  * copy of the platform, it fetches the real one.
  */
 

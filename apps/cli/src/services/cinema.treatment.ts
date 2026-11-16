@@ -323,7 +323,7 @@ export function firstFrameArgs(file: string, output: string): string[] {
   return ["-v", "error", "-y", "-i", ffmpegOperand(file), "-frames:v", "1", ffmpegOperand(output)];
 }
 
-/** What `orazaka cinema treat` writes: the treatment, and its critique (rubric, judge, verdict, runs). */
+/** What `sovkora cinema treat` writes: the treatment, and its critique (rubric, judge, verdict, runs). */
 export function writeTreatmentFiles(
   dir: string,
   draft: { treatment: unknown; rubric: unknown; judge?: unknown; verdict: unknown; runs: unknown },

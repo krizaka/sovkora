@@ -1351,19 +1351,19 @@ Kept off the shelf (`catalog.status: DRAFT`): `echo-toolkit` — installable for
 
 | Command                              | What it does                                                             |
 | :----------------------------------- | :----------------------------------------------------------------------- |
-| `orazaka pack validate <directory>`  | Check a bundle's manifest, and whether this platform can run it          |
-| `orazaka pack install <directory>`   | Install a bundle: capabilities, billing and catalogue, or none of them   |
-| `orazaka pack publish <directory>`   | Put an installed bundle's pack and Studios on the shelf                  |
-| `orazaka pack list [directory]`      | List the bundles this deployment's pack sources offer                    |
-| `orazaka studio list`                | Browse the Studio catalogue                                              |
-| `orazaka studio installed`           | List the Studios you have installed                                      |
-| `orazaka studio install <studioKey>` | Install a Studio into your workspace                                     |
-| `orazaka studio run <target>`        | Run an installed Studio — or, with --studio, a toolkit Studio by its key |
-| `orazaka studio logs <runId>`        | Show a run's per-step state and results                                  |
+| `sovkora pack validate <directory>`  | Check a bundle's manifest, and whether this platform can run it          |
+| `sovkora pack install <directory>`   | Install a bundle: capabilities, billing and catalogue, or none of them   |
+| `sovkora pack publish <directory>`   | Put an installed bundle's pack and Studios on the shelf                  |
+| `sovkora pack list [directory]`      | List the bundles this deployment's pack sources offer                    |
+| `sovkora studio list`                | Browse the Studio catalogue                                              |
+| `sovkora studio installed`           | List the Studios you have installed                                      |
+| `sovkora studio install <studioKey>` | Install a Studio into your workspace                                     |
+| `sovkora studio run <target>`        | Run an installed Studio — or, with --studio, a toolkit Studio by its key |
+| `sovkora studio logs <runId>`        | Show a run's per-step state and results                                  |
 
 ## Manifest fields
 
-From `pack.schema.json` — the schema `orazaka pack validate` checks against.
+From `pack.schema.json` — the schema `sovkora pack validate` checks against.
 
 | Field             | Required | Values                                 | Meaning                                                                     |
 | :---------------- | :------- | :------------------------------------- | :-------------------------------------------------------------------------- |
@@ -1455,7 +1455,7 @@ studios:
 > billing service's currency (`billing.currency` — Canadian dollars for Sovkora: `7900` is 79 $ CA); a manifest never
 > names a currency.
 
-Everything else is optional and has a default. `orazaka pack validate` names the exact line when
+Everything else is optional and has a default. `sovkora pack validate` names the exact line when
 something is wrong, so run it before you run anything else.
 
 #### 2.1 Declaring `SENSITIVE`
@@ -1579,8 +1579,8 @@ settles what it measured.
 ### 4. Install it
 
 ```bash
-orazaka pack validate ~/packs/my-pack     # shape, then the platform's own checks
-orazaka pack install  ~/packs/my-pack
+sovkora pack validate ~/packs/my-pack     # shape, then the platform's own checks
+sovkora pack install  ~/packs/my-pack
 ```
 
 `validate` checks your manifest against **the platform's** schema — the one the CLI carries, not
@@ -1673,7 +1673,7 @@ ORAZAKA_PACKS_SOURCES=orazaka-packs,~/packs               # plus your own
 ORAZAKA_PACKS_SOURCES=~/packs,registry:https://…          # plus a hosted registry
 ```
 
-`orazaka pack list` shows the configured sources and what they offer. A registry source is listed
+`sovkora pack list` shows the configured sources and what they offer. A registry source is listed
 and marked unavailable on a local deployment rather than silently ignored.
 
 ### 8. Licence

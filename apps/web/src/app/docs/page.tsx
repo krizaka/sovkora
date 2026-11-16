@@ -11,15 +11,17 @@ import {
   searchIndex,
   splitSegments,
 } from "@/features/docs/utils/docs";
-import { docs } from "@/core/context/translations.docs";
+import { translations } from "@/core/context/translations";
 
-export const metadata: Metadata = { title: docs.en.meta, description: docs.en.metaDescription };
+const m = translations.en.docs;
+
+export const metadata: Metadata = { title: m.meta, description: m.metaDescription };
 
 /** The commands of the quick start, as the CLI reference (generated from the CLI's code) writes them. */
 function quickstart(): string {
   const cli = readDoc("cli");
   const block = cli && splitSegments(cli.body).find((s) => s.kind === "diagram" && s.lang === "cli-replay");
-  return block?.kind === "diagram" ? block.source.trim() : "npx orazaka install\nnpx orazaka start\nnpx orazaka dev";
+  return block?.kind === "diagram" ? block.source.trim() : "npx sovkora install\nnpx sovkora start\nnpx sovkora dev";
 }
 
 /** `/docs` — the hub (the packs section has its own entry block after the quickstart, not a card) of the documentation, organised by what the reader came to do. */

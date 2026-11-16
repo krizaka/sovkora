@@ -1,6 +1,6 @@
 /**
  * @file release.command.ts
- * @description `orazaka release verify` — checks a release manifest (one version for the whole Orazaka
+ * @description `sovkora release verify` — checks a release manifest (one version for the whole Sovkora
  * bundle, docs/DELIVERY.md in krizaka/orazaka) and, with `--dir`, the artefacts of an offline bundle
  * against it. Exit code 1 on any problem, so a release pipeline or an installer can gate on it.
  */
@@ -52,7 +52,7 @@ const verifyCommand = new Command("verify")
       if (problems.length > 0) process.exitCode = 1;
       return;
     }
-    await intro(chalk.cyan.bold("🥷 Orazaka release"));
+    await intro(chalk.cyan.bold("🥷 Sovkora release"));
     if (problems.length > 0) {
       for (const problem of problems) await logError(problem);
       await outro(chalk.red(`${String(problems.length)} problem(s): this release cannot be installed.`));
@@ -61,7 +61,7 @@ const verifyCommand = new Command("verify")
     }
     if (manifest) {
       await logInfo(
-        `Orazaka ${manifest.version} (${manifest.channel}) · ${manifest.targets.join(", ")} · ` +
+        `Sovkora ${manifest.version} (${manifest.channel}) · ${manifest.targets.join(", ")} · ` +
           `${String(manifest.images.length)} image(s), ${String(manifest.artefacts.length)} artefact(s), ` +
           `${String(manifest.models.length)} model(s), ${String(manifest.packs.length)} pack(s)`,
       );

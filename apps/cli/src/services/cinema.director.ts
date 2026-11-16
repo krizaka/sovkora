@@ -279,7 +279,7 @@ async function runStep(
 // ── The treatment stage (orazaka#289): a brief becomes a story, judged before it becomes a shot list ────────────────
 
 export interface TreatmentDraft {
-  /** The treatment as the writer gave it (the JSON `orazaka cinema plan` reads). */
+  /** The treatment as the writer gave it (the JSON `sovkora cinema plan` reads). */
   readonly treatment: Record<string, unknown>;
   readonly story: Story;
   readonly rubric: Critique;

@@ -1,35 +1,35 @@
 /**
  * @file cinema.command.ts
- * @description `orazaka cinema` — a cinematic short (30–60 s, 9:16 or 16:9) from a brief (ADR-080).
+ * @description `sovkora cinema` — a cinematic short (30–60 s, 9:16 or 16:9) from a brief (ADR-080).
  *
  * A production is a folder holding `production.json`: the brief, the script's shot list, and every Studio run made
  * for it. Each step is an ordinary run — metered, policy-checked, in the run history — and the estimate is shown
  * before anything runs. A stopped production resumes with the same command; a rejected shot is reshot alone.
  *
- *   orazaka cinema new <dir> --brief "…" --format superhero-vfx --aspect 9:16 --duration 45 --shots 10
- *   orazaka cinema estimate <dir>
- *   orazaka cinema run <dir> [--yes] [--max-runs n]
- *   orazaka cinema fetch <dir>            keyframes, shots and the film, to look at them
- *   orazaka cinema reshoot <dir> 3,7 [--new-keyframe]
- *   orazaka cinema status <dir>
+ *   sovkora cinema new <dir> --brief "…" --format superhero-vfx --aspect 9:16 --duration 45 --shots 10
+ *   sovkora cinema estimate <dir>
+ *   sovkora cinema run <dir> [--yes] [--max-runs n]
+ *   sovkora cinema fetch <dir>            keyframes, shots and the film, to look at them
+ *   sovkora cinema reshoot <dir> 3,7 [--new-keyframe]
+ *   sovkora cinema status <dir>
  *
  * A directed film (orazaka#259) starts from a treatment instead of a brief, and its shots can be made on a GPU host:
  *
- *   orazaka cinema plan <dir> --treatment treatment.json [--references renders/] [--language en]
- *   orazaka cinema sheet <dir>            the reference sheet of each character that has a reference render
- *   orazaka cinema jobs <dir> [--out f]   the pending shots, as jobs for a GPU host (the worker's own generator)
- *   orazaka cinema take <dir> 3 take.mp4  records a take made there (then: reshoot redoes it, and its chain)
- *   orazaka cinema review <dir> 3 take.mp4  a frame every 8 under the cast's reference sheet, to accept or reject it
+ *   sovkora cinema plan <dir> --treatment treatment.json [--references renders/] [--language en]
+ *   sovkora cinema sheet <dir>            the reference sheet of each character that has a reference render
+ *   sovkora cinema jobs <dir> [--out f]   the pending shots, as jobs for a GPU host (the worker's own generator)
+ *   sovkora cinema take <dir> 3 take.mp4  records a take made there (then: reshoot redoes it, and its chain)
+ *   sovkora cinema review <dir> 3 take.mp4  a frame every 8 under the cast's reference sheet, to accept or reject it
  *
  * The treatment stage (orazaka#289) writes the story a short brief needs before any shot is planned, and judges it:
  *
- *   orazaka cinema treat <dir> --brief "…" [--revisions 2] [--no-judge]   story, arc, intentions, lines, cues, sound list
- *   orazaka cinema critique <treatment.json> [--judge]   the rubric (and the LLM judge) over a treatment: pass or why not
- *   orazaka cinema timeline <treatment.json> [--voice report.json]   every line, cue and sound placed on the cut
+ *   sovkora cinema treat <dir> --brief "…" [--revisions 2] [--no-judge]   story, arc, intentions, lines, cues, sound list
+ *   sovkora cinema critique <treatment.json> [--judge]   the rubric (and the LLM judge) over a treatment: pass or why not
+ *   sovkora cinema timeline <treatment.json> [--voice report.json]   every line, cue and sound placed on the cut
  *
  * The v3 gates (ADR-080 v3): staging, camera and cut, and the questions every keyframe and take must answer:
  *
- *   orazaka cinema stage <treatment.json> [--out questions.json]   the cut's findings, and the frame questions per shot
+ *   sovkora cinema stage <treatment.json> [--out questions.json]   the cut's findings, and the frame questions per shot
  */
 
 import { Command } from "commander";
@@ -89,7 +89,7 @@ const RUN_LIMIT_MS = 45 * 60_000;
 function load(dir: string): Production {
   const file = path.join(dir, FILE);
   if (!fs.existsSync(file)) {
-    throw new Error(`${file} does not exist — start with: orazaka cinema new ${dir} --brief "…"`);
+    throw new Error(`${file} does not exist — start with: sovkora cinema new ${dir} --brief "…"`);
   }
   return JSON.parse(fs.readFileSync(file, "utf-8")) as Production;
 }
@@ -266,7 +266,7 @@ const newCommand = new Command("new")
       ...(o.voiceModel ? { voiceModel: o.voiceModel } : {}),
     };
     save(dir, newProduction(brief));
-    Logger.success(`production created in ${dir} — next: orazaka cinema estimate ${dir}`);
+    Logger.success(`production created in ${dir} — next: sovkora cinema estimate ${dir}`);
   });
 
 const estimateCommand = new Command("estimate")
@@ -357,7 +357,7 @@ const reshootCommand = new Command("reshoot")
       .map((s) => Number(s.trim()))
       .filter(Number.isInteger);
     save(dir, markReshoot(load(dir), ids, Boolean(o.newKeyframe)));
-    Logger.success(`shots ${ids.join(", ")} will be made again — orazaka cinema run ${dir}`);
+    Logger.success(`shots ${ids.join(", ")} will be made again — sovkora cinema run ${dir}`);
   });
 
 const statusCommand = new Command("status")
@@ -427,7 +427,7 @@ const planCommand = new Command("plan")
         save(dir, production);
         const script = production.script?.parsed;
         Logger.success(
-          `${script?.title}: ${script?.shots.length} shots planned in ${dir} — next: orazaka cinema sheet ${dir}`,
+          `${script?.title}: ${script?.shots.length} shots planned in ${dir} — next: sovkora cinema sheet ${dir}`,
         );
       } catch (error: unknown) {
         Logger.error(error instanceof Error ? error.message : String(error));
@@ -549,10 +549,10 @@ const treatCommand = new Command("treat")
         });
         const written = writeTreatmentFiles(dir, draft);
         if (draft.verdict.pass)
-          Logger.success(`accepted: ${written.treatment} — next: orazaka cinema plan <prod> --treatment it`);
+          Logger.success(`accepted: ${written.treatment} — next: sovkora cinema plan <prod> --treatment it`);
         else {
           Logger.warn(
-            `not accepted after the revisions — read ${written.critique}, edit the treatment, then: orazaka cinema critique`,
+            `not accepted after the revisions — read ${written.critique}, edit the treatment, then: sovkora cinema critique`,
           );
           process.exitCode = 2;
         }

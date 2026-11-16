@@ -40,7 +40,7 @@ export const profileCommand = new Command("profile")
         items.push("No preferences configured.");
       }
 
-      Box.render("🥷 ORAZAKA USER PROFILE", items, {
+      Box.render("🥷 SOVKORA USER PROFILE", items, {
         borderColor: "cyan",
         titleColor: "white",
       });

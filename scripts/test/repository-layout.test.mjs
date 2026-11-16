@@ -59,7 +59,7 @@ test("one licence layout: FSL at the root, Apache-2.0 in exactly the folders the
   const notice = read("NOTICE");
   assert.match(read("LICENSE"), /Functional Source License, Version 1\.1, ALv2 Future License/);
   const all = tracked.filter((f) => /(^|\/)LICENSE$/.test(f) && f !== "LICENSE").map((f) => f.slice(0, -"/LICENSE".length));
-  // a package inside an Apache-2.0 folder (apps/cli/alias, the `orazaka` npm alias) carries the same licence
+  // a package inside an Apache-2.0 folder (a nested package) carries the same licence
   const apache = all.filter((d) => !all.some((o) => o !== d && d.startsWith(`${o}/`))).sort();
   assert.deepEqual(apache, ["apps/cli", "build", "contracts", "packs", "services/edge"]);
   for (const dir of apache) {

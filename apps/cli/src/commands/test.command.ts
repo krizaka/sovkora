@@ -1,6 +1,6 @@
 /**
  * @file test.command.ts
- * @description `orazaka test [unit|it|e2e]` — single entry point for the test
+ * @description `sovkora test [unit|it|e2e]` — single entry point for the test
  * pyramid (AGENTS.md §1, §9). Maps each tier to the Maven profile matrix
  * (ADR-040): unit → surefire, it → failsafe/Testcontainers, e2e → the hermetic
  * end-to-end orchestration under the `staging` profile.
@@ -35,7 +35,7 @@ const DESCRIPTIONS: Record<TestMode, string> = {
   worker: "Python media worker: ruff lint + pytest (the Maven reactor excludes it by design)",
 };
 
-/** The Orazaka workspace root (where `./mvnw` lives). */
+/** The Sovkora workspace root (where `./mvnw` lives). */
 function resolveMonorepoRoot(): string {
   return requireWorkspace("test");
 }
@@ -65,7 +65,7 @@ export const testCommand = new Command("test")
     const args = [...MAVEN_ARGS[tier]];
     const mvnw = process.platform === "win32" ? "mvnw.cmd" : "./mvnw";
 
-    await intro(chalk.cyan(`orazaka test ${tier}`));
+    await intro(chalk.cyan(`sovkora test ${tier}`));
     await note(`${DESCRIPTIONS[tier]}\n\n${chalk.gray("$")} ${mvnw} ${args.join(" ")}`, "Maven");
 
     const result = spawnSync(mvnw, args, { cwd: root, stdio: "inherit", shell: false });

@@ -66,7 +66,7 @@ sovkora/
 │   ├── web/                Next.js: the site, the Studios and the operator console (BFF)
 │   ├── mobile/             Expo / React Native
 │   ├── desktop/            Sovkora for Mac (Tauri 2)
-│   └── cli/                the developer CLI (`orazaka`, on npm as @krizaka/orazaka-cli)
+│   └── cli/                the developer CLI (`sovkora`, on npm)
 ├── infra/                  local stack, dev deployment, migrations, OpenTofu
 ├── scripts/                the repository's tooling and its tests
 ├── tests/load/             the k6 load tests of the edge
@@ -110,9 +110,9 @@ native inference.
 git clone https://github.com/krizaka/sovkora.git && cd sovkora
 ./mvnw verify                           # every Java module, unit and integration tests (Testcontainers)
 pnpm install                            # the clients: apps/web, mobile, cli, desktop (each keeps its own lockfile)
-npx orazaka start                       # the local infrastructure: Docker middleware and AI engines
-npx orazaka dev                         # the whole stack: every service, the web app, the console, mobile
-npx orazaka demo seed                   # second terminal, stack up: Eric, the demo persona
+npx sovkora start                       # the local infrastructure: Docker middleware and AI engines
+npx sovkora dev                         # the whole stack: every service, the web app, the console, mobile
+npx sovkora demo seed                   # second terminal, stack up: Eric, the demo persona
 ```
 
 The users and billing services come from [krizaka-java](https://github.com/krizaka/krizaka-java), at the release

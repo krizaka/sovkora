@@ -195,7 +195,7 @@ async function executeSingleShot(
 
 async function replLoop(currentConversationId: string, token: string, nodes: readonly OperationNode[]): Promise<void> {
   const input = await text({
-    message: chalk.green("Orazaka >"),
+    message: chalk.green("Sovkora >"),
     placeholder: "Type a prompt or command...",
   });
 

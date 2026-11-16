@@ -28,7 +28,7 @@ function manifest(overrides: Partial<ReleaseManifest> = {}): ReleaseManifest {
     channel: "stable",
     releasedAt: "2026-11-02T12:00:00Z",
     upgradeFrom: "1.0.0",
-    cli: { package: "@krizaka/orazaka-cli", version: "1.2.0" },
+    cli: { package: "sovkora", version: "1.2.0" },
     targets: ["mac-arm64", "linux-amd64"],
     components: [
       { name: "orazaka-studio", repository: "krizaka/orazaka-studio", version: "1.0.0", commit: "b".repeat(40) },

@@ -21,7 +21,7 @@ describe("bootstrapWorkspace", () => {
   }
 
   test("clones the one repository, and nothing else (ADR-029)", () => {
-    const target = path.join(dir, "orazaka");
+    const target = path.join(dir, "sovkora");
     const { calls, run } = recorder();
 
     const result = bootstrapWorkspace(target, { depth: 1, run });
@@ -52,7 +52,7 @@ describe("bootstrapWorkspace", () => {
 
   test("reports a failed clone", () => {
     const { run } = recorder(128);
-    const result = bootstrapWorkspace(path.join(dir, "orazaka"), { run });
+    const result = bootstrapWorkspace(path.join(dir, "sovkora"), { run });
     expect(result.ok).toBe(false);
     expect(result.error).toContain("git clone failed");
   });

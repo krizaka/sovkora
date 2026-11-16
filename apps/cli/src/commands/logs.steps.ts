@@ -1,6 +1,6 @@
 /**
  * @file logs.steps.ts
- * @description Pure steps of `orazaka logs`, kept out of the command so each one is small and tested:
+ * @description Pure steps of `sovkora logs`, kept out of the command so each one is small and tested:
  * the duration parser, the file filters, the labels, the sizes and ages, the tail and the appended text.
  */
 

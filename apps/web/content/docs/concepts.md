@@ -4,7 +4,7 @@ Sovkora is an AI platform you run yourself. Your documents, prompts and results 
 
 ## Three layers
 
-1. **Clients.** The web app, the mobile app and the `orazaka` command line. They never talk to a model directly.
+1. **Clients.** The web app, the mobile app and the `sovkora` command line. They never talk to a model directly.
 2. **The engine.** One Java backend. It checks who you are, routes each request, and runs it through the pipeline.
 3. **Workers and models.** Local models (through Ollama) answer chat. Workers do the heavy jobs, such as images and video, and report back.
 

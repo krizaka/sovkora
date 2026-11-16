@@ -6,7 +6,7 @@ jest.mock("../../threads", () => ({ requireAuth: jest.fn() }));
 
 const parked = { id: "run-1", studioKey: "s", status: "RUNNING", startedAt: "2026-10-30T10:00:00Z", finishedAt: null };
 
-describe("orazaka runs send | deny | wait", () => {
+describe("sovkora runs send | deny | wait", () => {
   let log: jest.SpyInstance;
   beforeEach(() => {
     log = jest.spyOn(console, "log").mockImplementation(() => {});

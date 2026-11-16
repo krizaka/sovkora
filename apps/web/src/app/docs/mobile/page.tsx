@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { LandingNav } from "@/features/landing/components/LandingNav";
 import { LandingFooter } from "@/features/landing/components/LandingFooter";
 import { MobileTour } from "@/features/docs/components/MobileTour";
-import { mobile } from "@/core/context/translations.mobile";
+import { translations } from "@/core/context/translations";
 import { findPage, navItems, neighbours } from "@/features/docs/utils/docs";
 
-export const metadata: Metadata = { title: mobile.en.meta, description: mobile.en.metaDescription };
+const m = translations.en.mobile;
+
+export const metadata: Metadata = { title: m.meta, description: m.metaDescription };
 
 /** `/docs/mobile` — the four steps of the Sovkora app, the first page of the Mobile section of the documentation. */
 export default function MobileDocPage() {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * @file index.ts
- * @description Main entry point and bootstrap registry for the Orazaka CLI.
+ * @description Main entry point and bootstrap registry for the Sovkora CLI.
  * Registers all commands, displays the startup banner, and provides graceful error handling.
  */
 
@@ -71,28 +71,28 @@ function getHelpFooter(): string {
   return `
 ${chalk.gray(developmentStatus())}
 ${chalk.cyan.bold("Quick Start:")}
-  ${chalk.white("$")} npx orazaka init         ${chalk.gray("Initialize workspace")}
-  ${chalk.white("$")} npx orazaka install      ${chalk.gray("Verify tools & setup topology")}
-  ${chalk.white("$")} npx orazaka start        ${chalk.gray("Launch infrastructure (dev mode)")}
-  ${chalk.white("$")} npx orazaka dev          ${chalk.gray("Launch full dev stack in parallel")}
-  ${chalk.white("$")} npx orazaka status       ${chalk.gray("Check service health")}
+  ${chalk.white("$")} npx sovkora init         ${chalk.gray("Initialize workspace")}
+  ${chalk.white("$")} npx sovkora install      ${chalk.gray("Verify tools & setup topology")}
+  ${chalk.white("$")} npx sovkora start        ${chalk.gray("Launch infrastructure (dev mode)")}
+  ${chalk.white("$")} npx sovkora dev          ${chalk.gray("Launch full dev stack in parallel")}
+  ${chalk.white("$")} npx sovkora status       ${chalk.gray("Check service health")}
 
 ${chalk.cyan.bold("Development:")}
-  ${chalk.white("$")} npx orazaka generate     ${chalk.gray("Scaffold features & interceptors")}
-  ${chalk.white("$")} npx orazaka logs         ${chalk.gray("Stream real-time logs")}
-  ${chalk.white("$")} npx orazaka recover      ${chalk.gray("Diagnose & fix issues")}
-  ${chalk.white("$")} npx orazaka doctor       ${chalk.gray("Full system diagnostics")}
+  ${chalk.white("$")} npx sovkora generate     ${chalk.gray("Scaffold features & interceptors")}
+  ${chalk.white("$")} npx sovkora logs         ${chalk.gray("Stream real-time logs")}
+  ${chalk.white("$")} npx sovkora recover      ${chalk.gray("Diagnose & fix issues")}
+  ${chalk.white("$")} npx sovkora doctor       ${chalk.gray("Full system diagnostics")}
 
 ${chalk.cyan.bold("Documentation:")}
   ${chalk.gray("https://github.com/krizaka/orazaka/blob/main/docs/_generated/CLI.md")}
 `;
 }
 
-const program = new Command("orazaka");
+const program = new Command("sovkora");
 
 program
   .version(VERSION)
-  .description("Orazaka AI CLI — Sovereign multi-modal AI orchestration from your terminal")
+  .description("Sovkora AI CLI — Sovereign multi-modal AI orchestration from your terminal")
   .addHelpText("before", getBanner())
   .addHelpText("after", getHelpFooter())
   // ─── Lifecycle Commands ────────────────────────────────

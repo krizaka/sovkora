@@ -6,19 +6,22 @@
  * guard reads them as `.html` / `.txt`. `/docs/*` is the generated developer documentation of the engine (written in
  * the Orazaka repository, `scripts/sync-docs.mjs`), it keeps the code names until that repository speaks of Sovkora. `llms*.txt` are markdown whose `[label](https://dev.sovkora.com/…)` links the guard does not yet read as addresses (to be fixed in `/org`); their prose is checked by the unit test.
  *
+ * It also fails on a `{brand}` left in a rendered page or text (krizaka-internal#3935): the placeholder is filled
+ * from the messages, so one that reaches the HTML (a `<title>`, a heading) was never passed through `withBrand`.
+ *
  *   node scripts/check-code-names.mjs [--report]
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const built = join(root, ".next", "server", "app");
 
 /** Developer pages that keep the code names (the engine documentation generated from its own repository; /open-source lists the repositories with their GitHub names and descriptions). */
-export const ALLOWED = ["/docs/", "docs.html", "llms", "open-source"];
+export const ALLOWED = ["llms", "open-source"];
 
 /** The scratch name of a built file, or null when the guard does not read it. */
 function scratchName(entry, path) {
@@ -43,22 +46,47 @@ function collect(dir, found = []) {
   return found;
 }
 
-if (!existsSync(built)) {
-  console.error("check-code-names: no build output, run `next build` first.");
-  process.exit(2);
+/** The built files that still carry the `{brand}` placeholder, as `name: excerpt` lines. */
+export function placeholderHits(files) {
+  return files.flatMap(([source, name]) =>
+    readFileSync(source, "utf8")
+      .split(/(?<=>)|\n/)
+      .filter((part) => part.includes("{brand}"))
+      .slice(0, 3)
+      .map((part) => `${name}: ${part.trim().slice(0, 120)}`),
+  );
 }
-const scratch = mkdtempSync(join(tmpdir(), "code-names-"));
-for (const [from, name] of collect(built)) {
-  const to = join(scratch, name);
-  mkdirSync(dirname(to), { recursive: true });
-  cpSync(from, to);
+
+function main() {
+  if (!existsSync(built)) {
+    console.error("check-code-names: no build output, run `next build` first.");
+    process.exit(2);
+  }
+  const pages = collect(built);
+  const leftovers = placeholderHits(pages);
+  if (leftovers.length > 0) {
+    console.error(
+      `check-code-names: {brand} reaches a rendered page (pass the messages through withBrand):\n${leftovers.join("\n")}`,
+    );
+    process.exit(1);
+  }
+  const scratch = mkdtempSync(join(tmpdir(), "code-names-"));
+  for (const [from, name] of pages) {
+    const to = join(scratch, name);
+    mkdirSync(dirname(to), { recursive: true });
+    cpSync(from, to);
+  }
+  const guard = join(root, "node_modules", "@krizaka", "org", "bin", "krizaka-code-names.mjs");
+  const args = [guard, ...process.argv.slice(2).filter((a) => a === "--report")];
+  for (const part of ALLOWED) {
+    args.push("--allow", part);
+  }
+  args.push(scratch);
+  const run = spawnSync(process.execPath, args, { cwd: root, stdio: "inherit" });
+  rmSync(scratch, { recursive: true, force: true });
+  process.exit(run.status ?? 1);
 }
-const guard = join(root, "node_modules", "@krizaka", "org", "bin", "krizaka-code-names.mjs");
-const args = [guard, ...process.argv.slice(2).filter((a) => a === "--report")];
-for (const part of ALLOWED) {
-  args.push("--allow", part);
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
 }
-args.push(scratch);
-const run = spawnSync(process.execPath, args, { cwd: root, stdio: "inherit" });
-rmSync(scratch, { recursive: true, force: true });
-process.exit(run.status ?? 1);

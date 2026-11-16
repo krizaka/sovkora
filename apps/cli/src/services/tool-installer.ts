@@ -43,7 +43,7 @@ export interface ToolReport {
   readonly missingOptional: readonly ToolCheckResult[];
 }
 
-/** All required tools for Orazaka. */
+/** All required tools for Sovkora. */
 export function getRequiredTools(): ToolRequirement[] {
   const tools: ToolRequirement[] = [
     {

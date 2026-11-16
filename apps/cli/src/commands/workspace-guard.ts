@@ -1,6 +1,6 @@
 /**
  * @file workspace-guard.ts
- * @description The commands that drive the platform (start, dev, test, docs) run inside an Orazaka
+ * @description The commands that drive the platform (start, dev, test, docs) run inside an Sovkora
  * workspace. Installed from npm, the CLI can be started anywhere: outside a workspace it says what is
  * missing and how to get it, instead of spawning `./mvnw` in an empty directory.
  */
@@ -13,7 +13,7 @@ import { locateWorkspace } from "../utils/platform";
 const WORKSPACE_HELP = [
   "Requirements: git, JDK 21, Node.js 22+, Docker (Python 3.11+ for the media worker).",
   "",
-  `  ${chalk.cyan("npx orazaka install")}            clones the platform into ./orazaka, then configures it`,
+  `  ${chalk.cyan("npx sovkora install")}            clones the platform into ./orazaka, then configures it`,
   "  or by hand:",
   `  ${chalk.cyan("git clone https://github.com/krizaka/sovkora.git && cd sovkora")}`,
   `  ${chalk.cyan("./mvnw install")} ${chalk.gray("&&")} ${chalk.cyan("pnpm install")}`,
@@ -30,7 +30,7 @@ export function requireWorkspace(command: string): string {
     return root;
   }
   console.error(
-    chalk.red(`✖ \`orazaka ${command}\` runs inside a Sovkora workspace, and none was found above ${process.cwd()}.`),
+    chalk.red(`✖ \`sovkora ${command}\` runs inside a Sovkora workspace, and none was found above ${process.cwd()}.`),
   );
   console.error(`\n${WORKSPACE_HELP}\n`);
   process.exit(1);

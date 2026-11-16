@@ -1,6 +1,6 @@
 /**
  * @file studio.command.ts
- * @description `orazaka studio` — browse, install and run installable business workflows (ADR-034).
+ * @description `sovkora studio` — browse, install and run installable business workflows (ADR-034).
  *
  * The CLI surface of the marketplace. It exists because a Studio run is a first-class
  * operation of the platform, not a web-only feature: the same REST surface the browser
@@ -89,7 +89,7 @@ const listCommand = new Command("list")
       if (items.length === 0) {
         items.push("No Studio matches that trade yet.");
       }
-      Box.render("🎬 ORAZAKA STUDIOS", items, { borderColor: "cyan", titleColor: "white" });
+      Box.render("🎬 SOVKORA STUDIOS", items, { borderColor: "cyan", titleColor: "white" });
     } catch (error: unknown) {
       spinner.stop("Failed to load the catalogue");
       fail("Failed to load the Studio catalogue", error);
@@ -116,7 +116,7 @@ const installedCommand = new Command("installed")
         );
       }
       if (items.length === 0) {
-        items.push("Nothing installed yet — try `orazaka studio list`.");
+        items.push("Nothing installed yet — try `sovkora studio list`.");
       }
       Box.render("🎬 MY STUDIOS", items, { borderColor: "cyan", titleColor: "white" });
     } catch (error: unknown) {
@@ -152,7 +152,7 @@ const runCommand = new Command("run")
   .option("-i, --inputs <pairs>", "Inputs as key=value,key2=a|b|c (pipes make a list)")
   .option("-f, --inputs-file <file>", "Inputs as one JSON object (for prose with commas); --inputs pairs apply on top")
   .option("-s, --studio", "The target is a Studio key: a toolkit Studio (media, art direction) has no installation")
-  .option("--background", "Print the run id and return at once; follow it with `orazaka runs ls` or `runs wait`")
+  .option("--background", "Print the run id and return at once; follow it with `sovkora runs ls` or `runs wait`")
   .option("--notify", "Send a desktop notification when the run ends or needs your approval")
   .action(
     async (
@@ -173,14 +173,14 @@ const runCommand = new Command("run")
         spinner.stop(`Run ${run.status.toLowerCase()}`);
         Logger.info(`Run id: ${run.id}`);
         if (options.background) {
-          Logger.info(`Follow it with: orazaka runs wait ${run.id}`);
+          Logger.info(`Follow it with: sovkora runs wait ${run.id}`);
           if (options.notify) watchDetached(run.id);
           return;
         }
         const { outcome } = await waitForRun(run.id, { onStatus: (status) => Logger.info(status.toLowerCase()) });
-        if (options.notify) notify("Orazaka", outcomeMessage(outcome, run.id));
+        if (options.notify) notify("Sovkora", outcomeMessage(outcome, run.id));
         Logger.info(outcomeMessage(outcome, run.id));
-        Logger.info(`Details: orazaka studio logs ${run.id}`);
+        Logger.info(`Details: sovkora studio logs ${run.id}`);
       } catch (error: unknown) {
         spinner.stop("Run refused");
         fail("Could not start the run", error);

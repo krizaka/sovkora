@@ -16,15 +16,15 @@ Sovkora runs on hardware you own. Your documents, prompts and results stay there
 
 ## On a Mac (in testing, not distributed yet)
 
-The Mac app is an unsigned test build, still in testing: it is not distributed, so there is no download yet. Until it is, run `npx orazaka install`.
+The Mac app is an unsigned test build, still in testing: it is not distributed, so there is no download yet. Until it is, run `npx sovkora install`.
 
-1. Run `npx orazaka install`. (When the Mac app is distributed, you will download it and drag it into Applications.)
+1. Run `npx sovkora install`. (When the Mac app is distributed, you will download it and drag it into Applications.)
 2. Open it. It checks your Mac, downloads the models once, and starts Sovkora.
 3. Open `http://localhost:3000` and create the administrator account. Sign-up stays closed: you invite your colleagues.
 
 ## On a Linux server (1.0)
 
-1. Run `curl -fsSL https://www.sovkora.com/install.sh | sh` (or `npx orazaka install --server`). It checks the server, verifies every image signature, writes every secret to `/etc/orazaka`, and starts a systemd service.
+1. Run `curl -fsSL https://www.sovkora.com/install.sh | sh` (or `npx sovkora install --server`). It checks the server, verifies every image signature, writes every secret to `/etc/orazaka`, and starts a systemd service.
 2. Open `https://<server>` from your network.
 3. Create the administrator account.
 
@@ -34,26 +34,26 @@ No Internet on the server? Use the offline kit: `sudo ./orazaka install --server
 
 | Task           | Command                                                              |
 | -------------- | -------------------------------------------------------------------- |
-| Check health   | `orazaka doctor`                                                     |
-| Update         | `orazaka update`: verifies the signature and backs up first          |
-| Undo an update | `orazaka rollback`                                                   |
-| Back up        | `orazaka backup`: nightly by default; keep the key apart             |
-| Restore        | `orazaka restore <archive>`                                          |
-| Get help       | `orazaka doctor --bundle`: a support file that stays on your machine |
-| Remove         | `orazaka uninstall`; `--purge` also deletes data and models          |
+| Check health   | `sovkora doctor`                                                     |
+| Update         | `sovkora update`: verifies the signature and backs up first          |
+| Undo an update | `sovkora rollback`                                                   |
+| Back up        | `sovkora backup`: nightly by default; keep the key apart             |
+| Restore        | `sovkora restore <archive>`                                          |
+| Get help       | `sovkora doctor --bundle`: a support file that stays on your machine |
+| Remove         | `sovkora uninstall`; `--purge` also deletes data and models          |
 
 ## Today: the developer install
 
 Available now, from source. It needs git, JDK 21, Node.js 22+, Docker and Python 3.11+.
 
 ```bash
-npx orazaka install
+npx sovkora install
 cd sovkora && ./mvnw install && pnpm install
-npx orazaka start    # PostgreSQL, Redis, RabbitMQ, local AI engines
-npx orazaka dev      # the services and the web app on port 3000
+npx sovkora start    # PostgreSQL, Redis, RabbitMQ, local AI engines
+npx sovkora dev      # the services and the web app on port 3000
 ```
 
-`npx orazaka stop` stops everything; `--purge` also removes the data.
+`npx sovkora stop` stops everything; `--purge` also removes the data.
 
 ## Next
 

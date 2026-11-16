@@ -1,7 +1,7 @@
 /**
  * @file translations.desktop.ts
  * @description The words of /desktop (Sovkora for Mac), en and fr. What the app does is what `apps/desktop/README.md`
- * of krizaka/orazaka says the v0.1 build does, and the services are the ones `orazaka start` brings up — nothing more,
+ * of krizaka/orazaka says the v0.1 build does, and the services are the ones `sovkora start` brings up — nothing more,
  * no figure that was not measured. The version, the download URL, the size and the SHA-256 are never written here:
  * they are read from the GitHub release at build time.
  */
@@ -169,12 +169,12 @@ export const desktop: Record<Locale, DesktopDictionary> = {
         {
           title: "Run doctor",
           body: "In the panel, Run doctor checks your Mac (Node.js, the chip) and whether each service answers, then lists what to fix.",
-          code: "orazaka doctor",
+          code: "sovkora doctor",
         },
         {
           title: "Read the logs",
           body: "The panel shows the live output; for one service, open its logs.",
-          code: "orazaka logs --service router",
+          code: "sovkora logs --service router",
         },
         { title: "Docker is not running", body: "Start OrbStack, Colima or Docker Desktop, then Start again." },
         {
@@ -315,12 +315,12 @@ export const desktop: Record<Locale, DesktopDictionary> = {
         {
           title: "Lancer le diagnostic",
           body: "Dans le panneau, le diagnostic vérifie votre Mac (Node.js, la puce) et si chaque service répond, puis liste quoi corriger.",
-          code: "orazaka doctor",
+          code: "sovkora doctor",
         },
         {
           title: "Lire les journaux",
           body: "Le panneau montre la sortie en direct ; pour un service, ouvrez ses journaux.",
-          code: "orazaka logs --service router",
+          code: "sovkora logs --service router",
         },
         { title: "Docker ne tourne pas", body: "Lancez OrbStack, Colima ou Docker Desktop, puis Démarrer à nouveau." },
         {

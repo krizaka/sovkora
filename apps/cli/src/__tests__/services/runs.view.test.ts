@@ -28,7 +28,7 @@ const run = (o: Partial<NamedRun> = {}): NamedRun => ({
   ...o,
 });
 
-describe("orazaka runs (ADR-088)", () => {
+describe("sovkora runs (ADR-088)", () => {
   const now = new Date("2026-10-30T10:01:07Z");
 
   it("builds a row: name, current step, elapsed, cost against budget", () => {

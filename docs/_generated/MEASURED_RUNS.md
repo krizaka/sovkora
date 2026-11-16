@@ -1,6 +1,6 @@
 ---
 title: Measured runs
-description: Time, cost and every parameter of the video and image runs Orazaka made, per model and provider — generated from the run records.
+description: Time, cost and every parameter of the video and image runs Sovkora made, per model and provider — generated from the run records.
 category: Models
 order: 9
 generated: true

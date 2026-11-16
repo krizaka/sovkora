@@ -20,7 +20,7 @@ export const verifyCommand = new Command("verify")
   .argument("[token]", "Email verification token")
   .action(async (tokenArg?: string) => {
     try {
-      await intro(chalk.cyan("Orazaka Email Verification"));
+      await intro(chalk.cyan("Sovkora Email Verification"));
 
       const token = await promptToken(tokenArg);
       const s = await createSpinner();
@@ -30,7 +30,7 @@ export const verifyCommand = new Command("verify")
         await AuthApi.verifyEmail(token);
         s.stop("Verification success!");
         await outro(chalk.green("✓ Email verified successfully!"));
-        await outro(chalk.yellow("You can now login: orazaka login"));
+        await outro(chalk.yellow("You can now login: sovkora login"));
       } catch (err: unknown) {
         s.stop("Verification failed");
         const msg = err instanceof Error ? err.message : "Unknown error";

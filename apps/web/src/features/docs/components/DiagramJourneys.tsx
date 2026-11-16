@@ -67,7 +67,7 @@ export function CliJourney({
             <div>
               <p className="m-0">
                 <span className={mono}>
-                  {data.alias} {c.command}
+                  {data.bin} {c.command}
                 </span>
                 {" — "}
                 {c.description}

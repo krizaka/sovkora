@@ -1,6 +1,6 @@
 /**
  * @file logs-steps.test.ts
- * @description Guards the pure steps extracted from `orazaka logs` (behaviour unchanged by the refactor).
+ * @description Guards the pure steps extracted from `sovkora logs` (behaviour unchanged by the refactor).
  */
 
 import * as fs from "node:fs";

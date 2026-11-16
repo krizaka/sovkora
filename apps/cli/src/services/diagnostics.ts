@@ -160,7 +160,7 @@ function checkJava(issues: DiagnosticIssue[]): void {
         code: "JAVA_VERSION_MISMATCH",
         severity: "warning",
         title: "Java version may not be compatible",
-        description: `Found: ${javaVersion}. Orazaka requires Java 21+.`,
+        description: `Found: ${javaVersion}. Sovkora requires Java 21+.`,
         suggestions: ["Install Java 21+: https://adoptium.net", "Set JAVA_HOME to the Java 21 installation"],
       });
     }
@@ -261,7 +261,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
         title: "Invalid workspace structure",
         description: `Missing directory: ${dir}`,
         suggestions: [
-          "Run this command from the Orazaka project root directory",
+          "Run this command from the Sovkora project root directory",
           "Ensure all subdirectories are present",
         ],
       });
@@ -277,7 +277,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       severity: "warning",
       title: ".env file not found",
       description: "No environment configuration found.",
-      suggestions: ["Run: npx orazaka init", "Or manually create a .env file with required variables"],
+      suggestions: ["Run: npx sovkora init", "Or manually create a .env file with required variables"],
       autoFixable: true,
     });
   }
@@ -290,7 +290,7 @@ export async function runDiagnostics(): Promise<DiagnosticReport> {
       severity: "warning",
       title: "docker-compose.yml not found",
       description: "Docker Compose configuration is missing.",
-      suggestions: ["Run: npx orazaka init", "Or restore the file from version control"],
+      suggestions: ["Run: npx sovkora init", "Or restore the file from version control"],
       autoFixable: true,
     });
   }

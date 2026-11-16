@@ -6,7 +6,7 @@
  * The recipes live in `image-model-recipes.json`, not in code. A recipe's `id` is the `model_name` of its
  * `orazaka_models` row: the catalogue decides which model is the image default (data in the DB,
  * AGENTS.md §4), this module only knows how to install and launch it. `sd-server` serves one model
- * at a time, so `orazaka start` launches the catalogue's default and nothing else — serving another
+ * at a time, so `sovkora start` launches the catalogue's default and nothing else — serving another
  * model under the default's name would put the wrong model on every bill and every caption.
  */
 

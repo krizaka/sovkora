@@ -100,7 +100,7 @@ export function prepareBody(body: string, from: string | null, sources: Readonly
           if (bang) {
             if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return m;
             const target = path.posix.normalize(path.posix.join(path.posix.dirname(origin), href));
-            return `![${text}](https://raw.githubusercontent.com/krizaka/orazaka/main/${target})`;
+            return `![${text}](https://raw.githubusercontent.com/krizaka/sovkora/main/${target})`;
           }
           const r = resolveLink(href, origin, sources);
           return r ? `[${text}](${r.href}${title ?? ""})` : text;

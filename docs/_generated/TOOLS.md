@@ -1,6 +1,6 @@
 ---
 title: Tools & MCP
-description: What tools are in Orazaka — function calling, MCP servers, tool caching and the write sandbox — extracted from orazaka-tools and the tool interceptor.
+description: What tools are in Sovkora — function calling, MCP servers, tool caching and the write sandbox — extracted from orazaka-tools and the tool interceptor.
 category: Core
 order: 6
 generated: true
@@ -8,7 +8,7 @@ generated: true
 
 # Tools & MCP
 
-In Orazaka a **tool** is a function a model may call during a turn (Spring AI function calling).
+In Sovkora a **tool** is a function a model may call during a turn (Spring AI function calling).
 `orazaka-tools` (repository `engine`) holds the tool registry, the bridge to external MCP servers, the
 tool result cache and the sandbox that isolates tools which write. Tools are attached to a turn by the
 `ToolInterceptor` of the pipeline (see the [interceptor registry](INTERCEPTORS.md)) — a model only sees the
@@ -87,7 +87,7 @@ Static defaults live under `orazaka.tools` in `application.yml`.
 
 ## MCP servers
 
-Orazaka is an MCP **client**: before a turn, `DefaultMcpOrchestrator` queries every enabled `REMOTE` platform
+Sovkora is an MCP **client**: before a turn, `DefaultMcpOrchestrator` queries every enabled `REMOTE` platform
 server and the user's own servers in parallel (one virtual thread each) and adds what they return to the
 context.
 Platform servers are declared by an administrator; each user may add private ones.
@@ -106,9 +106,9 @@ Platform servers are declared by an administrator; each user may add private one
 From the terminal ([CLI reference](CLI.md)):
 
 ```bash
-orazaka mcp list                  # List your registered private MCP servers
-orazaka mcp register              # Register a new private MCP server
-orazaka mcp delete <id>           # Delete a private MCP server by ID
+sovkora mcp list                  # List your registered private MCP servers
+sovkora mcp register              # Register a new private MCP server
+sovkora mcp delete <id>           # Delete a private MCP server by ID
 ```
 
 ## The write sandbox

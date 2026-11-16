@@ -240,7 +240,7 @@ See also: [Supported models](MODELS.md) for the registry, and the comparison ima
 
 ## Cinematic shorts
 
-2 film(s) made by `orazaka cinema` (ADR-080, last measured **2026-10-20**): script or treatment, character references and keyframes (FLUX.2 [klein]), shots, the cut (SeedVR2 3B, speed ramps, LUT grade, titles, synthesized foley), the voice-over and the music (ACE-Step). Each film's shots, on its GPU:
+2 film(s) made by `sovkora cinema` (ADR-080, last measured **2026-10-20**): script or treatment, character references and keyframes (FLUX.2 [klein]), shots, the cut (SeedVR2 3B, speed ramps, LUT grade, titles, synthesized foley), the voice-over and the music (ACE-Step). Each film's shots, on its GPU:
 
 - **NOVA ARDENT: DAWN OF CYAN**: Wan 2.2 I2V A14B (4-step distill) on one RunPod H100 80 GB (CA-MTL-1, $3.99/h), upscaled by SeedVR2 3B
 - **The World of Krizaka: Dawn**: Wan 2.2 I2V A14B (40 steps), LTX-Video 0.9.8 13B distilled on one RunPod H200 141 GB (secure cloud, $5.29/h), upscaled by SeedVR2 3B to 2160p (batch 21)
@@ -260,7 +260,7 @@ See also: [Supported models](MODELS.md) for the registry, and the comparison ima
 | The runs' own GPU time per minute of film (what the Studio's estimate multiplies) | $21.50     |
 | Wall time per minute of film (one pod, runs in sequence)                          | 138.3 min  |
 
-> The billed sessions also rendered the Montréal reel and the news explainer (shots, the reel's cut) that are not delivered yet, and the showcase session's own image-to-video jobs drained by the same pod: the billed figure per minute is this batch's, not a film's. A film's own cost is its runs' GPU time at the rate (the table above). « l'aube » was made outside the Studios on a GPU host running the media worker's own generator and upscaler (orazaka cinema jobs / take), 40-step Wan takes beside concurrent SeedVR2 4K upscales; its keyframes, score and narrator were made on a Mac (Metal, $0).
+> The billed sessions also rendered the Montréal reel and the news explainer (shots, the reel's cut) that are not delivered yet, and the showcase session's own image-to-video jobs drained by the same pod: the billed figure per minute is this batch's, not a film's. A film's own cost is its runs' GPU time at the rate (the table above). « l'aube » was made outside the Studios on a GPU host running the media worker's own generator and upscaler (sovkora cinema jobs / take), 40-step Wan takes beside concurrent SeedVR2 4K upscales; its keyframes, score and narrator were made on a Mac (Metal, $0).
 
 | Pod session                                                                                                                                                                         | GPU         | Hours | Rate    | Billed |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----- | ------- | ------ |

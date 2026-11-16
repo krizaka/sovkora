@@ -19,7 +19,7 @@ import {
   type ImageModelRecipe,
 } from "../../services/image-models";
 
-/** Licences that allow Orazaka's commercial use. A recipe outside this list is refused. */
+/** Licences that allow Sovkora's commercial use. A recipe outside this list is refused. */
 const COMMERCIAL_LICENCES = ["Apache-2.0", "MIT", "CreativeML OpenRAIL-M", "CreativeML OpenRAIL++-M"];
 
 function tempDir(): string {

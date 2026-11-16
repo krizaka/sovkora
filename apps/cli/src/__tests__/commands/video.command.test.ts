@@ -1,6 +1,6 @@
 import { videoRunOptions } from "../../commands/video.command";
 
-describe("orazaka video — the options it sends to the Studio", () => {
+describe("sovkora video — the options it sends to the Studio", () => {
   it("sends the choices, and nothing the Studio defaults for", () => {
     expect(videoRunOptions({ duration: "5", model: "wan2-2-t2v-a14b", aspect: "16:9", seed: "20261011" })).toEqual({
       durationSeconds: 5,

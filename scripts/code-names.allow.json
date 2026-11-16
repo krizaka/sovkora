@@ -29,6 +29,16 @@
       "glob": "docs/NAMING.md",
       "reason": "The mapping table lists the retired names and what is kept.",
       "row": "K5"
+    },
+    {
+      "glob": ".github/workflows/cli-release.yml",
+      "reason": "Names the CLI's two retired npm packages to deprecate them (renamed: use sovkora); they are never unpublished.",
+      "row": "K3"
+    },
+    {
+      "glob": "scripts/test/cli-release-workflow.test.mjs",
+      "reason": "Holds that workflow to deprecate the retired npm packages by name.",
+      "row": "K3"
     }
   ],
   "tokens": [
@@ -153,36 +163,6 @@
     {
       "token": "orazaka-release.json",
       "reason": "The release manifest file the CLI reads (a live file name).",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "@krizaka/orazaka-cli",
-      "reason": "The CLI's published npm package (an npm tombstone path stays; the package renames with the CLI).",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"alias\": \"orazaka\"",
-      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"bin\": \"orazaka\"",
-      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"default\": \"orazaka\"",
-      "reason": "The CLI's default database name option (a live database name of the job plane).",
-      "row": "K2",
-      "scope": "model"
-    },
-    {
-      "token": "`orazaka ",
-      "reason": "A CLI command typed by a user, quoted in the CLI's own help text; renamed with the CLI.",
       "row": "K3",
       "scope": "model"
     }

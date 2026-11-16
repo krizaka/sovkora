@@ -95,7 +95,7 @@ export const ALL_PORTS: readonly number[] = [
 ];
 
 /**
- * Base URL for the Orazaka Router (REST, GraphQL, SSE). Reads `ROUTER_URL`,
+ * Base URL for the Sovkora Router (REST, GraphQL, SSE). Reads `ROUTER_URL`,
  * falling back to the legacy `GATEWAY_URL` during the rename transition.
  */
 export const ROUTER_URL: string = strEnv(["ROUTER_URL", "GATEWAY_URL"], `http://localhost:${String(PORTS.router)}`);

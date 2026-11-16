@@ -27,7 +27,7 @@ type LogsOptions = { service?: string; list?: boolean; since?: string; tail?: st
 /** At most this many files are tailed, to avoid flooding the terminal. */
 const MAX_TAILED_FILES = 5;
 
-const TITLE = chalk.cyan.bold("🥷 Orazaka Logs");
+const TITLE = chalk.cyan.bold("🥷 Sovkora Logs");
 
 /** Nothing to show: a title, a warning (and an optional hint), a closing line. */
 async function bail(warning: string, closing: string, hint?: string): Promise<void> {
@@ -56,7 +56,7 @@ function describeLogFile(logDir: string, file: string): { line: string; size: nu
 }
 
 async function showListing(logDir: string, allFiles: string[]): Promise<void> {
-  await intro(chalk.cyan.bold("🥷 Orazaka Logs — File Listing"));
+  await intro(chalk.cyan.bold("🥷 Sovkora Logs — File Listing"));
 
   const described = allFiles.map((file) => describeLogFile(logDir, file));
   const totalSize = described.reduce((sum, { size }) => sum + size, 0);
@@ -67,7 +67,7 @@ async function showListing(logDir: string, allFiles: string[]): Promise<void> {
   ];
 
   await note(lines.join("\n"), "Available Log Files");
-  await outro(`Tail logs: ${chalk.cyan("npx orazaka logs")} or ${chalk.cyan("npx orazaka logs --service router")}`);
+  await outro(`Tail logs: ${chalk.cyan("npx sovkora logs")} or ${chalk.cyan("npx sovkora logs --service router")}`);
 }
 
 /** The files modified within the last `sinceMs`. */
@@ -78,7 +78,7 @@ function filterBySince(logDir: string, files: string[], sinceMs: number): string
 
 function printHeader(fileCount: number): void {
   console.log("");
-  console.log(chalk.cyan.bold("🥷 Orazaka Logs — Real-time Stream"));
+  console.log(chalk.cyan.bold("🥷 Sovkora Logs — Real-time Stream"));
   console.log(chalk.gray(`  Tailing ${String(fileCount)} file(s) | Ctrl+C to stop`));
   console.log(chalk.gray("  ─".repeat(30)));
   console.log("");
@@ -181,7 +181,7 @@ export const logsCommand = new Command("logs")
       const relative = path.relative(resolveWorkspaceRoot(), logDir);
       await bail(
         `Log directory not found: ${chalk.gray(relative)}\n` +
-          `  Run ${chalk.cyan("npx orazaka start")} first to generate logs.`,
+          `  Run ${chalk.cyan("npx sovkora start")} first to generate logs.`,
         "No logs available.",
       );
       return;

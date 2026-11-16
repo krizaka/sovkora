@@ -1,6 +1,6 @@
 /**
  * @file runs.view.ts
- * @description Pure shaping of Studio runs for `orazaka runs` (ADR-088, orazaka-cli#90): one row per run, the
+ * @description Pure shaping of Studio runs for `sovkora runs` (ADR-088, orazaka-cli#90): one row per run, the
  * folded timeline of a run, and the stable `--json` shapes. No I/O here, so it is tested without a server.
  */
 

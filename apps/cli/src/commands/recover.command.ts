@@ -95,7 +95,7 @@ const recoveryOptions: readonly RecoveryOption[] = [
 export const recoverCommand = new Command("recover")
   .description("Diagnose and recover from common issues")
   .action(async () => {
-    await intro(chalk.cyan.bold("🥷 Orazaka Recovery & Troubleshooting"));
+    await intro(chalk.cyan.bold("🥷 Sovkora Recovery & Troubleshooting"));
 
     const issue = await select({
       message: "What would you like to do?",
@@ -160,7 +160,7 @@ export const recoverCommand = new Command("recover")
           try {
             stopMatching("local-ai");
             await new Promise((r) => setTimeout(r, 2000));
-            await logInfo("LocalAI stopped. Restart via: npx orazaka start --only localai");
+            await logInfo("LocalAI stopped. Restart via: npx sovkora start --only localai");
             spinner.stop("LocalAI stopped.");
           } catch {
             spinner.stop("Restart failed", 1);
@@ -170,7 +170,7 @@ export const recoverCommand = new Command("recover")
           try {
             stopMatching("orazaka-worker-media.*main.py");
             await new Promise((r) => setTimeout(r, 2000));
-            await logInfo("Media Worker stopped. Restart via: npx orazaka start --only media-worker");
+            await logInfo("Media Worker stopped. Restart via: npx sovkora start --only media-worker");
             spinner.stop("Media Worker stopped.");
           } catch {
             spinner.stop("Restart failed", 1);
@@ -243,7 +243,7 @@ export const recoverCommand = new Command("recover")
       case "env-validate": {
         const envFile = resolveEnvFile();
         if (!fs.existsSync(envFile)) {
-          await logError(".env not found. Run npx orazaka init first.");
+          await logError(".env not found. Run npx sovkora init first.");
           break;
         }
 
@@ -378,7 +378,7 @@ export const recoverCommand = new Command("recover")
 
         spinner.start("Regenerating .env...");
         try {
-          execFileSync(toolPath("npx"), ["orazaka", "init", "--force", "--yes"], { stdio: "ignore" });
+          execFileSync(toolPath("npx"), ["sovkora", "init", "--force", "--yes"], { stdio: "ignore" });
           spinner.stop(".env regenerated.");
           await logSuccess("✔ Environment reset complete.");
         } catch {
@@ -460,7 +460,7 @@ export const recoverCommand = new Command("recover")
           execFileSync(toolPath("docker"), ["volume", "prune", "-f"], { stdio: "ignore" });
           execFileSync(toolPath("docker"), ["system", "prune", "-f"], { stdio: "ignore" });
           spinner.stop("Docker cleanup complete.");
-          await logSuccess("✔ Full reset complete. Run npx orazaka start to rebuild.");
+          await logSuccess("✔ Full reset complete. Run npx sovkora start to rebuild.");
         } catch {
           spinner.stop("Cleanup failed", 1);
           await logError("Some cleanup operations failed.");
@@ -472,7 +472,7 @@ export const recoverCommand = new Command("recover")
       case "diagnose-all": {
         spinner.start("Running full diagnostics...");
         try {
-          execFileSync(toolPath("npx"), ["orazaka", "doctor", "--verbose"], { stdio: "inherit" });
+          execFileSync(toolPath("npx"), ["sovkora", "doctor", "--verbose"], { stdio: "inherit" });
           spinner.stop();
         } catch {
           spinner.stop("Diagnostics failed", 1);

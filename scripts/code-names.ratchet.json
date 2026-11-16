@@ -1,16 +1,16 @@
 {
   "counts": {
-    ".": 125,
+    ".": 109,
     ".github": 50,
-    "apps": 2122,
+    "apps": 1623,
     "build": 72,
     "contracts": 47,
-    "docs": 1016,
+    "docs": 834,
     "e2e": 57,
     "engine": 302,
     "infra": 257,
     "packs": 810,
-    "scripts": 586,
+    "scripts": 554,
     "services": 632,
     "tests": 11,
     "workers": 123
