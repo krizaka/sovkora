@@ -14,6 +14,8 @@ function plainDoc(slug: string): string | undefined {
 
 /** The public origin of this site (dev.sovkora.com: the real app, sign-up closed). */
 export const SITE_URL = "https://dev.sovkora.com";
+/** The public face of the product: every page's canonical points here, dev included (the dev host is never the canonical, krizaka-internal#3286). */
+export const WWW_URL = "https://www.sovkora.com";
 export const KRIZAKA_URL = "https://www.krizaka.com";
 export const REPO_URL = "https://github.com/krizaka/orazaka";
 /** The Krizaka Organization, defined by www.krizaka.com: every JSON-LD node of the family points back to it. */
