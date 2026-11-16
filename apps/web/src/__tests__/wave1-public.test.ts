@@ -85,6 +85,14 @@ describe("the title and the Open Graph follow the page's language", () => {
     expect(m.openGraph).toMatchObject({ locale: "en_US", alternateLocale: "fr_CA" });
   });
 
+  it("the canonical is on the www host, on the dev deployment too (never dev.sovkora.com)", () => {
+    for (const open of [true, false]) {
+      const m = siteMetadata("fr", open);
+      expect(String(m.metadataBase)).toBe("https://www.sovkora.com/");
+      expect(m.alternates?.canonical).toBe("./");
+    }
+  });
+
   it("a closed site says noindex in the page", () => {
     expect(siteMetadata("fr", false).robots).toEqual({ index: false, follow: false, noarchive: true });
     expect(siteMetadata("fr", true).robots).toBeUndefined();

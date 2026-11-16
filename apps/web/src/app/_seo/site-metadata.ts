@@ -6,7 +6,7 @@ import {
   SITE_TITLE,
   SITE_TITLE_FR,
   SITE_DESCRIPTION_FR,
-  SITE_URL,
+  WWW_URL,
 } from "@/app/_seo/seo";
 import type { SiteLocale } from "@/core/i18n/locale-negotiation";
 
@@ -22,12 +22,12 @@ export function siteMetadata(locale: SiteLocale, open: boolean): Metadata {
   const other = locale === "fr" ? "en" : "fr";
   return {
     ...(open ? {} : { robots: { index: false, follow: false, noarchive: true } }),
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(WWW_URL),
     title,
     description,
     applicationName: SITE_NAME,
     authors: [{ name: "Krizaka", url: KRIZAKA_URL }],
-    // Every page is canonical to itself; the image is app/opengraph-image.tsx.
+    // Every page is canonical to its address on www, dev included (the dev host never claims to be the original); the image is app/opengraph-image.tsx.
     alternates: { canonical: "./" },
     openGraph: {
       type: "website",
