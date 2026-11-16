@@ -16,10 +16,26 @@ const BARE = /(?<![\w@#$/.-])orazaka(?![\w#$/_-]|\.\w)/gi;
 
 /** What the CLI keeps on purpose, each with its reason: the docker project of the local stack, and generator literals. */
 const KEPT: { file: RegExp; line: RegExp; why: string }[] = [
-  { file: /^apps\/cli\/src\//, line: /-p orazaka\b/, why: "the docker compose project of an existing local stack: renaming it would orphan its volumes" },
-  { file: /^apps\/cli\/src\/services\/templates\.ts$/, line: /./, why: "the Java package and property prefix the code generator writes (com.krizaka.orazaka, orazaka.*)" },
-  { file: /^apps\/cli\/src\/commands\/generate\.command\.ts$/, line: /^\s*"orazaka",$/, why: "a path segment of the generated Java package" },
-  { file: /^apps\/cli\/src\/services\/pack\.bundle\.ts$/, line: /publisherId/, why: "the publisher id recorded in existing packs" },
+  {
+    file: /^apps\/cli\/src\//,
+    line: /-p orazaka\b/,
+    why: "the docker compose project of an existing local stack: renaming it would orphan its volumes",
+  },
+  {
+    file: /^apps\/cli\/src\/services\/templates\.ts$/,
+    line: /./,
+    why: "the Java package and property prefix the code generator writes (com.krizaka.orazaka, orazaka.*)",
+  },
+  {
+    file: /^apps\/cli\/src\/commands\/generate\.command\.ts$/,
+    line: /^\s*"orazaka",$/,
+    why: "a path segment of the generated Java package",
+  },
+  {
+    file: /^apps\/cli\/src\/services\/pack\.bundle\.ts$/,
+    line: /publisherId/,
+    why: "the publisher id recorded in existing packs",
+  },
 ];
 
 function walk(dir: string, keep: (path: string) => boolean): string[] {

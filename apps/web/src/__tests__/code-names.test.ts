@@ -21,8 +21,9 @@ function strings(value: unknown, path = ""): [string, string][] {
 describe("no code name in what the customer reads", () => {
   for (const locale of ["en", "fr"] as const) {
     it(`the ${locale} messages`, () => {
-      const hits = strings(translations[locale])
-        .flatMap(([path, text]) => findCodeNames(text).map((h) => `${path}: ${h.word} -> ${h.use}`));
+      const hits = strings(translations[locale]).flatMap(([path, text]) =>
+        findCodeNames(text).map((h) => `${path}: ${h.word} -> ${h.use}`),
+      );
       expect(hits).toEqual([]);
     });
   }
