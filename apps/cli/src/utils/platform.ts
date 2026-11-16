@@ -65,14 +65,14 @@ export interface WorkspaceDetection {
   readonly missing: readonly string[];
 }
 
-/** The manifest at the root of an Orazaka workspace (krizaka/orazaka). */
+/** The manifest at the root of an Sovkora workspace (krizaka/orazaka). */
 export const WORKSPACE_MANIFEST = "modules.json";
 
-/** Markers that indicate an Orazaka workspace. */
+/** Markers that indicate an Sovkora workspace. */
 const WORKSPACE_MARKERS = [WORKSPACE_MANIFEST, "pom.xml", "engine", "services", "AGENTS.md"] as const;
 
 /**
- * Detects whether a directory is an Orazaka workspace.
+ * Detects whether a directory is an Sovkora workspace.
  * Scans for modules.json, pom.xml, engine/, services/, AGENTS.md.
  */
 export function detectOrazakaWorkspace(dir: string): WorkspaceDetection {
@@ -96,7 +96,7 @@ export function detectOrazakaWorkspace(dir: string): WorkspaceDetection {
 }
 
 /**
- * Walks up from cwd() looking for an Orazaka workspace root.
+ * Walks up from cwd() looking for an Sovkora workspace root.
  * Returns cwd() if none found.
  */
 export function resolveWorkspaceRootSmart(): string {
@@ -127,7 +127,7 @@ export function findWorkspaceManifestRoot(start: string): string | null {
 }
 
 /**
- * The Orazaka workspace the CLI works on: the one around the current directory first (the CLI
+ * The Sovkora workspace the CLI works on: the one around the current directory first (the CLI
  * installed from npm runs from anywhere), then the one the CLI itself sits in (a workspace clone
  * running its own build). Null when neither exists — the caller explains how to get one.
  */
@@ -135,7 +135,7 @@ export function locateWorkspace(cwd: string = process.cwd(), cliDir: string = __
   return findWorkspaceManifestRoot(cwd) ?? findWorkspaceManifestRoot(cliDir);
 }
 
-/** Resolves the workspace root directory for the Orazaka project. */
+/** Resolves the workspace root directory for the Sovkora project. */
 export function resolveWorkspaceRoot(): string {
   return resolveWorkspaceRootSmart();
 }
@@ -320,7 +320,7 @@ export function resolveDockerComposeCmd(): string | null {
 /**
  * Each bounded context's database role, as its `infra/initdb` file creates it. The two Krizaka building blocks
  * name theirs after themselves (`10-identity.sql` → `krizaka_users`, `70-billing.sql` → `krizaka_billing`).
- * `orazaka start` sets each role's password from `<CTX>_DB_PASSWORD`; `orazaka install` generates them.
+ * `sovkora start` sets each role's password from `<CTX>_DB_PASSWORD`; `sovkora install` generates them.
  */
 export const DB_ROLES = {
   IDENTITY: "krizaka_users",

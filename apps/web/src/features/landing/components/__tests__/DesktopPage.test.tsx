@@ -107,8 +107,8 @@ describe("DesktopPage", () => {
 
   it("tells what to do when something goes wrong: doctor and logs, as bash", () => {
     const { container } = renderPage("en", release);
-    expect(container.textContent).toContain("orazaka doctor");
-    expect(container.textContent).toContain("orazaka logs --service router");
+    expect(container.textContent).toContain("sovkora doctor");
+    expect(container.textContent).toContain("sovkora logs --service router");
   });
 
   it("makes no claim about Windows or Linux builds, and lists the requirements", () => {

@@ -14,9 +14,6 @@ function strings(value: unknown, path = ""): [string, string][] {
   return [];
 }
 
-/** Fields drawn as code (a command to type): the CLI keeps its code name, like the built pages' `<code>`. */
-const COMMAND_FIELD = /\.(code|terminal)$/;
-
 /**
  * The commercial names (krizaka-internal#2103): a customer reads Sovkora, never the code name. The built pages are
  * checked by `scripts/check-code-names.mjs`; this is the same rule on the words, in both languages, before a build.
@@ -25,7 +22,6 @@ describe("no code name in what the customer reads", () => {
   for (const locale of ["en", "fr"] as const) {
     it(`the ${locale} messages`, () => {
       const hits = strings(translations[locale])
-        .filter(([path]) => !COMMAND_FIELD.test(path))
         .flatMap(([path, text]) => findCodeNames(text).map((h) => `${path}: ${h.word} -> ${h.use}`));
       expect(hits).toEqual([]);
     });

@@ -7520,10 +7520,9 @@
     }
   ],
   "cli": {
-    "package": "@krizaka/orazaka-cli",
-    "alias": "orazaka",
+    "package": "@krizaka/sovkora-cli",
     "version": "1.1.0",
-    "bin": "orazaka",
+    "bin": "sovkora",
     "node": ">=22",
     "commands": [
       {
@@ -8315,7 +8314,7 @@
           {
             "flag": "--dir <path>",
             "desc": "Where to clone the platform when no workspace is found",
-            "default": "orazaka"
+            "default": "sovkora"
           },
           {
             "flag": "--depth <n>",
@@ -8454,7 +8453,7 @@
         "args": [
           {
             "name": "<id>",
-            "desc": "Model id (see `orazaka models image list`)"
+            "desc": "Model id (see `sovkora models image list`)"
           }
         ],
         "aliases": [],
@@ -8464,11 +8463,11 @@
         "name": "models use",
         "top": "models",
         "isTop": false,
-        "description": "Make an installed image model the catalogue's default — the one `orazaka start` serves",
+        "description": "Make an installed image model the catalogue's default — the one `sovkora start` serves",
         "args": [
           {
             "name": "<id>",
-            "desc": "Model id (see `orazaka models image list`)"
+            "desc": "Model id (see `sovkora models image list`)"
           }
         ],
         "aliases": [],
@@ -9018,7 +9017,7 @@
           },
           {
             "flag": "--background",
-            "desc": "Print the run id and return at once; follow it with `orazaka runs ls` or `runs wait`",
+            "desc": "Print the run id and return at once; follow it with `sovkora runs ls` or `runs wait`",
             "default": null
           },
           {

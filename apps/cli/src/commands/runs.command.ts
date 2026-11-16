@@ -1,6 +1,6 @@
 /**
  * @file runs.command.ts
- * @description `orazaka runs` - the runs of the workspace as background tasks (ADR-088, orazaka-cli#90):
+ * @description `sovkora runs` - the runs of the workspace as background tasks (ADR-088, orazaka-cli#90):
  * `runs ls [--watch] [--json]` and `runs show <name|id> [--steps] [--json]`. A run is addressed by its id or its
  * name (the server resolves both, ADR-088 point 1). `--watch` re-reads the list every few seconds; `runs stop|approve|deny|send|resume`
  * steer a run through the endpoints the Studio serves; `runs wait <ref> [--notify]` follows one run to its end.
@@ -164,7 +164,7 @@ const waitCommand = new Command("wait")
         },
       });
       const row = toRow(run as NamedRun, new Date());
-      if (options.notify) notify("Orazaka", outcomeMessage(outcome, row.name ?? row.id));
+      if (options.notify) notify("Sovkora", outcomeMessage(outcome, row.name ?? row.id));
       if (options.json) console.log(JSON.stringify({ ...row, outcome }, null, 2));
       else console.log(outcomeMessage(outcome, row.name ?? row.id));
     } catch (error: unknown) {

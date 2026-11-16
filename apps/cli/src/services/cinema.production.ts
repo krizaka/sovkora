@@ -440,7 +440,7 @@ export function filmSeconds(script: Script): number {
   return Number(total.toFixed(2));
 }
 
-/** The next thing a production needs, in order — what `orazaka cinema run` does next, and where a resume picks up. */
+/** The next thing a production needs, in order — what `sovkora cinema run` does next, and where a resume picks up. */
 export type NextStep =
   | { readonly kind: "script" }
   | { readonly kind: "character"; readonly id: string }

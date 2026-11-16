@@ -1,6 +1,6 @@
 ---
 title: Administration
-description: What an Orazaka administrator controls — the SecOps console, every ADMIN-only endpoint, and how the console is secured — extracted from the code.
+description: What an Sovkora administrator controls — the SecOps console, every ADMIN-only endpoint, and how the console is secured — extracted from the code.
 category: Operations
 order: 2
 generated: true
@@ -8,14 +8,14 @@ generated: true
 
 # Administration
 
-Everything commercial and operational in Orazaka is **data an administrator edits** — models, the
+Everything commercial and operational in Sovkora is **data an administrator edits** — models, the
 interceptor pipeline, capabilities, MCP servers, plans, prices, wallets, Studios — never a redeploy. An
 administrator is an account holding `ROLE_ADMIN`, granted by the identity service; every
 administrative endpoint checks it on the server (`@PreAuthorize`), whatever client calls it.
 
 ## The SecOps console (`web`)
 
-A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `orazaka dev`.
+A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `sovkora dev`.
 
 | Screen | What it is for | Tabs |
 |:---|:---|:---|

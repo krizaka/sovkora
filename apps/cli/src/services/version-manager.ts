@@ -1,6 +1,6 @@
 /**
  * @file version-manager.ts
- * @description Version management system for Orazaka CLI.
+ * @description Version management system for Sovkora CLI.
  * Checks for updates, manages version caching, and displays notifications.
  * Inspired by npm, yarn, and GitHub CLI best practices.
  */
@@ -11,8 +11,8 @@ import { statePath } from "../utils/state-dir";
 import chalk from "chalk";
 import { execSync } from "node:child_process";
 
-/** The npm package the CLI is published as (the unscoped `orazaka` package is an alias of it). */
-const PACKAGE_NAME = "@krizaka/orazaka-cli";
+/** The npm package the CLI is published as. */
+const PACKAGE_NAME = "@krizaka/sovkora-cli";
 
 /**
  * Version information structure.

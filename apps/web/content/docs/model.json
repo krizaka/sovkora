@@ -1054,7 +1054,7 @@
     }
   ],
   "cli": {
-    "alias": "orazaka",
+    "alias": "sovkora",
     "journey": [
       {
         "command": "install",

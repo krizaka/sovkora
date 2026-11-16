@@ -283,7 +283,7 @@ export const stopCommand = new Command("stop")
         `${chalk.red("⏹")} Upload and temp directories cleaned`,
       );
     }
-    summaryLines.push("", `To restart: ${chalk.cyan("npx orazaka start")}`);
+    summaryLines.push("", `To restart: ${chalk.cyan("npx sovkora start")}`);
 
     await note(summaryLines.join("\n"), "Teardown Complete");
     await outro(chalk.red("All services stopped."));

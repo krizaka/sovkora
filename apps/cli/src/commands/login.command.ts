@@ -37,7 +37,7 @@ export const loginCommand = new Command("login")
   .argument("[password]", "Account password")
   .action(async (emailArg?: string, passwordArg?: string) => {
     try {
-      await intro(chalk.cyan("Orazaka Router Auth"));
+      await intro(chalk.cyan("Sovkora Router Auth"));
       console.log(chalk.gray(developmentStatus()));
 
       const email = await promptEmail(emailArg);

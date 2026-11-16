@@ -4,7 +4,7 @@
  * Mirrors the backend `HostCapability` rule so the CLI report and the UI greying agree:
  * a model's `supported_hardware` must be blank/cpu/any, or match a host accelerator.
  *
- * `orazaka models image list|pull|use` installs the local image models (stable-diffusion.cpp
+ * `sovkora models image list|pull|use` installs the local image models (stable-diffusion.cpp
  * recipes, services/image-model-recipes.json) and chooses which one the catalogue serves.
  */
 
@@ -32,7 +32,7 @@ function isCompatible(supportedHardware: string, host: string[]): boolean {
 export const modelsCommand = new Command("models")
   .description("Scan the host hardware and report which catalog models it can run")
   .action(async () => {
-    await intro(chalk.cyan.bold("🥷 Orazaka Model Compatibility"));
+    await intro(chalk.cyan.bold("🥷 Sovkora Model Compatibility"));
 
     const host = hostAccelerators();
     await logInfo(`Host accelerators: ${chalk.white(host.join(", "))}`);
@@ -97,7 +97,7 @@ imageCommand
   .command("list")
   .description("List the installable image models, their licence, size and whether they are installed")
   .action(async () => {
-    await intro(chalk.cyan.bold("🥷 Orazaka image models"));
+    await intro(chalk.cyan.bold("🥷 Sovkora image models"));
     const modelsDir = resolveModelsDir();
     const current = catalogueDefault();
     for (const recipe of IMAGE_MODELS) {
@@ -114,14 +114,14 @@ imageCommand
     }
     await outro(
       current
-        ? `The catalogue serves ${chalk.bold(current)}. Change it with ${chalk.cyan("orazaka models image use <id>")}.`
+        ? `The catalogue serves ${chalk.bold(current)}. Change it with ${chalk.cyan("sovkora models image use <id>")}.`
         : "Database unreachable: the served model is unknown (npm run infra).",
     );
   });
 
 imageCommand
   .command("pull")
-  .argument("<id>", "Model id (see `orazaka models image list`)")
+  .argument("<id>", "Model id (see `sovkora models image list`)")
   .description("Download an image model into ~/models/stable-diffusion and verify its checksums")
   .action(async (id: string) => {
     const recipe = findImageModel(id);
@@ -149,7 +149,7 @@ imageCommand
           : `✔ ${String(pulled.length)} file(s) downloaded and verified (sha256)`,
       );
       await outro(
-        `Serve it with ${chalk.cyan("orazaka models image use " + recipe.id)}, then restart the image server.`,
+        `Serve it with ${chalk.cyan("sovkora models image use " + recipe.id)}, then restart the image server.`,
       );
     } catch (err) {
       await logError(err instanceof Error ? err.message : String(err));
@@ -159,8 +159,8 @@ imageCommand
 
 imageCommand
   .command("use")
-  .argument("<id>", "Model id (see `orazaka models image list`)")
-  .description("Make an installed image model the catalogue's default — the one `orazaka start` serves")
+  .argument("<id>", "Model id (see `sovkora models image list`)")
+  .description("Make an installed image model the catalogue's default — the one `sovkora start` serves")
   .action(async (id: string) => {
     const recipe = findImageModel(id);
     if (!recipe) {
@@ -168,7 +168,7 @@ imageCommand
       process.exit(1);
     }
     if (!isInstalled(recipe, resolveModelsDir())) {
-      await logError(`${recipe.label} is not installed: run orazaka models image pull ${recipe.id}`);
+      await logError(`${recipe.label} is not installed: run sovkora models image pull ${recipe.id}`);
       process.exit(1);
     }
     try {
@@ -179,7 +179,7 @@ imageCommand
     }
     await logSuccess(`✔ ${recipe.label} is the default image model`);
     await logWarning(
-      "sd-server serves one model at a time: restart the stack (orazaka stop, then orazaka start) to load it.",
+      "sd-server serves one model at a time: restart the stack (sovkora stop, then sovkora start) to load it.",
     );
   });
 

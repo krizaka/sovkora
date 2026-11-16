@@ -17,7 +17,7 @@ export const doctorCommand = new Command("doctor")
   .option("--fix", "Attempt to auto-fix detected issues")
   .option("-v, --verbose", "Show detailed diagnostic output")
   .action(async (options: { quiet?: boolean; fix?: boolean; verbose?: boolean }) => {
-    await intro(chalk.cyan.bold("🥷 Orazaka System Diagnostics v2"));
+    await intro(chalk.cyan.bold("🥷 Sovkora System Diagnostics v2"));
 
     const spinner = await createSpinner();
 

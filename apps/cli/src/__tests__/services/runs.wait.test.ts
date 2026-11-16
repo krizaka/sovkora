@@ -38,9 +38,9 @@ describe("waitForRun", () => {
 
 describe("notify", () => {
   it("passes the text through argv on macOS, never into the script", () => {
-    const command = notifyCommand("darwin", "Orazaka", 'x" & do shell script "evil');
+    const command = notifyCommand("darwin", "Sovkora", 'x" & do shell script "evil');
     expect(command?.file).toBe("osascript");
-    expect(command?.args.slice(-2)).toEqual(["Orazaka", 'x" & do shell script "evil']);
+    expect(command?.args.slice(-2)).toEqual(["Sovkora", 'x" & do shell script "evil']);
     expect(command?.args.filter((a) => a.includes("evil"))).toHaveLength(1);
   });
 

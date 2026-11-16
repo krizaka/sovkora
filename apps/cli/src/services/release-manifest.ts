@@ -1,10 +1,10 @@
 /**
  * @file release-manifest.ts
- * @description The release manifest of an Orazaka bundle (docs/DELIVERY.md §5 in krizaka/orazaka).
+ * @description The release manifest of an Sovkora bundle (docs/DELIVERY.md §5 in krizaka/orazaka).
  *
  * One version for the whole bundle: the manifest pins, for that version, every component's commit,
  * every container image by digest, every native artefact by SHA-256, every model by revision and
- * every pack by version. `orazaka install` and `orazaka update` read it; nothing is fetched by tag.
+ * every pack by version. `sovkora install` and `sovkora update` read it; nothing is fetched by tag.
  *
  * This module checks the manifest's shape (JSON Schema) and the rules a schema cannot say, and
  * verifies the artefacts of an offline bundle against it. Its signature is the next step's.

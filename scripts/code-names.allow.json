@@ -155,36 +155,6 @@
       "reason": "The release manifest file the CLI reads (a live file name).",
       "row": "K3",
       "scope": "model"
-    },
-    {
-      "token": "@krizaka/orazaka-cli",
-      "reason": "The CLI's published npm package (an npm tombstone path stays; the package renames with the CLI).",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"alias\": \"orazaka\"",
-      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"bin\": \"orazaka\"",
-      "reason": "The CLI's installed command name, reported by the model as it is today; renamed with the CLI package.",
-      "row": "K3",
-      "scope": "model"
-    },
-    {
-      "token": "\"default\": \"orazaka\"",
-      "reason": "The CLI's default database name option (a live database name of the job plane).",
-      "row": "K2",
-      "scope": "model"
-    },
-    {
-      "token": "`orazaka ",
-      "reason": "A CLI command typed by a user, quoted in the CLI's own help text; renamed with the CLI.",
-      "row": "K3",
-      "scope": "model"
     }
   ]
 }

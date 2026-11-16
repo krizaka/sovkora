@@ -28,7 +28,7 @@ export interface DocEntry {
   file: string | null;
 }
 
-export const REPO = "https://github.com/krizaka/orazaka";
+export const REPO = "https://github.com/krizaka/sovkora";
 
 /** Where "Edit on GitHub" leads: the source markdown (for a generated page, the generated file the source writes). */
 export function editUrl(entry: DocEntry): string | null {

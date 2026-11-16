@@ -48,7 +48,7 @@ export const resetCommand = new Command("reset")
   .argument("[token]", "Password reset token")
   .action(async (tokenArg?: string) => {
     try {
-      await intro(chalk.cyan("Orazaka Password Reset"));
+      await intro(chalk.cyan("Sovkora Password Reset"));
 
       const token = await promptToken(tokenArg);
       const pwd = await promptNewPassword();
@@ -61,7 +61,7 @@ export const resetCommand = new Command("reset")
         const result = await AuthApi.resetPassword(token, pwd);
         s.stop("Password reset success!");
         await outro(chalk.green(`✓ ${result.message}`));
-        await outro(chalk.yellow("You can now login with your new password: orazaka login"));
+        await outro(chalk.yellow("You can now login with your new password: sovkora login"));
       } catch (err: unknown) {
         s.stop("Password reset failed");
         const msg = err instanceof Error ? err.message : "Unknown error";

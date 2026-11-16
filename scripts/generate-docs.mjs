@@ -13,7 +13,7 @@
  *   - USE_CASES.md        UseCase catalog (App Factory)
  *   - INTERCEPTORS.md     interceptor registry + DB-driven order
  *   - API_REFERENCE.md    router REST endpoints
- *   - CLI.md              orazaka CLI commands, subcommands, arguments and options
+ *   - CLI.md              sovkora CLI commands, subcommands, arguments and options
  *   - BUSINESS.md         the App Factory: intentions, use-cases, dispatcher (orazaka-business)
  *   - TOOLS.md            tools, MCP servers, tool cache and write sandbox (orazaka-tools)
  *   - JOBS.md             job plane, executors, every @Scheduled task, automation connectors
@@ -1093,14 +1093,14 @@ function extractApi() {
 }
 
 /**
- * orazaka CLI commands — as the program registers them, subcommands included.
+ * sovkora CLI commands — as the program registers them, subcommands included.
  *
  * A command file exports one top-level command (`export const x = new Command("pack")`, added to
  * the program in src/index.ts); every other `new Command("…")` or `.command("…")` in the file is
  * one of its subcommands, whether it is declared before the parent and attached with
- * `.addCommand(…)` or chained after it. The flat list this replaced named `orazaka install` twice
+ * `.addCommand(…)` or chained after it. The flat list this replaced named `sovkora install` twice
  * (the setup wizard and `pack install`) and never named `demo seed`, `db reseed` or `mcp list`:
- * a reference that lists `orazaka build` for `orazaka docs build` sends the reader to a command
+ * a reference that lists `sovkora build` for `sovkora docs build` sends the reader to a command
  * that does not exist.
  *
  * Each marker's segment — up to the next marker — owns its `.description`, `.argument`, `.alias`
@@ -1334,7 +1334,7 @@ const readSmoke = () => {
   return raw ? JSON.parse(raw) : null;
 };
 
-/** The models Orazaka supports (registry metadata required — see scripts/lib/model-registry.mjs). */
+/** The models Sovkora supports (registry metadata required — see scripts/lib/model-registry.mjs). */
 const extractRegistry = () => {
   const worker = REPOSITORIES.find((r) => r.name === "worker-media");
   const licenceSources = [
@@ -1541,12 +1541,10 @@ const mdApi = (rows) => {
 function cliModel(rows) {
   const cliRoot = join(ROOT, "apps/cli");
   const pkg = JSON.parse(read(join(cliRoot, "package.json")) || "{}");
-  const alias = JSON.parse(read(join(cliRoot, "alias/package.json")) || "{}");
   return {
     package: pkg.name ?? null,
-    alias: alias.name ?? null,
     version: pkg.version ?? null,
-    bin: Object.keys(pkg.bin ?? { orazaka: "" })[0],
+    bin: Object.keys(pkg.bin ?? { sovkora: "" })[0],
     node: pkg.engines?.node ?? null,
     commands: rows.map(({ order, ...c }) => c),
     journey: extractCliJourney(rows),
@@ -1554,18 +1552,17 @@ function cliModel(rows) {
 }
 
 const mdCli = (rows) => {
-  const lines = [frontmatter("CLI Reference", "orazaka CLI commands, subcommands, arguments and options, extracted from the command definitions.", "DevEx", 7)];
+  const lines = [frontmatter("CLI Reference", "sovkora CLI commands, subcommands, arguments and options, extracted from the command definitions.", "DevEx", 7)];
   const model = cliModel(rows);
   const pkg = { name: model.package, engines: { node: model.node } };
-  const alias = { name: model.alias };
   const bin = model.bin;
-  const runner = alias.name ? `npx ${alias.name}` : `npx ${pkg.name}`;
+  const runner = `npx ${bin}`;
   const cell = (s) => mdCell(s || "—");
   const usage = (c) => [`${bin} ${c.name}`, ...c.args.map((a) => a.name)].join(" ");
 
   // Quick start and dev loop (authored here, single-sourced in the generator — see AGENTS.md §1).
   lines.push(
-    "The `orazaka` CLI is the single orchestrator of the platform: it clones and configures the",
+    "The `sovkora` CLI is the single orchestrator of the platform: it clones and configures the",
     "workspace, starts the infrastructure, runs the whole stack, tests it, builds these docs and",
     "installs packs. No shell script to remember — one command per intent.",
     "",
@@ -1574,7 +1571,7 @@ const mdCli = (rows) => {
     `Requirements: git, JDK 21, Node.js ${pkg.engines?.node ?? ">=22"}, Docker (Python 3.11+ for the media worker).`,
     "",
     "```bash",
-    `${runner} install   # no workspace here? clones the platform into ./orazaka, then configures it`,
+    `${runner} install   # no workspace here? clones the platform into ./sovkora, then configures it`,
     "cd sovkora && ./mvnw install && pnpm install",
     `${runner} start     # Docker infrastructure (PostgreSQL + pgvector, Redis, RabbitMQ)`,
     `${runner} dev       # the whole stack: services, web, admin, mobile`,
@@ -1587,17 +1584,12 @@ const mdCli = (rows) => {
     `${runner} dev`,
     "```",
     "",
-    ...(alias.name
-      ? [
-          `\`${alias.name}\` on npm is the short name of the canonical package \`${pkg.name}\` — both run the same CLI:`,
-          "",
-          "```bash",
-          `npx ${pkg.name} install      # the same as ${runner} install`,
-          `npm install -g ${pkg.name}   # then: ${bin} <command>`,
-          "```",
-          "",
-        ]
-      : []),
+    `The package is \`${pkg.name}\`; installed, the command is \`${bin}\`:`,
+    "",
+    "```bash",
+    `npm install -g ${pkg.name}   # then: ${bin} <command>`,
+    "```",
+    "",
     "`install --check-only` only reports what is missing. `start`, `dev`, `test` and `docs` run inside",
     "a workspace and say how to get one when there is none.",
     "",
@@ -1617,17 +1609,17 @@ const mdCli = (rows) => {
     "",
     "The dev loop has two layers — start them in order:",
     "",
-    "1. **Infrastructure** — `orazaka start --mode dev` brings up the Docker middleware",
+    "1. **Infrastructure** — `sovkora start --mode dev` brings up the Docker middleware",
     "   (PostgreSQL+pgvector, Redis, RabbitMQ) and the native AI engines (Ollama, LocalAI,",
     "   video worker). Inference runs natively on macOS Metal — never in Docker.",
-    "2. **Applications** — `orazaka dev` spawns the services (edge, conversation router, identity,",
+    "2. **Applications** — `sovkora dev` spawns the services (edge, conversation router, identity,",
     "   automation, knowledge, job, billing, studio, notifications), the Web client, the Web admin",
     "   and the Expo mobile server in parallel. Prefer to debug the conversation router in your IDE?",
-    "   Run `ConversationServiceApplication` there and start the rest with `orazaka dev --skip-router`.",
+    "   Run `ConversationServiceApplication` there and start the rest with `sovkora dev --skip-router`.",
     "",
-    "`orazaka start --mode full` additionally runs the router and the UI for a",
-    "hands-off boot. Tear everything down with `orazaka stop`. On a local stack,",
-    "`orazaka demo seed` creates the demo persona with its plan, packs and Studios.",
+    "`sovkora start --mode full` additionally runs the router and the UI for a",
+    "hands-off boot. Tear everything down with `sovkora stop`. On a local stack,",
+    "`sovkora demo seed` creates the demo persona with its plan, packs and Studios.",
     "",
     "> ℹ️ `start` manages *infrastructure*; `dev` manages *application processes*. They are",
     "> complementary, not alternatives.",
@@ -1694,13 +1686,13 @@ const mdGovernance = (rows) => {
 
 const CAP_LABEL = { chat: "Chat", reasoning: "Reasoning", vision: "Vision", code: "Code", embeddings: "Embeddings", image: "Image", video: "Video", "speech-to-text": "Speech to text", "text-to-speech": "Text to speech", music: "Music", "video-to-audio": "Video to audio (foley)", "video-upscale": "Video upscale" };
 const mdModels = (models, rows) => {
-  const lines = [frontmatter("Supported Models", "Every model Orazaka supports: where it runs, its licence, its context window — read from the registry the routing reads.", "Models", 8)];
+  const lines = [frontmatter("Supported Models", "Every model Sovkora supports: where it runs, its licence, its context window — read from the registry the routing reads.", "Models", 8)];
   const local = models.filter((m) => m.runsOn === "local");
   const provider = models.filter((m) => m.runsOn === "provider");
   lines.push(
     "## Local first",
     "",
-    `Orazaka supports **${models.length} models**: **${local.length} run on your own hardware** (Ollama, LocalAI, stable-diffusion.cpp on Metal or CUDA, the media worker)` +
+    `Sovkora supports **${models.length} models**: **${local.length} run on your own hardware** (Ollama, LocalAI, stable-diffusion.cpp on Metal or CUDA, the media worker)` +
       ` and **${provider.length} are served by a provider** — optional: a provider-hosted model needs a provider row and its API key, which only an operator adds; a fresh install has none.`,
     "",
     "Every figure below is read from `orazaka_models` (the table the routing reads): the vendor, licence and context window are those of each model's own card; `last verified` is the date of the last passing sovereign smoke that named the model, empty until one is recorded.",
@@ -1726,7 +1718,7 @@ const mdModels = (models, rows) => {
       lines.push(`| \`${m.id}\` — ${m.name} | ${m.vendor} · ${m.family} | ${m.capabilities.map((c) => CAP_LABEL[c]).join(", ")} | ${m.runtime} | ${lic}${m.openWeights ? "" : " (proprietary)"}${m.commercialUse === "no" ? " — **non-commercial**" : m.commercialUse === "conditions" ? " — commercial use under conditions" : ""} | ${m.contextWindow ? m.contextWindow.toLocaleString("en-US") : "—"} | ${m.status} | ${m.lastVerified ?? "—"} |`);
     }
   };
-  lines.push("", "How fast and at what price they really run — time, cost and every parameter of the runs Orazaka measured — is on the [Measured runs](MEASURED_RUNS.md) page.");
+  lines.push("", "How fast and at what price they really run — time, cost and every parameter of the runs Sovkora measured — is on the [Measured runs](MEASURED_RUNS.md) page.");
   table("On your hardware", local);
   table("Optional: served by a provider", provider);
   const hidden = rows.filter((r) => r.status === "internal");
@@ -1957,7 +1949,7 @@ const mdBusiness = (b) => {
     "",
     "## Where things live",
     "",
-    "Ports & adapters, the same layout in every Orazaka module: `api` is the contract other modules may import,",
+    "Ports & adapters, the same layout in every Sovkora module: `api` is the contract other modules may import,",
     "`application` implements it, `domain` holds the model and the ports, and the use-cases are plain classes",
     "discovered by Spring — adding one changes neither the core nor the router.",
     "",
@@ -2071,7 +2063,7 @@ const mdTools = (t, api, cli) => {
   const lines = [
     frontmatter(
       "Tools & MCP",
-      "What tools are in Orazaka — function calling, MCP servers, tool caching and the write sandbox — extracted from orazaka-tools and the tool interceptor.",
+      "What tools are in Sovkora — function calling, MCP servers, tool caching and the write sandbox — extracted from orazaka-tools and the tool interceptor.",
       "Core",
       6,
     ),
@@ -2079,7 +2071,7 @@ const mdTools = (t, api, cli) => {
   if (!t) return lines.join("\n") + "\n";
   const code = (s) => `\`${s}\``;
   lines.push(
-    `In Orazaka a **tool** is a function a model may call during a turn (Spring AI function calling).`,
+    `In Sovkora a **tool** is a function a model may call during a turn (Spring AI function calling).`,
     `\`orazaka-tools\` (repository \`${t.repo}\`) holds the tool registry, the bridge to external MCP servers, the`,
     "tool result cache and the sandbox that isolates tools which write. Tools are attached to a turn by the",
     "`ToolInterceptor` of the pipeline (see the [interceptor registry](INTERCEPTORS.md)) — a model only sees the",
@@ -2125,7 +2117,7 @@ const mdTools = (t, api, cli) => {
   lines.push(
     "## MCP servers",
     "",
-    "Orazaka is an MCP **client**: before a turn, `DefaultMcpOrchestrator` queries every enabled `REMOTE` platform",
+    "Sovkora is an MCP **client**: before a turn, `DefaultMcpOrchestrator` queries every enabled `REMOTE` platform",
     "server and the user's own servers in parallel (one virtual thread each) and adds what they return to the",
     "context.",
     "Platform servers are declared by an administrator; each user may add private ones.",
@@ -2140,7 +2132,7 @@ const mdTools = (t, api, cli) => {
   const mcpCli = cli.filter((c) => c.top === "mcp" && !c.isTop);
   if (mcpCli.length) {
     lines.push("From the terminal ([CLI reference](CLI.md)):", "", "```bash");
-    for (const c of mcpCli) lines.push(`orazaka ${[c.name, ...c.args.map((a) => a.name)].join(" ")}`.padEnd(34) + `# ${c.description}`);
+    for (const c of mcpCli) lines.push(`sovkora ${[c.name, ...c.args.map((a) => a.name)].join(" ")}`.padEnd(34) + `# ${c.description}`);
     lines.push("```", "");
   }
   lines.push("## The write sandbox", "", t.sandbox.markerDoc, "");
@@ -2251,7 +2243,7 @@ const mdJobs = (j, api, cli) => {
   const lines = [
     frontmatter(
       "Jobs, Schedules & Automation",
-      "Everything Orazaka runs without a user waiting: the job plane, its executors and workers, every scheduled task and the automation connectors — extracted from the code.",
+      "Everything Sovkora runs without a user waiting: the job plane, its executors and workers, every scheduled task and the automation connectors — extracted from the code.",
       "Core",
       7,
     ),
@@ -2331,8 +2323,8 @@ const mdJobs = (j, api, cli) => {
       "The CLI agent runs on the user's machine and connects **outbound** (no inbound port):",
       "",
       "```bash",
-      "orazaka login",
-      `orazaka agent listen   # ${agent.description}`,
+      "sovkora login",
+      `sovkora agent listen   # ${agent.description}`,
       "```",
     );
     const agentApi = api.filter((r) => r.path.startsWith("/api/v1/agent"));
@@ -2595,7 +2587,7 @@ const mdPacks = (p, cli, catalog) => {
   const lines = [
     frontmatter(
       "Packs & Studios",
-      "The packs that extend Orazaka without code — the reference catalogue, every manifest field, and how to write, validate and install a pack — read from orazaka-packs.",
+      "The packs that extend Sovkora without code — the reference catalogue, every manifest field, and how to write, validate and install a pack — read from orazaka-packs.",
       "Business",
       5,
     ),
@@ -2630,9 +2622,9 @@ const mdPacks = (p, cli, catalog) => {
   const packCli = cli.filter((c) => (c.top === "pack" || c.top === "studio") && !c.isTop);
   if (packCli.length) {
     lines.push("", "## From the terminal", "", "| Command | What it does |", "|:---|:---|");
-    for (const c of packCli) lines.push(`| ${code(["orazaka", c.name, ...c.args.map((a) => a.name)].join(" "))} | ${c.description} |`);
+    for (const c of packCli) lines.push(`| ${code(["sovkora", c.name, ...c.args.map((a) => a.name)].join(" "))} | ${c.description} |`);
   }
-  lines.push("", "## Manifest fields", "", "From `pack.schema.json` — the schema `orazaka pack validate` checks against.", "", "| Field | Required | Values | Meaning |", "|:---|:---|:---|:---|");
+  lines.push("", "## Manifest fields", "", "From `pack.schema.json` — the schema `sovkora pack validate` checks against.", "", "| Field | Required | Values | Meaning |", "|:---|:---|:---|:---|");
   for (const f of p.fields) lines.push(`| ${code(f.name)} | ${f.required ? "yes" : "—"} | ${f.values ? f.values.map(code).join(" · ") : "—"} | ${mdCell(f.description) || "—"} |`);
   if (p.guide) {
     // The pack authors' guide, as written in orazaka-packs — one heading level down, under this page.
@@ -2697,21 +2689,21 @@ const mdAdmin = (a) => {
   const lines = [
     frontmatter(
       "Administration",
-      "What an Orazaka administrator controls — the SecOps console, every ADMIN-only endpoint, and how the console is secured — extracted from the code.",
+      "What an Sovkora administrator controls — the SecOps console, every ADMIN-only endpoint, and how the console is secured — extracted from the code.",
       "Operations",
       2,
     ),
   ];
   const code = (s) => `\`${s}\``;
   lines.push(
-    "Everything commercial and operational in Orazaka is **data an administrator edits** — models, the",
+    "Everything commercial and operational in Sovkora is **data an administrator edits** — models, the",
     "interceptor pipeline, capabilities, MCP servers, plans, prices, wallets, Studios — never a redeploy. An",
     `administrator is an account holding \`${a.auth.authority ?? "ROLE_ADMIN"}\`, granted by the identity service; every`,
     "administrative endpoint checks it on the server (`@PreAuthorize`), whatever client calls it.",
     "",
     `## The SecOps console (${code(a.repo ?? "orazaka-web-client")})`,
     "",
-    "A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `orazaka dev`.",
+    "A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovkora.com`, host routing), started with the web client by `sovkora dev`.",
     "",
     "| Screen | What it is for | Tabs |",
     "|:---|:---|:---|",
@@ -2782,7 +2774,7 @@ const outputs = {
   "ADMIN.md": mdAdmin(extractAdmin(api)),
   "GOVERNANCE.md": mdGovernance(extractGovernance()),
   "MODELS.md": mdModels(registry, extractModels()),
-  "MEASURED_RUNS.md": frontmatter("Measured runs", "Time, cost and every parameter of the video and image runs Orazaka made, per model and provider — generated from the run records.", "Models", 9) + mdMeasuredRuns(JSON.parse(read(join(ROOT, "docs/measurements/runs.json")))) +
+  "MEASURED_RUNS.md": frontmatter("Measured runs", "Time, cost and every parameter of the video and image runs Sovkora made, per model and provider — generated from the run records.", "Models", 9) + mdMeasuredRuns(JSON.parse(read(join(ROOT, "docs/measurements/runs.json")))) +
     (existsSync(join(ROOT, "docs/measurements/cinema.json")) ? `\n${mdCinema(JSON.parse(read(join(ROOT, "docs/measurements/cinema.json")))).join("\n")}` : "") +
     (existsSync(join(ROOT, "docs/measurements/law-bakeoff.json")) ? `\n${mdLawBakeoff(JSON.parse(read(join(ROOT, "docs/measurements/law-bakeoff.json"))))}` : ""),
 };
@@ -2790,7 +2782,7 @@ const outputs = {
 if (CHECK) {
   const stale = Object.entries(outputs).filter(([name, content]) => read(join(GEN_DIR, name)) !== content);
   if (stale.length) {
-    console.error("✗ docs are stale — run `orazaka docs build`. Out of date:");
+    console.error("✗ docs are stale — run `sovkora docs build`. Out of date:");
     for (const [name] of stale) console.error(`  - docs/_generated/${name}`);
     process.exit(1);
   }

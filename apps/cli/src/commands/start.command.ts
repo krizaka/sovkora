@@ -4,7 +4,7 @@
  * launching, and intelligent recovery strategies.
  *
  * Dev mode:  Starts only Docker middleware + AI engines (you run the Router from your IDE,
- *            or via `orazaka dev` which spawns it for you alongside the web apps).
+ *            or via `sovkora dev` which spawns it for you alongside the web apps).
  * Full mode: Starts everything including the Router (Spring Boot) and Next.js.
  */
 
@@ -86,7 +86,7 @@ export const startCommand = new Command("start")
       // Verify compose file
       const composeFile = resolveComposeFile();
       if (!fs.existsSync(composeFile)) {
-        await logError("docker-compose.yml not found.\n" + `  Run ${chalk.cyan("npx orazaka init")} to generate it.`);
+        await logError("docker-compose.yml not found.\n" + `  Run ${chalk.cyan("npx sovkora init")} to generate it.`);
         process.exit(1);
       }
 
@@ -377,8 +377,8 @@ export const startCommand = new Command("start")
             if (!fs.existsSync(sdServerBin)) issues.push(`sd-server binary not found: ${sdServerBin}`);
             await logWarning(
               `⚠ Image Gen Worker not available (${issues.join("; ")})\n` +
-                `  Setup: ${chalk.gray("orazaka models image list")} then ${chalk.gray("orazaka models image pull <id>")} ` +
-                `and ${chalk.gray("orazaka models image use <id>")}`,
+                `  Setup: ${chalk.gray("sovkora models image list")} then ${chalk.gray("sovkora models image pull <id>")} ` +
+                `and ${chalk.gray("sovkora models image use <id>")}`,
             );
           }
         }
@@ -436,7 +436,7 @@ export const startCommand = new Command("start")
             if (!pythonCmd) issues.push("Python 3 not found");
             await logWarning(
               `⚠ Media Worker not available (${issues.join(", ")})\n` +
-                `  Setup: ${chalk.gray("npx orazaka install")} to configure the media worker environment`,
+                `  Setup: ${chalk.gray("npx sovkora install")} to configure the media worker environment`,
             );
           }
         }
@@ -515,11 +515,11 @@ export const startCommand = new Command("start")
         summaryLines.push(
           "",
           `${chalk.cyan.bold("Dev mode — infra + AI engines are up. Now run the apps:")}`,
-          `  ${chalk.white("→")} ${chalk.cyan("All apps at once")}: ${chalk.gray("npx orazaka dev")} ${chalk.dim("(spawns Router + Web + Mobile)")}`,
-          `  ${chalk.white("→")} ${chalk.cyan("Router in IDE")}: Run/Debug ${chalk.yellow("RouterApplication")} in IntelliJ, then ${chalk.gray("npx orazaka dev --skip-router")}`,
+          `  ${chalk.white("→")} ${chalk.cyan("All apps at once")}: ${chalk.gray("npx sovkora dev")} ${chalk.dim("(spawns Router + Web + Mobile)")}`,
+          `  ${chalk.white("→")} ${chalk.cyan("Router in IDE")}: Run/Debug ${chalk.yellow("RouterApplication")} in IntelliJ, then ${chalk.gray("npx sovkora dev --skip-router")}`,
           "",
-          `${chalk.gray("Tip:")} Use ${chalk.cyan("npx orazaka logs")} to tail all service logs`,
-          `${chalk.gray("Tip:")} Use ${chalk.cyan("npx orazaka status")} to check service health`,
+          `${chalk.gray("Tip:")} Use ${chalk.cyan("npx sovkora logs")} to tail all service logs`,
+          `${chalk.gray("Tip:")} Use ${chalk.cyan("npx sovkora status")} to check service health`,
         );
       }
 
@@ -553,7 +553,7 @@ export const startCommand = new Command("start")
       await outro(
         chalk.cyan(
           mode === "dev"
-            ? "Dev infrastructure ready! Run `npx orazaka dev` (or start RouterApplication in IntelliJ) 🚀"
+            ? "Dev infrastructure ready! Run `npx sovkora dev` (or start RouterApplication in IntelliJ) 🚀"
             : `Full infrastructure ready! Open http://localhost:${String(PORTS.web)} 🚀`,
         ),
       );
@@ -569,7 +569,7 @@ export const startCommand = new Command("start")
  *
  * A role with no password cannot authenticate, so skipping this step leaves the stack unable to
  * connect rather than reachable with a guessable credential — it fails closed. `ALTER ROLE` is
- * idempotent, so re-running `orazaka start` on an existing volume simply re-applies the value.
+ * idempotent, so re-running `sovkora start` on an existing volume simply re-applies the value.
  */
 async function applyRolePasswords(dockerComposeCmd: string): Promise<void> {
   const missing = DB_ROLE_CONTEXTS.filter((ctx) => !process.env[`${ctx}_DB_PASSWORD`]);

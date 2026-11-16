@@ -1,6 +1,6 @@
 ---
 title: Jobs, Schedules & Automation
-description: "Everything Orazaka runs without a user waiting: the job plane, its executors and workers, every scheduled task and the automation connectors — extracted from the code."
+description: "Everything Sovkora runs without a user waiting: the job plane, its executors and workers, every scheduled task and the automation connectors — extracted from the code."
 category: Core
 order: 7
 generated: true
@@ -135,8 +135,8 @@ Automation job states: `PENDING_APPROVAL` · `APPROVED` · `RUNNING` · `COMPLET
 The CLI agent runs on the user's machine and connects **outbound** (no inbound port):
 
 ```bash
-orazaka login
-orazaka agent listen   # Start CLI agent listener and reverse tunnel
+sovkora login
+sovkora agent listen   # Start CLI agent listener and reverse tunnel
 ```
 
 | Method | Path | Access | Summary |

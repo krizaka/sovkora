@@ -1,6 +1,6 @@
 /**
  * @file pack.command.ts
- * @description `orazaka pack` — validate, install and publish pack bundles (ADR-037, seam S4).
+ * @description `sovkora pack` — validate, install and publish pack bundles (ADR-037, seam S4).
  *
  * The operator's half of the pack manifest. `validate` reads a bundle and checks it, which is
  * the loop a pack author runs; `install` applies it; `publish` puts an installed pack on the

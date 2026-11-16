@@ -200,7 +200,7 @@ function writeSingleTemplate(type: TemplateType, ctx: TemplateContext, workspace
         action: "created",
         description: "SQL migration",
       });
-      nextSteps.push("Reload DB: npx orazaka start --reinit-db");
+      nextSteps.push("Reload DB: npx sovkora start --reinit-db");
       break;
     }
     case "docker-compose": {
@@ -230,7 +230,7 @@ export const generateCommand = new Command("generate")
   .aliases(["gen", "scaffold"])
   .description("Generate features, interceptors, connectors, and configurations")
   .action(async () => {
-    await intro(chalk.cyan.bold("🥷 Orazaka Code Generator"));
+    await intro(chalk.cyan.bold("🥷 Sovkora Code Generator"));
 
     const workspaceRoot = resolveWorkspaceRoot();
     const struct = scanWorkspaceStructure(workspaceRoot);

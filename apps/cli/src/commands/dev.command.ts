@@ -6,7 +6,7 @@
  *
  * This is the *application* layer of the dev loop. The *infrastructure* layer
  * (Docker middleware + native AI engines) is started separately by
- * `orazaka start --mode dev`. Run that first, then `orazaka dev`.
+ * `sovkora start --mode dev`. Run that first, then `sovkora dev`.
  */
 
 import { Command } from "commander";
@@ -64,7 +64,7 @@ const SERVICE_ALIASES: Record<string, ServiceKey> = { core: "router", admin: "we
 /**
  * Every worker this repository ships, discovered from its own declaration.
  *
- * <b>Nothing started a pack's worker before this.</b> `orazaka dev` launched eight JVM services and
+ * <b>Nothing started a pack's worker before this.</b> `sovkora dev` launched eight JVM services and
  * two UIs and no Python at all; the media worker was started only by the e2e harness, and the
  * document-validation pack's by nobody. A user who installed that pack got a run that stayed
  * RUNNING forever — and its first job command was discarded by the broker, because no queue was
@@ -202,7 +202,7 @@ export function absoluteUploadDir(root: string, configured: string | undefined):
   return path.resolve(root, configured && configured.trim() !== "" ? configured : path.join("var", "orazaka-uploads"));
 }
 
-/** Options accepted by `orazaka dev` (skip flags + `--only` filter). */
+/** Options accepted by `sovkora dev` (skip flags + `--only` filter). */
 export interface DevOptions {
   only?: string;
   skipEdge?: boolean;

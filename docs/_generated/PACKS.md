@@ -1,6 +1,6 @@
 ---
 title: Packs & Studios
-description: The packs that extend Orazaka without code — the reference catalogue, every manifest field, and how to write, validate and install a pack — read from orazaka-packs.
+description: The packs that extend Sovkora without code — the reference catalogue, every manifest field, and how to write, validate and install a pack — read from orazaka-packs.
 category: Business
 order: 5
 generated: true
@@ -1988,19 +1988,19 @@ Kept off the shelf (`catalog.status: DRAFT`): `echo-toolkit` — installable for
 
 | Command | What it does |
 |:---|:---|
-| `orazaka pack validate <directory>` | Check a bundle's manifest, and whether this platform can run it |
-| `orazaka pack install <directory>` | Install a bundle: capabilities, billing and catalogue, or none of them |
-| `orazaka pack publish <directory>` | Put an installed bundle's pack and Studios on the shelf |
-| `orazaka pack list [directory]` | List the bundles this deployment's pack sources offer |
-| `orazaka studio list` | Browse the Studio catalogue |
-| `orazaka studio installed` | List the Studios you have installed |
-| `orazaka studio install <studioKey>` | Install a Studio into your workspace |
-| `orazaka studio run <target>` | Run an installed Studio — or, with --studio, a toolkit Studio by its key |
-| `orazaka studio logs <runId>` | Show a run's per-step state and results |
+| `sovkora pack validate <directory>` | Check a bundle's manifest, and whether this platform can run it |
+| `sovkora pack install <directory>` | Install a bundle: capabilities, billing and catalogue, or none of them |
+| `sovkora pack publish <directory>` | Put an installed bundle's pack and Studios on the shelf |
+| `sovkora pack list [directory]` | List the bundles this deployment's pack sources offer |
+| `sovkora studio list` | Browse the Studio catalogue |
+| `sovkora studio installed` | List the Studios you have installed |
+| `sovkora studio install <studioKey>` | Install a Studio into your workspace |
+| `sovkora studio run <target>` | Run an installed Studio — or, with --studio, a toolkit Studio by its key |
+| `sovkora studio logs <runId>` | Show a run's per-step state and results |
 
 ## Manifest fields
 
-From `pack.schema.json` — the schema `orazaka pack validate` checks against.
+From `pack.schema.json` — the schema `sovkora pack validate` checks against.
 
 | Field | Required | Values | Meaning |
 |:---|:---|:---|:---|

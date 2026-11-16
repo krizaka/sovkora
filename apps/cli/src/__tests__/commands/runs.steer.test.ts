@@ -3,7 +3,7 @@ import { StudioApi } from "../../services/studio.api";
 
 jest.mock("../../threads", () => ({ requireAuth: jest.fn() }));
 
-describe("orazaka runs stop | approve | resume", () => {
+describe("sovkora runs stop | approve | resume", () => {
   let log: jest.SpyInstance;
   beforeEach(() => {
     log = jest.spyOn(console, "log").mockImplementation(() => {});

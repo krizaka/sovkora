@@ -41,7 +41,7 @@ settingsCommand
         items.push("No preferences configured.");
       }
 
-      Box.render(`Orazaka Settings for User: ${user.username}`, items, {
+      Box.render(`Sovkora Settings for User: ${user.username}`, items, {
         borderColor: "yellow",
         titleColor: "white",
       });

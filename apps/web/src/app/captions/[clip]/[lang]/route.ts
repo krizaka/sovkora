@@ -1,3 +1,4 @@
+import { DEFAULT_BRAND, withBrand } from "@/core/brand/brand";
 import { clips } from "@/core/context/translations.clips";
 import { CLIP_IDS, LANGS, captionsVtt, isClipId, isLang } from "@/core/clips/clips";
 
@@ -9,7 +10,7 @@ export const generateStaticParams = () => CLIP_IDS.flatMap((clip) => LANGS.map((
 export async function GET(_request: Request, { params }: { params: Promise<{ clip: string; lang: string }> }) {
   const { clip, lang } = await params;
   if (!isClipId(clip) || !isLang(lang)) return new Response("Not found", { status: 404 });
-  return new Response(captionsVtt(clip, clips[lang][clip].cues), {
+  return new Response(captionsVtt(clip, withBrand(clips[lang][clip].cues, DEFAULT_BRAND)), {
     headers: { "Content-Type": "text/vtt; charset=utf-8", "Cache-Control": "public, max-age=3600" },
   });
 }

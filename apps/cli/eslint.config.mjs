@@ -18,11 +18,11 @@ export default tseslint.config(
       // --- MONOREPO SYNTAX GOUVERNANCE MATRIX ---
       "no-restricted-syntax": [
         "error",
-        // 1. Orazaka Global Invariant: Banning traditional TS Enums
+        // 1. Sovkora Global Invariant: Banning traditional TS Enums
         {
           selector: "TSEnumDeclaration",
           message:
-            "Traditional TypeScript enums are strictly banned in Orazaka. Use 'export const MyValues = [...] as const' paired with 'export type MyType = typeof MyValues[number]' to maintain pure, tree-shakable, structural Type-Safe compliance.",
+            "Traditional TypeScript enums are strictly banned in Sovkora. Use 'export const MyValues = [...] as const' paired with 'export type MyType = typeof MyValues[number]' to maintain pure, tree-shakable, structural Type-Safe compliance.",
         },
 
         // 2. Temporal Invariant: Forbidding mutation of native Date instances
@@ -30,7 +30,7 @@ export default tseslint.config(
           selector:
             "CallExpression[callee.type='MemberExpression'][callee.property.name=/^set(Date|Hours|Minutes|Seconds|Milliseconds|Month|FullYear|UTCDate|UTCHours|UTCMinutes|UTCSeconds|UTCMilliseconds|UTCMonth|UTCFullYear|Time)$/]",
           message:
-            "Mutating native JavaScript Date instances via set* methods is strictly forbidden in Orazaka. Use date-fns instead.",
+            "Mutating native JavaScript Date instances via set* methods is strictly forbidden in Sovkora. Use date-fns instead.",
         },
 
         // 3. Naming Invariant [ERR-104]: Forbidding redundant prefixes
@@ -38,7 +38,7 @@ export default tseslint.config(
           selector:
             "ExportNamedDeclaration > :matches(TSInterfaceDeclaration, TSTypeAliasDeclaration, ClassDeclaration, FunctionDeclaration)[id.name=/^Orazaka/]",
           message:
-            "[ERR-104] Orazaka prefix is banned on internal types. The module path already establishes ownership. Use clean domain names (e.g., 'Settings' not 'OrazakaSettings').",
+            "[ERR-104] Sovkora prefix is banned on internal types. The module path already establishes ownership. Use clean domain names (e.g., 'Settings' not 'OrazakaSettings').",
         },
 
         // 4. Terminal Security Invariant: Banning scattered process exits

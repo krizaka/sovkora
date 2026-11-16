@@ -6,7 +6,7 @@
  * `DROP TABLE IF EXISTS … CASCADE` for every table. It only runs automatically on
  * a *fresh* Postgres volume, so after editing a seed (e.g. adding `${prompt}` to
  * a capability payload template) a running stack keeps the stale rows.
- * `orazaka db reseed` re-applies the whole directory on demand.
+ * `sovkora db reseed` re-applies the whole directory on demand.
  */
 
 import { Command } from "commander";
@@ -45,7 +45,7 @@ async function reseed(opts: { yes?: boolean }): Promise<void> {
   const dbName = strEnv("DB_NAME", "orazaka_db");
   const dbUser = strEnv("DB_USERNAME", "orazaka_app");
 
-  await intro(chalk.cyan("Orazaka DB Reseed"));
+  await intro(chalk.cyan("Sovkora DB Reseed"));
 
   const initDb = readInitDb(root);
   if (!initDb) {
@@ -78,7 +78,7 @@ async function reseed(opts: { yes?: boolean }): Promise<void> {
     s.stop("Reseed failed");
     const detail = (res.stderr?.toString() || res.error?.message || "unknown error").trim();
     await logError(detail.split("\n").slice(-5).join("\n"));
-    await logInfo(`Is the database container running? Start it with: orazaka start --mode dev`);
+    await logInfo(`Is the database container running? Start it with: sovkora start --mode dev`);
     process.exit(1);
   }
 

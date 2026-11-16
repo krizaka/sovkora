@@ -5,7 +5,7 @@ module.exports = {
       name: "no-circular",
       severity: "error", // 🔥 CRITICAL: Protects terminal loop stability
       comment:
-        "Circular dependencies are strictly banned across Orazaka CLI. They break execution flow and lead to memory leaks.",
+        "Circular dependencies are strictly banned across Sovkora CLI. They break execution flow and lead to memory leaks.",
       from: {},
       to: {
         circular: true,
@@ -69,7 +69,7 @@ module.exports = {
       name: "defensive-insulation-against-scaffolding",
       severity: "error", // 🔥 REGRESSION DEFENSE
       comment:
-        "Codebase structural scaffolding engines and template generators are permanently banned from the CLI runtime commands tree. Blueprint generation belongs exclusively to the Orazaka UI framework workspace.",
+        "Codebase structural scaffolding engines and template generators are permanently banned from the CLI runtime commands tree. Blueprint generation belongs exclusively to the Sovkora UI framework workspace.",
       from: {
         path: "^src/(commands|services)/",
       },

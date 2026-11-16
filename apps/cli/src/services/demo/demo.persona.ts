@@ -1,6 +1,6 @@
 /**
  * @file demo.persona.ts
- * @description The demonstration persona: who signs in when Orazaka is shown to a client.
+ * @description The demonstration persona: who signs in when Sovkora is shown to a client.
  *
  * "admin" is a role, not a person — nobody watching a demo can picture themselves in it. Eric is
  * an invented head of sales at an invented Montréal lighting studio (it sells in Canadian dollars): a first name a client can read at a
@@ -19,7 +19,7 @@ export const DEMO_PERSONA = {
   fullName: "Eric Morel",
   email: "eric.morel@example.com",
   /**
-   * Eric's sign-in on a local stack, public by design and no secret: `orazaka demo seed` prints it at the end of every
+   * Eric's sign-in on a local stack, public by design and no secret: `sovkora demo seed` prints it at the end of every
    * run, the web client's tour script (apps/web/scripts/tour/eric.mjs) holds the same, and the seeder refuses any target
    * but a local, non-deployed one (demo.guard.ts). DEMO_PASSWORD replaces it.
    */
@@ -79,7 +79,7 @@ export interface DemoRun {
 }
 
 /**
- * The work on his shelf after `orazaka demo seed --runs`: a product photo, a voice-over for the same lamp, a
+ * The work on his shelf after `sovkora demo seed --runs`: a product photo, a voice-over for the same lamp, a
  * prospect dossier, a lease checked against the law, a supplier invoice examined for tampering — and, with
  * `--with-video`, a few seconds of footage. Every result is generated on this machine by the real Studios;
  * the documents are invented (demo.documents.ts).

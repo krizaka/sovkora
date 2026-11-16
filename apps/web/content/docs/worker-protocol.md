@@ -56,7 +56,7 @@ The message body is JSON. Fields a worker MAY rely on:
 
 Inside `payload`, by convention: `prompt`/`text`, `filePath`, `imagePath`, `durationSeconds`,
 `voice`, plus `runId`/`stepId`/`ordinal` when the job came from a Studio run, and any
-`orazaka.*`-namespaced preference keys the producer stamped.
+`sovkora.*`-namespaced preference keys the producer stamped.
 
 `holdId` is present **only** when the job was metered. Its **absence means "never authorised"** and
 is not the same as null — a worker MUST NOT invent one, and MUST echo it back when present so the

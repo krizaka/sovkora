@@ -1,6 +1,6 @@
 /**
  * @file api.types.ts
- * @description GraphQL and REST API response types and contracts for Orazaka.
+ * @description GraphQL and REST API response types and contracts for Sovkora.
  */
 
 // ── GraphQL Schema Types ─────────────────────────────────────────────────────

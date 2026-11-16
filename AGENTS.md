@@ -11,19 +11,19 @@
 ## 0. Current phase — **LOCAL runtime, one GitHub repository**
 
 - The platform is **one GitHub repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029): every module is a folder (§2.1). The runtime cycle (run, e2e, docs) still runs **on the dev machine (macOS 64 GB)**.
-- **Allowed on GitHub**: GitHub Actions that **build and test** (one CI, `.github/workflows/ci.yml`), and that **publish on a tag**: the Mac app (`desktop-v*`), the mobile build (`mobile-v*`), the CUDA image of the media worker (`ghcr.io/krizaka/sovkora-media-worker`), the CLI on npm (`@krizaka/orazaka-cli`, provenance). Sovkora's Java artifacts are **not published**: only images ship (ADR-029). The Krizaka building blocks `com.krizaka:*` come from **Maven Central** (krizaka-java).
+- **Allowed on GitHub**: GitHub Actions that **build and test** (one CI, `.github/workflows/ci.yml`), and that **publish on a tag**: the Mac app (`desktop-v*`), the mobile build (`mobile-v*`), the CUDA image of the media worker (`ghcr.io/krizaka/sovkora-media-worker`), the CLI on npm (`@krizaka/sovkora-cli`, provenance). Sovkora's Java artifacts are **not published**: only images ship (ADR-029). The Krizaka building blocks `com.krizaka:*` come from **Maven Central** (krizaka-java).
 - **Allowed in the cloud (decision 2026-10-14)**: the **dev** environment only — `dev.sovkora.com` and `admin.sovkora.com` (the same `sovkora-dev` app, told apart by the `Host`) on DigitalOcean App Platform, built from this repository (the web app from `apps/web`, the `core` image from `infra/deploy/Dockerfile`), the shared dev cluster `krizaka-dev-pg`, an hourly GPU host started and stopped by hand. How: [`docs/DEPLOY_DEV.md`](docs/DEPLOY_DEV.md); its infrastructure as code is krizaka-infra `stacks/dev/sovkora`. Secrets live in the maintainer's local vault and in App Platform (encrypted), never in a repository.
 - **Forbidden for now**: any other cloud deployment (staging, production), cloud provisioning, remote Terraform `apply`, remote secrets beyond `GITHUB_TOKEN` and the organisation's.
-- **Allowed locally**: `docker-compose` (stateful infra), **native macOS** AI runtimes (Metal), running apps via the `orazaka` CLI, **hermetic** tests (Testcontainers), docs generation.
+- **Allowed locally**: `docker-compose` (stateful infra), **native macOS** AI runtimes (Metal), running apps via the `sovkora` CLI, **hermetic** tests (Testcontainers), docs generation.
 - The code stays **ready** for staging/prod (hexagonal + config-per-profile), but those environments are **deferred**: do not implement them until explicitly requested.
 
 ---
 
 ## 1. Execution & CLI
 
-- **Single orchestrator**: the `orazaka` CLI (`apps/cli`, on npm as `@krizaka/orazaka-cli`). **No shell scripts** (`.sh`/`.bat`) for setup or operations **[ERR-125]**.
-- The loop: `./mvnw verify` (the whole reactor) → `pnpm install` (the clients) → `orazaka install` → `orazaka start` (Docker infra) → `orazaka models pull` → `orazaka dev` → `orazaka onboard`. The Krizaka services `dev` runs beside Sovkora's (users, billing, notifications) come from a krizaka-java checkout at the release `build/sovkora-parent` imports, in `.krizaka-java/`.
-- Tests: `orazaka test [unit|it|e2e]`, or the module's own command (README « Run it »). Docs: `node scripts/generate-docs.mjs`.
+- **Single orchestrator**: the `sovkora` CLI (`apps/cli`, on npm as `@krizaka/sovkora-cli`). **No shell scripts** (`.sh`/`.bat`) for setup or operations **[ERR-125]**.
+- The loop: `./mvnw verify` (the whole reactor) → `pnpm install` (the clients) → `sovkora install` → `sovkora start` (Docker infra) → `sovkora models pull` → `sovkora dev` → `sovkora onboard`. The Krizaka services `dev` runs beside Sovkora's (users, billing, notifications) come from a krizaka-java checkout at the release `build/sovkora-parent` imports, in `.krizaka-java/`.
+- Tests: `sovkora test [unit|it|e2e]`, or the module's own command (README « Run it »). Docs: `node scripts/generate-docs.mjs`.
 - **Non-negotiable execution boundary**: stateful infra (PostgreSQL+pgvector, Redis, RabbitMQ) in **Docker**; AI inference (Ollama, image, video) **native macOS**. Never run inference in Docker (CPU fallback = destroyed DevX).
 
 ---
@@ -221,7 +221,7 @@ One module, packs by concern: `security/` `token/` `context/` `translation/` `en
 - Single interface: `PromptContextInterceptor` (enriches / routes / may **short-circuit**). `governance/` drives conditional activation (predicates).
 - **Kill-switches**: `orazaka.security.disable-ai=true` fails any interceptor with `isAiDependent()==true` — it gates interceptors, not the model call itself. `orazaka.core.orchestration.enabled=false` (`ORCHESTRATION_ENABLED`) **refuses** every engine turn (`PipelineDisabledException` → `503` / `PLATFORM_UNAVAILABLE`). It never bypasses the pipeline: a bypass would skip the crisis guard, the scope guard, the credit hold and the `disable-ai` gate and still call the model (ADR-062).
 - **Failure posture is declared** (ADR-064): an interceptor that is a control returns `failsClosed() == true`, and its unhandled failure stops the turn; an enrichment's degrades it. A control that chooses to survive a dependency's failure handles it inside itself and says so on the class — the credit gate fails open and records every turn it serves without a hold.
-- **Caller data never shares a key space with trusted context** (ADR-064): a `Context` carries platform declarations under `orazaka.` and what the user wrote under `preference.`; the pipeline merges only those two namespaces. Reordering statements is not a fix.
+- **Caller data never shares a key space with trusted context** (ADR-064): a `Context` carries platform declarations under `sovkora.` and what the user wrote under `preference.`; the pipeline merges only those two namespaces. Reordering statements is not a fix.
 - Modes: `orazaka.core.orchestration.routing.mode = DETERMINISTIC | AGENTIC`.
 
 ---
@@ -257,7 +257,7 @@ All clients live under `apps/` — one folder each, one pnpm workspace (`pnpm-wo
   everything) and must be green before merge. A test is never skipped, `@Disabled`, weakened or deleted to get there.
 - **Pyramid**: unit (per module) → integration (**Testcontainers**, `AbstractContainerIntegrationTest`, singleton per JVM, ports via `@DynamicPropertySource`) → **hermetic E2E** (`e2e/sovkora-e2e`).
 - **ArchUnit**: `GovernanceTest` validates the ring rules on **every build**. Before a push: `./mvnw test -pl engine/sovkora-engine-core -Dtest=GovernanceTest`.
-- In the local phase, **hermetic E2E is the quality gate** (no staging/prod). `orazaka test e2e`.
+- In the local phase, **hermetic E2E is the quality gate** (no staging/prod). `sovkora test e2e`.
 -
 
 ---
@@ -265,7 +265,7 @@ All clients live under `apps/` — one folder each, one pnpm workspace (`pnpm-wo
 ## 10. Documentation generation (local, automated, from code)
 
 - **Docs come from code.** **Full** automation, wired into the **build**: no hand-maintained architecture doc that can drift.
-- `orazaka docs build`: generates, from the code, **(a)** markdown (catalog of `UseCaseDescriptor`, ADR ledger, interceptor registry, interface contracts, **API reference, governance-rule registry**, CLI reference, model catalog, and the guides to the business layer, tools & MCP, jobs/schedules/automation, packs and administration) **and (b)** a **structured** architecture model (`docs/_generated/architecture.json`: modules, ports, dependencies, pipeline, messaging) extracted via ArchUnit/annotation scan. The build fails if the model is stale (`docs build --check`).
+- `sovkora docs build`: generates, from the code, **(a)** markdown (catalog of `UseCaseDescriptor`, ADR ledger, interceptor registry, interface contracts, **API reference, governance-rule registry**, CLI reference, model catalog, and the guides to the business layer, tools & MCP, jobs/schedules/automation, packs and administration) **and (b)** a **structured** architecture model (`docs/_generated/architecture.json`: modules, ports, dependencies, pipeline, messaging) extracted via ArchUnit/annotation scan. The build fails if the model is stale (`docs build --check`).
 - **The API reference carries the authorisation rule, not only the path.** Access is resolved per endpoint from each service's `SecurityConfig` in **declaration order** — Spring Security is first-match-wins, and ranking matchers by specificity inverts the answer. An endpoint no matcher covers is rendered **⚠ no rule**, which is a finding rather than a formatting gap: it means the service has no security on that path at all.
 - **The governance registry lists which suite enforces each rule.** A rule with no suite enforces nothing, and that must be visible without reading the test tree. Every `assert*` in `orazaka-test-support` appears, summarised by its own javadoc — so a rule is documented by whoever writes it.
 - **Docstrings are the generator's input, not decoration.** A controller method's first javadoc sentence becomes its API summary; a rule's becomes its registry entry. An undocumented public surface generates an empty cell.

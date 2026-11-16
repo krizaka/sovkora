@@ -133,13 +133,13 @@ export const configCommand = new Command("config")
     const envPath = resolveEnvFile();
     const envExists = fs.existsSync(envPath);
 
-    await intro(chalk.cyan.bold("🥷 Orazaka Configuration Wizard"));
+    await intro(chalk.cyan.bold("🥷 Sovkora Configuration Wizard"));
 
     if (!envExists) {
       await logWarning(
         "No .env file found in the current directory.\n" +
           "  Run " +
-          chalk.cyan("npx orazaka init") +
+          chalk.cyan("npx sovkora init") +
           " first to generate a secure environment configuration.",
       );
       await outro("Configuration wizard aborted.");
@@ -160,7 +160,7 @@ export const configCommand = new Command("config")
         }
         await note(lines.join("\n"), category.label);
       }
-      await outro("Use " + chalk.cyan("npx orazaka config") + " (without --list) to edit values interactively.");
+      await outro("Use " + chalk.cyan("npx sovkora config") + " (without --list) to edit values interactively.");
       return;
     }
 

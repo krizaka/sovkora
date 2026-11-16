@@ -1,6 +1,6 @@
 /**
  * @file init-steps.test.ts
- * @description Guards the pure steps extracted from `orazaka init` (behaviour unchanged by the refactor).
+ * @description Guards the pure steps extracted from `sovkora init` (behaviour unchanged by the refactor).
  */
 
 import * as fs from "node:fs";
@@ -19,11 +19,11 @@ const tmp = (): string => fs.mkdtempSync(path.join(os.tmpdir(), "orazaka-init-")
 
 describe("renderEnvFile", () => {
   it("writes the header, the timestamp and one KEY=VALUE per default", () => {
-    const text = renderEnvFile({ PORT: "8080", APP_NAME: "Orazaka" }, new Date("2026-10-29T10:00:00.000Z"));
+    const text = renderEnvFile({ PORT: "8080", APP_NAME: "Sovkora" }, new Date("2026-10-29T10:00:00.000Z"));
     const lines = text.split("\n");
-    expect(lines[1]).toBe("# ORAZAKA ENVIRONMENT CONFIGURATION");
+    expect(lines[1]).toBe("# SOVKORA ENVIRONMENT CONFIGURATION");
     expect(lines[3]).toBe("# Timestamp: 2026-10-29T10:00:00.000Z");
-    expect(lines.slice(-2)).toEqual(["PORT=8080", "APP_NAME=Orazaka"]);
+    expect(lines.slice(-2)).toEqual(["PORT=8080", "APP_NAME=Sovkora"]);
   });
 });
 

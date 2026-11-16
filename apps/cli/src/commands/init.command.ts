@@ -1,7 +1,7 @@
 /**
  * @file init.command.ts
  * @description Workspace initialization with smart detection.
- * Detects whether the user is inside an existing Orazaka workspace and
+ * Detects whether the user is inside an existing Sovkora workspace and
  * adapts behavior accordingly: existing workspace = validate + fix,
  * new directory = full scaffold.
  */
@@ -108,7 +108,7 @@ function getRequiredEnvDefaults(): Record<string, string> {
     VIDEO_WORKER_LOG: "var/logs/video-worker.log",
     IMAGE_WORKER_LOG: "var/logs/image-worker.log",
     // Application
-    APP_NAME: "Orazaka",
+    APP_NAME: "Sovkora",
     APP_VERSION: "1.0.0",
     NODE_ENV: "development",
   };
@@ -203,7 +203,7 @@ async function showSystemInfo(targetDir: string): Promise<void> {
 }
 
 async function announceWorkspace(targetDir: string, detection: Detection): Promise<void> {
-  await logSuccess(`Existing Orazaka workspace detected in ${chalk.cyan(targetDir)}`);
+  await logSuccess(`Existing Sovkora workspace detected in ${chalk.cyan(targetDir)}`);
   await logStep(`Found markers: ${detection.markers.join(", ")}`);
   if (detection.missing.length > 0) {
     await logWarning(`Missing markers: ${chalk.yellow(detection.missing.join(", "))}`);
@@ -259,7 +259,7 @@ async function reportTools(): Promise<void> {
     for (const r of toolReport.missingCritical) {
       console.log(`  ${formatToolResult(r)}`);
     }
-    console.log(`\n  Run ${chalk.cyan("npx orazaka install")} to install missing tools.`);
+    console.log(`\n  Run ${chalk.cyan("npx sovkora install")} to install missing tools.`);
   }
   if (toolReport.missingOptional.length > 0) {
     await logInfo("Optional tools not found:");
@@ -282,11 +282,11 @@ async function runExistingWorkspaceFlow(targetDir: string, detection: Detection)
       `${chalk.green("✔")} Workspace directories`,
       "",
       `${chalk.cyan("Next steps:")}`,
-      `  ${chalk.white("1.")} ${chalk.cyan("npx orazaka install")}     — Install/verify tools`,
-      `  ${chalk.white("2.")} ${chalk.cyan("npx orazaka doctor")}      — Full diagnostics`,
-      `  ${chalk.white("3.")} ${chalk.cyan("npx orazaka start --mode dev")} — Launch middleware + AI engines`,
-      `  ${chalk.white("4.")} ${chalk.cyan("npx orazaka dev")}            — Spawn Router + Web + Mobile`,
-      `  ${chalk.white("5.")} ${chalk.gray("(or debug RouterApplication in IntelliJ + ")}${chalk.cyan("npx orazaka dev --skip-router")}${chalk.gray(")")}`,
+      `  ${chalk.white("1.")} ${chalk.cyan("npx sovkora install")}     — Install/verify tools`,
+      `  ${chalk.white("2.")} ${chalk.cyan("npx sovkora doctor")}      — Full diagnostics`,
+      `  ${chalk.white("3.")} ${chalk.cyan("npx sovkora start --mode dev")} — Launch middleware + AI engines`,
+      `  ${chalk.white("4.")} ${chalk.cyan("npx sovkora dev")}            — Spawn Router + Web + Mobile`,
+      `  ${chalk.white("5.")} ${chalk.gray("(or debug RouterApplication in IntelliJ + ")}${chalk.cyan("npx sovkora dev --skip-router")}${chalk.gray(")")}`,
     ].join("\n"),
     "✨ Workspace Ready",
   );
@@ -298,7 +298,7 @@ async function runExistingWorkspaceFlow(targetDir: string, detection: Detection)
 async function chooseNewWorkspaceDir(targetDir: string, yes: boolean | undefined): Promise<string> {
   if (yes) return targetDir;
   const initHere = await confirm({
-    message: `Initialize Orazaka workspace in ${chalk.cyan(targetDir)}?`,
+    message: `Initialize Sovkora workspace in ${chalk.cyan(targetDir)}?`,
     initialValue: true,
   });
   handleCancel(initHere);
@@ -306,8 +306,8 @@ async function chooseNewWorkspaceDir(targetDir: string, yes: boolean | undefined
 
   const customDir = await text({
     message: "Enter the directory path for the workspace:",
-    placeholder: path.join(process.cwd(), "orazaka"),
-    defaultValue: path.join(process.cwd(), "orazaka"),
+    placeholder: path.join(process.cwd(), "sovkora"),
+    defaultValue: path.join(process.cwd(), "sovkora"),
   });
   handleCancel(customDir);
   return path.resolve(customDir as string);
@@ -362,9 +362,9 @@ async function runNewWorkspaceFlow(targetDir: string, options: InitOptions): Pro
       `${chalk.green("✔")} Docker Compose: infra/docker-compose.yml`,
       "",
       `${chalk.cyan("Next steps:")}`,
-      `  ${chalk.white("1.")} ${chalk.cyan("npx orazaka install")}   — Install required tools`,
-      `  ${chalk.white("2.")} ${chalk.cyan("npx orazaka doctor")}    — Run diagnostics`,
-      `  ${chalk.white("3.")} ${chalk.cyan("npx orazaka start")}     — Launch infrastructure`,
+      `  ${chalk.white("1.")} ${chalk.cyan("npx sovkora install")}   — Install required tools`,
+      `  ${chalk.white("2.")} ${chalk.cyan("npx sovkora doctor")}    — Run diagnostics`,
+      `  ${chalk.white("3.")} ${chalk.cyan("npx sovkora start")}     — Launch infrastructure`,
     ].join("\n"),
     "✨ Initialization Complete",
   );
@@ -379,7 +379,7 @@ export const initCommand = new Command("init")
   .option("--skip-validation", "Skip diagnostic checks")
   .option("--dir <path>", "Target directory (default: current directory)")
   .action(async (options: InitOptions) => {
-    await intro(chalk.cyan.bold("🥷 Orazaka Workspace Initialization"));
+    await intro(chalk.cyan.bold("🥷 Sovkora Workspace Initialization"));
 
     const targetDir = options.dir ? path.resolve(options.dir) : process.cwd();
     const detection = detectOrazakaWorkspace(targetDir);
@@ -390,7 +390,7 @@ export const initCommand = new Command("init")
       return;
     }
 
-    await logInfo("No Orazaka workspace detected in current directory.");
+    await logInfo("No Sovkora workspace detected in current directory.");
     const workspaceDir = await chooseNewWorkspaceDir(targetDir, options.yes);
     await runNewWorkspaceFlow(workspaceDir, options);
   });

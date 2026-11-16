@@ -12,10 +12,10 @@ A Studio is a ready-made workflow behind one form. You fill the form, Sovkora ru
 ## From the terminal
 
 ```bash
-npx orazaka studio list                     # the catalogue
-npx orazaka studio install <studioKey>      # add one to your workspace
-npx orazaka studio run <installation> --inputs key=value
-npx orazaka studio logs <runId>             # each step and its result
+npx sovkora studio list                     # the catalogue
+npx sovkora studio install <studioKey>      # add one to your workspace
+npx sovkora studio run <installation> --inputs key=value
+npx sovkora studio logs <runId>             # each step and its result
 ```
 
 Pipes make a list: `--inputs tags=a|b|c`. For text with commas, use `--inputs-file inputs.json`.

@@ -8,7 +8,7 @@ import * as os from "node:os";
  * CLI E2E Sandbox tests [ADR-033].
  *
  * Spawns sub-processes using Execa within temporary directories to validate
- * that 'npx orazaka init' creates clean environment profiles and local SQLite
+ * that 'npx sovkora init' creates clean environment profiles and local SQLite
  * configurations without polluting the host environment.
  */
 describe("orazaka-cli E2E sandbox", () => {
@@ -76,7 +76,7 @@ describe("orazaka-cli E2E sandbox", () => {
 
     // Simulate environment profile creation
     const envContent = [
-      "# Orazaka Environment Profile",
+      "# Sovkora Environment Profile",
       "ORAZAKA_API_HOST=http://localhost:8080",
       "ORAZAKA_WS_HOST=ws://localhost:8080",
       "",

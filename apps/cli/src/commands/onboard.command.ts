@@ -1,11 +1,11 @@
 /**
  * @file onboard.command.ts
- * @description ERR-125 compliant onboarding subcommand for Orazaka CLI.
+ * @description ERR-125 compliant onboarding subcommand for Sovkora CLI.
  * Handles full clone-and-run validation: prerequisite checks, Maven compilation,
  * M2M signed handshake smoke test, local sovereign AI runtime health checks,
  * and hardware accelerator detection with SLA guardrails.
  *
- * Usage: npx orazaka onboard
+ * Usage: npx sovkora onboard
  */
 
 import { Command } from "commander";
@@ -102,7 +102,7 @@ function runHandshakeSmokeTest(): boolean {
       console.log(chalk.gray("    M2M JWT gate is active — handshake validated."));
       return true;
     } else if (statusCode === "000") {
-      console.log(chalk.yellow("  ⚠ Router is not running. Start with: npx orazaka dev"));
+      console.log(chalk.yellow("  ⚠ Router is not running. Start with: npx sovkora dev"));
       console.log(chalk.gray("    Skipping live handshake — prerequisite and compilation passed."));
       return true; // Non-fatal: offline mode
     } else {
@@ -214,7 +214,7 @@ function runAcceleratorDetection(): void {
     console.log(chalk.red.bold("\n  ⛔ WARNING: No GPU/NPU accelerator detected."));
     console.log(
       chalk.red(
-        "  Local models will fall back to CPU execution, which violates Orazaka synchronous runtime latency SLAs.",
+        "  Local models will fall back to CPU execution, which violates Sovkora synchronous runtime latency SLAs.",
       ),
     );
   } else {
@@ -228,7 +228,7 @@ export const onboardCommand = new Command("onboard")
   )
   .action(async () => {
     console.log(chalk.cyan.bold("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"));
-    console.log(chalk.cyan.bold("  🥷  ORAZAKA ONBOARDING — Production Readiness"));
+    console.log(chalk.cyan.bold("  🥷  SOVKORA ONBOARDING — Production Readiness"));
     console.log(chalk.cyan.bold("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"));
 
     // Phase 1: Prerequisites
@@ -255,7 +255,7 @@ export const onboardCommand = new Command("onboard")
 
     console.log(chalk.green.bold("\n✅ Onboarding complete. System is production-ready.\n"));
     console.log(chalk.gray("Next steps:"));
-    console.log(chalk.white("  $ npx orazaka start   ") + chalk.gray("Launch infrastructure"));
-    console.log(chalk.white("  $ npx orazaka dev     ") + chalk.gray("Launch full dev stack"));
-    console.log(chalk.white("  $ npx orazaka status  ") + chalk.gray("Check service health\n"));
+    console.log(chalk.white("  $ npx sovkora start   ") + chalk.gray("Launch infrastructure"));
+    console.log(chalk.white("  $ npx sovkora dev     ") + chalk.gray("Launch full dev stack"));
+    console.log(chalk.white("  $ npx sovkora status  ") + chalk.gray("Check service health\n"));
   });

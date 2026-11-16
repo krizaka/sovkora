@@ -1,10 +1,10 @@
 {
-  "name": "@krizaka/orazaka-cli",
+  "name": "@krizaka/sovkora-cli",
   "version": "1.1.0",
   "packageManager": "pnpm@12.10.1",
-  "description": "The orazaka CLI — clone, install, start and develop the Orazaka sovereign AI platform from your terminal.",
+  "description": "The sovkora CLI — clone, install, start and develop the Sovkora sovereign AI platform from your terminal.",
   "bin": {
-    "orazaka": "dist/index.js"
+    "sovkora": "dist/index.js"
   },
   "files": [
     "dist",
@@ -20,11 +20,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/krizaka/orazaka-cli.git"
+    "url": "git+https://github.com/krizaka/sovkora.git"
   },
-  "homepage": "https://www.krizaka.com/en/products/orazaka",
+  "homepage": "https://www.krizaka.com/en/products/sovkora",
   "bugs": {
-    "url": "https://github.com/krizaka/orazaka-cli/issues"
+    "url": "https://github.com/krizaka/sovkora/issues"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -55,7 +55,7 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,css}\""
   },
   "keywords": [
-    "orazaka",
+    "sovkora",
     "krizaka",
     "sovereign-ai",
     "ai",

@@ -56,7 +56,7 @@ export const registerCommand = new Command("register")
   .option("-l, --language <lang>", "BCP 47 language tag (e.g. en, ja)")
   .action(async (usernameArg?: string, emailArg?: string, options?: { language?: string }) => {
     try {
-      await intro(chalk.cyan("Orazaka Account Registration"));
+      await intro(chalk.cyan("Sovkora Account Registration"));
 
       const username = await promptUsername(usernameArg);
       const email = await promptEmail(emailArg);
@@ -77,7 +77,7 @@ export const registerCommand = new Command("register")
 
         s.stop("Registration success!");
         await outro(chalk.green(`✓ Registration successful for: ${result.user?.username || username}`));
-        await outro(chalk.yellow("If email verification is enabled, run: orazaka verify <token>"));
+        await outro(chalk.yellow("If email verification is enabled, run: sovkora verify <token>"));
       } catch (err: unknown) {
         s.stop("Registration failed");
         const msg = err instanceof Error ? err.message : "Unknown error";

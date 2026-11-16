@@ -133,7 +133,6 @@ updates:
 - package-ecosystem: npm
   directories:
   - /apps/cli
-  - /apps/cli/alias
   schedule:
     interval: monthly
     time: "06:00"

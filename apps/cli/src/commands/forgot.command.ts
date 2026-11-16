@@ -26,7 +26,7 @@ export const forgotCommand = new Command("forgot")
   .argument("[email]", "Account email address")
   .action(async (emailArg?: string) => {
     try {
-      await intro(chalk.cyan("Orazaka Password Recovery"));
+      await intro(chalk.cyan("Sovkora Password Recovery"));
 
       const email = await promptEmail(emailArg);
       const s = await createSpinner();
@@ -36,7 +36,7 @@ export const forgotCommand = new Command("forgot")
         const result = await AuthApi.forgotPassword(email);
         s.stop("Request processed");
         await outro(chalk.green(`✓ ${result.message}`));
-        await outro(chalk.yellow("Check your email for the reset token, then run: orazaka reset"));
+        await outro(chalk.yellow("Check your email for the reset token, then run: sovkora reset"));
       } catch (err: unknown) {
         s.stop("Request failed");
         const msg = err instanceof Error ? err.message : "Unknown error";

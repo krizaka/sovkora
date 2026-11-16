@@ -43,7 +43,7 @@ export const graphCommand = new Command("graph")
 
       items.push(`Total: ${visibleNodes.length} visible / ${nodes.length} total capabilities`);
 
-      Box.render("🥷 ORAZAKA OPERATION GRAPH", items, {
+      Box.render("🥷 SOVKORA OPERATION GRAPH", items, {
         borderColor: "cyan",
         titleColor: "white",
       });
