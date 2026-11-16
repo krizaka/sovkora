@@ -1,0 +1,5 @@
+{
+  "capability": "orazaka.echo.text.reverse",
+  "input": { "text": "Bonjour Montréal" },
+  "assertions": [{ "path": ["text"], "equals": "laértnoM ruojnoB" }]
+}
