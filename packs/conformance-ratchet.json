@@ -1,0 +1,6 @@
+{
+  "exceptions": {
+    "profile-photo-check/photo.profile.inspect": "its handler needs the face models: krizaka-internal#3953",
+    "code-contributor/code.agent.turn": "a model turn with no worker handler to call: krizaka-internal#3954"
+  }
+}

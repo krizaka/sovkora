@@ -1,0 +1,18 @@
+{
+  "input": {
+    "facts": "{\"language\":\"fr\",\"rows\":3,\"source\":\"data\",\"currency\":null,\"figures\":[{\"id\":\"F1\",\"value\":3,\"kind\":\"count\",\"label\":\"number of rows\",\"key\":null},{\"id\":\"F2\",\"value\":60,\"kind\":\"integer\",\"label\":\"sum of ventes\",\"key\":null},{\"id\":\"F3\",\"value\":20,\"kind\":\"number\",\"label\":\"mean of ventes per row\",\"key\":null},{\"id\":\"F4\",\"value\":10,\"kind\":\"integer\",\"label\":\"smallest ventes in one row\",\"key\":null},{\"id\":\"F5\",\"value\":30,\"kind\":\"integer\",\"label\":\"largest ventes in one row\",\"key\":null},{\"id\":\"F6\",\"value\":10,\"kind\":\"integer\",\"label\":\"sum of ventes where Jour = 1 janv. (rank 3 of 3 by ventes)\",\"key\":\"1 janv.\"},{\"id\":\"F7\",\"value\":0.166667,\"kind\":\"percent\",\"label\":\"share of ventes for Jour = 1 janv.\",\"key\":\"1 janv.\"},{\"id\":\"F8\",\"value\":20,\"kind\":\"integer\",\"label\":\"sum of ventes where Jour = 2 janv. (rank 2 of 3 by ventes)\",\"key\":\"2 janv.\"},{\"id\":\"F9\",\"value\":0.333333,\"kind\":\"percent\",\"label\":\"share of ventes for Jour = 2 janv.\",\"key\":\"2 janv.\"},{\"id\":\"F10\",\"value\":30,\"kind\":\"integer\",\"label\":\"sum of ventes where Jour = 3 janv. (rank 1 of 3 by ventes)\",\"key\":\"3 janv.\"},{\"id\":\"F11\",\"value\":0.5,\"kind\":\"percent\",\"label\":\"share of ventes for Jour = 3 janv.\",\"key\":\"3 janv.\"},{\"id\":\"F12\",\"value\":1,\"kind\":\"count\",\"label\":\"number of rows where Jour = 1 janv.\",\"key\":\"1 janv.\"},{\"id\":\"F13\",\"value\":1,\"kind\":\"count\",\"label\":\"number of rows where Jour = 2 janv.\",\"key\":\"2 janv.\"},{\"id\":\"F14\",\"value\":1,\"kind\":\"count\",\"label\":\"number of rows where Jour = 3 janv.\",\"key\":\"3 janv.\"},{\"id\":\"F15\",\"value\":30,\"kind\":\"integer\",\"label\":\"best day by ventes: 3 janv.\",\"key\":\"3 janv.\"},{\"id\":\"F16\",\"value\":10,\"kind\":\"integer\",\"label\":\"weakest day by ventes: 1 janv.\",\"key\":\"1 janv.\"}],\"tables\":[{\"id\":\"T1\",\"title\":\"by day\",\"dimension\":{\"key\":\"day\",\"label\":\"Jour\",\"kind\":\"period\",\"money\":false,\"intensive\":false},\"measures\":[{\"key\":\"count\",\"label\":\"Lignes\",\"kind\":\"count\",\"money\":false,\"intensive\":false},{\"key\":\"ventes\",\"label\":\"ventes\",\"kind\":\"number\",\"money\":false,\"intensive\":false}],\"rows\":[{\"day\":\"1 janv.\",\"count\":1,\"ventes\":10},{\"day\":\"2 janv.\",\"count\":1,\"ventes\":20},{\"day\":\"3 janv.\",\"count\":1,\"ventes\":30}]}],\"columns\":[{\"key\":\"jour\",\"label\":\"jour\",\"kind\":\"date\",\"money\":false,\"intensive\":false},{\"key\":\"ventes\",\"label\":\"ventes\",\"kind\":\"number\",\"money\":false,\"intensive\":false}]}\n",
+    "answer": "{\"summary\":\"The total of the sales is {F2}.\",\"kpis\":[{\"label\":\"Total\",\"fact\":\"F2\"}],\"chart\":{\"title\":\"Sales per day\",\"kind\":\"bar\",\"table\":\"T1\",\"series\":[\"ventes\"]},\"table\":{\"caption\":\"Sales per day\",\"table\":\"T1\",\"columns\":[\"day\",\"ventes\"]}}",
+    "question": "What is the total of the sales?",
+    "final": "true"
+  },
+  "assertions": [
+    {
+      "path": ["valid"],
+      "equals": true
+    },
+    {
+      "path": ["answer"],
+      "includes": "```a2ui"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+pika>=1.4.4
+pyyaml>=6.0.3
+pypdf
+pikepdf
+reportlab
+Pillow

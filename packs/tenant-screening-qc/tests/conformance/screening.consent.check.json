@@ -1,0 +1,16 @@
+{
+  "input": {
+    "purpose": "CREDIT",
+    "consentedPurposes": ["DOCUMENTS"]
+  },
+  "assertions": [
+    {
+      "path": ["status"],
+      "equals": "REFUSED"
+    },
+    {
+      "path": ["reason"],
+      "equals": "NO_CONSENT"
+    }
+  ]
+}

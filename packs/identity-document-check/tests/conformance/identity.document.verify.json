@@ -1,0 +1,12 @@
+{
+  "input": {
+    "reading": "{\"documentType\":\"PASSPORT\",\"mrzLines\":[\"P<UTOERIKSSON<<ANNA<MARIA<<<<<<<<<<<<<<<<<<<\",\"L898902C36UTO7408122F1204159ZE184226B<<<<<10\"],\"printed\":{},\"signals\":[],\"quality\":{},\"confidence\":{\"mrz\":0.9}}",
+    "asOf": "2011-06-01"
+  },
+  "assertions": [
+    {
+      "path": ["status"],
+      "equals": "CONSISTENT"
+    }
+  ]
+}

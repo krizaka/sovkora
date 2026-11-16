@@ -1,0 +1,12 @@
+{
+  "input": {
+    "text": "Salut, ça va ?",
+    "locale": "fr"
+  },
+  "assertions": [
+    {
+      "path": ["detector"],
+      "equals": "UNAVAILABLE"
+    }
+  ]
+}

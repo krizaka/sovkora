@@ -1,0 +1,35 @@
+{
+  "input": {
+    "subject": {
+      "subjectId": "subj-synthetic-001",
+      "lastName": "Gagnon",
+      "firstName": "Camille"
+    },
+    "authenticityReport": {
+      "signals": [
+        {
+          "signalId": "producer-known",
+          "level": "observé"
+        },
+        {
+          "signalId": "font-mix",
+          "level": "inhabituel"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "path": ["status"],
+      "equals": "READY"
+    },
+    {
+      "path": ["payer"],
+      "equals": "LANDLORD"
+    },
+    {
+      "path": ["worstCaseCredits"],
+      "equals": 60
+    }
+  ]
+}

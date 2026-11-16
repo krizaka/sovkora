@@ -1,0 +1,23 @@
+{
+  "input": {
+    "facts": "{\"photos\":[{\"index\":0,\"kind\":\"FACE\",\"faceCount\":1},{\"index\":1,\"kind\":\"FACE\",\"faceCount\":1},{\"index\":2,\"kind\":\"NO_FACE\",\"faceCount\":0},{\"index\":3,\"kind\":\"NO_FACE\",\"faceCount\":0}],\"identity\":{\"status\":\"CONSISTENT\",\"mismatch\":[],\"compared\":2}}",
+    "looks": [],
+    "minPhotos": 4,
+    "maxPhotos": 6,
+    "minFacePhotos": 2
+  },
+  "assertions": [
+    {
+      "path": ["report", "rulesetId"],
+      "equals": "profile-photo"
+    },
+    {
+      "path": ["report", "photos"],
+      "type": "array"
+    },
+    {
+      "path": ["passes"],
+      "equals": true
+    }
+  ]
+}

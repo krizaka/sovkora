@@ -1,0 +1,38 @@
+# Every pack proves it runs: the conformance suite (packs/tests/conformance.test.mjs) over the whole set, every night.
+# A pull request that touches a pack runs the same suite in ci.yml (Packs (schema, goldens)); this is the full sweep, so a
+# change in the engine or a shared worker library that breaks a pack nobody touched shows up the next morning.
+# The coverage table is in the run's summary.
+name: Packs conformance
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: packs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          package-manager-cache: false
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - name: Python for the pack handlers
+        run: |
+          python3 -m venv "$RUNNER_TEMP/packs-venv"
+          "$RUNNER_TEMP/packs-venv/bin/pip" install --quiet -r tests/conformance/requirements.txt
+          echo "PACK_PYTHON=$RUNNER_TEMP/packs-venv/bin/python" >> "$GITHUB_ENV"
+      - run: node --test tests/conformance.test.mjs

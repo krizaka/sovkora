@@ -1,0 +1,21 @@
+{
+  "input": {
+    "document": "BAIL DE LOGEMENT (modèle de démonstration, personnes et adresse fictives)\nFormulaire obligatoire du Tribunal administratif du logement.\nSection A — Parties\nLocateur : Madame Hélène Roy, 120, avenue du Parc, Montréal (Québec).\nLocataire : Monsieur Karim Haddad, 45, rue Beaubien, Laval (Québec).\nSection B — Logement\n3½ situé au 120, avenue du Parc, Montréal.\nSection C — Durée\nBail de 12 mois, du 1er septembre 2026 au 31 août 2027.\nSection D — Loyer\nLoyer mensuel : 1 120 $, payable le premier jour de chaque mois.\nAucun dépôt de garantie n'est exigé.\nPaiement par virement ou par chèque remis chaque mois.\nSection G — Avis du loyer le plus bas\nLe loyer le plus bas payé au cours des douze derniers mois précédant le début du bail était de 1 090 $ par mois.\nSigné à Montréal le 12 juin 2026.\n",
+    "declaredKind": "LEASE",
+    "asOf": "2026-10-22"
+  },
+  "assertions": [
+    {
+      "path": ["detectedKind"],
+      "equals": "qc-residential-lease"
+    },
+    {
+      "path": ["outcome"],
+      "equals": "CHECK"
+    },
+    {
+      "path": ["kindMismatch"],
+      "equals": false
+    }
+  ]
+}

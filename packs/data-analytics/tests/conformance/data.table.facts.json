@@ -1,0 +1,21 @@
+{
+  "input": {
+    "data": "jour,ventes\n2026-01-01,10\n2026-01-02,20\n2026-01-03,30",
+    "question": "Quelle est la somme des ventes ?",
+    "language": "fr"
+  },
+  "assertions": [
+    {
+      "path": ["hasTable"],
+      "equals": true
+    },
+    {
+      "path": ["rows"],
+      "atLeast": 3
+    },
+    {
+      "path": ["facts"],
+      "includes": "F2 = 60"
+    }
+  ]
+}
