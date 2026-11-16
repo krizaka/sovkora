@@ -38,10 +38,10 @@
     <properties>
         <!-- Security overrides of the Spring Boot BOM (Dependabot alerts): the patched releases of the libraries whose
              Boot-managed version is vulnerable. Drop each one when krizaka-parent / Spring Boot manages a fixed version. -->
-        <krizaka.security.jackson3.version>3.2.4</krizaka.security.jackson3.version>
-        <krizaka.security.jackson2.version>2.22.4</krizaka.security.jackson2.version>
-        <krizaka.security.amqp-client.version>5.37.0</krizaka.security.amqp-client.version>
-        <krizaka.security.opentelemetry.version>1.67.0</krizaka.security.opentelemetry.version>
+        <krizaka.security.jackson3.version>3.3.0</krizaka.security.jackson3.version>
+        <krizaka.security.jackson2.version>2.23.0</krizaka.security.jackson2.version>
+        <krizaka.security.amqp-client.version>5.37.1</krizaka.security.amqp-client.version>
+        <krizaka.security.opentelemetry.version>1.68.0</krizaka.security.opentelemetry.version>
         <krizaka.security.tomcat.version>11.0.27</krizaka.security.tomcat.version>
         <!-- The Krizaka artifacts (build, platform kit, users, notifications, billing) Sovkora
              is built on — one version, imported through krizaka-bom below. -->
