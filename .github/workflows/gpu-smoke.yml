@@ -5,7 +5,7 @@
 # It needs the dev environment's secrets, which only the maintainer adds (Settings → Secrets → Actions):
 #   OPERATOR_GPU_TOKEN         a DigitalOcean token able to create/delete droplets and volumes (droplets and volumes only: not the app-deploy token OPERATOR_DEPLOY_TOKEN; named by context, krizaka/.github#46)
 #   ORAZAKA_DEV_ENV            the content of ~/Documents/krizaka/orazaka-dev.env
-#   ORAZAKA_BROKER_CA_PEM      the dev broker's CA (~/Documents/krizaka/orazaka-broker/ca.pem)
+#   ORAZAKA_BROKER_CA_PEM      the dev broker's CA (private store: keys/sovkora-broker-dev/ca.pem)
 #   ORAZAKA_QA_EMAIL / ORAZAKA_QA_PASSWORD  the seeded test user of dev.orazaka.com
 # Without them the job says so and stops: nothing is started.
 name: GPU smoke (sovereign)
