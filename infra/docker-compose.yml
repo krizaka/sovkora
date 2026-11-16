@@ -131,7 +131,7 @@ services:
   # default localhost:1025). Locally every message lands here instead of a real
   # inbox: verification and password-reset links are read at http://localhost:8025.
   mailpit:
-    image: axllent/mailpit:v1.32
+    image: axllent/mailpit:v1.33
     container_name: ${COMPOSE_CONTAINER_PREFIX:-orazaka}-mailpit
     restart: always
     ports:
@@ -198,7 +198,7 @@ services:
       - orazaka-isolated
 
   lago-api:
-    image: getlago/api:v1.55.0
+    image: getlago/api:v1.57.0
     container_name: ${COMPOSE_CONTAINER_PREFIX:-orazaka}-lago-api
     profiles: [billing]
     restart: always
@@ -224,7 +224,7 @@ services:
       - orazaka-isolated
 
   lago-worker:
-    image: getlago/api:v1.55.0
+    image: getlago/api:v1.57.0
     container_name: ${COMPOSE_CONTAINER_PREFIX:-orazaka}-lago-worker
     profiles: [billing]
     restart: always
@@ -237,7 +237,7 @@ services:
       - orazaka-isolated
 
   lago-front:
-    image: getlago/front:v1.55.0
+    image: getlago/front:v1.57.0
     container_name: ${COMPOSE_CONTAINER_PREFIX:-orazaka}-lago-front
     profiles: [billing]
     restart: always
