@@ -61,7 +61,7 @@ test("modelSlice keeps what the diagram blocks read and nothing more", () => {
     flows: [],
     pipeline: [],
     coreChain: [],
-    cli: { alias: "orazaka", journey: [], commands: [1, 2] },
+    cli: { bin: "sovkora", journey: [], commands: [1, 2] },
     packs: [1],
   });
   assert.deepEqual(Object.keys(slice.modules[0]).sort(), [
@@ -93,7 +93,7 @@ test("sync writes the pages, the index, the model slice and the source map from 
       flows: [],
       pipeline: [],
       coreChain: [],
-      cli: { alias: "orazaka", journey: [] },
+      cli: { bin: "sovkora", journey: [] },
     }),
   );
   const n = sync(src, out);

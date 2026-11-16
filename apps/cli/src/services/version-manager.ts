@@ -12,7 +12,7 @@ import chalk from "chalk";
 import { execSync } from "node:child_process";
 
 /** The npm package the CLI is published as. */
-const PACKAGE_NAME = "@krizaka/sovkora-cli";
+const PACKAGE_NAME = "sovkora";
 
 /**
  * Version information structure.

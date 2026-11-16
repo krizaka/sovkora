@@ -66,7 +66,7 @@ sovkora/
 │   ├── web/                Next.js: the site, the Studios and the operator console (BFF)
 │   ├── mobile/             Expo / React Native
 │   ├── desktop/            Sovkora for Mac (Tauri 2)
-│   └── cli/                the developer CLI (`sovkora`, on npm as @krizaka/sovkora-cli)
+│   └── cli/                the developer CLI (`sovkora`, on npm)
 ├── infra/                  local stack, dev deployment, migrations, OpenTofu
 ├── scripts/                the repository's tooling and its tests
 ├── tests/load/             the k6 load tests of the edge

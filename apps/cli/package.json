@@ -1,5 +1,5 @@
 {
-  "name": "@krizaka/sovkora-cli",
+  "name": "sovkora",
   "version": "1.1.0",
   "packageManager": "pnpm@12.10.1",
   "description": "The sovkora CLI — clone, install, start and develop the Sovkora sovereign AI platform from your terminal.",

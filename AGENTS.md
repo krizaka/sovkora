@@ -11,7 +11,7 @@
 ## 0. Current phase — **LOCAL runtime, one GitHub repository**
 
 - The platform is **one GitHub repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029): every module is a folder (§2.1). The runtime cycle (run, e2e, docs) still runs **on the dev machine (macOS 64 GB)**.
-- **Allowed on GitHub**: GitHub Actions that **build and test** (one CI, `.github/workflows/ci.yml`), and that **publish on a tag**: the Mac app (`desktop-v*`), the mobile build (`mobile-v*`), the CUDA image of the media worker (`ghcr.io/krizaka/sovkora-media-worker`), the CLI on npm (`@krizaka/sovkora-cli`, provenance). Sovkora's Java artifacts are **not published**: only images ship (ADR-029). The Krizaka building blocks `com.krizaka:*` come from **Maven Central** (krizaka-java).
+- **Allowed on GitHub**: GitHub Actions that **build and test** (one CI, `.github/workflows/ci.yml`), and that **publish on a tag**: the Mac app (`desktop-v*`), the mobile build (`mobile-v*`), the CUDA image of the media worker (`ghcr.io/krizaka/sovkora-media-worker`), the CLI on npm (`sovkora`, provenance). Sovkora's Java artifacts are **not published**: only images ship (ADR-029). The Krizaka building blocks `com.krizaka:*` come from **Maven Central** (krizaka-java).
 - **Allowed in the cloud (decision 2026-10-14)**: the **dev** environment only — `dev.sovkora.com` and `admin.sovkora.com` (the same `sovkora-dev` app, told apart by the `Host`) on DigitalOcean App Platform, built from this repository (the web app from `apps/web`, the `core` image from `infra/deploy/Dockerfile`), the shared dev cluster `krizaka-dev-pg`, an hourly GPU host started and stopped by hand. How: [`docs/DEPLOY_DEV.md`](docs/DEPLOY_DEV.md); its infrastructure as code is krizaka-infra `stacks/dev/sovkora`. Secrets live in the maintainer's local vault and in App Platform (encrypted), never in a repository.
 - **Forbidden for now**: any other cloud deployment (staging, production), cloud provisioning, remote Terraform `apply`, remote secrets beyond `GITHUB_TOKEN` and the organisation's.
 - **Allowed locally**: `docker-compose` (stateful infra), **native macOS** AI runtimes (Metal), running apps via the `sovkora` CLI, **hermetic** tests (Testcontainers), docs generation.
@@ -21,7 +21,7 @@
 
 ## 1. Execution & CLI
 
-- **Single orchestrator**: the `sovkora` CLI (`apps/cli`, on npm as `@krizaka/sovkora-cli`). **No shell scripts** (`.sh`/`.bat`) for setup or operations **[ERR-125]**.
+- **Single orchestrator**: the `sovkora` CLI (`apps/cli`, on npm). **No shell scripts** (`.sh`/`.bat`) for setup or operations **[ERR-125]**.
 - The loop: `./mvnw verify` (the whole reactor) → `pnpm install` (the clients) → `sovkora install` → `sovkora start` (Docker infra) → `sovkora models pull` → `sovkora dev` → `sovkora onboard`. The Krizaka services `dev` runs beside Sovkora's (users, billing, notifications) come from a krizaka-java checkout at the release `build/sovkora-parent` imports, in `.krizaka-java/`.
 - Tests: `sovkora test [unit|it|e2e]`, or the module's own command (README « Run it »). Docs: `node scripts/generate-docs.mjs`.
 - **Non-negotiable execution boundary**: stateful infra (PostgreSQL+pgvector, Redis, RabbitMQ) in **Docker**; AI inference (Ollama, image, video) **native macOS**. Never run inference in Docker (CPU fallback = destroyed DevX).

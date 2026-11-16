@@ -29,6 +29,16 @@
       "glob": "docs/NAMING.md",
       "reason": "The mapping table lists the retired names and what is kept.",
       "row": "K5"
+    },
+    {
+      "glob": ".github/workflows/cli-release.yml",
+      "reason": "Names the CLI's two retired npm packages to deprecate them (renamed: use sovkora); they are never unpublished.",
+      "row": "K3"
+    },
+    {
+      "glob": "scripts/test/cli-release-workflow.test.mjs",
+      "reason": "Holds that workflow to deprecate the retired npm packages by name.",
+      "row": "K3"
     }
   ],
   "tokens": [

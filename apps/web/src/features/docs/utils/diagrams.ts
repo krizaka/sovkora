@@ -34,7 +34,7 @@ export interface DocsModel {
   }[];
   coreChain: { interceptor: string; rank: number; concern: string; summary: string }[];
   cli: {
-    alias: string;
+    bin: string;
     journey: {
       command: string;
       description: string;

@@ -72,7 +72,7 @@ describe("the Sovkora CLI is `sovkora`, no alias left", () => {
       name: string;
       bin: Record<string, string>;
     };
-    expect(pkg.name).toBe("@krizaka/sovkora-cli");
+    expect(pkg.name).toBe("sovkora");
     expect(Object.keys(pkg.bin)).toEqual(["sovkora"]);
     expect(findCodeNames(JSON.stringify(pkg))).toEqual([]);
   });

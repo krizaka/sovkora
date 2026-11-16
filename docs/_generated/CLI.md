@@ -29,10 +29,10 @@ npx sovkora start
 npx sovkora dev
 ```
 
-The package is `@krizaka/sovkora-cli`; installed, the command is `sovkora`:
+The npm package is `sovkora`, and so is the command; installed globally it runs without `npx`:
 
 ```bash
-npm install -g @krizaka/sovkora-cli   # then: sovkora <command>
+npm install -g sovkora   # then: sovkora <command>
 ```
 
 `install --check-only` only reports what is missing. `start`, `dev`, `test` and `docs` run inside

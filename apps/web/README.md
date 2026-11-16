@@ -47,7 +47,7 @@ site says so) → his Studios → plan and credits → appearance. What Eric wor
 `scripts/tour/eric.mjs`; the browser clock is set to 18:40 so the greeting reads "Good evening, Eric" (`TOUR_TIME`).
 
 ```bash
-# from the workspace (`npx sovkora` = @krizaka/sovkora-cli on npm, or the copy in apps/cli)
+# from the workspace (`npx sovkora` = the `sovkora` package on npm, or the copy in apps/cli)
 npx sovkora start && npx sovkora dev    # the stack, with the image engine (sd-server)
 npx sovkora demo seed --fresh           # Eric, with an empty history
 npm run build && npm run start

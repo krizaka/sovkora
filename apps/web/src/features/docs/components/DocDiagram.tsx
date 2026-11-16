@@ -54,7 +54,7 @@ export function diagramData(lang: DiagramLang, source: string, model: DocsModel)
     case "cli-replay":
       return { kind: "cli-replay", code: source.trim() };
     case "cli-journey":
-      return { kind: "cli-journey", alias: model.cli.alias, journey: model.cli.journey };
+      return { kind: "cli-journey", bin: model.cli.bin, journey: model.cli.journey };
     case "pack-index":
       return { kind: "pack-index", items: parsePackIndex(source) };
     case "pack":

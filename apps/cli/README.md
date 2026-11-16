@@ -15,11 +15,10 @@ npx sovkora start     # Docker infrastructure (PostgreSQL + pgvector, Redis, Rab
 npx sovkora dev       # the whole stack: services, web (with the operator console), mobile
 ```
 
-`sovkora` on npm is the short name of the canonical package **`@krizaka/sovkora-cli`** — both run the same CLI:
+The npm package is `sovkora`, and so is the command; installed globally it runs without `npx`:
 
 ```bash
-npx @krizaka/sovkora-cli install      # the same as npx sovkora install
-npm install -g @krizaka/sovkora-cli   # then: sovkora <command>
+npm install -g sovkora   # then: sovkora <command>
 ```
 
 `install` verifies the tools (and offers Homebrew installs on macOS), clones

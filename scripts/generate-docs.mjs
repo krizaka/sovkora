@@ -1584,7 +1584,7 @@ const mdCli = (rows) => {
     `${runner} dev`,
     "```",
     "",
-    `The package is \`${pkg.name}\`; installed, the command is \`${bin}\`:`,
+    "The npm package is `sovkora`, and so is the command; installed globally it runs without `npx`:",
     "",
     "```bash",
     `npm install -g ${pkg.name}   # then: ${bin} <command>`,

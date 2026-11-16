@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * What npm users get, tested before it is published: packs @krizaka/sovkora-cli, installs the tarball
+ * What npm users get, tested before it is published: packs `sovkora`, installs the tarball
  * in an empty project outside any Sovkora workspace, and runs the `sovkora` bin from there — the same
- * path `npx @krizaka/sovkora-cli …` takes (no alias package: the command is `sovkora`).
+ * path `npx sovkora …` takes (one package, no alias).
  *
  *   node scripts/pack-smoke.mjs            (npm run test:pack; CI runs it on every pull request)
  */
@@ -81,13 +81,9 @@ try {
     version.out,
   );
 
-  const cliBin = join(project, "node_modules", "@krizaka", "sovkora-cli", cli.bin.sovkora);
+  const cliBin = join(project, "node_modules", "sovkora", cli.bin.sovkora);
   const canonical = run(process.execPath, [cliBin, "--version"], elsewhere);
-  check(
-    "@krizaka/sovkora-cli's own bin runs",
-    canonical.status === 0 && canonical.out.trim() === cli.version,
-    canonical.out,
-  );
+  check("the package's own bin runs", canonical.status === 0 && canonical.out.trim() === cli.version, canonical.out);
 
   const unknown = run(bin, ["no-such-command"], elsewhere);
   check("an unknown command exits non-zero", unknown.status !== 0, unknown.out);
