@@ -7,23 +7,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "status"
-      ],
+      "path": ["status"],
       "equals": "COMPLETED"
     },
     {
-      "path": [
-        "report",
-        "subjectRef"
-      ],
+      "path": ["report", "subjectRef"],
       "equals": "subj-synthetic-001"
     },
     {
-      "path": [
-        "report",
-        "stages"
-      ],
+      "path": ["report", "stages"],
       "type": "array"
     }
   ]

@@ -6,21 +6,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "hasTable"
-      ],
+      "path": ["hasTable"],
       "equals": true
     },
     {
-      "path": [
-        "rows"
-      ],
+      "path": ["rows"],
       "atLeast": 3
     },
     {
-      "path": [
-        "facts"
-      ],
+      "path": ["facts"],
       "includes": "F2 = 60"
     }
   ]

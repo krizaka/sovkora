@@ -8,23 +8,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "report",
-        "rulesetId"
-      ],
+      "path": ["report", "rulesetId"],
       "equals": "profile-photo"
     },
     {
-      "path": [
-        "report",
-        "photos"
-      ],
+      "path": ["report", "photos"],
       "type": "array"
     },
     {
-      "path": [
-        "passes"
-      ],
+      "path": ["passes"],
       "equals": true
     }
   ]

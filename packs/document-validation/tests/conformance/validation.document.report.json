@@ -6,15 +6,11 @@
   },
   "assertions": [
     {
-      "path": [
-        "outcome"
-      ],
+      "path": ["outcome"],
       "equals": "CHECKED"
     },
     {
-      "path": [
-        "resultCacheable"
-      ],
+      "path": ["resultCacheable"],
       "equals": true
     }
   ]

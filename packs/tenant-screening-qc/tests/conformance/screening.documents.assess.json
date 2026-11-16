@@ -13,35 +13,23 @@
         }
       ]
     },
-    "consentedPurposes": [
-      "DOCUMENTS",
-      "COURT_RECORDS",
-      "CREDIT"
-    ]
+    "consentedPurposes": ["DOCUMENTS", "COURT_RECORDS", "CREDIT"]
   },
   "assertions": [
     {
-      "path": [
-        "stage"
-      ],
+      "path": ["stage"],
       "equals": "documents"
     },
     {
-      "path": [
-        "outcome"
-      ],
+      "path": ["outcome"],
       "equals": "CLEAR"
     },
     {
-      "path": [
-        "charged"
-      ],
+      "path": ["charged"],
       "equals": true
     },
     {
-      "path": [
-        "credits"
-      ],
+      "path": ["credits"],
       "equals": 10
     }
   ]

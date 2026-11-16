@@ -6,21 +6,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "detectedKind"
-      ],
+      "path": ["detectedKind"],
       "equals": "qc-residential-lease"
     },
     {
-      "path": [
-        "outcome"
-      ],
+      "path": ["outcome"],
       "equals": "CHECK"
     },
     {
-      "path": [
-        "kindMismatch"
-      ],
+      "path": ["kindMismatch"],
       "equals": false
     }
   ]

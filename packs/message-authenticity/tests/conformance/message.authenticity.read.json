@@ -5,9 +5,7 @@
   },
   "assertions": [
     {
-      "path": [
-        "detector"
-      ],
+      "path": ["detector"],
       "equals": "UNAVAILABLE"
     }
   ]

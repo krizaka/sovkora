@@ -5,15 +5,11 @@
   },
   "assertions": [
     {
-      "path": [
-        "outcome"
-      ],
+      "path": ["outcome"],
       "equals": "CHECK"
     },
     {
-      "path": [
-        "needsLecture"
-      ],
+      "path": ["needsLecture"],
       "equals": false
     }
   ]

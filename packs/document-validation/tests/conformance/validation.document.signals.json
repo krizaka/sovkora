@@ -4,15 +4,11 @@
   },
   "assertions": [
     {
-      "path": [
-        "signalCount"
-      ],
+      "path": ["signalCount"],
       "atLeast": 0
     },
     {
-      "path": [
-        "reportText"
-      ],
+      "path": ["reportText"],
       "nonEmpty": true
     }
   ]

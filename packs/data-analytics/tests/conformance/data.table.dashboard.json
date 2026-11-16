@@ -7,15 +7,11 @@
   },
   "assertions": [
     {
-      "path": [
-        "valid"
-      ],
+      "path": ["valid"],
       "equals": true
     },
     {
-      "path": [
-        "answer"
-      ],
+      "path": ["answer"],
       "includes": "```a2ui"
     }
   ]

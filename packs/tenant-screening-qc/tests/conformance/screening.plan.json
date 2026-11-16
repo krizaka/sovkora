@@ -20,21 +20,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "status"
-      ],
+      "path": ["status"],
       "equals": "READY"
     },
     {
-      "path": [
-        "payer"
-      ],
+      "path": ["payer"],
       "equals": "LANDLORD"
     },
     {
-      "path": [
-        "worstCaseCredits"
-      ],
+      "path": ["worstCaseCredits"],
       "equals": 60
     }
   ]

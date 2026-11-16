@@ -5,27 +5,19 @@
   },
   "assertions": [
     {
-      "path": [
-        "rulesetId"
-      ],
+      "path": ["rulesetId"],
       "equals": "qc-residential-lease"
     },
     {
-      "path": [
-        "jurisdiction"
-      ],
+      "path": ["jurisdiction"],
       "equals": "QC"
     },
     {
-      "path": [
-        "asOf"
-      ],
+      "path": ["asOf"],
       "equals": "2026-10-22"
     },
     {
-      "path": [
-        "deterministicFindings"
-      ],
+      "path": ["deterministicFindings"],
       "type": "array"
     }
   ]

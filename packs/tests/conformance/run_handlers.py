@@ -3,11 +3,12 @@
 
     python3 run_handlers.py <pack-dir> < requests.json  ->  one answer per request on stdout
 
-A request is ``{"routingKey": "...", "input": {...}}``; an answer is ``{"result": {...}}`` or ``{"error": "<type name>"}``
-(the type name only: a payload, a document or a message never goes into an answer, as in the workers themselves).
-The handler is found from the worker's own declarations: a ``HANDLERS`` table of routing key -> function, else the
-``handle(routing_key, job)`` the shared loop builds, else the reference worker's ``_handle(job)``. It is the code that
-runs in production, called the way the loop calls it.
+A request is ``{"routingKey": "...", "input": {...}}``; an answer is ``{"result": {...}}`` or
+``{"error": "<type name>"}`` (the type name only: a payload, a document or a message never goes into
+an answer, as in the workers themselves). The handler is found from the worker's own declarations:
+a ``HANDLERS`` table of routing key -> function, else the ``handle(routing_key, job)`` the shared
+loop builds, else the reference worker's ``_handle(job)``. It is the code that runs in production,
+called the way the loop calls it.
 """
 
 import importlib
@@ -23,7 +24,7 @@ def worker_modules(worker_dir: Path):
             continue
         try:
             yield importlib.import_module(source.stem)
-        except Exception:  # a module that cannot import here (a model it needs) is simply not a candidate
+        except ImportError:  # a module whose library is absent here (a model it needs) is not a candidate
             continue
 
 
@@ -37,14 +38,9 @@ def find_handler(modules, routing_key: str):
         if callable(handle) and not isinstance(getattr(module, "HANDLERS", None), dict):
             return lambda payload, fn=handle: fn(routing_key, {"payload": payload})[0]
     for module in modules:
+        # The reference worker's own `_handle(job)`: the one handler that takes the job and no routing key.
         underscore = getattr(module, "_handle", None)
-        if callable(underscore) and getattr(module, "__name__", "").endswith("_worker"):
-            try:
-                underscore({"payload": {}})
-            except TypeError:
-                continue
-            except Exception:
-                pass
+        if callable(underscore) and module.__name__.endswith("_worker"):
             return lambda payload, fn=underscore: fn({"payload": payload})[0]
     return None
 
@@ -61,7 +57,7 @@ def main() -> None:
             continue
         try:
             answers.append({"result": handler(request["input"])})
-        except Exception as failure:  # noqa: BLE001 — reported by type name only
+        except (ArithmeticError, LookupError, TypeError, ValueError, RuntimeError) as failure:
             answers.append({"error": type(failure).__name__})
     json.dump(answers, sys.stdout)
 

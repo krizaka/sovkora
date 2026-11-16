@@ -10,16 +10,11 @@
   },
   "assertions": [
     {
-      "path": [
-        "verdict"
-      ],
+      "path": ["verdict"],
       "equals": "REJECTED"
     },
     {
-      "path": [
-        "report",
-        "blockers"
-      ],
+      "path": ["report", "blockers"],
       "includes": "SEXUAL_CONTENT"
     }
   ]

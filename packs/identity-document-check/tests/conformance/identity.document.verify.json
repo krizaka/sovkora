@@ -5,9 +5,7 @@
   },
   "assertions": [
     {
-      "path": [
-        "status"
-      ],
+      "path": ["status"],
       "equals": "CONSISTENT"
     }
   ]

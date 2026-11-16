@@ -4,9 +4,7 @@
   },
   "assertions": [
     {
-      "path": [
-        "text"
-      ],
+      "path": ["text"],
       "equals": "laértnoM ruojnoB"
     }
   ]

@@ -8,21 +8,15 @@
   },
   "assertions": [
     {
-      "path": [
-        "decision"
-      ],
+      "path": ["decision"],
       "equals": "CONTINUE"
     },
     {
-      "path": [
-        "next"
-      ],
+      "path": ["next"],
       "equals": "courts"
     },
     {
-      "path": [
-        "spentCredits"
-      ],
+      "path": ["spentCredits"],
       "equals": 10
     }
   ]
