@@ -34,10 +34,13 @@ test("the recording scripts spawn only resolved programs", () => {
   }
 });
 
-test("a company tool is in the folder kz-config names, asked at the user's ~/.local/bin", () => {
-  const calls = [];
-  const exec = (bin, args) => (calls.push([bin, ...args]), "/kz/tools\n");
-  assert.equal(companyTool("secret.sh", { exec, home: "/h" }), "/kz/tools/secret.sh");
-  assert.deepEqual(calls, [["/h/.local/bin/kz-config", "tools"]]);
-  assert.throws(() => companyTool("secret.sh", { exec: () => "", home: "/h" }), /KRIZAKA_TOOLS/);
+test("a company tool sits in the folder kz-config answers; no answer names KRIZAKA_TOOLS", () => {
+  const seen = [];
+  const run = (bin, args) => {
+    seen.push(`${bin} ${args.join(" ")}`);
+    return "/srv/company-tools\n";
+  };
+  assert.equal(companyTool("secret.sh", { run, kzConfig: "/k/kz-config" }), "/srv/company-tools/secret.sh");
+  assert.deepEqual(seen, ["/k/kz-config tools"]);
+  assert.throws(() => companyTool("pb.py", { run: () => "  ", kzConfig: "/k/kz-config" }), /KRIZAKA_TOOLS/);
 });

@@ -11,12 +11,9 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { runSeconds, factsOf } from "./gpu-i2v-run.mjs";
+import { arg } from "./lib/cli-arg.mjs";
 
 const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
 let token;
 async function call(method, path, body, raw) {
   const res = await fetch(BASE + path, {

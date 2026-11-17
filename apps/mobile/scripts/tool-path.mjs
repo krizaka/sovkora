@@ -31,13 +31,18 @@ export function toolPath(name, search = folders()) {
 }
 
 /**
- * The absolute path of one company tool (secret.sh…): in the folder `~/.local/bin/kz-config tools` names (KRIZAKA_TOOLS
- * overrides it). Never a path of the HQ layout written here. `exec` and `home` are injectable (the test makes no real call).
+ * The absolute path of one company tool (secret.sh…), in the folder kz-config names (~/.local/bin/kz-config, found like
+ * any program above; KRIZAKA_TOOLS overrides its answer). `run` is injectable, so the test spawns nothing.
  */
-export function companyTool(name, { exec = execFileSync, home = os.homedir() } = {}) {
-  const dir = String(exec(path.join(home, ".local", "bin", "kz-config"), ["tools"], { encoding: "utf8" })).trim();
-  if (!dir) {
-    throw new Error("`kz-config tools` answered nothing: set KRIZAKA_TOOLS");
+export function companyTool(
+  name,
+  { run = (bin, args) => execFileSync(bin, args, { encoding: "utf8" }), kzConfig } = {},
+) {
+  const folder = String(
+    run(kzConfig ?? toolPath("kz-config", [path.join(os.homedir(), ".local", "bin")]), ["tools"]),
+  ).trim();
+  if (folder === "") {
+    throw new Error("kz-config gave no tools folder: set KRIZAKA_TOOLS");
   }
-  return path.join(dir, name);
+  return path.join(folder, name);
 }
