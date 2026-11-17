@@ -31,20 +31,20 @@ export interface OpenSourceDictionary {
 
 const WORDS = {
   meta: {
-    title: w("Open source — {brand}", "Open source — {brand}"),
+    title: w("Source code — {brand}", "Code source — {brand}"),
     description: w(
-      "{brand}'s engine, packs and CLI are Apache-2.0: the repositories, the licence line, self-hosting and how to contribute.",
-      "Le moteur, les packs et la CLI de {brand} sont en Apache-2.0 : les dépôts, la ligne de licence, l'auto-hébergement et comment contribuer.",
+      "{brand}'s source is public under FSL-1.1-ALv2: the repositories, the licence line, self-hosting and how to contribute.",
+      "Le code source de {brand} est public, sous FSL-1.1-ALv2 : les dépôts, la ligne de licence, l'auto-hébergement et comment contribuer.",
     ),
   },
-  eyebrow: w("Open source", "Open source"),
+  eyebrow: w("Source code", "Code source"),
   title: w(
-    "The engine is open. Read it, run it, change it.",
-    "Le moteur est ouvert. Lisez-le, lancez-le, modifiez-le.",
+    "The source is public. Read it, run it, change it.",
+    "Le code est public. Lisez-le, lancez-le, modifiez-le.",
   ),
   lead: w(
-    "{brand}'s engine, its pack interface, its command line and the reference packs are Apache-2.0 and public. Commercial packs and the hosted services are a separate, private line.",
-    "Le moteur de {brand}, son interface de packs, sa ligne de commande et les packs de référence sont publics, en Apache-2.0. Les packs commerciaux et les services hébergés forment une ligne distincte et privée.",
+    "{brand}'s engine, its pack interface, its command line and the reference packs are public under FSL-1.1-ALv2. Commercial packs and the hosted services are a separate, private line.",
+    "Le moteur de {brand}, son interface de packs, sa ligne de commande et les packs de référence sont publics, sous FSL-1.1-ALv2. Les packs commerciaux et les services hébergés forment une ligne distincte et privée.",
   ),
   source: w("See the code", "Voir le code"),
   docs: w("Read the documentation", "Lire la documentation"),
@@ -65,8 +65,8 @@ const WORDS = {
   licence: {
     title: w("Licence", "Licence"),
     lead: w(
-      "Everything in the main repository is Apache-2.0. The line falls at the repository, not at a flag.",
-      "Tout le dépôt principal est en Apache-2.0. La ligne passe au dépôt, pas à un drapeau.",
+      "Everything in the main repository is under FSL-1.1-ALv2. The line falls at the repository, not at a flag.",
+      "Tout le dépôt principal est sous FSL-1.1-ALv2. La ligne passe au dépôt, pas à un drapeau.",
     ),
     label: w("Where the licence line falls", "Où passe la ligne de licence"),
     layer: w("Layer", "Couche"),
@@ -79,7 +79,7 @@ const WORDS = {
           "Moteur : studio, jobs, facturation, identité, intercepteurs",
         ),
         where: w("The main repository", "Le dépôt principal"),
-        licence: w("Apache-2.0", "Apache-2.0"),
+        licence: w("FSL-1.1-ALv2", "FSL-1.1-ALv2"),
       },
       {
         layer: w(
@@ -87,7 +87,7 @@ const WORDS = {
           "Interface de packs, ligne de commande et packs de référence",
         ),
         where: w("The main repository", "Le dépôt principal"),
-        licence: w("Apache-2.0", "Apache-2.0"),
+        licence: w("FSL-1.1-ALv2", "FSL-1.1-ALv2"),
       },
       {
         layer: w(
@@ -99,8 +99,8 @@ const WORDS = {
       },
     ],
     note: w(
-      "The full text is the LICENSING page of the repository.",
-      "Le texte complet est la page LICENSING du dépôt.",
+      "The full text is the LICENSE file of the repository.",
+      "Le texte complet est le fichier LICENSE du dépôt.",
     ),
   },
   selfHost: {

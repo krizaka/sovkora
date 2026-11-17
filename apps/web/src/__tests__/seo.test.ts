@@ -10,6 +10,7 @@ import {
   SITE_DESCRIPTION,
   SITE_TITLE,
   llmsFullText,
+  LICENSE_URL,
   llmsText,
   ORG_ID,
   publicPaths,
@@ -141,13 +142,25 @@ describe("search engines and AI assistants (the Krizaka family contract)", () =>
 
   it("the title and description name the product and say what it is, once, within what a result shows", () => {
     expect(SITE_TITLE).toMatch(/^Sovkora — /);
-    expect(SITE_TITLE).toMatch(/open-source/i);
+    expect(SITE_TITLE).toMatch(/sovereign AI platform/i);
+    expect(SITE_TITLE).not.toMatch(/open-source|apache|mit/i);
     expect(SITE_TITLE).not.toMatch(/Krizaka.*\|.*Krizaka/);
     expect(SITE_TITLE.length).toBeLessThanOrEqual(62);
     expect(SITE_DESCRIPTION.length).toBeLessThanOrEqual(160);
     const app = (siteJsonLd()["@graph"] as { "@type": string; sameAs?: string[] }[]).find(
       (n) => n["@type"] === "SoftwareApplication",
     );
-    expect(app?.sameAs).toContain("https://github.com/krizaka/orazaka");
+    expect(app?.sameAs).toContain("https://github.com/krizaka/sovkora");
+  });
+});
+
+describe("the product names its own licence (krizaka-internal#4148)", () => {
+  it("llms.txt and the JSON-LD say FSL-1.1-ALv2 with a link to LICENSE, never Apache-2.0 or open source", () => {
+    const text = llmsText();
+    expect(text).toContain("FSL-1.1-ALv2");
+    expect(text).toContain(LICENSE_URL);
+    // the page's address is /open-source; only its words are checked
+    expect(text.replaceAll("/open-source", "")).not.toMatch(/Apache|open[- ]source|\bMIT\b/i);
+    expect(JSON.stringify(siteJsonLd())).toContain(`"license":"${LICENSE_URL}"`);
   });
 });

@@ -5,7 +5,7 @@
  * version or a URL typed here — when no release can be read the page says so and links the releases page.
  */
 
-export const RELEASES_URL = "https://github.com/krizaka/orazaka/releases";
+export const RELEASES_URL = "https://github.com/krizaka/sovkora/releases";
 const API = "https://api.github.com/repos/krizaka/orazaka/releases?per_page=30";
 
 export interface GithubAsset {

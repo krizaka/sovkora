@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/app/_seo/seo";
 
-export const alt = "Sovkora — open-source sovereign AI platform, self-hosted";
+export const alt = "Sovkora — sovereign AI platform, self-hosted";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

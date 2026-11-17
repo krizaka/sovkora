@@ -12,13 +12,13 @@ import { LandingNav } from "@/features/landing/components/LandingNav";
 import { LandingFooter } from "@/features/landing/components/LandingFooter";
 import { ORG_URL, type ListedRepo } from "@/features/landing/utils/repositories";
 
-export const REPO_URL = "https://github.com/krizaka/orazaka";
+export const REPO_URL = "https://github.com/krizaka/sovkora";
 export const SECURITY_URL = `${REPO_URL}/security/policy`;
-export const LICENSING_URL = `${REPO_URL}/blob/main/docs/LICENSING.md`;
+export const LICENSING_URL = `${REPO_URL}/blob/main/LICENSE`;
 
 /**
  * `/open-source` (docs-hub template): the repositories (read at build), the licence line, self-hosting in three lines and how to
- * contribute. Words: `t.openSource`. Every claim restates the Sovkora repository's LICENSING and SELF_HOSTING pages.
+ * contribute. Words: `t.openSource`. Every claim restates the Sovkora repository's LICENSE file and SELF_HOSTING page.
  */
 export function OpenSourcePage({ repos }: Readonly<{ repos: readonly ListedRepo[] | null }>) {
   const { t, locale } = useTranslation();

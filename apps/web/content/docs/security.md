@@ -40,5 +40,5 @@ too if it affects Sovkora's defaults.
   before they run; release manifests are signed and verified offline.
 - No telemetry: Sovkora sends nothing to Krizaka.
 
-These defaults are under construction in the delivery epic ([#75](https://github.com/krizaka/orazaka/issues/75));
+These defaults are under construction in the delivery epic ([#75](https://github.com/krizaka/sovkora/issues/75));
 `sovkora doctor` checks them on a running installation.

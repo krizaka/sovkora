@@ -2,7 +2,7 @@
 
 Sovkora runs on hardware you own. Your documents, prompts and results stay there, nothing is sent to Krizaka, and once the models are downloaded it works offline.
 
-> **Where this stands.** The packaged installers (Sovkora Desktop for Mac, the one-command server install) arrive with **1.0** ([delivery epic](https://github.com/krizaka/orazaka/issues/75)). Commands marked **1.0** are not available yet. The [developer install](#today-the-developer-install) runs the same platform from source today.
+> **Where this stands.** The packaged installers (Sovkora Desktop for Mac, the one-command server install) arrive with **1.0** ([delivery epic](https://github.com/krizaka/sovkora/issues/75)). Commands marked **1.0** are not available yet. The [developer install](#today-the-developer-install) runs the same platform from source today.
 
 ## Requirements
 
@@ -58,4 +58,4 @@ npx sovkora dev      # the services and the web app on port 3000
 ## Next
 
 - [Quickstart](101.md): first chat and first Studio.
-- [Security policy](https://github.com/krizaka/orazaka/blob/main/SECURITY.md): reporting a vulnerability.
+- [Security policy](https://github.com/krizaka/sovkora/blob/main/SECURITY.md): reporting a vulnerability.

@@ -1,6 +1,6 @@
 # Content policy: you decide
 
-Sovkora is open source and does not censor. It ships a policy engine that **the operator configures**. A fresh install is permissive: nothing is refused because of what a prompt is about. You decide what your installation refuses, and you can protect your provider accounts from terms you accepted.
+Sovkora ships with a permissive default and does not censor. It ships a policy engine that **the operator configures**. A fresh install is permissive: nothing is refused because of what a prompt is about. You decide what your installation refuses, and you can protect your provider accounts from terms you accepted.
 
 ## What happens on every Studio run
 

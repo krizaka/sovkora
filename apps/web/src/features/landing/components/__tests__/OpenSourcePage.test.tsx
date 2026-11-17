@@ -52,7 +52,7 @@ describe("/open-source", () => {
 
   it("states the licence line and links self-hosting to the docs", () => {
     renderLanding("en", <OpenSourcePage repos={repos} />);
-    expect(screen.getAllByText("Apache-2.0").length).toBeGreaterThan(1);
+    expect(screen.getAllByText("FSL-1.1-ALv2").length).toBeGreaterThan(1);
     expect(screen.getByRole("link", { name: o.selfHost.cta })).toHaveAttribute("href", "/docs/self-hosting");
   });
 
