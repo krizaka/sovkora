@@ -712,7 +712,7 @@ mod tests {
                 catalogue: &self.catalogue,
                 grants: &self.grants,
                 halted: &move || halted,
-                now: &|| crate::automation::schedule::parse_slot("2026-10-16T08:00:00").unwrap(),
+                now: &|| time::macros::datetime!(2026-10-16 08:00:00),
                 audit: &mut push,
                 runs_today: self.runs_today,
                 new_id: &|| {

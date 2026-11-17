@@ -108,11 +108,13 @@ mod tests {
     use super::*;
 
     fn at(s: &str) -> LocalDateTime {
-        PrimitiveDateTime::parse(
+        match PrimitiveDateTime::parse(
             s,
             format_description!("[year]-[month]-[day] [hour]:[minute]"),
-        )
-        .unwrap()
+        ) {
+            Ok(t) => t,
+            Err(e) => panic!("bad test instant {s:?}: {e}"),
+        }
     }
     fn daily(time: &str) -> Schedule {
         Schedule {
@@ -231,7 +233,9 @@ mod tests {
 
     #[test]
     fn a_time_of_day_without_its_leading_zero_is_still_read() {
-        assert_eq!(parse_time("8:00").unwrap(), parse_time("08:00").unwrap());
+        let short = parse_time("8:00").ok();
+        assert!(short.is_some());
+        assert_eq!(short, parse_time("08:00").ok());
         assert!(parse_time("08:60").is_err());
     }
 }
