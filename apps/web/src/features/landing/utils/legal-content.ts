@@ -28,8 +28,8 @@ const TERMS_WORDS = {
     licence: {
       title: w("1. The licence", "1. La licence"),
       text: w(
-        "Sovkora is licensed under the permissive MIT Open Source License. You are free to run, copy, modify, merge, publish, or distribute the software client binaries and source code, subject to compiling terms.",
-        "Sovkora est distribué sous la licence libre MIT. Vous êtes libre d'exécuter, copier, modifier, fusionner, publier ou distribuer les binaires du client et le code source, selon les termes de la licence.",
+        "Sovkora is licensed under the Functional Source License, Version 1.1, ALv2 Future License (FSL-1.1-ALv2); the full text is the LICENSE file of its repository. You may run, copy and modify the software for any permitted purpose, which excludes offering a competing commercial product or service.",
+        "Sovkora est distribué sous la Functional Source License, version 1.1, ALv2 Future License (FSL-1.1-ALv2) ; le texte complet est le fichier LICENSE de son dépôt. Vous pouvez exécuter, copier et modifier le logiciel pour tout usage permis, ce qui exclut d'offrir un produit ou un service commercial concurrent .",
       ),
     },
     responsibility: {

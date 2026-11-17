@@ -3,357 +3,278 @@
  * @description Copy of the public home page (visitors without a session). Kept beside
  * `translations.ts` so the sales copy can be reviewed in one place; merged into the dictionary under
  * `landing`. Every claim here is true of an install today — nothing is promised that the product does not do.
+ * Each message is written once for both languages, `w(en, fr)`, so the two locales cannot drift apart.
  */
 
+import { LICENCE_ID } from "./translations.licence";
 import type { Locale } from "./translations.types";
 import type { LandingDictionary } from "./translations.landing.types";
+import { localise, w } from "./words";
+
+const WORDS = {
+  nav: {
+    how: w("How it works", "Fonctionnement"),
+    signIn: w("Sign in", "Se connecter"),
+    docs: w("Docs", "Docs"),
+    product: w("Product", "Produit"),
+    download: w("Download", "Télécharger"),
+    pricing: w("Pricing", "Tarifs"),
+    openSource: w("Source code", "Code source"),
+    menu: {
+      how: w("What it does, on real screens.", "Ce qu'il fait, sur de vrais écrans."),
+      download: w("{brand} Desktop for Apple Silicon.", "{brand} Desktop pour Apple Silicon."),
+    },
+    langLabel: w("Language", "Langue"),
+    themeLabel: w("Change the theme", "Changer le thème"),
+    preferences: w("Preferences", "Préférences"),
+    openMenu: w("Open the menu", "Ouvrir le menu"),
+    closeMenu: w("Close the menu", "Fermer le menu"),
+    home: w("{brand} home", "Accueil {brand}"),
+    tryIt: w("Try {brand}", "Essayer {brand}"),
+    openApp: w("Open the app", "Ouvrir l'app"),
+    repo: w("{brand} web client on GitHub", "Client web {brand} sur GitHub"),
+  },
+  hero: {
+    title: w("The AI that stays home.", "L'IA qui reste chez vous."),
+    lead: w(
+      "Your models, your machines: your data stays in.",
+      "Vos modèles, vos machines : vos données ne sortent pas.",
+    ),
+    secondary: w("See it run", "Le voir tourner"),
+    visualLabel: w("{brand} · chat", "{brand} · chat"),
+  },
+  status: {
+    development: w(
+      "In development: still being tested, not ready for the public.",
+      "En développement : encore en test, pas prête pour le public.",
+    ),
+  },
+  figures: {
+    runs: w(
+      "runs measured on real hardware, each with its record",
+      "runs mesurés sur du vrai matériel, chacun avec sa fiche",
+    ),
+    models: w("models measured, on a Mac or hosted", "modèles mesurés, sur un Mac ou hébergés"),
+    telemetry: w("telemetry calls — nothing phones home", "appels de télémétrie — rien ne sort"),
+  },
+  features: {
+    eyebrow: w("What it does", "Ce qu'il fait"),
+    title: w("Three things, done on your side.", "Trois choses, faites de votre côté."),
+    lead: w("Every screen below is the real app.", "Chaque écran ci-dessous est la vraie app."),
+    items: {
+      studios: {
+        title: w("Studios, priced before they run", "Des Studios au prix connu d'avance"),
+        text: w(
+          "A Studio turns a sentence or a file into an image, a video or a checked document. Its estimated cost shows before it starts.",
+          "Un Studio change une phrase ou un fichier en image, en vidéo ou en document vérifié. Son coût estimé s'affiche avant de lancer.",
+        ),
+      },
+      records: {
+        title: w("Every result keeps its run", "Chaque résultat garde son run"),
+        text: w(
+          "The output, its steps, its input and its run id stay together — so any result can be checked again.",
+          "La sortie, ses étapes, son entrée et son identifiant de run restent ensemble — tout résultat peut être revérifié.",
+        ),
+      },
+      home: {
+        title: w("Chat and agents that ask first", "Un chat et des agents qui demandent d'abord"),
+        text: w(
+          "Models run on your machines; a hosted one only if you connect it. An agent shows its plan and acts once you approve it.",
+          "Les modèles tournent sur vos machines ; un modèle hébergé seulement si vous en branchez un. Un agent montre son plan et n'agit qu'une fois approuvé.",
+        ),
+      },
+    },
+  },
+  capabilities: {
+    eyebrow: w("What {brand} does", "Ce que {brand} sait faire"),
+    title: w("What {brand} does, in plain words", "Ce que {brand} sait faire, en mots simples"),
+    lead: w(
+      "The industry term sits beside each one, so you can recognise it.",
+      "Le terme du métier figure à côté de chaque point, pour le reconnaître.",
+    ),
+    soon: w("In development", "En développement"),
+    items: {
+      documents: {
+        tag: w("RAG", "RAG"),
+        title: w("Answers grounded in your own documents", "Des réponses fondées sur vos propres documents"),
+        text: w(
+          "The model looks in your documents before it answers. The search engine exists; sending your files from the app is in development.",
+          "Le modèle cherche dans vos documents avant de répondre. Le moteur de recherche existe ; l'envoi de vos fichiers depuis l'app est en développement.",
+        ),
+      },
+      models: {
+        tag: w("LLM", "LLM"),
+        title: w("The language models you choose", "Les modèles de langage que vous choisissez"),
+        text: w(
+          "On your Mac or hosted, your pick. A hosted model is used only if you connect it, and then your requests go to its provider.",
+          "Sur votre Mac ou hébergés, à vous de choisir. Un modèle hébergé n'est utilisé que si vous le branchez ; vos requêtes partent alors chez son fournisseur.",
+        ),
+      },
+      tools: {
+        tag: w("MCP", "MCP"),
+        title: w("Plugs into your tools through an open standard", "Se branche à vos outils par un standard ouvert"),
+        text: w(
+          "Register your own MCP servers from the command line or the API; what they know joins the conversation.",
+          "Enregistrez vos propres serveurs MCP en ligne de commande ou par l'API ; ce qu'ils savent rejoint la conversation.",
+        ),
+      },
+      agents: {
+        tag: w("Agents · tools", "Agents · outils"),
+        title: w("Agents that use tools and ask first", "Des agents qui utilisent des outils et demandent d'abord"),
+        text: w(
+          "An agent shows its plan and acts only once you approve it.",
+          "Un agent montre son plan et n'agit qu'une fois approuvé.",
+        ),
+      },
+      studios: {
+        tag: w("Studios", "Studios"),
+        title: w("Studios for images, video and documents", "Des Studios pour l'image, la vidéo et les documents"),
+        text: w(
+          "A sentence or a file becomes an image, a video or a checked document, with its cost shown before it runs.",
+          "Une phrase ou un fichier devient une image, une vidéo ou un document vérifié, avec son coût affiché avant l'exécution.",
+        ),
+      },
+      runs: {
+        tag: w("Run id", "Run id"),
+        title: w("Every result traced to its run", "Chaque résultat relié à son exécution"),
+        text: w(
+          "The output, its steps and its input stay together under one run id, so it can be checked again.",
+          "La sortie, ses étapes et son entrée restent ensemble sous un même identifiant de run, pour pouvoir tout revérifier.",
+        ),
+      },
+    },
+  },
+  film: {
+    eyebrow: w("Made with {brand}", "Fait avec {brand}"),
+    title: w("This film was made with {brand}.", "Ce film a été fait avec {brand}."),
+    lead: w(
+      "Key frames from the image Studio, shots from the video Studio, music from an audio model. Here is the film, and the records behind it.",
+      "Les images clés viennent du Studio d'images, les plans du Studio vidéo, la musique d'un modèle audio. Voici le film, et les relevés qui le soutiennent.",
+    ),
+    label: w(
+      "A short film made with {brand}: music, no speech.",
+      "Un court film fait avec {brand} : de la musique, pas de parole.",
+    ),
+    factsTitle: w("What it took", "Ce qu'il a fallu"),
+    models: w("Models", "Modèles"),
+    gpu: w("GPU", "GPU"),
+    runs: w("Video runs kept", "Runs vidéo retenus"),
+    cost: w("GPU cost of those runs", "Coût GPU de ces runs"),
+    costNote: w(
+      "The sum of the records of the shots kept in the film. Takes that were dropped, key frames and music are not counted here.",
+      "La somme des relevés des plans gardés dans le film. Les prises écartées, les images clés et la musique ne sont pas comptées ici.",
+    ),
+    roles: {
+      keyframes: w("key frames", "images clés"),
+      shots: w("shots", "plans"),
+      music: w("music", "musique"),
+    },
+    runIds: w("Run ids of the shots, in cut order", "Identifiants de run des plans, dans l'ordre du montage"),
+    outputs: {
+      heading: w(
+        "Outputs of the film, as the Studios made them",
+        "Sorties du film, telles que les Studios les ont faites",
+      ),
+      imageCaption: w("Image Studio · {model}", "Studio d'images · {model}"),
+      videoCaption: w("Video Studio · {model} · run {run}", "Studio vidéo · {model} · run {run}"),
+      duckKeyframe: w(
+        "Key frame: a mallard on a workbench in a basement by a canal at dusk, beside an open laptop.",
+        "Image clé : un colvert sur un établi, dans un sous-sol près d'un canal au crépuscule, à côté d'un portable ouvert.",
+      ),
+      duckShot: w("Shot: the mallard turns and takes off.", "Plan : le colvert se retourne et s'envole."),
+      inkKeyframe: w(
+        "Key frame: a puddle on a wet cobbled street, mirroring the grey sky.",
+        "Image clé : une flaque sur une rue pavée mouillée, qui reflète le ciel gris.",
+      ),
+      inkShot: w(
+        "Shot: a drop of blue ink falls into the puddle and ripples spread.",
+        "Plan : une goutte d'encre bleue tombe dans la flaque et des ondes s'étendent.",
+      ),
+    },
+  },
+  records: {
+    eyebrow: w("Measured", "Mesuré"),
+    title: w("One prompt, three models, three run records.", "Un prompt, trois modèles, trois fiches de run."),
+    lead: w(
+      "Times, costs and run ids come from the platform's own records — they are not typed.",
+      "Temps, coûts et identifiants de run viennent des relevés de la plateforme — ils ne sont pas saisis à la main.",
+    ),
+    more: w("See every measured run", "Voir tous les runs mesurés"),
+    measuredOn: w(
+      "Measured on {day}: {ok} runs finished, {models} models.",
+      "Mesuré le {day} : {ok} runs terminés, {models} modèles.",
+    ),
+    runLabel: w("Run", "Run"),
+    prompt: w("A winter night in Montréal", "Une nuit d'hiver à Montréal"),
+    alt: w("{title}, by {model}", "{title}, par {model}"),
+    where: w("Ran on", "Exécuté sur"),
+    onMac: w("One Mac (Metal) — nothing left the machine", "Un seul Mac (Metal) — rien n'a quitté la machine"),
+    onHosted: w("DigitalOcean serverless inference", "Inférence serverless de DigitalOcean"),
+    noCost: w("None — your own machine", "Aucun — votre propre machine"),
+    imageCost: w("${cost} an image", "{cost} $ l'image"),
+    time: w("Time", "Durée"),
+    timeValue: w("{seconds} s, from the command to the file", "{seconds} s, de la commande au fichier"),
+    cost: w("Provider price", "Prix du fournisseur"),
+  },
+  phone: {
+    eyebrow: w("On your phone", "Sur votre téléphone"),
+    title: w("The same work, from your phone.", "Le même travail, depuis votre téléphone."),
+    lead: w(
+      "Sign in, describe what you need, follow the run, open the result. The phone app is the same {brand}, recorded here on a real device.",
+      "Connectez-vous, décrivez ce qu'il vous faut, suivez le run, ouvrez le résultat. L'app mobile est le même {brand}, enregistrée ici sur un vrai appareil.",
+    ),
+  },
+  cta: {
+    title: w("Bring AI in-house — not your data out.", "Faites entrer l'IA — sans faire sortir vos données."),
+    body: w(
+      "On your Mac, your servers or your phone. Tell us what you want to run on your own machines; a person answers.",
+      "Sur votre Mac, vos serveurs ou votre téléphone. Dites-nous ce que vous voulez faire tourner sur vos propres machines ; une personne répond.",
+    ),
+    primary: w("Create your workspace", "Créer mon espace"),
+    quickstart: w("Run it in five minutes", "L'essayer en cinq minutes"),
+  },
+  closed: {
+    title: w(
+      "{brand} is in development — sign-in is closed on this site",
+      "{brand} est en développement — la connexion est fermée sur ce site",
+    ),
+    body: w(
+      "This is the public development site: you can read how {brand} works, watch it run and browse the documentation. Accounts are not open yet.",
+      "Ceci est le site public de développement : vous pouvez lire comment {brand} fonctionne, le voir tourner et parcourir la documentation. Les comptes ne sont pas encore ouverts.",
+    ),
+    docs: w("Read the documentation", "Lire la documentation"),
+    contact: w("Talk to us", "Nous parler"),
+    home: w("Back to the home page", "Retour à l'accueil"),
+    heroPrimary: w("Read the documentation", "Lire la documentation"),
+    signInBanner: w(
+      "Sign-in opens when {brand}'s dev services run.",
+      "La connexion s'ouvre quand les services de développement de {brand} tournent.",
+    ),
+  },
+  stage: {
+    title: w("Development version", "Version de développement"),
+    message: w(
+      "Data can be reset at any time. This is not a commercial offer yet.",
+      "Les données peuvent être réinitialisées à tout moment. Ce n'est pas encore une offre commerciale.",
+    ),
+  },
+  footer: {
+    privacy: w("Privacy", "Confidentialité"),
+    terms: w("Terms", "Conditions"),
+    contact: w("Contact", "Contact"),
+    openSource: w("Source code", "Code source"),
+    pricing: w("Pricing", "Tarifs"),
+    license: w(`Licence: ${LICENCE_ID}`, `Licence ${LICENCE_ID}`),
+    by: w("A Krizaka product", "Un produit Krizaka"),
+    product: w("Product", "Produit"),
+    docs: w("Documentation", "Documentation"),
+    api: w("API reference", "Référence de l'API"),
+    cli: w("CLI", "CLI"),
+    legal: w("Legal", "Légal"),
+  },
+} as const;
 
 export const landing: Record<Locale, LandingDictionary> = {
-  en: {
-    nav: {
-      how: "How it works",
-      signIn: "Sign in",
-      docs: "Docs",
-      product: "Product",
-      download: "Download",
-      pricing: "Pricing",
-      openSource: "Open source",
-      menu: {
-        how: "What it does, on real screens.",
-        download: "{brand} Desktop for Apple Silicon.",
-      },
-      langLabel: "Language",
-      themeLabel: "Change the theme",
-      preferences: "Preferences",
-      openMenu: "Open the menu",
-      closeMenu: "Close the menu",
-      home: "{brand} home",
-      tryIt: "Try {brand}",
-      openApp: "Open the app",
-      repo: "{brand} web client on GitHub",
-    },
-    hero: {
-      title: "The AI that stays home.",
-      lead: "Your models, your machines: your data stays in.",
-      secondary: "See it run",
-      visualLabel: "{brand} · chat",
-    },
-    status: { development: "In development: still being tested, not ready for the public." },
-    figures: {
-      runs: "runs measured on real hardware, each with its record",
-      models: "models measured, on a Mac or hosted",
-      telemetry: "telemetry calls — nothing phones home",
-    },
-    features: {
-      eyebrow: "What it does",
-      title: "Three things, done on your side.",
-      lead: "Every screen below is the real app.",
-      items: {
-        studios: {
-          title: "Studios, priced before they run",
-          text: "A Studio turns a sentence or a file into an image, a video or a checked document. Its estimated cost shows before it starts.",
-        },
-        records: {
-          title: "Every result keeps its run",
-          text: "The output, its steps, its input and its run id stay together — so any result can be checked again.",
-        },
-        home: {
-          title: "Chat and agents that ask first",
-          text: "Models run on your machines; a hosted one only if you connect it. An agent shows its plan and acts once you approve it.",
-        },
-      },
-    },
-    capabilities: {
-      eyebrow: "What {brand} does",
-      title: "What {brand} does, in plain words",
-      lead: "The industry term sits beside each one, so you can recognise it.",
-      soon: "In development",
-      items: {
-        documents: {
-          tag: "RAG",
-          title: "Answers grounded in your own documents",
-          text: "The model looks in your documents before it answers. The search engine exists; sending your files from the app is in development.",
-        },
-        models: {
-          tag: "LLM",
-          title: "The language models you choose",
-          text: "On your Mac or hosted, your pick. A hosted model is used only if you connect it, and then your requests go to its provider.",
-        },
-        tools: {
-          tag: "MCP",
-          title: "Plugs into your tools through an open standard",
-          text: "Register your own MCP servers from the command line or the API; what they know joins the conversation.",
-        },
-        agents: {
-          tag: "Agents · tools",
-          title: "Agents that use tools and ask first",
-          text: "An agent shows its plan and acts only once you approve it.",
-        },
-        studios: {
-          tag: "Studios",
-          title: "Studios for images, video and documents",
-          text: "A sentence or a file becomes an image, a video or a checked document, with its cost shown before it runs.",
-        },
-        runs: {
-          tag: "Run id",
-          title: "Every result traced to its run",
-          text: "The output, its steps and its input stay together under one run id, so it can be checked again.",
-        },
-      },
-    },
-    film: {
-      eyebrow: "Made with {brand}",
-      title: "This film was made with {brand}.",
-      lead: "Key frames from the image Studio, shots from the video Studio, music from an audio model. Here is the film, and the records behind it.",
-      label: "A short film made with {brand}: music, no speech.",
-      factsTitle: "What it took",
-      models: "Models",
-      gpu: "GPU",
-      runs: "Video runs kept",
-      cost: "GPU cost of those runs",
-      costNote:
-        "The sum of the records of the shots kept in the film. Takes that were dropped, key frames and music are not counted here.",
-      roles: { keyframes: "key frames", shots: "shots", music: "music" },
-      runIds: "Run ids of the shots, in cut order",
-      outputs: {
-        heading: "Outputs of the film, as the Studios made them",
-        imageCaption: "Image Studio · {model}",
-        videoCaption: "Video Studio · {model} · run {run}",
-        duckKeyframe: "Key frame: a mallard on a workbench in a basement by a canal at dusk, beside an open laptop.",
-        duckShot: "Shot: the mallard turns and takes off.",
-        inkKeyframe: "Key frame: a puddle on a wet cobbled street, mirroring the grey sky.",
-        inkShot: "Shot: a drop of blue ink falls into the puddle and ripples spread.",
-      },
-    },
-    records: {
-      eyebrow: "Measured",
-      title: "One prompt, three models, three run records.",
-      lead: "Times, costs and run ids come from the platform's own records — they are not typed.",
-      more: "See every measured run",
-      measuredOn: "Measured on {day}: {ok} runs finished, {models} models.",
-      runLabel: "Run",
-      prompt: "A winter night in Montréal",
-      alt: "{title}, by {model}",
-      where: "Ran on",
-      onMac: "One Mac (Metal) — nothing left the machine",
-      onHosted: "DigitalOcean serverless inference",
-      noCost: "None — your own machine",
-      imageCost: "${cost} an image",
-      time: "Time",
-      timeValue: "{seconds} s, from the command to the file",
-      cost: "Provider price",
-    },
-    phone: {
-      eyebrow: "On your phone",
-      title: "The same work, from your phone.",
-      lead: "Sign in, describe what you need, follow the run, open the result. The phone app is the same {brand}, recorded here on a real device.",
-    },
-    cta: {
-      title: "Bring AI in-house — not your data out.",
-      body: "On your Mac, your servers or your phone. Tell us what you want to run on your own machines; a person answers.",
-      primary: "Create your workspace",
-      quickstart: "Run it in five minutes",
-    },
-    closed: {
-      title: "{brand} is in development — sign-in is closed on this site",
-      body: "This is the public development site: you can read how {brand} works, watch it run and browse the documentation. Accounts are not open yet.",
-      docs: "Read the documentation",
-      contact: "Talk to us",
-      home: "Back to the home page",
-      heroPrimary: "Read the documentation",
-      signInBanner: "Sign-in opens when {brand}'s dev services run.",
-    },
-    stage: {
-      title: "Development version",
-      message: "Data can be reset at any time. This is not a commercial offer yet.",
-    },
-    footer: {
-      privacy: "Privacy",
-      terms: "Terms",
-      contact: "Contact",
-      openSource: "Open source",
-      pricing: "Pricing",
-      license: "Open source · Apache-2.0",
-      by: "A Krizaka product",
-      product: "Product",
-      docs: "Documentation",
-      api: "API reference",
-      cli: "CLI",
-      legal: "Legal",
-    },
-  },
-  fr: {
-    nav: {
-      how: "Fonctionnement",
-      signIn: "Se connecter",
-      docs: "Docs",
-      product: "Produit",
-      download: "Télécharger",
-      pricing: "Tarifs",
-      openSource: "Open source",
-      menu: {
-        how: "Ce qu'il fait, sur de vrais écrans.",
-        download: "{brand} Desktop pour Apple Silicon.",
-      },
-      langLabel: "Langue",
-      themeLabel: "Changer le thème",
-      preferences: "Préférences",
-      openMenu: "Ouvrir le menu",
-      closeMenu: "Fermer le menu",
-      home: "Accueil {brand}",
-      tryIt: "Essayer {brand}",
-      openApp: "Ouvrir l'app",
-      repo: "Client web {brand} sur GitHub",
-    },
-    hero: {
-      title: "L'IA qui reste chez vous.",
-      lead: "Vos modèles, vos machines : vos données ne sortent pas.",
-      secondary: "Le voir tourner",
-      visualLabel: "{brand} · chat",
-    },
-    status: { development: "En développement : encore en test, pas prête pour le public." },
-    figures: {
-      runs: "runs mesurés sur du vrai matériel, chacun avec sa fiche",
-      models: "modèles mesurés, sur un Mac ou hébergés",
-      telemetry: "appels de télémétrie — rien ne sort",
-    },
-    features: {
-      eyebrow: "Ce qu'il fait",
-      title: "Trois choses, faites de votre côté.",
-      lead: "Chaque écran ci-dessous est la vraie app.",
-      items: {
-        studios: {
-          title: "Des Studios au prix connu d'avance",
-          text: "Un Studio change une phrase ou un fichier en image, en vidéo ou en document vérifié. Son coût estimé s'affiche avant de lancer.",
-        },
-        records: {
-          title: "Chaque résultat garde son run",
-          text: "La sortie, ses étapes, son entrée et son identifiant de run restent ensemble — tout résultat peut être revérifié.",
-        },
-        home: {
-          title: "Un chat et des agents qui demandent d'abord",
-          text: "Les modèles tournent sur vos machines ; un modèle hébergé seulement si vous en branchez un. Un agent montre son plan et n'agit qu'une fois approuvé.",
-        },
-      },
-    },
-    capabilities: {
-      eyebrow: "Ce que {brand} sait faire",
-      title: "Ce que {brand} sait faire, en mots simples",
-      lead: "Le terme du métier figure à côté de chaque point, pour le reconnaître.",
-      soon: "En développement",
-      items: {
-        documents: {
-          tag: "RAG",
-          title: "Des réponses fondées sur vos propres documents",
-          text: "Le modèle cherche dans vos documents avant de répondre. Le moteur de recherche existe ; l'envoi de vos fichiers depuis l'app est en développement.",
-        },
-        models: {
-          tag: "LLM",
-          title: "Les modèles de langage que vous choisissez",
-          text: "Sur votre Mac ou hébergés, à vous de choisir. Un modèle hébergé n'est utilisé que si vous le branchez ; vos requêtes partent alors chez son fournisseur.",
-        },
-        tools: {
-          tag: "MCP",
-          title: "Se branche à vos outils par un standard ouvert",
-          text: "Enregistrez vos propres serveurs MCP en ligne de commande ou par l'API ; ce qu'ils savent rejoint la conversation.",
-        },
-        agents: {
-          tag: "Agents · outils",
-          title: "Des agents qui utilisent des outils et demandent d'abord",
-          text: "Un agent montre son plan et n'agit qu'une fois approuvé.",
-        },
-        studios: {
-          tag: "Studios",
-          title: "Des Studios pour l'image, la vidéo et les documents",
-          text: "Une phrase ou un fichier devient une image, une vidéo ou un document vérifié, avec son coût affiché avant l'exécution.",
-        },
-        runs: {
-          tag: "Run id",
-          title: "Chaque résultat relié à son exécution",
-          text: "La sortie, ses étapes et son entrée restent ensemble sous un même identifiant de run, pour pouvoir tout revérifier.",
-        },
-      },
-    },
-    film: {
-      eyebrow: "Fait avec {brand}",
-      title: "Ce film a été fait avec {brand}.",
-      lead: "Les images clés viennent du Studio d'images, les plans du Studio vidéo, la musique d'un modèle audio. Voici le film, et les relevés qui le soutiennent.",
-      label: "Un court film fait avec {brand} : de la musique, pas de parole.",
-      factsTitle: "Ce qu'il a fallu",
-      models: "Modèles",
-      gpu: "GPU",
-      runs: "Runs vidéo retenus",
-      cost: "Coût GPU de ces runs",
-      costNote:
-        "La somme des relevés des plans gardés dans le film. Les prises écartées, les images clés et la musique ne sont pas comptées ici.",
-      roles: { keyframes: "images clés", shots: "plans", music: "musique" },
-      runIds: "Identifiants de run des plans, dans l'ordre du montage",
-      outputs: {
-        heading: "Sorties du film, telles que les Studios les ont faites",
-        imageCaption: "Studio d'images · {model}",
-        videoCaption: "Studio vidéo · {model} · run {run}",
-        duckKeyframe:
-          "Image clé : un colvert sur un établi, dans un sous-sol près d'un canal au crépuscule, à côté d'un portable ouvert.",
-        duckShot: "Plan : le colvert se retourne et s'envole.",
-        inkKeyframe: "Image clé : une flaque sur une rue pavée mouillée, qui reflète le ciel gris.",
-        inkShot: "Plan : une goutte d'encre bleue tombe dans la flaque et des ondes s'étendent.",
-      },
-    },
-    records: {
-      eyebrow: "Mesuré",
-      title: "Un prompt, trois modèles, trois fiches de run.",
-      lead: "Temps, coûts et identifiants de run viennent des relevés de la plateforme — ils ne sont pas saisis à la main.",
-      more: "Voir tous les runs mesurés",
-      measuredOn: "Mesuré le {day} : {ok} runs terminés, {models} modèles.",
-      runLabel: "Run",
-      prompt: "Une nuit d'hiver à Montréal",
-      alt: "{title}, par {model}",
-      where: "Exécuté sur",
-      onMac: "Un seul Mac (Metal) — rien n'a quitté la machine",
-      onHosted: "Inférence serverless de DigitalOcean",
-      noCost: "Aucun — votre propre machine",
-      imageCost: "{cost} $ l'image",
-      time: "Durée",
-      timeValue: "{seconds} s, de la commande au fichier",
-      cost: "Prix du fournisseur",
-    },
-    phone: {
-      eyebrow: "Sur votre téléphone",
-      title: "Le même travail, depuis votre téléphone.",
-      lead: "Connectez-vous, décrivez ce qu'il vous faut, suivez le run, ouvrez le résultat. L'app mobile est le même {brand}, enregistrée ici sur un vrai appareil.",
-    },
-    cta: {
-      title: "Faites entrer l'IA — sans faire sortir vos données.",
-      body: "Sur votre Mac, vos serveurs ou votre téléphone. Dites-nous ce que vous voulez faire tourner sur vos propres machines ; une personne répond.",
-      primary: "Créer mon espace",
-      quickstart: "L'essayer en cinq minutes",
-    },
-    closed: {
-      title: "{brand} est en développement — la connexion est fermée sur ce site",
-      body: "Ceci est le site public de développement : vous pouvez lire comment {brand} fonctionne, le voir tourner et parcourir la documentation. Les comptes ne sont pas encore ouverts.",
-      docs: "Lire la documentation",
-      contact: "Nous parler",
-      home: "Retour à l'accueil",
-      heroPrimary: "Lire la documentation",
-      signInBanner: "La connexion s'ouvre quand les services de développement de {brand} tournent.",
-    },
-    stage: {
-      title: "Version de développement",
-      message: "Les données peuvent être réinitialisées à tout moment. Ce n'est pas encore une offre commerciale.",
-    },
-    footer: {
-      privacy: "Confidentialité",
-      terms: "Conditions",
-      contact: "Contact",
-      openSource: "Open source",
-      pricing: "Tarifs",
-      license: "Open source · Apache-2.0",
-      by: "Un produit Krizaka",
-      product: "Produit",
-      docs: "Documentation",
-      api: "Référence de l'API",
-      cli: "CLI",
-      legal: "Légal",
-    },
-  },
+  en: localise(WORDS, 0),
+  fr: localise(WORDS, 1),
 };

@@ -22,6 +22,7 @@ At the end (wave W14) the ratchet file is deleted: zero tolerance, outside the r
 | K4 | krizaka-java billing V1/V2 migrations; DigitalOcean ingress `orazaka-dev-averr.ondigitalocean.app`; Firebase project id `orazaka`; past evidence URLs and old issue links | Other repositories' applied history, or an external id that cannot be renamed. | W13 decides the Firebase id; the rest stays. |
 | K5 | The guard's own files (`scripts/check-code-names.mjs`, `scripts/test/code-names.test.mjs`) and this page | They name what they forbid. | Never. |
 | K6 | `com.krizaka.orazaka` (iOS/Android identifier) | Replaced by `com.krizaka.sovkora` in W13 (founder decision 2026-11-12); not kept after it. | W13. |
+| K7 | What the public site still serves: the `brand-orazaka` CSS class and the `brand="orazaka"` prop of @krizaka/ui, the CDN paths `sites/orazaka/…` (hashed, uploaded files), and the runtime names in the engine documentation (`orazaka_models`, `orazaka-release.json`, the `./orazaka` install folder, `orazaka.jobs` queues, `orazaka-*` module names, `ORAZAKA_*` variables). None is a title, an alt, an aria-label, the footer, a meta or `llms.txt` text of the product's own words. | A renamed asset or runtime name needs the forward rename of K1–K6; the library brand id is renamed in krizaka-ui. | With W13, with the CDN re-upload and the @krizaka/ui brand id. |
 
 `orazaka.com` is left to lapse (founder, 2026-11-12): the table keeps no row for it, and nothing we ship may resolve it
 before it expires (W12).

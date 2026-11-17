@@ -1567,7 +1567,7 @@ the catalogue's, **lowercase** (`chat`, not `CHAT`: a category that matches no m
 `x-i18n.en` and `x-i18n.fr` too: a `title`, a one-line `description` (**≤ 140 characters**) and, for a free-text field,
 the `placeholder` it shows (an example of what to type). The blueprint's own `title` / `description` stay for clients
 that predate it. The same test refuses a field without them, an English word that is French, and the dev data check
-(`node scripts/audit-studio-forms.mjs` in krizaka/orazaka) reads the published blueprints for the same.
+(`node scripts/audit-studio-forms.mjs` in krizaka/sovkora) reads the published blueprints for the same.
 
 The Studio service writes the catalogue's list into the schema it serves (`oneOf` of `const`/`title`, the facts in
 `x-meta`) and refuses, before any credit is held, a value that is not in it.
@@ -1664,7 +1664,7 @@ that field.
 
 ### 7. Where packs come from
 
-One property decides, and it is the only difference between an open-source deployment and a hosted
+One property decides, and it is the only difference between a self-hosted deployment and a hosted
 one:
 
 ```bash

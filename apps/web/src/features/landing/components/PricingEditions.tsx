@@ -10,7 +10,7 @@ import { contactUrl } from "@/core/config/contact";
 import { inDevelopment } from "@/core/config/product-status";
 import { priceFor, type PublicPrice } from "@/features/landing/utils/public-prices";
 
-const REPO_URL = "https://github.com/krizaka/orazaka";
+const REPO_URL = "https://github.com/krizaka/sovkora";
 
 /**
  * `/pricing` — the editions on @krizaka/ui's pricing template: Community (open source, what runs), Business (soon, no

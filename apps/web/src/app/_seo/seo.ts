@@ -17,13 +17,15 @@ export const SITE_URL = "https://dev.sovkora.com";
 /** The public face of the product: every page's canonical points here, dev included (the dev host is never the canonical, krizaka-internal#3286). */
 export const WWW_URL = "https://www.sovkora.com";
 export const KRIZAKA_URL = "https://www.krizaka.com";
-export const REPO_URL = "https://github.com/krizaka/orazaka";
+export const REPO_URL = "https://github.com/krizaka/sovkora";
+/** The product's own licence (FSL-1.1-ALv2): the LICENSE file of its repository. */
+export const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`;
 /** The Krizaka Organization, defined by www.krizaka.com: every JSON-LD node of the family points back to it. */
 export const ORG_ID = `${KRIZAKA_URL}/#organization`;
 
 export const SITE_NAME = "Sovkora";
 /** What the search result says: the name first, then what it is (a query for « Sovkora » or « sovereign AI platform »). */
-export const SITE_TITLE = "Sovkora — open-source sovereign AI platform, self-hosted";
+export const SITE_TITLE = "Sovkora — sovereign AI platform, self-hosted";
 export const SITE_DESCRIPTION =
   "Sovkora by Krizaka (Montréal): a sovereign AI platform. Your LLM, local or hosted, MCP tools, agents that ask first, Studios, every result traced to its run.";
 /** The same two lines in French (the page's `<title>` and Open Graph on `/fr`): the product's one line, « L'IA qui reste chez vous ». */
@@ -114,7 +116,7 @@ export function siteJsonLd() {
         operatingSystem: "Linux, macOS",
         isAccessibleForFree: true,
         featureList: FEATURE_LIST,
-        license: "https://www.apache.org/licenses/LICENSE-2.0",
+        license: LICENSE_URL,
         codeRepository: REPO_URL,
         sameAs: [REPO_URL],
         publisher: ORG,
@@ -126,21 +128,21 @@ export function siteJsonLd() {
 
 // A deployed product is independent: llms.txt names its publisher and nothing else of the family — no other product.
 const familySection = () =>
-  `## Publisher\n\n- [Krizaka](${KRIZAKA_URL}): the company that publishes Sovkora, an open-source software studio in Montréal\n\nSitemap: ${SITE_URL}/sitemap.xml\n`;
+  `## Publisher\n\n- [Krizaka](${KRIZAKA_URL}): the company that publishes Sovkora, a software studio in Montréal\n\nSitemap: ${SITE_URL}/sitemap.xml\n`;
 
 export function llmsText(): string {
   const docs = listPages().map((d) => `- [${d.title}](${SITE_URL}/docs/${d.slug}): ${d.intro}`);
   return `# ${SITE_NAME}
 
-> ${SITE_DESCRIPTION} A product of Krizaka (Montréal), open source under Apache-2.0. Sign-in is closed on this development site.
+> ${SITE_DESCRIPTION} A product of Krizaka (Montréal), source available under FSL-1.1-ALv2 ([licence](${LICENSE_URL})). Sign-in is closed on this development site.
 
 ## Key pages
 
 - [Home](${SITE_URL}/): what Sovkora is
 - [Mobile app](${SITE_URL}/docs/mobile): recordings and screenshots of the iOS and Android app
 - [Sovkora for Mac](${SITE_URL}/desktop): the Sovkora Desktop test build for Apple Silicon — what it does today, requirements, download
-- [Pricing and editions](${SITE_URL}/pricing): Community (open source, runs today), Business (soon), and Krizaka's Enterprise offer for anything custom
-- [Open source](${SITE_URL}/open-source): the public repositories, the Apache-2.0 licence line, self-hosting and how to contribute
+- [Pricing and editions](${SITE_URL}/pricing): Community (the platform you run yourself, runs today), Business (soon), and Krizaka's Enterprise offer for anything custom
+- [Source code](${SITE_URL}/open-source): the public repositories, the FSL-1.1-ALv2 licence line, self-hosting and how to contribute
 - [Packs](${SITE_URL}/docs/packs): the catalogue of installable offers, what each pack adds to the Studios, and how to write one
 - [Models](${SITE_URL}/docs/models): the models Sovkora supports — what each does, where it runs, its licence and context window
 - [Talk to the team](${KRIZAKA_URL}/en/contact?topic=sovkora): the contact form lives on krizaka.com
@@ -153,7 +155,7 @@ ${docs.join("\n")}
 
 ## Source
 
-- [Sovkora repository](${REPO_URL}): the engine and its workspace (Apache-2.0)
+- [Sovkora repository](${REPO_URL}): the engine and its workspace (FSL-1.1-ALv2, [licence](${LICENSE_URL}))
 
 ${familySection()}`;
 }

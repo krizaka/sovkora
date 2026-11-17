@@ -31,7 +31,7 @@ export function LandingFilm({ facts }: Readonly<{ facts: FilmFacts }>) {
     rows.push({ label: f.cost, value: money.format(facts.gpuCostUsd) });
   }
   return (
-    <Section id="made-with-orazaka" eyebrow={f.eyebrow} title={f.title} lead={f.lead} reveal divider>
+    <Section id="made-with-sovkora" eyebrow={f.eyebrow} title={f.title} lead={f.lead} reveal divider>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start" data-testid="landing-film">
         <FilmPlayer
           webm={mediaUrl(`${FILM}.webm`)}
