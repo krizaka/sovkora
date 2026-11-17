@@ -6,16 +6,11 @@ import static org.mockito.Mockito.*;
 import com.krizaka.sovkora.engine.core.domain.model.mcp.McpToolInfo;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.McpService;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
-import com.krizaka.sovkora.engine.tools.domain.port.HostResolver;
-import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.PublicAddressMcpServerPolicyAdapter;
-import com.krizaka.sovkora.engine.tools.infrastructure.config.McpProperties;
 import com.krizaka.sovkora.persistence.api.domain.model.PlatformMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.model.UserMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.PlatformMcpServerPersistenceProvider;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.UserMcpServerPersistenceProvider;
 import com.krizaka.users.domain.model.User;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +20,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,33 +45,27 @@ class McpControllerTest {
       java.time.Clock.fixed(
           java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
 
-  /** Names resolve from a table; an address literal resolves to itself; nothing else resolves. */
-  private static final HostResolver RESOLVER =
-      host -> {
-        Map<String, String> table =
-            Map.of(
-                "server1", "1.1.1.1",
-                "s1", "1.1.1.1",
-                "s2", "1.1.1.1",
-                "p", "1.1.1.1",
-                "inside.example", "10.1.2.3");
-        if (table.containsKey(host)) {
-          return List.of(InetAddress.getByName(table.get(host)));
-        }
-        if (host.chars().allMatch(c -> Character.digit(c, 16) >= 0 || ".:[]".indexOf(c) >= 0)) {
-          return List.of(InetAddress.getByName(host));
-        }
-        throw new UnknownHostException(host);
-      };
+  /** The registered hosts the policy admits; every other endpoint is refused. */
+  private static final List<String> ADMITTED =
+      List.of("https://server1", "https://s1", "https://s2", "https://p");
 
-  /** The engine's policy, with one declared local server. */
-  private static final PublicAddressMcpServerPolicyAdapter POLICY =
-      new PublicAddressMcpServerPolicyAdapter(
-          RESOLVER,
-          new McpProperties(
-              Map.of(
-                  "filesystem",
-                  new McpServerPolicy.StdioLaunch("npx", List.of("-y", "mcp-server-filesystem")))));
+  /** A policy that admits {@link #ADMITTED} and declares one local server, {@code filesystem}. */
+  private static final McpServerPolicy POLICY =
+      new McpServerPolicy() {
+        @Override
+        public Optional<Refusal> refusal(String url) {
+          return ADMITTED.stream().anyMatch(url::startsWith)
+              ? Optional.empty()
+              : Optional.of(Refusal.ADDRESS);
+        }
+
+        @Override
+        public Optional<StdioLaunch> stdioLaunch(String id) {
+          return "filesystem".equals(id)
+              ? Optional.of(new StdioLaunch("npx", List.of("-y", "mcp-server-filesystem")))
+              : Optional.empty();
+        }
+      };
 
   private McpService mcpService;
   private PlatformMcpServerPersistenceProvider platformMcpServerPersistenceProvider;
@@ -479,56 +469,30 @@ class McpControllerTest {
 
   @ParameterizedTest
   @ValueSource(
-      strings = {
-        "https://127.0.0.1/mcp",
-        "https://10.0.0.5/mcp",
-        "https://192.168.1.10/mcp",
-        "https://169.254.169.254/latest",
-        "https://[::1]/mcp",
-        "https://inside.example/mcp",
-        "http://server1/mcp",
-        "file:///etc/hosts"
-      })
-  void aUserServerOnTheInsideOrNotOverHttpsIsRefusedAndNotStored(String url) {
+      strings = {"https://127.0.0.1/mcp", "https://inside.example/mcp", "http://server1/mcp"})
+  void aUserServerThePolicyRefusesIsAnswered400AndNotStored(String url) {
     UserMcpServerDto payload =
         new UserMcpServerDto(null, USER.id().toString(), "S", url, null, true, null);
 
     ResponseEntity<Object> response = mcpController.saveUserServer(payload, USER);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    assertFalse(String.valueOf(response.getBody()).contains("10.1.2.3"));
+    assertTrue(String.valueOf(response.getBody()).contains("ADDRESS"));
     verify(userMcpServerPersistenceProvider, never()).save(any());
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"https://127.0.0.1/mcp", "https://inside.example/mcp", "http://server1"})
-  void aPlatformServerOnTheInsideIsRefusedAndNotStored(String url) {
+  @CsvSource({
+    "SSE, https://127.0.0.1/mcp, , ",
+    "SSE, http://server1, , ",
+    "LOCAL, , /bin/sh, ",
+    "LOCAL, , npx, ",
+    "LOCAL, , filesystem, '-e,require(x)'"
+  })
+  void aPlatformServerThePolicyRefusesIsAnswered400AndNotStored(
+      String transport, String url, String command, String args) {
     PlatformMcpServerDto payload =
-        new PlatformMcpServerDto(null, "P", "SSE", url, null, null, null, true, null);
-
-    ResponseEntity<Object> response = mcpController.savePlatformServer(payload);
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    verify(platformMcpServerPersistenceProvider, never()).save(any());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"/bin/sh", "sh", "npx", "bash"})
-  void aLocalServerWithACommandNotDeclaredInTheConfigurationIsRefused(String command) {
-    PlatformMcpServerDto payload =
-        new PlatformMcpServerDto(null, "P", "LOCAL", null, command, null, null, true, null);
-
-    ResponseEntity<Object> response = mcpController.savePlatformServer(payload);
-
-    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    verify(platformMcpServerPersistenceProvider, never()).save(any());
-  }
-
-  @Test
-  void aLocalServerCannotBringItsOwnArguments() {
-    PlatformMcpServerDto payload =
-        new PlatformMcpServerDto(
-            null, "P", "LOCAL", null, "filesystem", "-e,require('x')", null, true, null);
+        new PlatformMcpServerDto(null, "P", transport, url, command, args, null, true, null);
 
     ResponseEntity<Object> response = mcpController.savePlatformServer(payload);
 
