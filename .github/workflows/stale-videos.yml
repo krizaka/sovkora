@@ -39,7 +39,7 @@ jobs:
         name: Read the manifest
         run: node apps/web/scripts/stale-videos-report.mjs "$RUNNER_TEMP/stale-videos.md"
       - name: Raise the alert (stale ids) or clear it
-        uses: krizaka/.github/actions/alert-issue@cf350d9958db51a9d1ce29b2b3eab57c10ddc7a4 # main
+        uses: krizaka/.github/actions/alert-issue@43f6462ceec04599ff2ef2c2967bf7202b6dacc5 # main
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
