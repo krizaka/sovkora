@@ -395,6 +395,9 @@ public class SpringAiAdapterAutoConfiguration {
    * @param platform the platform's MCP servers (optional)
    * @param user the user's own MCP servers (optional)
    * @param registry the local tools (optional)
+   * @param permissions the tool permissions (optional)
+   * @param audit the denials audit
+   * @param mcpServerPolicy which MCP servers may be opened; none is opened without one
    * @return the resolution
    */
   @Bean
@@ -404,13 +407,15 @@ public class SpringAiAdapterAutoConfiguration {
       ObjectProvider<UserMcpServerProvider> user,
       ObjectProvider<ToolRegistry> registry,
       ObjectProvider<ToolPermissionProvider> permissions,
-      AccessAudit audit) {
+      AccessAudit audit,
+      ObjectProvider<McpServerPolicy> mcpServerPolicy) {
     // The tools the client runs (ADR-093 §4) are checked the way the engine's own are (ADR-091).
     return new SpringAiToolResolution(
         platform.getIfAvailable(),
         user.getIfAvailable(),
         registry.getIfAvailable(),
-        new ClientToolGate(permissions.getIfAvailable(), audit));
+        new ClientToolGate(permissions.getIfAvailable(), audit),
+        mcpServerPolicy.getIfAvailable(McpServerPolicy::closed));
   }
 
   /** The Ollama options strategy. */

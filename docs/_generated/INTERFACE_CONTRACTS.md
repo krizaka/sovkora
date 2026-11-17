@@ -49,6 +49,7 @@ generated: true
 - `InfrastructureStatusProvider`
 - `KnowledgeService`
 - `McpOrchestrator`
+- `McpServerPolicy`
 - `ModelCatalogProvider`
 - `ModelEndpointResolver`
 - `OutputJudge`

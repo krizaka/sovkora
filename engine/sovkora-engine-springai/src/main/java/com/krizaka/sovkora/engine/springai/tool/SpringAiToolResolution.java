@@ -5,6 +5,7 @@ import com.krizaka.sovkora.engine.core.domain.model.chat.EngineTool;
 import com.krizaka.sovkora.engine.core.domain.model.chat.InternalChatRequest;
 import com.krizaka.sovkora.engine.core.domain.model.chat.ToolCall;
 import com.krizaka.sovkora.engine.core.domain.model.security.Actor;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolRegistry;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ToolResolution;
@@ -19,6 +20,7 @@ import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.spec.McpClientTransport;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ public final class SpringAiToolResolution implements ToolResolution {
   private final UserMcpServerProvider userMcpServerProvider;
   private final ToolRegistry toolRegistry;
   private final ClientToolGate clientToolGate;
+  private final McpServerPolicy mcpServerPolicy;
 
   /**
    * Constructs the resolution.
@@ -50,19 +53,37 @@ public final class SpringAiToolResolution implements ToolResolution {
    * @param toolRegistry The local tools registry (nullable).
    * @param clientToolGate The ADR-091 check of the tools the client runs (ADR-093 §4); {@code null}
    *     means client-executed mode offers nothing.
+   * @param mcpServerPolicy Which MCP servers may be opened: checked again at every turn, so a row
+   *     stored before the check, or a host that now resolves elsewhere, is not opened.
    */
   public SpringAiToolResolution(
       PlatformMcpServerProvider platformMcpServerProvider,
       UserMcpServerProvider userMcpServerProvider,
       ToolRegistry toolRegistry,
-      ClientToolGate clientToolGate) {
+      ClientToolGate clientToolGate,
+      McpServerPolicy mcpServerPolicy) {
     this.platformMcpServerProvider = platformMcpServerProvider;
     this.userMcpServerProvider = userMcpServerProvider;
     this.toolRegistry = toolRegistry;
     this.clientToolGate = clientToolGate;
+    this.mcpServerPolicy = mcpServerPolicy;
   }
 
-  /** A resolution with no client-executed mode: it offers no client tool. */
+  /** A resolution with no MCP server policy wired: it opens no MCP server (fails closed). */
+  public SpringAiToolResolution(
+      PlatformMcpServerProvider platformMcpServerProvider,
+      UserMcpServerProvider userMcpServerProvider,
+      ToolRegistry toolRegistry,
+      ClientToolGate clientToolGate) {
+    this(
+        platformMcpServerProvider,
+        userMcpServerProvider,
+        toolRegistry,
+        clientToolGate,
+        McpServerPolicy.closed());
+  }
+
+  /** A resolution with no client-executed mode and no MCP server policy: no client tool, no MCP. */
   public SpringAiToolResolution(
       PlatformMcpServerProvider platformMcpServerProvider,
       UserMcpServerProvider userMcpServerProvider,
@@ -105,12 +126,7 @@ public final class SpringAiToolResolution implements ToolResolution {
 
   /** Describes an MCP server connection for client initialization. */
   record McpServerDescriptor(
-      String label,
-      String url,
-      String authToken,
-      String transportType,
-      String command,
-      String args) {
+      String label, String url, String authToken, String transportType, String command) {
 
     static McpServerDescriptor fromPlatform(PlatformMcpServerProvider.PlatformMcpServer server) {
       return new McpServerDescriptor(
@@ -118,13 +134,11 @@ public final class SpringAiToolResolution implements ToolResolution {
           server.url(),
           server.authToken(),
           server.transportType(),
-          server.command(),
-          server.args());
+          server.command());
     }
 
     static McpServerDescriptor fromUser(UserMcpServerProvider.UserMcpServer server) {
-      return new McpServerDescriptor(
-          server.label(), server.url(), server.authToken(), "SSE", null, null);
+      return new McpServerDescriptor(server.label(), server.url(), server.authToken(), "SSE", null);
     }
   }
 
@@ -177,7 +191,7 @@ public final class SpringAiToolResolution implements ToolResolution {
         .filter(server -> Boolean.TRUE.equals(server.enabled()));
   }
 
-  private static void connectEnabled(
+  private void connectEnabled(
       Stream<McpServerDescriptor> descriptors,
       List<AutoCloseable> closeables,
       List<ToolCallback> callbacks) {
@@ -214,21 +228,21 @@ public final class SpringAiToolResolution implements ToolResolution {
   }
 
   /**
-   * Safely initializes an MCP client and registers its tool callbacks. Failures are logged and
-   * silently skipped (resilient to server downtime).
+   * Safely initializes an MCP client the policy admits and registers its tool callbacks. A server
+   * the policy refuses is not opened; failures are logged and skipped (resilient to server
+   * downtime).
    */
-  private static void buildClientSafely(
+  private void buildClientSafely(
       McpServerDescriptor descriptor,
       List<AutoCloseable> closeables,
       List<ToolCallback> callbacks) {
     try {
-      McpSyncClient client =
-          buildClient(
-              descriptor.url(),
-              descriptor.authToken(),
-              descriptor.transportType(),
-              descriptor.command(),
-              descriptor.args());
+      Optional<McpClientTransport> transport = admittedTransport(descriptor);
+      if (transport.isEmpty()) {
+        return;
+      }
+      McpSyncClient client = McpClient.sync(transport.get()).build();
+      client.initialize();
       closeables.add(client);
       callbacks.addAll(SyncMcpToolCallbackProvider.syncToolCallbacks(List.of(client)));
       logger.info("Successfully initialized MCP client: {}", descriptor.label());
@@ -238,42 +252,39 @@ public final class SpringAiToolResolution implements ToolResolution {
   }
 
   /**
-   * Unified MCP client builder supporting both LOCAL (Stdio) and SSE transports.
-   *
-   * @param url The SSE server URL (used for SSE transport).
-   * @param authToken Optional bearer token for SSE transport authentication.
-   * @param transportType Transport type: "LOCAL" for Stdio, anything else for SSE.
-   * @param command The command for LOCAL transport (e.g. "npx").
-   * @param args Comma-separated arguments for LOCAL transport.
-   * @return An initialized {@link McpSyncClient}.
+   * The transport of a server the policy admits: a LOCAL server launches what the deployment
+   * declares under the id it names (never a command from the row), any other is an SSE endpoint on
+   * a public https address.
    */
-  private static McpSyncClient buildClient(
-      String url, String authToken, String transportType, String command, String args) {
-    McpClientTransport transport;
-    if ("LOCAL".equalsIgnoreCase(transportType)) {
-      List<String> argsList = new ArrayList<>();
-      if (args != null && !args.isBlank()) {
-        for (String arg : args.split(",")) {
-          argsList.add(arg.trim());
-        }
+  private Optional<McpClientTransport> admittedTransport(McpServerDescriptor descriptor) {
+    if ("LOCAL".equalsIgnoreCase(descriptor.transportType())) {
+      Optional<McpServerPolicy.StdioLaunch> launch =
+          mcpServerPolicy.stdioLaunch(descriptor.command());
+      if (launch.isEmpty()) {
+        logger.warn(
+            "MCP server {} names no declared local command: not started", descriptor.label());
+        return Optional.empty();
       }
       McpJsonMapper jsonMapper = new JacksonMcpJsonMapper(new JsonMapper());
-      ServerParameters params = ServerParameters.builder(command).args(argsList).build();
-      transport = new StdioClientTransport(params, jsonMapper);
-    } else {
-      HttpClientSseClientTransport.Builder transportBuilder =
-          HttpClientSseClientTransport.builder(url);
-      if (authToken != null && !authToken.isBlank()) {
-        // MCP SDK 2.0: customizeRequest(Consumer) →
-        // httpRequestCustomizer(McpSyncHttpClientRequestCustomizer).
-        transportBuilder.httpRequestCustomizer(
-            (requestBuilder, method, uri, body, context) ->
-                requestBuilder.header("Authorization", authToken));
-      }
-      transport = transportBuilder.build();
+      ServerParameters params =
+          ServerParameters.builder(launch.get().command()).args(launch.get().args()).build();
+      return Optional.of(new StdioClientTransport(params, jsonMapper));
     }
-    McpSyncClient client = McpClient.sync(transport).build();
-    client.initialize();
-    return client;
+    Optional<McpServerPolicy.Refusal> refusal = mcpServerPolicy.refusal(descriptor.url());
+    if (refusal.isPresent()) {
+      logger.warn("MCP server {} refused: {}", descriptor.label(), refusal.get());
+      return Optional.empty();
+    }
+    HttpClientSseClientTransport.Builder transportBuilder =
+        HttpClientSseClientTransport.builder(descriptor.url());
+    String authToken = descriptor.authToken();
+    if (authToken != null && !authToken.isBlank()) {
+      // MCP SDK 2.0: customizeRequest(Consumer) →
+      // httpRequestCustomizer(McpSyncHttpClientRequestCustomizer).
+      transportBuilder.httpRequestCustomizer(
+          (requestBuilder, method, uri, body, context) ->
+              requestBuilder.header("Authorization", authToken));
+    }
+    return Optional.of(transportBuilder.build());
   }
 }

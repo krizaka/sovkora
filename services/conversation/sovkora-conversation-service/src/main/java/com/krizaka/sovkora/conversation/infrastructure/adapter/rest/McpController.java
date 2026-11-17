@@ -3,6 +3,7 @@ package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 import com.krizaka.sovkora.engine.core.domain.model.security.AccessDeniedException;
 import com.krizaka.sovkora.engine.core.domain.model.security.Actor;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.McpService;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
 import com.krizaka.sovkora.persistence.api.domain.model.PlatformMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.model.UserMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.PlatformMcpServerPersistenceProvider;
@@ -11,6 +12,7 @@ import com.krizaka.users.domain.model.User;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,14 @@ public class McpController {
    */
   static final String TOKEN_MASK = "********";
 
+  /** The transport of a platform server the engine starts as a local process (stdio). */
+  private static final String LOCAL_TRANSPORT = "LOCAL";
+
   private final McpService mcpService;
   private final PlatformMcpServerPersistenceProvider platformMcpServerPersistenceProvider;
   private final UserMcpServerPersistenceProvider userMcpServerPersistenceProvider;
   private final ObjectMapper objectMapper;
+  private final McpServerPolicy mcpServerPolicy;
 
   /**
    * Constructs the McpController.
@@ -46,12 +52,15 @@ public class McpController {
    * @param platformMcpServerPersistenceProvider Platform MCP persistence provider.
    * @param userMcpServerPersistenceProvider User MCP persistence provider.
    * @param objectMapper Spring-managed JSON ObjectMapper.
+   * @param mcpServerPolicy Which MCP servers may be registered: public https endpoints, and local
+   *     servers only by an id the deployment declares.
    */
   public McpController(
       McpService mcpService,
       PlatformMcpServerPersistenceProvider platformMcpServerPersistenceProvider,
       UserMcpServerPersistenceProvider userMcpServerPersistenceProvider,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      McpServerPolicy mcpServerPolicy) {
     this.mcpService = Objects.requireNonNull(mcpService, "McpService must not be null");
     this.platformMcpServerPersistenceProvider =
         Objects.requireNonNull(
@@ -61,6 +70,8 @@ public class McpController {
         Objects.requireNonNull(
             userMcpServerPersistenceProvider, "UserMcpServerPersistenceProvider must not be null");
     this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper must not be null");
+    this.mcpServerPolicy =
+        Objects.requireNonNull(mcpServerPolicy, "McpServerPolicy must not be null");
   }
 
   /**
@@ -141,6 +152,10 @@ public class McpController {
     if (payload.url() == null || payload.url().isBlank()) {
       return ResponseEntity.badRequest().body("URL cannot be empty");
     }
+    Optional<McpServerPolicy.Refusal> refusal = mcpServerPolicy.refusal(payload.url());
+    if (refusal.isPresent()) {
+      return ResponseEntity.badRequest().body(refusedUrlMessage(refusal.get()));
+    }
     // An id already held by another user is not ours to overwrite (an upsert is a takeover).
     UserMcpServerDto toSave = payload;
     if (payload.id() != null) {
@@ -195,8 +210,9 @@ public class McpController {
   @PreAuthorize("hasAuthority('ROLE_ADMIN')")
   public ResponseEntity<@NotNull Object> savePlatformServer(
       @RequestBody PlatformMcpServerDto payload) {
-    if (payload.url() == null && payload.command() == null) {
-      return ResponseEntity.badRequest().body("Either URL or Command must be provided");
+    Optional<String> refused = platformRefusal(payload);
+    if (refused.isPresent()) {
+      return ResponseEntity.badRequest().body(refused.get());
     }
     PlatformMcpServerDto toSave = payload;
     if (payload.id() != null && keepsStoredToken(payload.authToken())) {
@@ -226,7 +242,31 @@ public class McpController {
     return ResponseEntity.ok().build();
   }
 
-  /** DTO representing basic tool definition info. */
+  /**
+   * Why a platform server may not be registered. A local server is an id the deployment declares,
+   * with its command and arguments: the request names which one, never what to run. Any other is an
+   * endpoint the policy must admit.
+   */
+  private Optional<String> platformRefusal(PlatformMcpServerDto payload) {
+    if (payload.url() == null && payload.command() == null) {
+      return Optional.of("Either URL or Command must be provided");
+    }
+    if (!LOCAL_TRANSPORT.equalsIgnoreCase(payload.transportType())) {
+      return mcpServerPolicy.refusal(payload.url()).map(McpController::refusedUrlMessage);
+    }
+    if (payload.args() != null && !payload.args().isBlank()) {
+      return Optional.of("A local MCP server takes its arguments from the configuration");
+    }
+    return mcpServerPolicy.stdioLaunch(payload.command()).isEmpty()
+        ? Optional.of("A local MCP server must name a server declared in the configuration")
+        : Optional.empty();
+  }
+
+  /** The answer to an endpoint the policy refuses: the reason, never the address it resolved to. */
+  private static String refusedUrlMessage(McpServerPolicy.Refusal refusal) {
+    return "MCP server URL refused (" + refusal + "): an https URL on a public host is required";
+  }
+
   private static boolean keepsStoredToken(String sent) {
     return sent == null || sent.isBlank() || TOKEN_MASK.equals(sent);
   }
