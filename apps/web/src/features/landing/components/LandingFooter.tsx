@@ -21,7 +21,7 @@ export function LandingFooter({ withLanguage = false }: Readonly<{ withLanguage?
 
   return (
     <SiteFooter
-      current="orazaka"
+      current="sovkora"
       family={false}
       labels={familyLabels[locale]}
       aria-label={f.product}

@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@krizaka/query";
 import { useCallback, useEffect, useState } from "react";
-import { OrazakaLogo } from "@krizaka/ui";
+import { SovkoraLogo } from "@krizaka/ui";
 import { Badge } from "@krizaka/ui/badge";
 import { Button } from "@krizaka/ui/button";
 import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "@krizaka/ui/tabs";
@@ -58,7 +58,7 @@ function Shell({ snap, error, refresh, setSnap }: Readonly<{ snap: Snapshot | nu
   return (
     <div className="flex h-full flex-col bg-surface-1 text-fg">
       <header className="flex items-center gap-3 border-b border-border-subtle px-5 py-3">
-        <OrazakaLogo size={34} animated={false} title="Sovkora" />
+        <SovkoraLogo size={34} animated={false} title="Sovkora" />
         <div className="min-w-0">
           <h1 className="text-base font-semibold leading-tight">{t("app.name")}</h1>
           <p className="truncate text-xs text-fg-secondary">{t("app.tagline")}</p>
