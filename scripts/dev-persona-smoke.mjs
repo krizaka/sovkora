@@ -10,8 +10,7 @@
  * the e-mail, login answered 500).
  */
 import { execFileSync } from "node:child_process";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { toolPathOf } from "./lib/tools.mjs";
 
 const WEB = process.env.ORAZAKA_WEB_URL ?? "https://dev.sovkora.com";
 const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
@@ -58,7 +57,7 @@ async function webSignIn(email, pass) {
   return webVerdict(cb.status, session, email);
 }
 
-const fromMac = (key) => execFileSync(join(homedir(), ".krizaka-worktrees/tools/secret.sh"), ["@dev", key], { encoding: "utf8" }).trim();
+const fromMac = (key) => execFileSync(toolPathOf("secret.sh"), ["@dev", key], { encoding: "utf8" }).trim();
 const secret = (key) => process.env[key] ?? fromMac(key);
 
 async function main(name = "eric") {

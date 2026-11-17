@@ -20,6 +20,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { toolPathOf } from "./lib/tools.mjs";
 
 const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 const arg = (name, fallback) => {
@@ -64,7 +65,7 @@ export const CHECKS = [
 
 /** One key of the QA store, through secret.sh (the value stays in this process, never printed); "" when absent. */
 function qaSecret(key) {
-  const r = spawnSync(join(homedir(), ".krizaka-worktrees/tools/secret.sh"), ["@qa", key], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  const r = spawnSync(toolPathOf("secret.sh"), ["@qa", key], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   return r.status === 0 ? r.stdout : "";
 }
 

@@ -48,11 +48,16 @@ MAX_HOURS="${GPU_MAX_HOURS:-8}"
 # Secrets: an explicit file (ORAZAKA_DEV_ENV_FILE, the tests), else the org's secret tool by logical source (`secret.sh @dev KEY`,
 # the vault in ~/.krizaka-private since 2026-10-27). Never a path under ~/Documents, never printed.
 ENV_FILE="${ORAZAKA_DEV_ENV_FILE:-}"
-SECRET_TOOL="${KRIZAKA_SECRET_TOOL:-$HOME/.krizaka-worktrees/tools/secret.sh}"
+SECRET_TOOL="${KRIZAKA_SECRET_TOOL:-}" # else secret.sh in the tools folder: KRIZAKA_TOOLS, or `kz-config tools`
 SECRET_SOURCE="${GPU_SECRET_SOURCE:-@dev}"
 LEDGER="${GPU_LEDGER:-$HOME/Documents/krizaka/orazaka-gpu-ledger.tsv}"
 # The local state (the Mac worker env, the guard's idle record) lives in the HQ's tmp folder, resolved by kz-config; never in the home folder.
 KZ_CONFIG="${KZ_CONFIG:-$HOME/.local/bin/kz-config}"
+if [[ -z "$SECRET_TOOL" ]]; then
+  TOOLS_DIR="${KRIZAKA_TOOLS:-}"
+  if [[ -z "$TOOLS_DIR" && -x "$KZ_CONFIG" ]]; then TOOLS_DIR="$("$KZ_CONFIG" tools 2>/dev/null || true)"; fi
+  [[ -z "$TOOLS_DIR" ]] || SECRET_TOOL="$TOOLS_DIR/secret.sh"
+fi
 if [[ -n "${GPU_LOCAL_DIR:-}" ]]; then
   LOCAL="$GPU_LOCAL_DIR"
 elif [[ -x "$KZ_CONFIG" ]]; then
@@ -77,7 +82,7 @@ sizes_for() {
 secret() {
   local key="$1"
   if [[ -z "$ENV_FILE" ]]; then
-    [[ -x "$SECRET_TOOL" ]] || die "no secret tool at $SECRET_TOOL (set KRIZAKA_SECRET_TOOL or ORAZAKA_DEV_ENV_FILE)"
+    [[ -n "$SECRET_TOOL" && -x "$SECRET_TOOL" ]] || die "no secret tool at ${SECRET_TOOL:-<unknown tools folder>} (set KRIZAKA_TOOLS, or KRIZAKA_SECRET_TOOL or ORAZAKA_DEV_ENV_FILE)"
     "$SECRET_TOOL" "$SECRET_SOURCE" "$key" 2>/dev/null
     return
   fi

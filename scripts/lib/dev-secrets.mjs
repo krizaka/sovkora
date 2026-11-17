@@ -1,6 +1,6 @@
 /**
  * Where the dev tools read their secrets (the company folder was restructured on 2026-10-18: `env/dev.env`,
- * `env/org.env`, resolved by `~/.krizaka-worktrees/tools/secret.sh @dev KEY` through `secrets.map`).
+ * `env/org.env`, resolved by `secret.sh @dev KEY` (in the folder `kz-config tools` names) through `secrets.map`).
  *
  *   --env-file <path> (or ORAZAKA_DEV_ENV_FILE)   one KEY=value file, read whole
  *   nothing                                        each key asked to `secret.sh @orazaka KEY`, on demand: env/orazaka.env (the keys that
@@ -10,12 +10,10 @@
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { toolPathOf } from "./tools.mjs";
 
 /** The logical source of this product in secrets.map: its own override file first, then dev.env, then org.env. */
 export const SECRET_SOURCE = "@orazaka";
-export const SECRET_TOOL = join(homedir(), ".krizaka-worktrees/tools/secret.sh");
 
 /** KEY=value lines; comments and blanks skipped, `=` kept in values. */
 export function readEnvFile(text) {
@@ -51,7 +49,7 @@ function runTool(tool, args, environ = process.env) {
  * The secrets as an object read by key (`env.DATABASE_HOST`): a file's lines, or `secret.sh @orazaka <KEY>` per key.
  * @param {{ envFile?: string|null, tool?: string, run?: (tool: string, args: string[]) => string, environ?: object, overridable?: string[] }} [options]
  */
-export function devSecrets({ envFile = null, tool = SECRET_TOOL, source = SECRET_SOURCE, run = runTool, environ = process.env, overridable = [] } = {}) {
+export function devSecrets({ envFile = null, tool = toolPathOf("secret.sh"), source = SECRET_SOURCE, run = runTool, environ = process.env, overridable = [] } = {}) {
   if (envFile) {
     if (!existsSync(envFile)) throw new Error(`no secrets file at ${envFile}`);
     const fromFile = readEnvFile(readFileSync(envFile, "utf8"));

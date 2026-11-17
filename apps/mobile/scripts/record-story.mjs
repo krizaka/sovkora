@@ -19,6 +19,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { toolPath } from "./tool-path.mjs";
+import { toolPathOf } from "../../../scripts/lib/tools.mjs";
 import os from "node:os";
 
 const arg = (name, fallback) => {
@@ -39,7 +40,7 @@ const PERSONA_KEYS = { mira: "MIRA", eric: "PERSONA" };
 if (!PERSONA_KEYS[persona]) throw new Error(`unknown persona: ${persona}`);
 const secret = (key) =>
   execFileSync(
-    path.join(os.homedir(), ".krizaka-worktrees/tools/secret.sh"),
+    toolPathOf("secret.sh"),
     ["@dev", `APP_QA_ORAZAKA_${PERSONA_KEYS[persona]}_${key}`],
     { encoding: "utf8" },
   ).trim();
