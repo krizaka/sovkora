@@ -72,10 +72,7 @@ fn model_server() -> (String, Arc<AtomicUsize>) {
 }
 
 fn at(s: &str) -> LocalDateTime {
-    match parse_slot(&s.replace(' ', "T")) {
-        Some(t) => t,
-        None => panic!("bad test instant {s:?}"),
-    }
+    parse_slot(&s.replace(' ', "T")).unwrap()
 }
 
 #[test]

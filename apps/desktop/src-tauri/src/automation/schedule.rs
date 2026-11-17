@@ -108,13 +108,11 @@ mod tests {
     use super::*;
 
     fn at(s: &str) -> LocalDateTime {
-        match PrimitiveDateTime::parse(
+        PrimitiveDateTime::parse(
             s,
             format_description!("[year]-[month]-[day] [hour]:[minute]"),
-        ) {
-            Ok(t) => t,
-            Err(e) => panic!("bad test instant {s:?}: {e}"),
-        }
+        )
+        .unwrap()
     }
     fn daily(time: &str) -> Schedule {
         Schedule {
