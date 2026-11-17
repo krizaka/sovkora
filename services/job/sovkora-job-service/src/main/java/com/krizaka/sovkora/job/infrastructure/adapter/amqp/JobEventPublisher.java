@@ -2,6 +2,7 @@ package com.krizaka.sovkora.job.infrastructure.adapter.amqp;
 
 import com.krizaka.sovkora.engine.persistence.infrastructure.config.MessagingContract;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,13 +40,16 @@ public class JobEventPublisher {
    * @param result the strategy's output
    * @param model the model that ran, so an aggregate settlement can price this step
    * @param consumption what the execution measured, settled against the hold's pinned rate
+   * @param costUsd what the execution's provider calls cost, priced from the price table; reported
+   *     for the producer that keeps the cost of its runs, and never settled against a hold
    */
   public void emitDone(
       String jobId,
       String holdId,
       String model,
       Map<String, Object> result,
-      Map<String, Object> consumption) {
+      Map<String, Object> consumption,
+      BigDecimal costUsd) {
     Map<String, Object> payload = new HashMap<>();
     payload.put(JOB_ID_KEY, jobId);
     payload.put("result", result == null ? Map.of() : result);
@@ -60,6 +64,9 @@ public class JobEventPublisher {
     putReservation(payload, holdId);
     if (consumption != null && !consumption.isEmpty()) {
       payload.put("consumption", consumption);
+    }
+    if (costUsd != null && costUsd.signum() > 0) {
+      payload.put("costUsd", costUsd);
     }
     rabbitTemplate.convertAndSend(
         MessagingContract.EVENTS_EXCHANGE, "job." + jobId + ".done", payload);

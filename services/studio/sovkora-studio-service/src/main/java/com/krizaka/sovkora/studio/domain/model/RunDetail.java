@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.studio.domain.model;
 
 import com.krizaka.sovkora.studio.api.domain.model.RunStatus;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +29,8 @@ import java.util.UUID;
  *     (sovkora-studio-service#61), or {@code null} when it computed its own
  * @param resumedFrom the run this one resumes from a step (sovkora-studio-service#63), or {@code
  *     null}
+ * @param costUsd what the run's provider calls cost, in USD (krizaka-internal#3368); zero until a
+ *     step reports one
  */
 public record RunDetail(
     UUID id,
@@ -42,7 +45,8 @@ public record RunDetail(
     Instant finishedAt,
     List<RunStepView> steps,
     UUID cachedFrom,
-    UUID resumedFrom) {
+    UUID resumedFrom,
+    BigDecimal costUsd) {
 
   /** Compact canonical constructor enforcing the contract's invariants (ERR-106). */
   public RunDetail {
@@ -51,6 +55,7 @@ public record RunDetail(
     Objects.requireNonNull(startedAt, "startedAt must not be null");
     outputs = outputs == null ? List.of() : List.copyOf(outputs);
     steps = steps == null ? List.of() : List.copyOf(steps);
+    costUsd = costUsd == null ? BigDecimal.ZERO : costUsd;
   }
 
   /**
@@ -73,7 +78,8 @@ public record RunDetail(
         finishedAt,
         steps,
         cachedFrom,
-        resumedFrom);
+        resumedFrom,
+        costUsd);
   }
 
   /**
@@ -96,6 +102,7 @@ public record RunDetail(
         finishedAt,
         loaded,
         cachedFrom,
-        resumedFrom);
+        resumedFrom,
+        costUsd);
   }
 }

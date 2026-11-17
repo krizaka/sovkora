@@ -71,7 +71,7 @@ public class StudioRunService {
 
   private static final String SELECT_RUN =
       "SELECT id, installation_id, actor_id, studio_key, blueprint_version, status, hold_id, cached_from,"
-          + " resumed_from,"
+          + " resumed_from, cost_usd,"
           + " correlation_id, inputs, outputs, error_message, started_at, finished_at"
           + " FROM studio_run";
 
@@ -142,6 +142,26 @@ public class StudioRunService {
    */
   @Transactional
   public RunDetail start(UUID installationId, String actorId, Map<String, Object> inputs) {
+    return start(installationId, actorId, inputs, Optional.empty());
+  }
+
+  /**
+   * Starts a run of an installation, counted under the product its caller's key declared.
+   *
+   * @param installationId the installation to execute
+   * @param actorId the opaque billable subject
+   * @param inputs the actor's answers
+   * @param productKey the product the edge declared for the request, empty when the key declared
+   *     none: the run is then counted as unattributed, which the spend cap holds on its own row
+   * @return the accepted run
+   * @throws InstallationNotFoundException when the id names nothing this actor owns
+   */
+  @Transactional
+  public RunDetail start(
+      UUID installationId,
+      String actorId,
+      Map<String, Object> inputs,
+      Optional<String> productKey) {
     InstalledStudio installation =
         installationService
             .find(installationId, actorId)
@@ -159,7 +179,8 @@ public class StudioRunService {
         installation.pinnedVersion(),
         installation.config(),
         actorId,
-        inputs);
+        inputs,
+        productKey);
   }
 
   /**
@@ -188,11 +209,28 @@ public class StudioRunService {
    */
   @Transactional
   public RunDetail start(String studioKey, String actorId, Map<String, Object> inputs) {
+    return start(studioKey, actorId, inputs, Optional.empty());
+  }
+
+  /**
+   * Starts a run of a Studio addressed by its key, counted under the product its caller's key
+   * declared.
+   *
+   * @param studioKey the Studio to run
+   * @param actorId the opaque billable subject
+   * @param inputs the actor's answers
+   * @param productKey the product the edge declared for the request, empty when the key declared
+   *     none
+   * @return the accepted run
+   */
+  @Transactional
+  public RunDetail start(
+      String studioKey, String actorId, Map<String, Object> inputs, Optional<String> productKey) {
     Target target = resolve(studioKey, actorId);
     if (target.installationId() != null) {
-      return start(target.installationId(), actorId, inputs);
+      return start(target.installationId(), actorId, inputs, productKey);
     }
-    return launch(null, studioKey, target.version(), Map.of(), actorId, inputs);
+    return launch(null, studioKey, target.version(), Map.of(), actorId, inputs, productKey);
   }
 
   /**
@@ -253,8 +291,9 @@ public class StudioRunService {
             "SELECT correlation_id FROM studio_run WHERE id = ?", String.class, parentRunId);
     jdbcTemplate.update(
         "INSERT INTO studio_run (id, installation_id, actor_id, studio_key, blueprint_version,"
-            + " status, correlation_id, inputs, data_class, parent_run_id)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?)",
+            + " status, correlation_id, inputs, data_class, parent_run_id, product_key)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?,"
+            + " (SELECT product_key FROM studio_run WHERE id = ?))",
         runId,
         target.installationId(),
         actorId,
@@ -265,6 +304,8 @@ public class StudioRunService {
         correlationId,
         columns.json(validated),
         dataClass.name(),
+        parentRunId,
+        // The parent's: a run it called is counted under the product that started the parent.
         parentRunId);
     runAuditService.recordStarted(runId, actorId, studioKey, dataClass);
     outboxService.append(
@@ -341,6 +382,8 @@ public class StudioRunService {
    *     two requests the same
    * @param actorId the opaque billable subject
    * @param inputs the actor's answers
+   * @param productKey the product the request's key declared, stored on the run so every step is
+   *     counted under it; empty when none was declared
    * @return the accepted run
    */
   private RunDetail launch(
@@ -349,7 +392,8 @@ public class StudioRunService {
       String version,
       Map<String, String> config,
       String actorId,
-      Map<String, Object> inputs) {
+      Map<String, Object> inputs,
+      Optional<String> productKey) {
     enforceConcurrencyCap(actorId);
 
     Blueprint blueprint =
@@ -383,8 +427,8 @@ public class StudioRunService {
     DataClass dataClass = dataClassOf(studioKey);
     jdbcTemplate.update(
         "INSERT INTO studio_run (id, installation_id, actor_id, studio_key, blueprint_version,"
-            + " status, hold_id, correlation_id, inputs, data_class, input_fingerprint)"
-            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?)",
+            + " status, hold_id, correlation_id, inputs, data_class, input_fingerprint, product_key)"
+            + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, ?, ?, ?)",
         runId,
         installationId,
         actorId,
@@ -395,7 +439,8 @@ public class StudioRunService {
         correlationId,
         columns.json(validated),
         dataClass.name(),
-        fingerprint);
+        fingerprint,
+        productKey.orElse(null));
     runAuditService.recordStarted(runId, actorId, studioKey, dataClass);
 
     if (installationId != null) {
@@ -1036,7 +1081,8 @@ public class StudioRunService {
             columns.instantAt(rs, "finished_at"),
             List.of(),
             rs.getObject("cached_from", UUID.class),
-            rs.getObject("resumed_from", UUID.class));
+            rs.getObject("resumed_from", UUID.class),
+            rs.getBigDecimal("cost_usd"));
     return new RawRun(run, values);
   }
 }

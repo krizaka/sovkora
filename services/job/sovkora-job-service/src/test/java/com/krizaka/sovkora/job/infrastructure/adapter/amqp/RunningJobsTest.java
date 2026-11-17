@@ -12,7 +12,8 @@ class RunningJobsTest {
 
   @Test
   void cancel_interruptsTheThreadRunningTheJob() throws Exception {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
     CountDownLatch started = new CountDownLatch(1);
     AtomicBoolean interrupted = new AtomicBoolean();
     Thread worker =
@@ -41,7 +42,8 @@ class RunningJobsTest {
 
   @Test
   void cancel_ofAJobNotRunningHere_isRememberedForWhenItsMessageArrives() {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
 
     assertFalse(running.cancel("queued-job"));
 
@@ -51,7 +53,8 @@ class RunningJobsTest {
 
   @Test
   void aCancellationIsForgottenAfterItsTtl() {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
     Instant t0 = Instant.parse("2026-10-16T10:00:00Z");
     running.cancel("old", t0);
 
@@ -63,7 +66,8 @@ class RunningJobsTest {
 
   @Test
   void unbind_clearsAStrayInterruptSoThePooledThreadIsClean() {
-    RunningJobs running = new RunningJobs();
+    RunningJobs running =
+        new RunningJobs(new com.krizaka.sovkora.engine.interceptors.governance.JobSpendTally());
     running.bind("job-2");
     Thread.currentThread().interrupt();
 

@@ -59,7 +59,8 @@ class CodeTurnServiceTest {
         null,
         null,
         null,
-        null);
+        null,
+        java.math.BigDecimal.ZERO);
   }
 
   private static Studio studio(String key) {
