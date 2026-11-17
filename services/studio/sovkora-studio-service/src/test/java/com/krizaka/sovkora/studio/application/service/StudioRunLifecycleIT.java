@@ -2565,11 +2565,6 @@ class StudioRunLifecycleIT {
     }
 
     @Bean
-    io.micrometer.core.instrument.MeterRegistry meterRegistry() {
-      return new SimpleMeterRegistry();
-    }
-
-    @Bean
     StudioRunService studioRunService(
         JdbcTemplate jdbcTemplate,
         StudioInstallationService installationService,
