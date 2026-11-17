@@ -32,6 +32,7 @@ export function AuditLogView({ refreshKey }: Readonly<{ refreshKey: number }>) {
         <ActivityFeed
           aria-label={t("automations.audit.title")}
           locale={t("common.dateLocale")}
+          now={new Date(auditQuery.dataUpdatedAt)}
           fold={false}
           events={(audit?.entries ?? []).map((e) => ({
             id: `${e.seq}`,

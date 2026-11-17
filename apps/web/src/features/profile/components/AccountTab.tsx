@@ -42,7 +42,7 @@ export function AccountTab({ profile, t }: Readonly<AccountTabProps>) {
             <span className="flex items-center gap-3">
               <Avatar
                 size="md"
-                defaultAvatar={{ brand: "orazaka", seed }}
+                defaultAvatar={{ brand: "sovkora", seed }}
                 fallback={(profile.username || "U")[0].toUpperCase()}
               />
               <span className="flex min-w-0 flex-col">

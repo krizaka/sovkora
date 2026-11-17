@@ -1,161 +1,3 @@
----
-lockfileVersion: '9.0'
-
-importers:
-
-  .:
-    configDependencies: {}
-    packageManagerDependencies:
-      pnpm:
-        specifier: 12.10.1
-        version: 12.10.1
-
-packages:
-
-  '@pnpm/exe.android-arm64@12.10.1':
-    resolution: {integrity: sha512-CVTlHPwNvadQCJD9bGSMzWIhFX8QpjtqC2c27dhdnn/9iKzEjZ3qL62o3gHpKbIuo6qn4WxTKRoaokgNdReBig==}
-    cpu: [arm64]
-    os: [android]
-
-  '@pnpm/exe.android-x64@12.10.1':
-    resolution: {integrity: sha512-NFiYLIaodY7da0XIebwcU3JoP7IK/lzF7zgKSSP+9H+QcFnQ1GDfBkuBKCYJzZ+Xu0WH54neIPLBBCaOjaaauA==}
-    cpu: [x64]
-    os: [android]
-
-  '@pnpm/exe.darwin-arm64@12.10.1':
-    resolution: {integrity: sha512-0O8tdQ8ijlPJudXspLMTcitMkdBEz6uUflazL5uQE0WMs85oQIp0U+5hfEktMFB64QqEhjqlvvujTwbzdr9oMg==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@pnpm/exe.darwin-x64@12.10.1':
-    resolution: {integrity: sha512-ud+1/uZOKEo8P/AsPynOJc/LNwfI0j6WwCElibj71rU9l4nIBnsSn+wWTIPZPkZ4BBSH5+82azSnAARMyJ1lNA==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@pnpm/exe.freebsd-x64@12.10.1':
-    resolution: {integrity: sha512-mj9PE5rf8uAfQQ2K66HSATMSut+lNiB4eSqFd5+azFVCMnxNSy/32xpZQJT21PhnN3Y4qbK+iKHe5nWAxSuRhw==}
-    cpu: [x64]
-    os: [freebsd]
-
-  '@pnpm/exe.linux-arm64-musl@12.10.1':
-    resolution: {integrity: sha512-xba+00wZJ8Um6rBJJjWl88uJj0tydB8dtomvjlCLvi0uL32vpa9CRP8Vv26FIXvbiZ1bo2RCzYt/eChxJVV52w==}
-    cpu: [arm64]
-    os: [linux]
-    libc: [musl]
-
-  '@pnpm/exe.linux-arm64@12.10.1':
-    resolution: {integrity: sha512-oBdMp69ScC9UnniG4qZAQVr2fBDSXjm4yk/72vkEVyrlwS23yMxcRQl7Qdo3sgXPAygY6TWnPRKm4rXzjoyW7w==}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.linux-ppc64@12.10.1':
-    resolution: {integrity: sha512-Yyb3wu09h3c7mLme270uHFiVaAIUHC411Ru9LIU2BKUIstrGlXa9OqqVWoXaRgYRdFdOFknkwG7GNn6ygwLbnw==}
-    cpu: [ppc64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.linux-riscv64@12.10.1':
-    resolution: {integrity: sha512-PdkeUFFkybknnGkWP0H22eMpIiS4OZXL5BcQzF4lh+vmrW3IaC2HOkbANKgot/PKO0Kl77pzA/6PKFxgbgfXIQ==}
-    cpu: [riscv64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.linux-s390x@12.10.1':
-    resolution: {integrity: sha512-1okKuHKJwJPAbofDxfhZWAUxEWtee4ZSf7Pah8kcvocaJkf2WxFJ5KVTiNIvDml5GLidDQsgf7Pcf/WHbCak7Q==}
-    cpu: [s390x]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.linux-x64-musl@12.10.1':
-    resolution: {integrity: sha512-e6IqzVNkPa7srFKJKnY23uWJ+qz0LaRWiTUo/sHfFXRRMRzB5uNOr6qWWip/jqhdGwU91n9J7LrEYZ6e0tRczw==}
-    cpu: [x64]
-    os: [linux]
-    libc: [musl]
-
-  '@pnpm/exe.linux-x64@12.10.1':
-    resolution: {integrity: sha512-ZByV0DRgWzGaDSjT5ddRBASdwz+r/qPMYh7o6RGmPQjtRGNFbSl94xY2DcAM8mqCOZJUUDtAXQ+wpBXcdpKlkg==}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@pnpm/exe.win32-arm64@12.10.1':
-    resolution: {integrity: sha512-I7QZHcjioG7orFeCRUFUHByJ1G0zFPnAlaGGyrUvb6MGkv5oeNwNPl7t+Gp+7zHfnMcgLGJ1a+Wfim0IDw3lOw==}
-    cpu: [arm64]
-    os: [win32]
-
-  '@pnpm/exe.win32-x64@12.10.1':
-    resolution: {integrity: sha512-4WJFdp58EKlCj0zLobrXU0vpszSZIr4X/3y/uNbAQqGW0zE+VdruZB0gFc3L2kzsUzVwTYbaCn+XEhnCYSAlTg==}
-    cpu: [x64]
-    os: [win32]
-
-  pnpm@12.10.1:
-    resolution: {integrity: sha512-ukCjfrGjcNYP6oxM8dNkwTvMzvUY6YrSvO6VT1OdONo3RY5YJho/pV4GUjRQ6g//+fSXsTW+QfLBXBZCusrObA==}
-    engines: {node: '>=18.*'}
-    hasBin: true
-
-snapshots:
-
-  '@pnpm/exe.android-arm64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.android-x64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.darwin-arm64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.darwin-x64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.freebsd-x64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-arm64-musl@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-arm64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-ppc64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-riscv64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-s390x@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-x64-musl@12.10.1':
-    optional: true
-
-  '@pnpm/exe.linux-x64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.win32-arm64@12.10.1':
-    optional: true
-
-  '@pnpm/exe.win32-x64@12.10.1':
-    optional: true
-
-  pnpm@12.10.1:
-    optionalDependencies:
-      '@pnpm/exe.android-arm64': 12.10.1
-      '@pnpm/exe.android-x64': 12.10.1
-      '@pnpm/exe.darwin-arm64': 12.10.1
-      '@pnpm/exe.darwin-x64': 12.10.1
-      '@pnpm/exe.freebsd-x64': 12.10.1
-      '@pnpm/exe.linux-arm64': 12.10.1
-      '@pnpm/exe.linux-arm64-musl': 12.10.1
-      '@pnpm/exe.linux-ppc64': 12.10.1
-      '@pnpm/exe.linux-riscv64': 12.10.1
-      '@pnpm/exe.linux-s390x': 12.10.1
-      '@pnpm/exe.linux-x64': 12.10.1
-      '@pnpm/exe.linux-x64-musl': 12.10.1
-      '@pnpm/exe.win32-arm64': 12.10.1
-      '@pnpm/exe.win32-x64': 12.10.1
-
----
 lockfileVersion: '9.0'
 
 settings:
@@ -172,8 +14,8 @@ importers:
   .:
     dependencies:
       '@krizaka/i18n':
-        specifier: 0.2.7
-        version: 0.2.7(react@19.3.1)(typescript@7.0.2)
+        specifier: 0.2.9
+        version: 0.2.9(react@19.3.1)(typescript@7.0.2)
       '@krizaka/icons':
         specifier: ^0.9.1
         version: 0.9.1(react@19.3.1)
@@ -184,14 +26,14 @@ importers:
         specifier: 0.3.0
         version: 0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
       '@krizaka/tailwind':
-        specifier: 3.79.0
-        version: 3.79.0(@krizaka/tokens@3.79.0)(@krizaka/ui@3.79.0)(tailwindcss@4.3.3)
+        specifier: 4.14.0
+        version: 4.14.0(@krizaka/tokens@4.14.0)(@krizaka/ui@4.14.0)(tailwindcss@4.3.3)
       '@krizaka/tokens':
-        specifier: 3.79.0
-        version: 3.79.0
+        specifier: 4.14.0
+        version: 4.14.0
       '@krizaka/ui':
-        specifier: 3.79.0
-        version: 3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@3.79.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
+        specifier: 4.14.0
+        version: 4.14.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@4.14.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.5(jiti@2.7.0))
@@ -530,8 +372,8 @@ packages:
     peerDependencies:
       solid-js: ^1.8.8
 
-  '@krizaka/i18n@0.2.7':
-    resolution: {integrity: sha512-TkHfmFxHSmulezFvc2vf9+6b+29emvO9qzOsTRKf8SvV3zgTXEi2UrjEKQ4ee0hsMz0jTdDKBljtqCcAbwjm/A==}
+  '@krizaka/i18n@0.2.9':
+    resolution: {integrity: sha512-CIcztNcU9fi4An9M8qoym/dQ392Q1vdVBNyvDdQOLeoB/usvW9yY1ben0MMj8XJpd/LCKSCi/QD/9HZt+DE8Lg==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -546,6 +388,16 @@ packages:
   '@krizaka/icons@0.1.0':
     resolution: {integrity: sha512-uPVlTstIBpYDE2Lpfohur4EOHrsMrohER4D65iUNlJP8Iqwbz1WJPrDsT2vPgLQTjbLz7mfFOiGrbq3qVVqrlA==}
     engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=18'
+      react-native-svg: '>=15'
+    peerDependenciesMeta:
+      react-native-svg:
+        optional: true
+
+  '@krizaka/icons@0.10.1':
+    resolution: {integrity: sha512-zFQXM/BiT3BWnaPoDDze1aJ/VBhqfkVnLwDeQomF91FOErG2kBASTPK2MxhyRQMXDOtM5tJ7QVEEwXYUjl+2rQ==}
+    engines: {node: '>=22'}
     peerDependencies:
       react: '>=18'
       react-native-svg: '>=15'
@@ -604,6 +456,15 @@ packages:
       react:
         optional: true
 
+  '@krizaka/pacer@0.2.1':
+    resolution: {integrity: sha512-j9e/LG2chxf+bk2I6xCJ2f7OFaifw598ejJ2DdRsPsC8vtQmhG2gr+VA9AgNr7s8Z1wlCAC31ZsPuP4CUoqihQ==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      react: '>=18'
+    peerDependenciesMeta:
+      react:
+        optional: true
+
   '@krizaka/query@0.3.0':
     resolution: {integrity: sha512-lQU1hs+6SmFXf+n79H2O8C9vZ2hSnYSN+QBsaetWCv2Bac9DeKBo2//acwNcueVF4f/BO2vtBAwPEGDE1C2Ubw==}
     engines: {node: '>=22'}
@@ -634,12 +495,12 @@ packages:
       '@krizaka/ui': ^2.10.0
       tailwindcss: ^4.1
 
-  '@krizaka/tailwind@3.79.0':
-    resolution: {integrity: sha512-WNl6fgHdHLaLEkUz0yyOXnNex4vC7Q6+amWsU7dMGrvxD3IQ7ZfG1mIJnGoYCUmAn3W3KAXX9PVLy1Ucx9klMg==}
+  '@krizaka/tailwind@4.14.0':
+    resolution: {integrity: sha512-o39N8nFOL9sc04Oy3of8ezoeegg9VlnGCvNTzAtEnyjstg948hX+0XOILGsMCgZ1js2vVsFuK0Udqh+ARMjRvA==}
     engines: {node: '>=22'}
     peerDependencies:
-      '@krizaka/tokens': ^3.79.0
-      '@krizaka/ui': ^3.79.0
+      '@krizaka/tokens': ^4.14.0
+      '@krizaka/ui': ^4.14.0
       tailwindcss: ^4.1
 
   '@krizaka/tokens@2.10.0':
@@ -648,6 +509,10 @@ packages:
 
   '@krizaka/tokens@3.79.0':
     resolution: {integrity: sha512-c5ln+9/fXDMlD6m7gMCcfecNyGN7Ob8cvE+QRzwRy5M7BL+XltFJ1UiIuVCwM/DJ7H5EoMLM84tlY6/K72kWuA==}
+    engines: {node: '>=22'}
+
+  '@krizaka/tokens@4.14.0':
+    resolution: {integrity: sha512-Z6pODs8JfaI/1SQjjgAy7j99al8tvaKvuE5Ta+0lUywcb6F+1lzP8aTAamvG1IkQOGwsvXhSZ4VF+6K8XjOhQg==}
     engines: {node: '>=22'}
 
   '@krizaka/ui@3.79.0':
@@ -670,6 +535,59 @@ packages:
       react-native-svg: '>=15'
       tailwindcss: ^4.1
     peerDependenciesMeta:
+      '@krizaka/query':
+        optional: true
+      '@krizaka/tailwind':
+        optional: true
+      '@maplibre/maplibre-react-native':
+        optional: true
+      '@shopify/flash-list':
+        optional: true
+      expo-camera:
+        optional: true
+      expo-image-picker:
+        optional: true
+      expo-video:
+        optional: true
+      hls.js:
+        optional: true
+      maplibre-gl:
+        optional: true
+      pdfjs-dist:
+        optional: true
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      react-native-svg:
+        optional: true
+      tailwindcss:
+        optional: true
+
+  '@krizaka/ui@4.14.0':
+    resolution: {integrity: sha512-Pe/UChtMgRFys1xLidQOfuLNRHdz/Pe0mRjQ4TavGsJgYmlOLucyB1gH2c+gzN4spp30Tj4TzPpZaWFWujXtcQ==}
+    engines: {node: '>=22'}
+    hasBin: true
+    peerDependencies:
+      '@krizaka/architecture': '>=0.3.0'
+      '@krizaka/query': '>=0.3.1'
+      '@krizaka/tailwind': '>=4.14.0'
+      '@maplibre/maplibre-react-native': '>=11'
+      '@shopify/flash-list': '>=2'
+      expo-camera: '>=16'
+      expo-image-picker: '>=16'
+      expo-video: '>=2'
+      hls.js: '>=1.5'
+      maplibre-gl: '>=6'
+      pdfjs-dist: '>=5'
+      react: '>=18'
+      react-dom: '>=18'
+      react-native: '>=0.76'
+      react-native-svg: '>=15'
+      tailwindcss: ^4.1
+    peerDependenciesMeta:
+      '@krizaka/architecture':
+        optional: true
       '@krizaka/query':
         optional: true
       '@krizaka/tailwind':
@@ -3121,7 +3039,7 @@ snapshots:
       '@solid-primitives/utils': 6.4.1(solid-js@1.9.17)
       solid-js: 1.9.17
 
-  '@krizaka/i18n@0.2.7(react@19.3.1)(typescript@7.0.2)':
+  '@krizaka/i18n@0.2.9(react@19.3.1)(typescript@7.0.2)':
     dependencies:
       '@krizaka/intl': 0.4.1
     optionalDependencies:
@@ -3129,6 +3047,10 @@ snapshots:
       typescript: 7.0.2
 
   '@krizaka/icons@0.1.0(react@19.3.1)':
+    dependencies:
+      react: 19.3.1
+
+  '@krizaka/icons@0.10.1(react@19.3.1)':
     dependencies:
       react: 19.3.1
 
@@ -3185,6 +3107,12 @@ snapshots:
     optionalDependencies:
       react: 19.3.1
 
+  '@krizaka/pacer@0.2.1(react@19.3.1)':
+    dependencies:
+      '@tanstack/pacer': 0.23.1
+    optionalDependencies:
+      react: 19.3.1
+
   '@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)':
     dependencies:
       '@krizaka/realtime': 0.2.1
@@ -3211,18 +3139,20 @@ snapshots:
   '@krizaka/tailwind@2.10.0(@krizaka/tokens@2.10.0)(@krizaka/ui@3.79.0)(tailwindcss@4.3.3)':
     dependencies:
       '@krizaka/tokens': 2.10.0
-      '@krizaka/ui': 3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@3.79.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
+      '@krizaka/ui': 3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@2.10.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
       tailwindcss: 4.3.3
 
-  '@krizaka/tailwind@3.79.0(@krizaka/tokens@3.79.0)(@krizaka/ui@3.79.0)(tailwindcss@4.3.3)':
+  '@krizaka/tailwind@4.14.0(@krizaka/tokens@4.14.0)(@krizaka/ui@4.14.0)(tailwindcss@4.3.3)':
     dependencies:
-      '@krizaka/tokens': 3.79.0
-      '@krizaka/ui': 3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@3.79.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
+      '@krizaka/tokens': 4.14.0
+      '@krizaka/ui': 4.14.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@4.14.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
       tailwindcss: 4.3.3
 
   '@krizaka/tokens@2.10.0': {}
 
   '@krizaka/tokens@3.79.0': {}
+
+  '@krizaka/tokens@4.14.0': {}
 
   '@krizaka/ui@3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@2.10.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))':
     dependencies:
@@ -3258,12 +3188,13 @@ snapshots:
       - tailwind-merge
       - vitest
 
-  '@krizaka/ui@3.79.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@3.79.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))':
+  '@krizaka/ui@4.14.0(@krizaka/query@0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))(@krizaka/tailwind@4.14.0)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(tailwindcss@4.3.3)(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))':
     dependencies:
+      '@krizaka/icons': 0.10.1(react@19.3.1)
       '@krizaka/intl': 0.4.1
       '@krizaka/organize': 0.4.0(vitest@5.0.5(jsdom@30.1.3)(vite@8.3.5(jiti@2.7.0)))
-      '@krizaka/pacer': 0.2.0(react@19.3.1)
-      '@krizaka/tokens': 3.79.0
+      '@krizaka/pacer': 0.2.1(react@19.3.1)
+      '@krizaka/tokens': 4.14.0
       '@protomaps/basemaps': 5.7.2
       '@tanstack/highlight': 1.1.0
       '@tanstack/markdown': 1.0.0(react@19.3.1)
@@ -3281,7 +3212,7 @@ snapshots:
       zod: 4.6.7
     optionalDependencies:
       '@krizaka/query': 0.3.0(@types/react@19.3.0)(csstype@3.2.3)(next@16.4.5(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)
-      '@krizaka/tailwind': 3.79.0(@krizaka/tokens@3.79.0)(@krizaka/ui@3.79.0)(tailwindcss@4.3.3)
+      '@krizaka/tailwind': 4.14.0(@krizaka/tokens@4.14.0)(@krizaka/ui@4.14.0)(tailwindcss@4.3.3)
       react-dom: 19.3.1(react@19.3.1)
       tailwindcss: 4.3.3
     transitivePeerDependencies:

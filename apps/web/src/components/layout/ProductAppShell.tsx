@@ -47,7 +47,7 @@ export function ProductAppShell({ children }: Readonly<{ children: React.ReactNo
       mark={<SovkoraLogo size={26} />}
       headerMark={<SovkoraLogo size={22} />}
       homeHref="/"
-      accent="orazaka"
+      accent="sovkora"
       label={t.appNav.label}
       sections={sections}
       currentId={current ?? undefined}
@@ -67,7 +67,7 @@ export function ProductAppShell({ children }: Readonly<{ children: React.ReactNo
         email: user?.email || undefined,
         avatar: {
           defaultAvatar: {
-            brand: "orazaka",
+            brand: "sovkora",
             seed: user?.id ?? user?.email ?? user?.name ?? undefined,
           },
           fallback: initial,

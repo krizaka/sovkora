@@ -21,13 +21,13 @@
     "test:journey": "node --test scripts/test/*.test.mjs"
   },
   "dependencies": {
-    "@krizaka/i18n": "0.2.7",
+    "@krizaka/i18n": "0.2.9",
     "@krizaka/icons": "^0.9.1",
     "@krizaka/orazaka-design-system": "3.4.0",
     "@krizaka/query": "0.3.0",
-    "@krizaka/tailwind": "3.79.0",
-    "@krizaka/tokens": "3.79.0",
-    "@krizaka/ui": "3.79.0",
+    "@krizaka/tailwind": "4.14.0",
+    "@krizaka/tokens": "4.14.0",
+    "@krizaka/ui": "4.14.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tauri-apps/api": "^2.12.4",
     "react": "^19.3.1",
