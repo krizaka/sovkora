@@ -87,7 +87,8 @@ services:
       - { key: AUTH_CONSOLE_LOGIN_ENABLED, scope: RUN_TIME, value: "true" }
       - { key: AUTH_CONSOLE_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_ADMIN__" }
       # Only these client addresses (do-connecting-ip) reach admin.sovkora.com, sign-in page included; empty = nobody.
-      - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "142.122.41.109" }
+      # A deploy secret (the secrets store, key AUTH_ALLOWED_IPS), never written here: this repository is public.
+      - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, type: SECRET, value: "__AUTH_ALLOWED_IPS__" }
 
   # The JVM services in one container (infra/deploy/Dockerfile + run-services.sh): edge :8088 (the
   # only port App Platform routes), users :8083, billing :8095, conversation :8080, studio :8096, job :8090,

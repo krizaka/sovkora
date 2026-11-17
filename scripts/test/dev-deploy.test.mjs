@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFile
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
+import { addressLiterals, addressProblems } from "../lib/address-literals.mjs";
 import { assertDevCluster, connectionVars, creditTopUpSql, grantSql, studioEstimate, namesSql, parseScopes, password, personaAccount, readEnvFile, render, seedSql, serviceAccount, upsertEnv, writeEnvKeys } from "../dev-deploy.mjs";
 
 const spec = (name) => readFileSync(new URL(`../../infra/deploy/${name}.app.yaml`, import.meta.url), "utf8");
@@ -53,10 +54,43 @@ test("sovkora-dev serves the operator console on admin.sovkora.com: alias domain
   assert.match(text, /AUTH_CONSOLE_LOGIN_ENABLED, scope: RUN_TIME, value: "true"/);
   assert.match(text, /AUTH_CONSOLE_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_ADMIN__"/);
   assert.match(text, /NEXTAUTH_SECRET, scope: RUN_TIME, type: SECRET, value: "__NEXTAUTH_SECRET_WEB__"/);
-  assert.match(text, /AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "[0-9., ]+"/);
+  // The allowed addresses are a deploy secret: a literal here would publish whose connection it is (restricted#340).
+  assert.match(text, /AUTH_ALLOWED_IPS, scope: RUN_TIME, type: SECRET, value: "__AUTH_ALLOWED_IPS__"/);
   assert.match(text, /AUTH_TRUST_HOST, scope: RUN_TIME, value: "true"/);
   // The console's BFF reaches the edge inside the app, not through the public address.
   assert.match(text, /ROUTER_URL, scope: RUN_TIME, value: "http:\/\/core:8088"/);
+});
+
+test("no app spec of the repository writes a network address in clear (restricted#340)", () => {
+  const specs = readdirSync(new URL("../../infra/deploy/", import.meta.url)).filter((f) => f.endsWith(".app.yaml"));
+  assert.ok(specs.length >= 2, `the app specs are found: ${specs.join(", ")}`);
+  for (const file of specs) {
+    assert.deepEqual(addressProblems(spec(file.replace(/\.app\.yaml$/, ""))), [], file);
+  }
+});
+
+test("the address check finds IPv4 and IPv6 literals, with or without a prefix, and names the key, never the address", () => {
+  // Documentation addresses only (RFC 5737, RFC 3849): nobody's connection.
+  const line = (value) => `      - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "${value}" }`;
+  for (const value of ["192.0.2.10", "198.51.100.7/32", "2001:db8::1", "2001:db8:0:0:0:0:0:2/128", "::1", "203.0.113.5, 192.0.2.1"]) {
+    const problems = addressProblems(`name: x\n${line(value)}\n`);
+    assert.equal(problems.length, 1, value);
+    assert.match(problems[0], /^line 2 \(AUTH_ALLOWED_IPS\) writes a network address in clear/);
+    for (const part of value.split(/[ ,/]+/)) assert.ok(!problems[0].includes(part), "the finding never repeats the address");
+  }
+  assert.deepEqual(addressLiterals("# see 192.0.2.4.\nkey: x"), [{ line: 1, key: null }]);
+  // What is not an address: a version, a time, a host and port, a placeholder.
+  for (const value of ["2.3.0", "10:30:00", "http://core:8088", "__AUTH_ALLOWED_IPS__", "v1.2.3", "dead:beef"]) {
+    assert.deepEqual(addressLiterals(line(value)), [], value);
+  }
+});
+
+test("a deploy without the allowed addresses in the secrets store stops before App Platform, naming the key", () => {
+  // Fail closed at apply: an empty allow-list would lock everyone out of the console.
+  const text = spec("sovkora-dev").split("\n").filter((l) => /__AUTH_ALLOWED_IPS__|__NEXTAUTH_SECRET_ADMIN__/.test(l)).join("\n");
+  assert.throws(() => render(text, { NEXTAUTH_SECRET_ADMIN: "s" }), /missing in the secrets file: AUTH_ALLOWED_IPS$/);
+  assert.throws(() => render(text, { NEXTAUTH_SECRET_ADMIN: "s", AUTH_ALLOWED_IPS: "" }), /missing in the secrets file: AUTH_ALLOWED_IPS$/);
+  assert.match(render(text, { NEXTAUTH_SECRET_ADMIN: "s", AUTH_ALLOWED_IPS: "192.0.2.10" }), /value: "192\.0\.2\.10"/);
 });
 
 test("broker cloud-init: TLS only, bound to the private address, secrets as placeholders", () => {

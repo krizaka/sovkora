@@ -206,6 +206,16 @@ site: the session cookie (`orazaka-admin.session-token`), its signing key (`AUTH
 the console's callback URLs from the Host it was asked on (`NEXTAUTH_URL` stays `https://www.sovkora.com`).
 `/api/healthz` answers on both hosts, before any gate.
 
+**The allowed addresses are a deploy secret** (krizaka-restricted#340): `AUTH_ALLOWED_IPS` is a `SECRET` of the spec,
+`__AUTH_ALLOWED_IPS__`, filled at `apply` from the secrets store under the key `AUTH_ALLOWED_IPS` (comma-separated client
+addresses, in the dev secrets file, set with `~/.krizaka-worktrees/tools/env-set.sh @dev AUTH_ALLOWED_IPS`, value on
+`VALUE`, never an argument) and stored encrypted by App Platform. This repository is public: an address is never
+written in a spec, a doc or a test — `scripts/test/dev-deploy.test.mjs` refuses one in any `infra/deploy/*.app.yaml`
+and `scripts/check-prod-spec.mjs` in the prod spec (`scripts/lib/address-literals.mjs`, which names the line and the
+key, never the address). Without the key, `apply` stops before App Platform (`missing in the secrets file:
+AUTH_ALLOWED_IPS`) rather than ship an empty list that would let nobody in. When the allowed connection changes,
+update the key, then `apply sovkora-dev`.
+
 Cut-over (the old app serves the live console until step 3):
 
 1. `node scripts/dev-deploy.mjs apply sovkora-dev --dry-run`, then check the new variables in the rendered spec
@@ -223,7 +233,7 @@ Cut-over (the old app serves the live console until step 3):
 Secrets never enter the repository: `~/Documents/krizaka/env/dev.env` (mode 600; read through `~/.krizaka-worktrees/tools/secret.sh @dev KEY`, or give it with `--env-file`) holds the database role
 passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDENTITY_JWT_SECRET`, `CRYPTO_KEY`,
 `CRYPTO_SALT` (16 hex), `MEDIA_ENCRYPTION_KEY` (32 bytes, base64 — the asset keyring), `RABBITMQ_PASS`,
-`NEXTAUTH_SECRET_WEB`, `NEXTAUTH_SECRET_ADMIN` and `AI_INFERENCE_KEY` (a **model access key**, created in the control
+`NEXTAUTH_SECRET_WEB`, `NEXTAUTH_SECRET_ADMIN`, `AUTH_ALLOWED_IPS` (the console's allowed addresses, above) and `AI_INFERENCE_KEY` (a **model access key**, created in the control
 panel: Agent Platform → Serverless Inference → Model Access Keys — the API no longer creates them).
 
 ```bash

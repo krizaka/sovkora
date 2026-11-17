@@ -48,3 +48,12 @@ test("the prod edge declares prod keys only, one address, and is the only routed
   assert.match(prodSpecProblems(edited("region: tor", "region: nyc")).join("\n"), /region/);
   assert.match(prodSpecProblems(edited('AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "prod"', 'AI_SPEND_ENVIRONMENT, scope: RUN_TIME, value: "local"')).join("\n"), /AI_SPEND_ENVIRONMENT/);
 });
+
+test("a network address written in clear is refused, and the finding never repeats it (restricted#340)", () => {
+  // Documentation addresses only (RFC 5737, RFC 3849).
+  for (const address of ["192.0.2.10", "2001:db8::7"]) {
+    const problems = prodSpecProblems(edited('AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "prod"', `AUTH_API_KEY_ENVIRONMENT, scope: RUN_TIME, value: "prod" }\n      - { key: AUTH_ALLOWED_IPS, scope: RUN_TIME, value: "${address}"`)).join("\n");
+    assert.match(problems, /\(AUTH_ALLOWED_IPS\) writes a network address in clear/);
+    assert.ok(!problems.includes(address), "the finding names the key, never the address");
+  }
+});
