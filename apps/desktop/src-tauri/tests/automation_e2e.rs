@@ -5,9 +5,12 @@
 //!
 //! The journey of slice 1: "every morning at 8:00, summarise the new PDFs in Inbox and save a note next to them".
 
-use chrono::NaiveDateTime;
 use orazaka_desktop_lib::automation::{
-    self, testpdf::minimal_pdf, types::*, NewAutomation, RealBackends, Service,
+    self,
+    schedule::{parse_slot, LocalDateTime},
+    testpdf::minimal_pdf,
+    types::*,
+    NewAutomation, RealBackends, Service,
 };
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
@@ -68,8 +71,8 @@ fn model_server() -> (String, Arc<AtomicUsize>) {
     (url, calls)
 }
 
-fn at(s: &str) -> NaiveDateTime {
-    NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").unwrap()
+fn at(s: &str) -> LocalDateTime {
+    parse_slot(&s.replace(' ', "T")).unwrap()
 }
 
 #[test]

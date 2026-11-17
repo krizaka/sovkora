@@ -7,7 +7,9 @@
 //! and prints the run, its trace, the usage and whether the audit chain verifies. Each state is also written as JSON
 //! in `<data-dir>/journey/` (the evidence a PR or a recording refers to).
 
-use orazaka_desktop_lib::automation::{now_local, types::*, NewAutomation, RealBackends, Service};
+use orazaka_desktop_lib::automation::{
+    now_local, schedule::format_time_of_day, types::*, NewAutomation, RealBackends, Service,
+};
 use std::path::Path;
 use std::sync::Arc;
 
@@ -36,9 +38,7 @@ fn main() {
         Arc::new(|| {}),
     );
     // Scheduled for the next minute; the loop below is the scheduler tick of the app.
-    let time = (now_local() + chrono::Duration::minutes(1))
-        .format("%H:%M")
-        .to_string();
+    let time = format_time_of_day(now_local() + time::Duration::minutes(1));
     let a = svc
         .create(
             NewAutomation {

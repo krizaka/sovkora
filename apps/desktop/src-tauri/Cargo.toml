@@ -25,7 +25,7 @@ notify = "8"
 base64 = "0.23"
 url = "2"
 # automations (ADR-079): schedule in local time, hash-chained audit, run ids, the model port, PDF text
-chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+time = { version = "0.3", features = ["formatting", "parsing", "macros", "local-offset"] }
 sha2 = "0.11"
 uuid = { version = "1", features = ["v4"] }
 ureq = { version = "2", default-features = false, features = ["json", "tls"] }

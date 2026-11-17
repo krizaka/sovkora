@@ -21,9 +21,9 @@ pub mod testpdf;
 pub mod types;
 
 use audit::{AuditEntry, AuditLog, Verification};
-use chrono::{Local, NaiveDateTime};
 use mcp::{Catalogue, FsTools, McpFilesystem};
 use model::{ModelClient, OpenAiCompatible};
+use schedule::{format_day, format_slot, LocalDateTime};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::collections::HashSet;
@@ -31,6 +31,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use store::{bounded, Defaults, Store};
+use time::OffsetDateTime;
 use types::*;
 
 // @fixed: transport timeouts of the device's own processes, not business parameters.
@@ -141,12 +142,14 @@ pub struct AuditView {
     pub verification: Verification,
 }
 
-pub fn now_local() -> NaiveDateTime {
-    Local::now().naive_local()
+/// The Mac's wall clock. If the OS cannot say its UTC offset (it can on macOS), UTC is the honest fallback.
+pub fn now_local() -> LocalDateTime {
+    let now = OffsetDateTime::now_local().unwrap_or_else(|_| OffsetDateTime::now_utc());
+    LocalDateTime::new(now.date(), now.time())
 }
 
-fn stamp(t: NaiveDateTime) -> String {
-    t.format(schedule::SLOT_FORMAT).to_string()
+fn stamp(t: LocalDateTime) -> String {
+    format_slot(t)
 }
 
 fn new_id() -> String {
@@ -159,7 +162,7 @@ pub struct Service {
     audit: Mutex<AuditLog>,
     active: Mutex<HashSet<String>>,
     backends: Arc<dyn Backends>,
-    clock: Arc<dyn Fn() -> NaiveDateTime + Send + Sync>,
+    clock: Arc<dyn Fn() -> LocalDateTime + Send + Sync>,
     on_change: Arc<dyn Fn() + Send + Sync>,
 }
 
@@ -167,7 +170,7 @@ impl Service {
     pub fn open(
         data_dir: &Path,
         backends: Arc<dyn Backends>,
-        clock: Arc<dyn Fn() -> NaiveDateTime + Send + Sync>,
+        clock: Arc<dyn Fn() -> LocalDateTime + Send + Sync>,
         on_change: Arc<dyn Fn() + Send + Sync>,
     ) -> Arc<Self> {
         let store_file = data_dir.join("automations.json");
@@ -193,7 +196,7 @@ impl Service {
         })
     }
 
-    fn now(&self) -> NaiveDateTime {
+    fn now(&self) -> LocalDateTime {
         (self.clock)()
     }
 
@@ -403,7 +406,7 @@ impl Service {
         let (automation, grants, halted, runs_today) = {
             let s = self.store.lock().unwrap();
             let a = s.automation(id).cloned().ok_or("unknown automation")?;
-            let day = self.now().format("%Y-%m-%d").to_string();
+            let day = format_day(self.now());
             (a, s.grants.clone(), s.halted, s.runs_on(id, &day))
         };
         let catalogue = Catalogue::bundled();
