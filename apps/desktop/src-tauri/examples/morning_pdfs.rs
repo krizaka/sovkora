@@ -36,9 +36,9 @@ fn main() {
         Arc::new(|| {}),
     );
     // Scheduled for the next minute; the loop below is the scheduler tick of the app.
-    let time = (now_local() + chrono::Duration::minutes(1))
-        .format("%H:%M")
-        .to_string();
+    let time = orazaka_desktop_lib::automation::schedule::format_time_of_day(
+        now_local() + time::Duration::minutes(1),
+    );
     let a = svc
         .create(
             NewAutomation {

@@ -735,7 +735,7 @@ struct ChecksOverview {
 }
 
 fn code_stamp() -> String {
-    chrono::Local::now().format("%Y-%m-%dT%H:%M:%S").to_string()
+    automation::schedule::format_slot(automation::now_local())
 }
 
 fn code_audit(state: &State<'_, AppState>, event: &str, data: serde_json::Value) {

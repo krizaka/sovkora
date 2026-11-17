@@ -9,8 +9,8 @@
 
 use super::mcp::{Catalogue, Effect, FsTools, McpFilesystem};
 use super::model::ModelClient;
+use super::schedule::{format_slot, LocalDateTime};
 use super::types::*;
-use chrono::NaiveDateTime;
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -29,7 +29,7 @@ pub struct Env<'a> {
     pub catalogue: &'a Catalogue,
     pub grants: &'a [Grant],
     pub halted: &'a dyn Fn() -> bool,
-    pub now: &'a dyn Fn() -> NaiveDateTime,
+    pub now: &'a dyn Fn() -> LocalDateTime,
     pub audit: &'a mut dyn FnMut(&str, Value),
     /// Runs of this automation already started today (the per-day budget).
     pub runs_today: u32,
@@ -37,7 +37,7 @@ pub struct Env<'a> {
 }
 
 fn ts(env: &Env) -> String {
-    (env.now)().format("%Y-%m-%dT%H:%M:%S").to_string()
+    format_slot((env.now)())
 }
 
 struct Trace<'r> {
@@ -450,10 +450,8 @@ fn write_gate(
                 preview: truncate_chars(&d.content, PREVIEW_CHARS),
             })
             .collect(),
-        created_at: created.format("%Y-%m-%dT%H:%M:%S").to_string(),
-        expires_at: (created + chrono::Duration::hours(24))
-            .format("%Y-%m-%dT%H:%M:%S")
-            .to_string(),
+        created_at: format_slot(created),
+        expires_at: format_slot(created + time::Duration::hours(24)),
         state: ApprovalState::Pending,
         decided_at: None,
     };
@@ -714,10 +712,7 @@ mod tests {
                 catalogue: &self.catalogue,
                 grants: &self.grants,
                 halted: &move || halted,
-                now: &|| {
-                    NaiveDateTime::parse_from_str("2026-10-16 08:00:00", "%Y-%m-%d %H:%M:%S")
-                        .unwrap()
-                },
+                now: &|| crate::automation::schedule::parse_slot("2026-10-16T08:00:00").unwrap(),
                 audit: &mut push,
                 runs_today: self.runs_today,
                 new_id: &|| {
