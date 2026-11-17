@@ -3,6 +3,7 @@
  * @description The words of /open-source, en and fr (krizaka/orazaka-web-client#290). The repositories are read from
  * GitHub at build, never typed; the licence layers restate docs/LICENSING.md of the Sovkora repository.
  */
+import { LICENCE_ID } from "./translations.licence";
 import { localise, w } from "./words";
 
 type Locale = "en" | "fr";
@@ -79,7 +80,7 @@ const WORDS = {
           "Moteur : studio, jobs, facturation, identité, intercepteurs",
         ),
         where: w("The main repository", "Le dépôt principal"),
-        licence: w("FSL-1.1-ALv2", "FSL-1.1-ALv2"),
+        licence: w(LICENCE_ID, LICENCE_ID),
       },
       {
         layer: w(
@@ -87,7 +88,7 @@ const WORDS = {
           "Interface de packs, ligne de commande et packs de référence",
         ),
         where: w("The main repository", "Le dépôt principal"),
-        licence: w("FSL-1.1-ALv2", "FSL-1.1-ALv2"),
+        licence: w(LICENCE_ID, LICENCE_ID),
       },
       {
         layer: w(

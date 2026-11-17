@@ -5,6 +5,7 @@
  * `landing`. Every claim here is true of an install today — nothing is promised that the product does not do.
  */
 
+import { LICENCE_ID } from "./translations.licence";
 import type { Locale } from "./translations.types";
 import type { LandingDictionary } from "./translations.landing.types";
 
@@ -173,7 +174,7 @@ export const landing: Record<Locale, LandingDictionary> = {
       contact: "Contact",
       openSource: "Source code",
       pricing: "Pricing",
-      license: "Licence: FSL-1.1-ALv2",
+      license: `Licence: ${LICENCE_ID}`,
       by: "A Krizaka product",
       product: "Product",
       docs: "Documentation",
@@ -347,7 +348,7 @@ export const landing: Record<Locale, LandingDictionary> = {
       contact: "Contact",
       openSource: "Code source",
       pricing: "Tarifs",
-      license: "Licence FSL-1.1-ALv2",
+      license: `Licence ${LICENCE_ID}`,
       by: "Un produit Krizaka",
       product: "Produit",
       docs: "Documentation",
