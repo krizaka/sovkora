@@ -15,7 +15,7 @@ const keyOf = (line) => /key: ([A-Z0-9_]+)/.exec(line)?.[1] ?? null;
  */
 export function addressLiterals(text) {
   return text.split("\n").flatMap((raw, i) => {
-    // As found (`::1`), and without the punctuation of the sentence around it (`1.2.3.4.` at the end of a comment).
+    // As found (`::1`), and without the punctuation of the sentence around it (`192.0.2.4.` at the end of a comment).
     const found = [...raw.matchAll(CANDIDATE)].some(([run]) => isIP(run) !== 0 || isIP(run.replace(/^[:.]+|[:.]+$/g, "")) !== 0);
     return found ? [{ line: i + 1, key: keyOf(raw) }] : [];
   });
