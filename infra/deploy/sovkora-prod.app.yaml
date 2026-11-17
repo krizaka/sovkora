@@ -163,6 +163,10 @@ services:
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
     alerts:
+      - rule: MEM_UTILIZATION
+        operator: GREATER_THAN
+        value: 85
+        window: FIVE_MINUTES
       - rule: RESTART_COUNT
         operator: GREATER_THAN
         value: 2

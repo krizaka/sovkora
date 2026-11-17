@@ -57,3 +57,9 @@ test("a network address written in clear is refused, and the finding never repea
     assert.ok(!problems.includes(address), "the finding names the key, never the address");
   }
 });
+
+test("the prod edge alerts on memory at 85 % over 5 minutes, like the other services (krizaka-internal#4151)", () => {
+  const edge = spec.slice(spec.indexOf("- name: edge\n"));
+  assert.ok(edge.length > 0, "the spec has an edge service");
+  assert.match(edge, /alerts:\n(?:\s+-.*\n|\s+\w+:.*\n)*?\s+- rule: MEM_UTILIZATION\n\s+operator: GREATER_THAN\n\s+value: 85\n\s+window: FIVE_MINUTES/);
+});
