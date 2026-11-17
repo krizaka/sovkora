@@ -2,9 +2,11 @@
 // The pilot's prod app spec stays honest (krizaka-internal#2132, ADR SOV-105): `node scripts/check-prod-spec.mjs`.
 // It refuses, in infra/deploy/sovkora-prod.app.yaml: a plain secret value, a development host or resource, the web app,
 // the video worker, the GPU relay, a second address, a routed component other than the edge, a region outside Toronto,
-// and an edge that would admit a key minted for another environment. Tested by scripts/test/prod-app-spec.test.mjs.
+// an edge that would admit a key minted for another environment, and a network address written in clear (restricted#340). Tested by scripts/test/prod-app-spec.test.mjs.
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+
+import { addressProblems } from "./lib/address-literals.mjs";
 
 const SPEC = new URL("../infra/deploy/sovkora-prod.app.yaml", import.meta.url);
 
@@ -116,6 +118,7 @@ export function prodSpecProblems(text) {
     ...lineProblems(lines),
     ...lines.map(envOf).filter(Boolean).flatMap(secretProblems),
     ...declarationProblems(text),
+    ...addressProblems(text),
   ];
 }
 
@@ -123,5 +126,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const problems = prodSpecProblems(readFileSync(SPEC, "utf8"));
   for (const p of problems) console.error(`sovkora-prod.app.yaml: ${p}`);
   if (problems.length) process.exit(1);
-  console.log("sovkora-prod.app.yaml: honest (no plain secret, no development host, the pilot's components only)");
+  console.log("sovkora-prod.app.yaml: honest (no plain secret, no development host, no address in clear, the pilot's components only)");
 }
