@@ -47,9 +47,10 @@ function runTool(tool, args, environ = process.env) {
 
 /**
  * The secrets as an object read by key (`env.DATABASE_HOST`): a file's lines, or `secret.sh @orazaka <KEY>` per key.
- * @param {{ envFile?: string|null, tool?: string, run?: (tool: string, args: string[]) => string, environ?: object, overridable?: string[] }} [options]
+ * The tool is found only when a key is read through it (a file, or a CI run, needs no tools folder).
+ * @param {{ envFile?: string|null, tool?: string|null, run?: (tool: string, args: string[]) => string, environ?: object, overridable?: string[] }} [options]
  */
-export function devSecrets({ envFile = null, tool = toolPathOf("secret.sh"), source = SECRET_SOURCE, run = runTool, environ = process.env, overridable = [] } = {}) {
+export function devSecrets({ envFile = null, tool = null, source = SECRET_SOURCE, run = runTool, environ = process.env, overridable = [] } = {}) {
   if (envFile) {
     if (!existsSync(envFile)) throw new Error(`no secrets file at ${envFile}`);
     const fromFile = readEnvFile(readFileSync(envFile, "utf8"));
@@ -58,12 +59,14 @@ export function devSecrets({ envFile = null, tool = toolPathOf("secret.sh"), sou
     });
   }
   const cache = new Map();
+  let secretTool = tool;
   return new Proxy({}, {
     get: (_, key) => {
       if (typeof key !== "string") return undefined;
       if (overridable.includes(key) && environ[key]) return environ[key];
       if (!cache.has(key)) {
-        const value = run(tool, [source, key], environ).replace(/\r?\n$/, "");
+        secretTool ??= toolPathOf("secret.sh", { environ });
+        const value = run(secretTool, [source, key], environ).replace(/\r?\n$/, "");
         cache.set(key, value === "" ? undefined : value);
       }
       return cache.get(key);

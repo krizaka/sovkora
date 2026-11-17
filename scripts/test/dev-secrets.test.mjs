@@ -43,8 +43,17 @@ test("without a file, each key is read through secret.sh @orazaka, once, and an 
   assert.deepEqual(calls, [["/t/secret.sh", "@orazaka", "KNOWN"], ["/t/secret.sh", "@orazaka", "UNKNOWN"]]);
 });
 
+test("secret.sh is looked up only when a key is read through it, in the folder the given environment names", () => {
+  const calls = [];
+  const env = devSecrets({ envFile: null, run: (tool, args) => (calls.push(tool), "v"), environ: { KRIZAKA_TOOLS: "/kz" } });
+  assert.deepEqual(calls, []);
+  assert.equal(env.A, "v");
+  assert.equal(env.B, "v");
+  assert.deepEqual(calls, ["/kz/secret.sh", "/kz/secret.sh"]);
+});
+
 test("the settings overrides (CORE_REBUILD) come from the process environment first", () => {
-  const env = devSecrets({ envFile: null, run: () => "from-tool", environ: { CORE_REBUILD: "stamp" }, overridable: ["CORE_REBUILD"] });
+  const env = devSecrets({ envFile: null, run: () => "from-tool", environ: { CORE_REBUILD: "stamp", KRIZAKA_TOOLS: "/kz" }, overridable: ["CORE_REBUILD"] });
   assert.equal(env.CORE_REBUILD, "stamp");
   assert.equal(env.OTHER, "from-tool");
 });

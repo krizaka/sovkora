@@ -3,11 +3,11 @@
 import { chromium } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync } from "node:fs";
-import { toolPathOf } from "../../../scripts/lib/tools.mjs";
 import os from "node:os";
 import path from "node:path";
-const sh = (k) =>
-  execFileSync(toolPathOf("secret.sh"), ["@qa", k], { encoding: "utf8" });
+
+import { companyTool } from "./company-tool.mjs";
+const sh = (k) => execFileSync(companyTool("secret.sh"), ["@qa", k], { encoding: "utf8" });
 const RUN = process.argv[2];
 const raw = mkdtempSync(path.join(os.tmpdir(), "devclip-"));
 const b = await chromium.launch();
