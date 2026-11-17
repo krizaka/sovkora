@@ -40,10 +40,7 @@ class PublicAddressMcpServerPolicyAdapterTest {
           RESOLVER,
           new McpProperties(
               Map.of(
-                  "filesystem",
-                  new McpProperties.StdioCommand("npx", List.of("-y", "mcp-server-filesystem")),
-                  "blank",
-                  new McpProperties.StdioCommand(" ", null))));
+                  "filesystem", new StdioLaunch("npx", List.of("-y", "mcp-server-filesystem")))));
 
   @ParameterizedTest
   @CsvSource({
@@ -87,11 +84,10 @@ class PublicAddressMcpServerPolicyAdapterTest {
   }
 
   @Test
-  @DisplayName("a path, an undeclared id or a declaration without command launches nothing")
+  @DisplayName("a path or an undeclared id launches nothing")
   void undeclaredLaunchesNothing() {
     assertThat(policy.stdioLaunch("/bin/sh")).isEmpty();
     assertThat(policy.stdioLaunch("npx")).isEmpty();
-    assertThat(policy.stdioLaunch("blank")).isEmpty();
     assertThat(policy.stdioLaunch(null)).isEmpty();
   }
 

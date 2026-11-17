@@ -73,11 +73,6 @@ public class PublicAddressMcpServerPolicyAdapter implements McpServerPolicy {
 
   @Override
   public Optional<StdioLaunch> stdioLaunch(String id) {
-    if (id == null) {
-      return Optional.empty();
-    }
-    return Optional.ofNullable(properties.stdio().get(id))
-        .filter(declared -> declared.command() != null && !declared.command().isBlank())
-        .map(declared -> new StdioLaunch(declared.command(), declared.args()));
+    return id == null ? Optional.empty() : Optional.ofNullable(properties.stdio().get(id));
   }
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.krizaka.sovkora.engine.core.domain.model.mcp.McpToolInfo;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.McpService;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
 import com.krizaka.sovkora.engine.tools.domain.port.HostResolver;
 import com.krizaka.sovkora.engine.tools.infrastructure.adapter.mcp.PublicAddressMcpServerPolicyAdapter;
 import com.krizaka.sovkora.engine.tools.infrastructure.config.McpProperties;
@@ -74,7 +75,7 @@ class McpControllerTest {
           new McpProperties(
               Map.of(
                   "filesystem",
-                  new McpProperties.StdioCommand("npx", List.of("-y", "mcp-server-filesystem")))));
+                  new McpServerPolicy.StdioLaunch("npx", List.of("-y", "mcp-server-filesystem")))));
 
   private McpService mcpService;
   private PlatformMcpServerPersistenceProvider platformMcpServerPersistenceProvider;

@@ -6,7 +6,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerProvider;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerProvider.PlatformMcpServer;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.UserMcpServerProvider;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.UserMcpServerProvider.UserMcpServer;
 import com.krizaka.sovkora.engine.core.infrastructure.support.SecurityContextUtil;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchLimits;
 import com.krizaka.sovkora.engine.tools.domain.model.research.FetchRefusal;
@@ -90,8 +92,7 @@ class DefaultMcpOrchestratorTest {
   private String contextFor(SafeHttp http, String userUrl) {
     when(platform.getActivePlatformMcpServers()).thenReturn(List.of());
     when(users.getActiveUserMcpServers(USER))
-        .thenReturn(
-            List.of(new UserMcpServerProvider.UserMcpServer(1, USER, "u", userUrl, null, true)));
+        .thenReturn(List.of(new UserMcpServer(1, USER, "u", userUrl, null, true)));
     try (MockedStatic<SecurityContextUtil> security = mockStatic(SecurityContextUtil.class)) {
       security
           .when(SecurityContextUtil::extractSecurityMetadata)
@@ -160,15 +161,12 @@ class DefaultMcpOrchestratorTest {
     when(platform.getActivePlatformMcpServers())
         .thenReturn(
             List.of(
-                new PlatformMcpServerProvider.PlatformMcpServer(
+                new PlatformMcpServer(
                     1, "p", "REMOTE", "https://platform.example/mcp", null, null, null, true),
-                new PlatformMcpServerProvider.PlatformMcpServer(
-                    2, "local", "LOCAL", null, "echo", null, null, true)));
+                new PlatformMcpServer(2, "local", "LOCAL", null, "echo", null, null, true)));
     when(users.getActiveUserMcpServers(USER))
         .thenReturn(
-            List.of(
-                new UserMcpServerProvider.UserMcpServer(
-                    1, USER, "u", "https://user.example/mcp", null, true)));
+            List.of(new UserMcpServer(1, USER, "u", "https://user.example/mcp", null, true)));
     var http = new AnsweringHttp(200);
 
     try (MockedStatic<SecurityContextUtil> security = mockStatic(SecurityContextUtil.class)) {

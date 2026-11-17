@@ -1,9 +1,11 @@
 package com.krizaka.sovkora.engine.tools.infrastructure.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.properties.bind.BindException;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 
@@ -34,5 +36,11 @@ class McpPropertiesTest {
     assertThat(properties.stdio().get("filesystem").args())
         .containsExactly("-y", "mcp-server-filesystem");
     assertThat(properties.stdio().get("time").args()).isEmpty();
+  }
+
+  @Test
+  void aDeclarationWithoutACommandFailsTheBinding() {
+    assertThatThrownBy(() -> bind(Map.of("sovkora.mcp.stdio.broken.args[0]", "-y")))
+        .isInstanceOf(BindException.class);
   }
 }
