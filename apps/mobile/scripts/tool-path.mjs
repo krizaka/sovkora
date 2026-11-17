@@ -2,6 +2,7 @@
  * The absolute path of a program the recording scripts spawn (SonarCloud S4036: a program found through PATH can be
  * replaced by whoever controls PATH). Only the system and package-manager folders below are searched, never PATH.
  */
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -27,4 +28,21 @@ export function toolPath(name, search = folders()) {
     }
   }
   throw new Error(`${name} not found in ${search.join(", ")}: install it (brew install ${name}) and retry`);
+}
+
+/**
+ * The absolute path of one company tool (secret.sh…), in the folder kz-config names (~/.local/bin/kz-config, found like
+ * any program above; KRIZAKA_TOOLS overrides its answer). `run` is injectable, so the test spawns nothing.
+ */
+export function companyTool(
+  name,
+  { run = (bin, args) => execFileSync(bin, args, { encoding: "utf8" }), kzConfig } = {},
+) {
+  const folder = String(
+    run(kzConfig ?? toolPath("kz-config", [path.join(os.homedir(), ".local", "bin")]), ["tools"]),
+  ).trim();
+  if (folder === "") {
+    throw new Error("kz-config gave no tools folder: set KRIZAKA_TOOLS");
+  }
+  return path.join(folder, name);
 }

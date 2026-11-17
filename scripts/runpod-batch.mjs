@@ -15,6 +15,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { bootBudgetMinutes, progressLine } from "./lib/boot-budget.mjs";
+import { arg } from "./lib/cli-arg.mjs";
 
 /**
  * One clip per prompt, ids `r01`, `r02`… (the plan format of gpu-i2v-run.mjs, only `scene` and `references` are read by the image step).
@@ -93,10 +94,6 @@ async function upload(file, target, settings) {
 }
 
 const here = dirname(fileURLToPath(import.meta.url));
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
 
 async function main() {
   const refs = arg("refs") ? JSON.parse(readFileSync(resolve(arg("refs")), "utf8")) : {};

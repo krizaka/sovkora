@@ -7,18 +7,19 @@
 // Credentials come from the local QA store through secret.sh — never printed, never in a file here. A demo shows a
 // persona, never a QA name: the account itself carries the cast's name (krizaka/orazaka#473), and a take with « qa » on screen is refused.
 import { chromium } from "@playwright/test";
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import sharp from "sharp";
 import { qaOnScreen } from "./qa-on-screen.mjs";
 import { assertTextReadable } from "./text-width-on-screen.mjs";
+import { companyTool } from "./company-tool.mjs";
 
 const BASE = process.env.APP_BASE_URL ?? "https://dev.sovkora.com";
 const OUT = path.resolve(process.argv[2] ?? "web-steps");
 const V = { width: 1120, height: 700 };
-const secret = (k) => execSync(`~/.krizaka-worktrees/tools/secret.sh @qa ${k}`, { shell: "/bin/zsh" }).toString();
+const secret = (k) => execFileSync(companyTool("secret.sh"), ["@qa", k], { encoding: "utf8" });
 
 /** Each step: what it does once the page has settled; the clip starts there. */
 const STEPS = {

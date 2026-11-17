@@ -19,7 +19,7 @@
  *   node scripts/dev-deploy.mjs broker      # the TLS RabbitMQ Droplet in the tor1 VPC (once; idempotent)
  *   node scripts/dev-deploy.mjs status
  *
- * Secrets are read through `~/.krizaka-worktrees/tools/secret.sh @orazaka KEY` (secrets.map: `env/orazaka.env` — the keys that
+ * Secrets are read through `secret.sh @orazaka KEY` (from `kz-config tools`) (secrets.map: `env/orazaka.env` — the keys that
  * differ for Orazaka, its Bunny zone — then `env/dev.env`, then `env/org.env`), or from one file given with `--env-file ~/Documents/krizaka/env/dev.env` (or ORAZAKA_DEV_ENV_FILE);
  * never from the repository, and never printed: each `__NAME__` of infra/deploy/<app>.app.yaml is filled from them and
  * App Platform stores the SECRET ones encrypted. `--env-file` may sit anywhere on the command line.
@@ -30,6 +30,7 @@ import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSyn
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { toolPathOf } from "./lib/tools.mjs";
 import { devSecrets, envFileFromArgs, readEnvFile } from "./lib/dev-secrets.mjs";
 import { pendingOnDev } from "./dev-migrations.mjs";
 import { toolPath, toolPathOrNull } from "./lib/tool-path.mjs";
@@ -73,7 +74,7 @@ function secrets() {
 /** Stores a generated secret: appended to the explicit file, else set in `@dev` by env-set.sh (value on the environment, never an argument). */
 function storeSecret(key, value) {
   if (ENV_FILE) return writeEnvKeys(ENV_FILE, { [key]: value });
-  const r = spawnSync(join(homedir(), ".krizaka-worktrees/tools/env-set.sh"), ["@dev", key], { env: { ...process.env, VALUE: value }, stdio: "ignore" });
+  const r = spawnSync(toolPathOf("env-set.sh"), ["@dev", key], { env: { ...process.env, VALUE: value }, stdio: "ignore" });
   if (r.status !== 0) throw new Error(`could not store ${key} in @dev`);
 }
 
@@ -485,7 +486,7 @@ function bcryptMatches(secret, hash) {
 /** The stored value of a key in @dev (empty when absent); the value stays in memory, never printed. */
 function storedSecret(key) {
   if (ENV_FILE) return (existsSync(ENV_FILE) ? readEnvFile(readFileSync(ENV_FILE, "utf8"))[key] : undefined) ?? "";
-  const r = spawnSync(join(homedir(), ".krizaka-worktrees/tools/secret.sh"), ["@dev", key], { encoding: "utf8" });
+  const r = spawnSync(toolPathOf("secret.sh"), ["@dev", key], { encoding: "utf8" });
   return r.status === 0 ? r.stdout.trim() : "";
 }
 
@@ -765,7 +766,7 @@ function broker() {
 
 /** orazaka.com is on Porkbun: the maintainer's local helper (DNS_HELPER) upserts the A record. */
 function pointDns(name, ip) {
-  const helper = process.env.DNS_HELPER ?? join(homedir(), ".krizaka-worktrees/tools/pb.py");
+  const helper = process.env.DNS_HELPER ?? toolPathOf("pb.py");
   if (!existsSync(helper)) {
     console.log(`broker: set ${name}.orazaka.com A → ${ip} by hand (no DNS helper)`);
     return;

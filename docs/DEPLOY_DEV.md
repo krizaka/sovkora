@@ -208,7 +208,7 @@ the console's callback URLs from the Host it was asked on (`NEXTAUTH_URL` stays 
 
 **The allowed addresses are a deploy secret** (krizaka-restricted#340): `AUTH_ALLOWED_IPS` is a `SECRET` of the spec,
 `__AUTH_ALLOWED_IPS__`, filled at `apply` from the secrets store under the key `AUTH_ALLOWED_IPS` (comma-separated client
-addresses, in the dev secrets file, set with `~/.krizaka-worktrees/tools/env-set.sh @dev AUTH_ALLOWED_IPS`, value on
+addresses, in the dev secrets file, set with `$(kz-config tools)/env-set.sh @dev AUTH_ALLOWED_IPS`, value on
 `VALUE`, never an argument) and stored encrypted by App Platform. This repository is public: an address is never
 written in a spec, a doc or a test — `scripts/test/dev-deploy.test.mjs` refuses one in any `infra/deploy/*.app.yaml`
 and `scripts/check-prod-spec.mjs` in the prod spec (`scripts/lib/address-literals.mjs`, which names the line and the
@@ -230,7 +230,7 @@ Cut-over (the old app serves the live console until step 3):
 
 ## Deploy
 
-Secrets never enter the repository: `~/Documents/krizaka/env/dev.env` (mode 600; read through `~/.krizaka-worktrees/tools/secret.sh @dev KEY`, or give it with `--env-file`) holds the database role
+Secrets never enter the repository: `~/Documents/krizaka/env/dev.env` (mode 600; read through `$(kz-config tools)/secret.sh @dev KEY`, or give it with `--env-file`) holds the database role
 passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDENTITY_JWT_SECRET`, `CRYPTO_KEY`,
 `CRYPTO_SALT` (16 hex), `MEDIA_ENCRYPTION_KEY` (32 bytes, base64 — the asset keyring), `RABBITMQ_PASS`,
 `NEXTAUTH_SECRET_WEB`, `NEXTAUTH_SECRET_ADMIN`, `AUTH_ALLOWED_IPS` (the console's allowed addresses, above) and `AI_INFERENCE_KEY` (a **model access key**, created in the control

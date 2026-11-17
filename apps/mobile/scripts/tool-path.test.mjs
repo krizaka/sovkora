@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { toolPath } from "./tool-path.mjs";
+import { companyTool, toolPath } from "./tool-path.mjs";
 
 test("a program is resolved to an absolute path inside the given folders, never through PATH", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tool-path-"));
@@ -32,4 +32,15 @@ test("the recording scripts spawn only resolved programs", () => {
     const src = fs.readFileSync(new URL(`./${f}`, import.meta.url), "utf8");
     assert.doesNotMatch(src, /(?:execFileSync|spawn)\(\s*"[a-z0-9]+"/, `${f} spawns a program by bare name`);
   }
+});
+
+test("a company tool sits in the folder kz-config answers; no answer names KRIZAKA_TOOLS", () => {
+  const seen = [];
+  const run = (bin, args) => {
+    seen.push(`${bin} ${args.join(" ")}`);
+    return "/srv/company-tools\n";
+  };
+  assert.equal(companyTool("secret.sh", { run, kzConfig: "/k/kz-config" }), "/srv/company-tools/secret.sh");
+  assert.deepEqual(seen, ["/k/kz-config tools"]);
+  assert.throws(() => companyTool("pb.py", { run: () => "  ", kzConfig: "/k/kz-config" }), /KRIZAKA_TOOLS/);
 });

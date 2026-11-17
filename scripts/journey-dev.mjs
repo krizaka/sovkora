@@ -18,13 +18,10 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { edgeBase, edgeUrl, idSegment } from "./lib/edge-url.mjs";
 import { chatText, edgeRequestId, isProven, readableReport, runFacts } from "./lib/journey.mjs";
+import { arg } from "./lib/cli-arg.mjs";
 
 const EDGE = edgeBase();
 const BASE = EDGE.href;
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
 const ONLY = arg("only")?.split(",");
 const PERSONA = process.env.ORAZAKA_PERSONA_NAME ?? "Eric";
 const ACTIVE = new Set(["PENDING", "RUNNING", "QUEUED", "AWAITING_APPROVAL"]);

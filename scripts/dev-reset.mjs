@@ -28,6 +28,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from
 import { homedir, userInfo } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { toolPathOf } from "./lib/tools.mjs";
 import { devSecrets } from "./lib/dev-secrets.mjs";
 import { edgeBase } from "./lib/edge-url.mjs";
 import { issueServiceAccount, writeEnvKeys } from "./dev-deploy.mjs";
@@ -35,7 +36,6 @@ import { USERS_DATABASE, droppedAccountsAlert, productsOfAccounts, serviceAccoun
 import { DEV_APPS, EXTENSIONS, KEY_VARIABLE_OF_PRODUCT, PRODUCT_DATABASES, bootstrapSql, clearSql, extensionsAtRiskSql, grantsSql, logLine, orazakaDatasetSteps, parseServiceProducts, plan, productsOf, refusals, restoreServiceAccounts, specWithSecret, unrestorable, vaultFileOf } from "./lib/dev-reset.mjs";
 import { keyVariable } from "./lib/service-keys.mjs";
 
-const TOOLS = join(homedir(), ".krizaka-worktrees/tools");
 const SERVICE_PRODUCTS_FILE = join(dirname(fileURLToPath(import.meta.url)), "dev-service-products.json");
 const SOURCE_REPOSITORY = "krizaka/sovkora";
 
@@ -173,7 +173,7 @@ async function reseedProduct({ p, local, noDeploy, catalog, environ, log }) {
   }
   if (!noDeploy) waitForDeployment(DEV_APPS[p], log);
   if (p === "orazaka") for (const step of orazakaDatasetSteps()) run(process.execPath, ["scripts/dev-deploy.mjs", ...step]);
-  else run(join(TOOLS, "seed-dev.sh"), [p]);
+  else run(toolPathOf("seed-dev.sh"), [p]);
   if (p === "orazaka") {
     await restoreServiceAccounts({ catalog, issue: issueServiceAccount, writers: keyWriters(environ), edgeUrl: edgeBase(environ), log });
     run(process.execPath, ["scripts/dev-persona-smoke.mjs", "eric"]);

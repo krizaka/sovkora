@@ -10,8 +10,7 @@
  * ran with success is not run again. The content is fictional (a Montréal ceramic lamp studio).
  */
 import { execFileSync } from "node:child_process";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { toolPathOf } from "./lib/tools.mjs";
 
 const EDGE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
 export const PERSONA_RUNS = [
@@ -25,7 +24,7 @@ export const secretKeys = (name) => {
   if (!k) throw new Error(`unknown persona: ${name}`);
   return [`APP_QA_ORAZAKA_${k}_EMAIL`, `APP_QA_ORAZAKA_${k}_PASSWORD`];
 };
-const secret = (key) => execFileSync(join(homedir(), ".krizaka-worktrees/tools/secret.sh"), ["@dev", key], { encoding: "utf8" }).trim();
+const secret = (key) => execFileSync(toolPathOf("secret.sh"), ["@dev", key], { encoding: "utf8" }).trim();
 
 async function call(method, path, token, body) {
   const res = await fetch(`${EDGE}${path}`, {

@@ -20,12 +20,10 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { toolPathOf } from "./lib/tools.mjs";
+import { arg } from "./lib/cli-arg.mjs";
 
 const BASE = process.env.ORAZAKA_EDGE_URL ?? "https://dev.sovkora.com/edge";
-const arg = (name, fallback) => {
-  const i = process.argv.indexOf(`--${name}`);
-  return i > 0 ? process.argv[i + 1] : fallback;
-};
 
 /** The checks, each one Studio run. `skip` names why an environment cannot route it — reported, never passed. */
 export const CHECKS = [
@@ -64,7 +62,7 @@ export const CHECKS = [
 
 /** One key of the QA store, through secret.sh (the value stays in this process, never printed); "" when absent. */
 function qaSecret(key) {
-  const r = spawnSync(join(homedir(), ".krizaka-worktrees/tools/secret.sh"), ["@qa", key], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+  const r = spawnSync(toolPathOf("secret.sh"), ["@qa", key], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
   return r.status === 0 ? r.stdout : "";
 }
 

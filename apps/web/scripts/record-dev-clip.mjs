@@ -1,12 +1,13 @@
 // MANUAL TOOL (ADR-026), run by a person; owner: sovkora-web lane; listed in README.md « Manual tools ».
 // Why: a short clip of one Studio run's page on dev, signed in as the demo persona (credentials read through secret.sh, never printed). How: `node scripts/record-dev-clip.mjs <run-id>`.
 import { chromium } from "@playwright/test";
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { mkdtempSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-const sh = (k) =>
-  execSync(`~/.krizaka-worktrees/tools/secret.sh ~/Documents/krizaka/qa.env ${k}`, { shell: "/bin/zsh" }).toString();
+
+import { companyTool } from "./company-tool.mjs";
+const sh = (k) => execFileSync(companyTool("secret.sh"), ["@qa", k], { encoding: "utf8" });
 const RUN = process.argv[2];
 const raw = mkdtempSync(path.join(os.tmpdir(), "devclip-"));
 const b = await chromium.launch();
