@@ -109,7 +109,8 @@ build fails when it is violated. Treat an empty cell as a defect, not as a gap.
 
 | Rule | Enforced by | Summary |
 |:---|:---|:---|
-| `assertNoSecretHasADefault` | `AutomationServiceGovernanceTest`<br/>`EdgeGovernanceTest`<br/>`JobServiceGovernanceTest`<br/>`KnowledgeServiceGovernanceTest`<br/>`RouterGovernanceTest`<br/>`SecretDefaultRulesTest`<br/>`StudioServiceGovernanceTest` | [CFG-002] over the application configuration of the module under test (src/main/resources, from the module's own directory, where the build runs its tests). |
+| `assertNoModuleDefaultsASecret` | `SecretDefaultRulesTest` | [CFG-002] over the application configuration of every module of the repository: each src/main/resources folder that holds an application* file. |
+| `assertNoSecretHasADefault` | `SecretDefaultRulesTest` | [CFG-002] over the application configuration files of one folder. |
 
 ## SourceFileScanner
 
