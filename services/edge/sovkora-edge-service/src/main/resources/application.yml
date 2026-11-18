@@ -23,9 +23,9 @@ orazaka:
     # before proxying - downstream services only ever see JWTs.
     identity:
       base-url: ${IDENTITY_INTERNAL_URL:http://localhost:8083}
-      # Shared HS256 secret, used to mint the SERVICE token /internal/v1 now requires
-      # (ADR-035). Same value every host validates with; never a second secret.
-      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+      # Mints the SERVICE token the users service's /internal/v1 requires (ADR-035). The users service
+      # (krizaka-java) verifies it with the identity session key. No default: blank, the edge refuses to start.
+      service-secret: ${IDENTITY_JWT_SECRET:}
       # The environment this edge serves (krizaka-internal#2132): dev or prod. An oz_ key states its own with
       # one scope, env:<name>, set when it is minted; a key that states none is a dev key. The edge refuses a
       # key of another environment (401 API_KEY_WRONG_ENVIRONMENT), so a dev key never reaches the prod engine.

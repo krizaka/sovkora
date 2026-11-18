@@ -109,17 +109,18 @@ broker_ca_b64() {
 
 droplets_json() { doctl compute droplet list --tag-name "$TAG" -o json; }
 
-# The SERVICE token the droplet's and the Mac's worker present to the job service (ADR-035), minted HERE with the identity
-# secret, which never leaves this machine; it expires with the droplet's lifetime. A RunPod pod never gets one: this
+# The SERVICE token the droplet's and the Mac's worker present to the job service (ADR-035), minted HERE with the
+# service-token key (AUTH_SERVICE_TOKEN_SECRET; the job service refuses a SERVICE token signed with the identity session
+# key), which never leaves this machine; it expires with the droplet's lifetime. A RunPod pod never gets one: this
 # machine's own call to the job service carries it (`mint_service_token 0`, 30 min) to mint the pod's own token
 # (krizaka-internal#3645, scripts/gpu-pod-token.py).
 mint_service_token() {
   local hours="$1"
-  JWT_SECRET="$(secret IDENTITY_JWT_SECRET)" python3 - "$hours" <<'PY'
+  SERVICE_KEY="$(secret AUTH_SERVICE_TOKEN_SECRET)" python3 - "$hours" <<'PY'
 import base64, hashlib, hmac, json, os, sys, time
-secret = os.environ["JWT_SECRET"]
+secret = os.environ["SERVICE_KEY"]
 if len(secret) < 32:
-    sys.exit("IDENTITY_JWT_SECRET is too short")
+    sys.exit("AUTH_SERVICE_TOKEN_SECRET is too short")
 b64 = lambda raw: base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 now = int(time.time())
 header = b64(json.dumps({"alg": "HS256", "typ": "JWT"}, separators=(",", ":")).encode())

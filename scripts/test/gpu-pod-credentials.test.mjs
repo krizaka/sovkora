@@ -17,7 +17,7 @@ const root = fileURLToPath(new URL("../..", import.meta.url));
 const KEY = /^[0-9]{14}-[0-9a-f]{6}$/;
 const POD = "orazaka-gpu"; // the launcher's pod-name prefix (RP_PREFIX in scripts/lib/gpu-runpod.sh)
 // Every value the vault holds that more than one pod (or the platform) shares. The stub secret() answers "s3cret-<KEY>".
-const SHARED = ["RABBITMQ_PASS_GPU", "RABBITMQ_PASS", "IDENTITY_JWT_SECRET", "AI_GPU_RUNPOD_API_KEY", "GPU_WATCHDOG_DO_TOKEN"];
+const SHARED = ["RABBITMQ_PASS_GPU", "RABBITMQ_PASS", "IDENTITY_JWT_SECRET", "AUTH_SERVICE_TOKEN_SECRET", "AI_GPU_RUNPOD_API_KEY", "GPU_WATCHDOG_DO_TOKEN"];
 
 /** A RunPod v2 stub: pods in memory, the bodies it was sent. */
 async function runpod({ failCreate = false } = {}) {

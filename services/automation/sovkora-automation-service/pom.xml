@@ -44,6 +44,12 @@
             <groupId>com.krizaka</groupId>
             <artifactId>krizaka-security</artifactId>
         </dependency>
+        <!-- Sessions and service tokens verified with separate keys; no start without either. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-service-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Tier-2 SDK: the master keyring of the asset store (ADR-054). A webhook trigger's secret is sealed
              under it (ADR-084 §1) — the mechanism of the platform, not a second one. -->

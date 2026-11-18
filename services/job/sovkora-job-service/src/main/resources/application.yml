@@ -115,6 +115,11 @@ logging:
 # the lease); a job whose lease expired is re-enqueued max-retries times, then failed
 # JOB_WORKER_LOST. Bounds are enforced at boot (JobLeasePolicy). Born under the new name.
 sovkora:
+  security:
+    # The key Sovkora's own service tokens are signed and verified with (sovkora-service-auth); never the
+    # session key. No default: blank, the service refuses to start.
+    service-token:
+      secret: ${AUTH_SERVICE_TOKEN_SECRET:}
   jobs:
     worker-id: ${JOBS_WORKER_ID:}
     lease:
@@ -125,7 +130,7 @@ sovkora:
     # worker's four routes only, revoked at terminate. The key is derived from this secret under a fixed label,
     # so it is never the session secret even when the deployment has no JOB_POD_TOKEN_SECRET of its own.
     pod-token:
-      signing-secret: ${JOB_POD_TOKEN_SECRET:${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}}
+      signing-secret: ${JOB_POD_TOKEN_SECRET:${IDENTITY_JWT_SECRET:}}
       max-lifetime: ${JOB_POD_TOKEN_MAX_LIFETIME:PT12H30M}
       sweep-interval: ${JOBS_LEASE_SWEEP_INTERVAL:30000}
 orazaka:
@@ -170,8 +175,8 @@ orazaka:
     # Knowledge service (RAG retrieve + tool source lookup) consumed by the core's HTTP port.
     knowledge:
       base-url: ${KNOWLEDGE_URL:http://localhost:8084}
-      # Mints the SERVICE token /internal/v1/knowledge now requires (ADR-035).
-      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+      # Mints the SERVICE token /internal/v1/knowledge requires (ADR-035), with the service-token key.
+      service-secret: ${sovkora.security.service-token.secret}
     orchestration:
       enabled: ${ORCHESTRATION_ENABLED:true}
 
@@ -183,10 +188,9 @@ krizaka:
     # exactly as before until billing is deliberately turned on.
     enabled: ${BILLING_ENABLED:false}
     base-url: ${BILLING_INTERNAL_URL:http://localhost:8095}
-    # Mints the SERVICE token /internal/v1/billing requires (ADR-035). It was absent from
-    # every consumer, so BILLING_ENABLED=true crashed each of them at startup with "the
-    # shared identity secret is required" — billing had never been switched on anywhere.
-    service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+    # Mints the SERVICE token /internal/v1/billing requires (ADR-035). Billing (krizaka-java) verifies
+    # it with the identity session key, so this one stays IDENTITY_JWT_SECRET until it has its own.
+    service-secret: ${IDENTITY_JWT_SECRET:}
     connect-timeout: ${BILLING_CONNECT_TIMEOUT:500ms}
     read-timeout: ${BILLING_READ_TIMEOUT:2s}
   users:
@@ -194,7 +198,7 @@ krizaka:
       # The users service's internal API (krizaka-users-client): who the acting user is, their
       # profile, provider keys and rate-limit tier. Every call carries a SERVICE token.
       base-url: ${IDENTITY_URL:http://localhost:8083}
-      service-secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+      service-secret: ${IDENTITY_JWT_SECRET:}
       service-name: sovkora-job-service
   messaging:
     exchanges:
@@ -208,7 +212,8 @@ krizaka:
       store: jdbc
   security:
     jwt:
-      # The shared HS256 secret the identity service signs session and service tokens with.
-      # krizaka-security validates every request locally with it and refuses to start when it is
-      # shorter than 32 characters (256 bits).
-      secret: ${IDENTITY_JWT_SECRET:sovkora-local-dev-identity-jwt-secret-256bit!}
+      # The identity session key: sessions are verified with it, and only sessions (service tokens
+      # have their own key, below). No default: blank, the service refuses to start.
+      secret: ${IDENTITY_JWT_SECRET:}
+      # The only iss a session may carry: the users service's krizaka.users.jwt.issuer.
+      issuer: ${IDENTITY_JWT_ISSUER:krizaka-users}

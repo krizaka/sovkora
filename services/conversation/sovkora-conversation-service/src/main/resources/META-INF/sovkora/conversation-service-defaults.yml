@@ -90,6 +90,10 @@ spring:
   # Model Router. Add/change providers in the DB (admin console), never in a file.
 
 krizaka:
+  # The only iss a session may carry: the users service's krizaka.users.jwt.issuer (sovkora-service-auth).
+  security.jwt.issuer: "${IDENTITY_JWT_ISSUER:krizaka-users}"
+  # Sovkora's bus: the Krizaka building blocks this service embeds publish and listen on it.
+  messaging.exchanges: { events: orazaka.events, dead-letter: orazaka.dlx }
   app-config:
     # The apps' version contract (krizaka-app-config): the operator edits the parameters through the admin API
     # (ROLE_ADMIN, with a reason; every revision is kept). The public config endpoint needs no switch.

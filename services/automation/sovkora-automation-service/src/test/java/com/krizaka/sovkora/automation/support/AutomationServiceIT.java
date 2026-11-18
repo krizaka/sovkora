@@ -26,6 +26,9 @@ public abstract class AutomationServiceIT {
   /** The shared HS256 secret the tests sign session tokens with. */
   public static final String JWT_SECRET = "automation-it-identity-jwt-secret-256bit!!";
 
+  /** The service-token key the service starts with (its calls to the Studio service). */
+  public static final String SERVICE_TOKEN_SECRET = "automation-it-service-token-key-256bit!!";
+
   /** The Studio service, as far as the automation service can tell. */
   public static final StudioStub STUDIO = new StudioStub();
 
@@ -101,6 +104,7 @@ public abstract class AutomationServiceIT {
     registry.add("orazaka.automation-service.scheduler.enabled", () -> "false");
     registry.add("orazaka.assets.encryption.master-key-file", KEYRING::toString);
     registry.add("krizaka.security.jwt.secret", () -> JWT_SECRET);
+    registry.add("sovkora.security.service-token.secret", () -> SERVICE_TOKEN_SECRET);
     // No broker, as in CI: the listeners do not start and a connection attempt fails fast and
     // quietly.
     registry.add("spring.rabbitmq.listener.simple.auto-startup", () -> "false");

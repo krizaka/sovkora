@@ -11,7 +11,9 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
-/** Signs session tokens the way the identity service does: HS256, a {@code roles} claim. */
+/**
+ * Signs session tokens the way the identity service does: HS256, its issuer, a {@code roles} claim.
+ */
 public final class TestTokens {
 
   private TestTokens() {}
@@ -27,6 +29,7 @@ public final class TestTokens {
     JWTClaimsSet claims =
         new JWTClaimsSet.Builder()
             .subject(subject)
+            .issuer("krizaka-users")
             .claim("roles", List.of(roles))
             .issueTime(Date.from(Instant.now()))
             .expirationTime(Date.from(Instant.now().plusSeconds(300)))

@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.infrastructure.adapter.jobs;
 
-import com.krizaka.security.jwt.SessionJwtProperties;
 import com.krizaka.security.token.ServiceTokenProvider;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import com.krizaka.sovkora.studio.domain.exception.AgentTurnRefusedException;
 import com.krizaka.sovkora.studio.domain.model.AgentTurn;
 import com.krizaka.sovkora.studio.domain.model.AgentTurnResult;
@@ -37,9 +37,9 @@ class HttpAgentTurnAdapter implements AgentTurnClient {
   HttpAgentTurnAdapter(
       RestClient.Builder restClientBuilder,
       ConversationPlaneProperties properties,
-      SessionJwtProperties sessionJwt) {
+      ServiceTokenProperties serviceTokens) {
     ServiceTokenProvider tokens =
-        new ServiceTokenProvider(sessionJwt.secret(), "sovkora-studio-service");
+        new ServiceTokenProvider(serviceTokens.secret(), "sovkora-studio-service");
     this.engineClient =
         restClientBuilder
             .baseUrl(properties.baseUrl())
