@@ -8,7 +8,7 @@ generated: true
 
 # Modules
 
-Sovkora is **one repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029), made of **15 modules**; the Krizaka building blocks come from Maven Central.
+Sovkora is **one repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029), made of **16 modules**; the Krizaka building blocks come from Maven Central.
 
 ```bash
 ./mvnw verify          # every Java module, in one reactor
@@ -45,6 +45,7 @@ pnpm install           # the clients: apps/web, mobile, cli, desktop
 | Module | Kind | What it holds | Depends on |
 |:---|:---|:---|:---|
 | [`workers/media`](https://github.com/krizaka/sovkora/tree/main/workers/media) | python | Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol. Modules: `worker-media`. | — |
+| [`workers/reader`](https://github.com/krizaka/sovkora/tree/main/workers/reader) | python | CPU Python worker of the document readers behind one DocumentReader port (PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract), routed per page kind by settings. Modules: `worker-reader`. | — |
 
 ## Applications
 

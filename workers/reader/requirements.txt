@@ -1,0 +1,12 @@
+# The readers of the document-reader worker, CPU only (krizaka-internal#4198). Top-level pins; the rest follows them.
+# PyTorch from its CPU wheel index: the default Linux wheel carries the CUDA libraries, gigabytes this host never uses.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0+cpu ; sys_platform == "linux"
+torch==2.15.0 ; sys_platform != "linux"
+torchvision==0.29.2+cpu ; sys_platform == "linux"
+torchvision==0.29.2 ; sys_platform != "linux"
+python-doctr==1.1.0
+paddlepaddle==3.3.1
+paddleocr==3.7.0
+numpy>=2.0
+Pillow==13.0.0

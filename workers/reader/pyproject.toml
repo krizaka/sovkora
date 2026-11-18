@@ -1,0 +1,32 @@
+# The document-reader worker (krizaka-internal#4198): its lint, format and test configuration. The installable set is
+# requirements.txt (pip, as the CI's python-ci installs it).
+
+[project]
+name = "sovkora-worker-reader"
+version = "0.1.0"
+license = "FSL-1.1-ALv2"
+description = "Document readers behind one DocumentReader port: PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract."
+requires-python = ">=3.12"
+dependencies = ["numpy", "Pillow", "paddleocr", "python-doctr"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [".venv", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S"]
+ignore = [
+  "S603",  # subprocess without a shell: the Tesseract adapter runs the tesseract command
+]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["document_reader", "conftest"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
+addopts = "-q"

@@ -163,6 +163,15 @@
       "dependsOn": []
     },
     {
+      "name": "worker-reader",
+      "url": "https://github.com/krizaka/sovkora/tree/main/workers/reader",
+      "path": "workers/reader",
+      "kind": "python",
+      "layer": "worker",
+      "description": "CPU Python worker of the document readers behind one DocumentReader port (PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract), routed per page kind by settings.",
+      "dependsOn": []
+    },
+    {
       "name": "web",
       "url": "https://github.com/krizaka/sovkora/tree/main/apps/web",
       "path": "apps/web",
@@ -369,6 +378,21 @@
       "runtime": "python",
       "version": null,
       "description": "Native (Metal) Python worker for image/video generation and media composition, speaking the Sovkora AMQP worker protocol.",
+      "ports": {
+        "inbound": [],
+        "outbound": []
+      }
+    },
+    {
+      "id": "worker-reader",
+      "path": "workers/reader",
+      "repository": "worker-reader",
+      "owner": "sovkora",
+      "role": "service",
+      "layer": "app",
+      "runtime": "python",
+      "version": null,
+      "description": "CPU Python worker of the document readers behind one DocumentReader port (PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract), routed per page kind by settings.",
       "ports": {
         "inbound": [],
         "outbound": []

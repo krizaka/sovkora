@@ -13,7 +13,7 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 | Role | Rule | Modules |
 |:---|:---|:---|
 | **Clients** | a UI repository of the workspace manifest (layer app, kind npm) | `cli`, `desktop`, `mobile`, `web` |
-| **Services & workers** | a module with a main (SpringApplication.run), or a native worker | `sovkora-automation-service`, `sovkora-conversation-service`, `sovkora-edge-service`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-studio-service`, `worker-media`, `krizaka-billing-service`, `krizaka-notifications-service`, `krizaka-users-service` |
+| **Services & workers** | a module with a main (SpringApplication.run), or a native worker | `sovkora-automation-service`, `sovkora-conversation-service`, `sovkora-edge-service`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-studio-service`, `worker-media`, `worker-reader`, `krizaka-billing-service`, `krizaka-notifications-service`, `krizaka-users-service` |
 | **Adapters** | an imported module that is none of the below: persistence, typed HTTP clients, asset store, bridge | `sovkora-crypto`, `sovkora-engine-architecture`, `sovkora-engine-assets`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-springai`, `sovkora-studio-client`, `krizaka-billing-client`, `krizaka-payments`, `krizaka-quality`, `krizaka-rewrite-style`, `krizaka-users-client`, `krizaka-users-persistence` |
 | **Application** | the orchestration, pipeline and capability libraries around the core (AGENTS.md §2: business, interceptors, tools) | `sovkora-engine-business`, `sovkora-engine-interceptors`, `sovkora-engine-tools` |
 | **Domain core** | a `*-core` module — the centre of its hexagon, depending on no outer layer | `sovkora-engine-core`, `krizaka-users-core` |
@@ -35,6 +35,7 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 | `sovkora-knowledge-service` | service | `knowledge` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-studio-service` | service | `studio` | 1.0.0-SNAPSHOT | — | — |
 | `worker-media` | service | `worker-media` | — | — | — |
+| `worker-reader` | service | `worker-reader` | — | — | — |
 | `krizaka-billing-service` | service | `krizaka-java` | 0.12.0 | — | — |
 | `krizaka-notifications-service` | service | `krizaka-java` | 0.12.0 | — | — |
 | `krizaka-users-service` | service | `krizaka-java` | 0.12.0 | — | — |

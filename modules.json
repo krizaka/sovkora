@@ -125,6 +125,14 @@
       "dependsOn": []
     },
     {
+      "name": "worker-reader",
+      "path": "workers/reader",
+      "kind": "python",
+      "layer": "worker",
+      "description": "CPU Python worker of the document readers behind one DocumentReader port (PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract), routed per page kind by settings.",
+      "dependsOn": []
+    },
+    {
       "name": "web",
       "path": "apps/web",
       "kind": "pnpm",

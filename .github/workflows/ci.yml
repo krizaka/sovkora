@@ -257,6 +257,25 @@ jobs:
         test_failure_answer.py test_asset_sink_causes.py
         && python -m coverage xml -o coverage.xml
 
+  # The document readers (krizaka-internal#4198): the DocumentReader contract runs on PaddleOCR, docTR and Tesseract for
+  # real (CPU, their models downloaded on first use) and on Textract's recorded answer (no AWS call from CI).
+  reader:
+    name: Document-reader worker
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/python-ci.yml@43f6462ceec04599ff2ef2c2967bf7202b6dacc5 # main
+    with:
+      relevant: '^(workers/reader/|\.github/workflows/ci\.yml$)'
+      working-directory: workers/reader
+      requirements: workers/reader/requirements.txt
+      # langdetect 1.0.9, a dependency of docTR, is published as a source archive only: the one package built here.
+      allow-source-builds: true
+      extra-packages: pytest ruff
+      setup-command: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-eng tesseract-ocr-fra
+      lint-command: ruff check .
+      test-command: python -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py
+      timeout-minutes: 30
+
   packs-schema:
     name: Packs (schema, goldens)
     runs-on: ubuntu-latest
@@ -438,7 +457,7 @@ jobs:
   workspace:
     name: workspace
     # Not `sonar`: its red on old debt is not the product's code and never freezes the repository (krizaka-internal#2598).
-    needs: [java, web, mobile, cli, media, packs-schema, packs-workers, scripts, infra-format]
+    needs: [java, web, mobile, cli, media, reader, packs-schema, packs-workers, scripts, infra-format]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
