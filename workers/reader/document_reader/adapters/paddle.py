@@ -5,11 +5,15 @@ The engine is loaded once per process (a few seconds); its models come from Padd
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 
 from document_reader.port import READER_UNAVAILABLE, Box, Line, Page, ReaderError, Transcript, reading_order
 
 OCR_VERSION = "PP-OCRv5"
+
+log = logging.getLogger(__name__)
 
 
 class PaddleReader:
@@ -28,7 +32,8 @@ class PaddleReader:
                 use_doc_unwarping=False,
                 use_textline_orientation=False,
             )
-        except Exception:  # noqa: BLE001 — any failure to load is the reader being unavailable, said by code
+        except Exception as failed:  # noqa: BLE001 — any failure to load is the reader being unavailable, said by code
+            log.warning("paddleocr cannot load: %s", type(failed).__name__)
             raise ReaderError(READER_UNAVAILABLE) from None
         self._version = f"paddleocr-{paddleocr.__version__} {OCR_VERSION}"
 
@@ -37,7 +42,8 @@ class PaddleReader:
         bgr = np.asarray(image)[:, :, ::-1].copy()  # PaddleOCR reads arrays as OpenCV does: blue, green, red
         try:
             results = self._engine.predict(bgr)
-        except Exception:  # noqa: BLE001 — the engine's message can quote the page; the code says enough
+        except Exception as failed:  # noqa: BLE001 — the engine's message can quote the page: its type name only
+            log.warning("paddleocr cannot read: %s", type(failed).__name__)
             raise ReaderError(READER_UNAVAILABLE) from None
         lines = []
         for result in results:
