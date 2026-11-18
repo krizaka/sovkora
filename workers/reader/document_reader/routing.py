@@ -1,6 +1,6 @@
 """The routing settings of the document readers: which reader reads which kind of page, as data (krizaka-internal#4198).
 
-The settings are flat keys, the shape the platform's runtime configuration holds (``orazaka_runtime_config``):
+The settings are flat keys, the shape of the platform's runtime configuration table:
 
 * ``reader.default.<kind>`` — the reader of each page kind (``pdf-scan``, ``screenshot``, ``photo``), required;
 * ``reader.fallback`` — the reader tried when the default is down or too slow, or empty for none;

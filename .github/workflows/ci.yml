@@ -270,10 +270,12 @@ jobs:
       requirements: workers/reader/requirements.txt
       # langdetect 1.0.9, a dependency of docTR, is published as a source archive only: the one package built here.
       allow-source-builds: true
-      extra-packages: pytest ruff
+      extra-packages: pytest ruff coverage
       setup-command: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-eng tesseract-ocr-fra
       lint-command: ruff check .
-      test-command: python -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py
+      test-command: >
+        python -m coverage run --source=document_reader,conftest -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py
+        && python -m coverage xml -o coverage.xml
       timeout-minutes: 30
 
   packs-schema:
