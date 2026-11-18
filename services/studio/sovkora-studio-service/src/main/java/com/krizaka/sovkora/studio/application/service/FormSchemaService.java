@@ -217,7 +217,7 @@ public class FormSchemaService {
                 + ": '"
                 + String.valueOf(aspect).strip()
                 + "' is not supported by "
-                + labelOf(options.path("source").asString(""), modelCategory(field.getValue()), id)
+                + labelOf(modelCategory(field.getValue()), id)
                 + " (it makes "
                 + String.join(", ", supported)
                 + "). Choose "
@@ -235,7 +235,7 @@ public class FormSchemaService {
     return supported;
   }
 
-  private String labelOf(String source, String category, String modelId) {
+  private String labelOf(String category, String modelId) {
     if (category == null) {
       return modelId;
     }

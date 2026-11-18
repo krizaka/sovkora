@@ -61,7 +61,7 @@ public record RunScope(
   /** A step input that is nothing but one placeholder — the only shape that can carry structure. */
   private static final Pattern LONE_PLACEHOLDER = Pattern.compile("\\s*\\{\\{([^{}]*)}}\\s*");
 
-  private static final String NAME = "[A-Za-z][A-Za-z0-9_]*";
+  private static final String NAME = "[A-Za-z]\\w*";
   private static final String TEMPLATE_NOT_NULL = "template must not be null";
 
   /**

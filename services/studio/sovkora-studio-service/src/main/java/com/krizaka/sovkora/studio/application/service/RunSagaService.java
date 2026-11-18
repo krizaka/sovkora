@@ -63,13 +63,6 @@ public class RunSagaService {
   private static final String BLUEPRINT_CACHE_SIZE_KEY = "run.blueprint-cache-size";
   private static final int BLUEPRINT_CACHE_SIZE_FALLBACK = 100;
 
-  /**
-   * What a producer sends when it chose no model. Mirrored from {@code JobCommand}: it is a
-   * sentinel, not a model name, and passing it to the pricebook looks for a row called "default"
-   * instead of falling back to the capability's own.
-   */
-  private static final String UNRESOLVED_MODEL = "default";
-
   private static final String STEP_PREFIX = "step '";
 
   /** Prometheus {@code studio_run_cost_usd_total}: the provider cost of runs, per product. */
