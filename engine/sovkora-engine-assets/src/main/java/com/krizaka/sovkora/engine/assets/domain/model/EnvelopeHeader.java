@@ -98,7 +98,7 @@ public record EnvelopeHeader(
 
   /** Where block {@code index} starts on disk. */
   public long offsetOfBlock(int index) {
-    return (long) headerLength + (long) index * sealedBlockSize();
+    return headerLength + (long) index * sealedBlockSize();
   }
 
   /** Plaintext bytes in block {@code index} — the last one is usually short. */

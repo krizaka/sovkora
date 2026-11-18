@@ -71,7 +71,6 @@ class AgentControllerTest {
             true,
             java.util.Set.of("ROLE_USER"),
             Map.of());
-    String userId = user.id().toString();
     Map<String, Object> report = Map.of("exitCode", 0, "logs", "Success");
 
     Map<String, Object> response = controller.receiveReport(user, report);
