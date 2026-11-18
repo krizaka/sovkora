@@ -272,7 +272,8 @@ jobs:
       allow-source-builds: true
       extra-packages: pytest ruff coverage
       setup-command: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-eng tesseract-ocr-fra
-      lint-command: ruff check .
+      # uv.lock resolves the pins of pyproject.toml (the ones of requirements.txt): a stale lock fails here.
+      lint-command: ruff check . && pip install -q uv && uv lock --check
       test-command: >
         python -m coverage run --source=document_reader,conftest -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py
         && python -m coverage xml -o coverage.xml
