@@ -274,7 +274,7 @@ jobs:
       setup-command: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-eng tesseract-ocr-fra
       lint-command: ruff check .
       test-command: >
-        python -m coverage run --source=document_reader,conftest -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py test_lock_matches_pins.py
+        python -m coverage run --source=document_reader,conftest,reader_server -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py test_reader_server.py test_lock_matches_pins.py
         && python -m coverage xml -o coverage.xml
       timeout-minutes: 30
 
