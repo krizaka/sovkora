@@ -10,6 +10,7 @@ import com.krizaka.sovkora.engine.core.domain.model.Context;
 import com.krizaka.sovkora.engine.core.domain.model.PromptContext;
 import com.krizaka.sovkora.engine.core.domain.model.chat.EngineChatOptions;
 import com.krizaka.sovkora.engine.core.domain.model.chat.InternalChatRequest;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ModelCatalogProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerProvider;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.PlatformMcpServerProvider.PlatformMcpServer;
@@ -56,13 +57,33 @@ class EnginePipelineBridgeTest {
   @Mock private ToolRegistry toolRegistry;
   private EnginePipelineBridge enginePipelineBridge;
 
+  /** A policy that admits every endpoint and declares one local server, {@code echo}. */
+  private static final McpServerPolicy ADMIT_ALL_DECLARE_ECHO =
+      new McpServerPolicy() {
+        @Override
+        public Optional<Refusal> refusal(String url) {
+          return Optional.empty();
+        }
+
+        @Override
+        public Optional<StdioLaunch> stdioLaunch(String id) {
+          return "echo".equals(id)
+              ? Optional.of(new StdioLaunch("echo", List.of("hello", "world")))
+              : Optional.empty();
+        }
+      };
+
   @BeforeEach
   void setUp() {
     enginePipelineBridge =
         new EnginePipelineBridge(
             modelCatalogProvider,
             new SpringAiToolResolution(
-                platformMcpServerProvider, userMcpServerProvider, toolRegistry),
+                platformMcpServerProvider,
+                userMcpServerProvider,
+                toolRegistry,
+                null,
+                ADMIT_ALL_DECLARE_ECHO),
             new SpringAiPromptAssembly());
   }
 

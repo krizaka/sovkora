@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.krizaka.sovkora.engine.core.domain.model.mcp.McpToolInfo;
 import com.krizaka.sovkora.engine.core.domain.ports.inbound.McpService;
+import com.krizaka.sovkora.engine.core.domain.ports.outbound.McpServerPolicy;
 import com.krizaka.sovkora.persistence.api.domain.model.PlatformMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.model.UserMcpServerDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.PlatformMcpServerPersistenceProvider;
@@ -18,6 +19,9 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import tools.jackson.core.JacksonException;
@@ -41,6 +45,28 @@ class McpControllerTest {
       java.time.Clock.fixed(
           java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
 
+  /** The registered hosts the policy admits; every other endpoint is refused. */
+  private static final List<String> ADMITTED =
+      List.of("https://server1", "https://s1", "https://s2", "https://p");
+
+  /** A policy that admits {@link #ADMITTED} and declares one local server, {@code filesystem}. */
+  private static final McpServerPolicy POLICY =
+      new McpServerPolicy() {
+        @Override
+        public Optional<Refusal> refusal(String url) {
+          return ADMITTED.stream().anyMatch(url::startsWith)
+              ? Optional.empty()
+              : Optional.of(Refusal.ADDRESS);
+        }
+
+        @Override
+        public Optional<StdioLaunch> stdioLaunch(String id) {
+          return "filesystem".equals(id)
+              ? Optional.of(new StdioLaunch("npx", List.of("-y", "mcp-server-filesystem")))
+              : Optional.empty();
+        }
+      };
+
   private McpService mcpService;
   private PlatformMcpServerPersistenceProvider platformMcpServerPersistenceProvider;
   private UserMcpServerPersistenceProvider userMcpServerPersistenceProvider;
@@ -58,7 +84,8 @@ class McpControllerTest {
             mcpService,
             platformMcpServerPersistenceProvider,
             userMcpServerPersistenceProvider,
-            objectMapper);
+            objectMapper,
+            POLICY);
   }
 
   @Test
@@ -140,7 +167,8 @@ class McpControllerTest {
             mcpService,
             platformMcpServerPersistenceProvider,
             userMcpServerPersistenceProvider,
-            badMapper);
+            badMapper,
+            POLICY);
 
     ResponseEntity<Map<String, Object>> response =
         controllerWithBadMapper.executeTool("search", Map.of("query", "test"), USER);
@@ -164,7 +192,7 @@ class McpControllerTest {
             1,
             userId.toString(),
             "Server1",
-            "http://server1",
+            "https://server1",
             "token123",
             true,
             Instant.now(FIXED_CLOCK));
@@ -233,7 +261,7 @@ class McpControllerTest {
   void saveUserServerUnauthorized() {
     UserMcpServerDto payload =
         new UserMcpServerDto(
-            1, "123", "Server1", "http://server1", "token123", true, Instant.now(FIXED_CLOCK));
+            1, "123", "Server1", "https://server1", "token123", true, Instant.now(FIXED_CLOCK));
     ResponseEntity<Object> response = mcpController.saveUserServer(payload, null);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
@@ -247,7 +275,7 @@ class McpControllerTest {
             1,
             "mismatch-id",
             "Server1",
-            "http://server1",
+            "https://server1",
             "token123",
             true,
             Instant.now(FIXED_CLOCK));
@@ -281,7 +309,7 @@ class McpControllerTest {
             1,
             userId.toString(),
             "Server1",
-            "http://server1",
+            "https://server1",
             "token123",
             true,
             Instant.now(FIXED_CLOCK));
@@ -322,7 +350,7 @@ class McpControllerTest {
             1,
             "different-user-id",
             "Server1",
-            "http://server1",
+            "https://server1",
             "token123",
             true,
             Instant.now(FIXED_CLOCK));
@@ -345,7 +373,7 @@ class McpControllerTest {
     when(userMcpServerPersistenceProvider.findById(7)).thenReturn(Optional.of(foreign));
     UserMcpServerDto hijack =
         new UserMcpServerDto(
-            7, userId.toString(), "S", "http://evil", "tok", true, Instant.now(FIXED_CLOCK));
+            7, userId.toString(), "S", "https://s1", "tok", true, Instant.now(FIXED_CLOCK));
 
     ResponseEntity<Object> response = mcpController.saveUserServer(hijack, user);
 
@@ -362,7 +390,7 @@ class McpControllerTest {
             1,
             userId.toString(),
             "Server1",
-            "http://server1",
+            "https://server1",
             "token123",
             true,
             Instant.now(FIXED_CLOCK));
@@ -381,7 +409,7 @@ class McpControllerTest {
             1,
             "Platform1",
             "SSE",
-            "http://server1",
+            "https://server1",
             "cmd",
             "args",
             "token123",
@@ -415,7 +443,7 @@ class McpControllerTest {
             1,
             "Platform1",
             "SSE",
-            "http://server1",
+            "https://server1",
             null,
             "args",
             "token123",
@@ -437,5 +465,50 @@ class McpControllerTest {
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
     verify(platformMcpServerPersistenceProvider).deleteById(1);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"https://127.0.0.1/mcp", "https://inside.example/mcp", "http://server1/mcp"})
+  void aUserServerThePolicyRefusesIsAnswered400AndNotStored(String url) {
+    UserMcpServerDto payload =
+        new UserMcpServerDto(null, USER.id().toString(), "S", url, null, true, null);
+
+    ResponseEntity<Object> response = mcpController.saveUserServer(payload, USER);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(String.valueOf(response.getBody()).contains("ADDRESS"));
+    verify(userMcpServerPersistenceProvider, never()).save(any());
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "SSE, https://127.0.0.1/mcp, , ",
+    "SSE, http://server1, , ",
+    "LOCAL, , /bin/sh, ",
+    "LOCAL, , npx, ",
+    "LOCAL, , filesystem, '-e,require(x)'"
+  })
+  void aPlatformServerThePolicyRefusesIsAnswered400AndNotStored(
+      String transport, String url, String command, String args) {
+    PlatformMcpServerDto payload =
+        new PlatformMcpServerDto(null, "P", transport, url, command, args, null, true, null);
+
+    ResponseEntity<Object> response = mcpController.savePlatformServer(payload);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    verify(platformMcpServerPersistenceProvider, never()).save(any());
+  }
+
+  @Test
+  void aLocalServerNamingADeclaredIdIsStored() {
+    PlatformMcpServerDto payload =
+        new PlatformMcpServerDto(null, "FS", "LOCAL", null, "filesystem", null, null, true, null);
+    when(platformMcpServerPersistenceProvider.save(payload)).thenReturn(payload);
+
+    ResponseEntity<Object> response = mcpController.savePlatformServer(payload);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    verify(platformMcpServerPersistenceProvider).save(payload);
   }
 }
