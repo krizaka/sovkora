@@ -94,5 +94,10 @@ export const PUBLIC_REDIRECTS: readonly Redirect[] = [
   },
   ...[...REMOVED_PUBLIC, ...REMOVED_DOCS, ...RENAMED].map((r) => ({ ...r, permanent: true })),
   // Not on admin.sovkora.com: /billing is a section of the operator console there (src/console), served by the proxy.
-  { source: "/billing", has: [{ type: "host", value: String.raw`(?!admin\.).*` }], destination: "/usage", permanent: true },
+  {
+    source: "/billing",
+    has: [{ type: "host", value: String.raw`(?!admin\.).*` }],
+    destination: "/usage",
+    permanent: true,
+  },
 ];
