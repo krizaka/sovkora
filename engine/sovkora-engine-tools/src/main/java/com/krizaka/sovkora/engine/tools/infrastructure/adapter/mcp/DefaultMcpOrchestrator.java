@@ -150,9 +150,8 @@ public class DefaultMcpOrchestrator implements McpOrchestrator {
   }
 
   private static Optional<FetchRefusal> httpsOnly(URI hop) {
-    return "https".equals(hop.getScheme() == null ? "" : hop.getScheme().toLowerCase(Locale.ROOT))
-        ? Optional.empty()
-        : Optional.of(FetchRefusal.SCHEME);
+    String scheme = hop.getScheme() == null ? "" : hop.getScheme().toLowerCase(Locale.ROOT);
+    return "https".equals(scheme) ? Optional.empty() : Optional.of(FetchRefusal.SCHEME);
   }
 
   private static String text(SafeHttp.Response response) {
