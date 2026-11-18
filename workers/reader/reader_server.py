@@ -230,7 +230,9 @@ def main() -> int:
     port = int(os.environ.get("AI_READER_PORT", "8095"))
     listen = os.environ.get("AI_READER_LISTEN_IP", "127.0.0.1")
     log.info(json.dumps({"event": "reader.started", "port": port, "readers": sorted(readers)}))
-    ThreadingHTTPServer((listen, port), handler).serve_forever()
+    # Plain HTTP on purpose: an internal server bound to 127.0.0.1 by default, behind a service token, reached only
+    # through the authenticated door of sovkora-conversation-service (krizaka-internal#4198), as workers/media does.
+    ThreadingHTTPServer((listen, port), handler).serve_forever()  # NOSONAR python:S5332 - loopback, see above
     return 0
 
 
