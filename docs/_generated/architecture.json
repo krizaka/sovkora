@@ -63,7 +63,7 @@
       "path": "contracts",
       "kind": "maven",
       "layer": "foundation",
-      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api) and the secret sealing (sovkora-crypto). Pure interfaces and records.",
+      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api), the secret sealing (sovkora-crypto) and the two-key token verification of every service that verifies tokens (sovkora-service-auth). Pure interfaces and records, beside these two small leaves.",
       "dependsOn": [
         "build"
       ]
@@ -127,7 +127,8 @@
       "layer": "ai",
       "description": "Knowledge & RAG retrieval service (pgvector) with asynchronous indexing.",
       "dependsOn": [
-        "build"
+        "build",
+        "contracts"
       ]
     },
     {
@@ -139,6 +140,7 @@
       "description": "Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry.",
       "dependsOn": [
         "build",
+        "contracts",
         "engine"
       ]
     },
@@ -528,6 +530,21 @@
       "runtime": "jvm",
       "version": "1.0.0-SNAPSHOT",
       "description": "The only module that depends on Spring AI: implements the engine's ports (inference, embedding, structured output, tools) on top of it (ADR-092 §4, sovkora-engine#112)",
+      "ports": {
+        "inbound": [],
+        "outbound": []
+      }
+    },
+    {
+      "id": "sovkora-service-auth",
+      "path": "contracts/sovkora-service-auth",
+      "repository": "contracts",
+      "owner": "sovkora",
+      "role": "adapter",
+      "layer": "framework",
+      "runtime": "jvm",
+      "version": "1.0.0-SNAPSHOT",
+      "description": "How every Sovkora service tells a session token from a service token: two keys (the identity session key and a service-token key of its own), the session issuer and audience checked, and no service started without either key. One auto-configuration, picked up by each service that verifies tokens.",
       "ports": {
         "inbound": [],
         "outbound": []
@@ -1327,6 +1344,10 @@
       "to": "sovkora-engine-assets"
     },
     {
+      "from": "sovkora-automation-service",
+      "to": "sovkora-service-auth"
+    },
+    {
       "from": "sovkora-conversation-service",
       "to": "krizaka-billing-client"
     },
@@ -1389,6 +1410,10 @@
     {
       "from": "sovkora-conversation-service",
       "to": "sovkora-jobs-api"
+    },
+    {
+      "from": "sovkora-conversation-service",
+      "to": "sovkora-service-auth"
     },
     {
       "from": "sovkora-conversation-service",
@@ -1559,6 +1584,10 @@
       "to": "sovkora-jobs-api"
     },
     {
+      "from": "sovkora-job-service",
+      "to": "sovkora-service-auth"
+    },
+    {
       "from": "sovkora-knowledge-service",
       "to": "krizaka-messaging"
     },
@@ -1567,8 +1596,16 @@
       "to": "krizaka-security"
     },
     {
+      "from": "sovkora-knowledge-service",
+      "to": "sovkora-service-auth"
+    },
+    {
       "from": "sovkora-persistence-api",
       "to": "sovkora-jobs-api"
+    },
+    {
+      "from": "sovkora-service-auth",
+      "to": "krizaka-security"
     },
     {
       "from": "sovkora-studio-api",
@@ -1609,6 +1646,10 @@
     {
       "from": "sovkora-studio-service",
       "to": "sovkora-jobs-api"
+    },
+    {
+      "from": "sovkora-studio-service",
+      "to": "sovkora-service-auth"
     },
     {
       "from": "sovkora-studio-service",

@@ -11,7 +11,9 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
  * effect immediately.
  *
  * @param baseUrl the identity service base URL
- * @param serviceSecret the shared secret the SERVICE token of the exchange is signed with
+ * @param serviceSecret the identity session key ({@code IDENTITY_JWT_SECRET}) the SERVICE token of
+ *     the exchange is signed with: the users service verifies it with that key. Required, at least
+ *     32 characters: the edge does not start without it
  * @param apiKeyEnvironment the environment this edge serves, {@code dev} or {@code prod} ({@code
  *     AUTH_API_KEY_ENVIRONMENT}, krizaka-internal#2132): a key of another environment is refused
  */
@@ -23,6 +25,13 @@ public record EdgeIdentityProperties(URI baseUrl, String serviceSecret, String a
     Objects.requireNonNull(baseUrl, "identity base-url is required");
     if (baseUrl.getHost() == null) {
       throw new IllegalArgumentException("identity base-url must be absolute: " + baseUrl);
+    }
+    // 32 characters = a 256-bit HS256 key, the floor the users service verifies with.
+    if (serviceSecret == null || serviceSecret.length() < 32) {
+      throw new IllegalArgumentException(
+          "IDENTITY_JWT_SECRET is not set (orazaka.edge.identity.service-secret) or shorter than 32"
+              + " characters: the edge does not start without the key its API-key exchange is"
+              + " signed with");
     }
     if (apiKeyEnvironment == null || apiKeyEnvironment.isBlank()) {
       throw new IllegalArgumentException("identity api-key-environment is required: dev or prod");

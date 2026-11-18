@@ -14,6 +14,8 @@ import com.krizaka.sovkora.job.application.service.PodTokenService;
 import com.krizaka.sovkora.job.domain.model.PodKey;
 import com.krizaka.sovkora.job.domain.model.PodTokenPolicy;
 import com.krizaka.sovkora.job.infrastructure.config.PodTokenTestWiring.MutableClock;
+import com.krizaka.sovkora.service.auth.ServiceAuthAutoConfiguration;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
 import jakarta.servlet.Filter;
 import java.time.Clock;
@@ -50,6 +52,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 class SecurityConfigIT extends AbstractContainerIntegrationTest {
 
   private static final PodKey POD = new PodKey("20261114180000-a1b2c3");
+  private static final String SERVICE_SECRET = "a-test-service-token-key-of-at-least-32-chars";
   private static final String JOB = UUID.randomUUID().toString();
 
   /**
@@ -105,9 +108,17 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
   }
 
   private static String serviceToken() {
-    return new ServiceTokenProvider(
-            PodTokenTestWiring.IDENTITY_SECRET, "sovkora-studio-service", Clock.systemUTC())
+    return new ServiceTokenProvider(SERVICE_SECRET, "sovkora-studio-service", Clock.systemUTC())
         .token();
+  }
+
+  /** The decoder every Sovkora service runs (sovkora-service-auth): sessions and service tokens. */
+  private static JwtDecoder serviceDecoder() {
+    return new ServiceAuthAutoConfiguration()
+        .sessionJwtDecoder(
+            new SessionJwtProperties(
+                PodTokenTestWiring.IDENTITY_SECRET, null, "krizaka-users", null, null, null),
+            new ServiceTokenProperties(SERVICE_SECRET));
   }
 
   @Test
@@ -192,11 +203,7 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
   @DisplayName("the other services refuse it: their session decoder does not hold the pod key")
   void otherServicesRefuseIt() {
     String token = podToken();
-    JwtDecoder otherService =
-        new SessionJwtAutoConfiguration()
-            .sessionJwtDecoder(
-                new SessionJwtProperties(
-                    PodTokenTestWiring.IDENTITY_SECRET, null, null, null, null, null));
+    JwtDecoder otherService = serviceDecoder();
     assertThatThrownBy(() -> otherService.decode(token)).isInstanceOf(JwtException.class);
   }
 
@@ -260,10 +267,7 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
 
     @Bean
     JwtDecoder sessionJwtDecoder() {
-      return new SessionJwtAutoConfiguration()
-          .sessionJwtDecoder(
-              new SessionJwtProperties(
-                  PodTokenTestWiring.IDENTITY_SECRET, null, null, null, null, null));
+      return serviceDecoder();
     }
 
     @Bean

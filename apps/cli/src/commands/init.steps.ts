@@ -40,6 +40,9 @@ const GENERATED_KEYS: ReadonlyArray<{ key: string; bytes: number }> = [
   { key: "SPRING_DATASOURCE_PASSWORD", bytes: 16 },
   { key: "CRYPTO_KEY", bytes: 16 },
   { key: "CRYPTO_SALT", bytes: 8 },
+  // The services start with neither key missing and never with one written in a file: init draws both, apart.
+  { key: "IDENTITY_JWT_SECRET", bytes: 32 },
+  { key: "AUTH_SERVICE_TOKEN_SECRET", bytes: 32 },
 ];
 
 /** A template with fresh random values for the generated keys. */

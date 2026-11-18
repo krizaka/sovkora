@@ -73,9 +73,10 @@ def _b64(raw: bytes) -> str:
 def _service_token() -> str | None:
     """Mints the SERVICE token ``/internal/v1`` requires (ADR-035).
 
-    Signed HS256 with the shared identity secret, with ``roles: ["SERVICE"]`` and an
-    empty authority prefix — byte-for-byte the claim every Java ``ServiceTokenProvider``
-    produces. The boundary is the secret, not the language: a worker holding it is as
+    Signed HS256 with the service-token key (``AUTH_SERVICE_TOKEN_SECRET``, never the identity
+    session key, which the job service refuses for a SERVICE token), with ``roles: ["SERVICE"]``
+    and an empty authority prefix — byte-for-byte the claim every Java ``ServiceTokenProvider``
+    produces. The boundary is the key, not the language: a worker holding it is as
     entitled to the internal surface as any service, which is exactly what makes a
     worker in any language a first-class participant (ADR-037 §3.4).
 
@@ -92,7 +93,7 @@ def _service_token() -> str | None:
     )
     if supplied:
         return supplied
-    secret = os.environ.get("IDENTITY_JWT_SECRET")
+    secret = os.environ.get("AUTH_SERVICE_TOKEN_SECRET")
     if not secret or len(secret) < 32:
         return None
     now = int(time.time())

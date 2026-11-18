@@ -105,6 +105,13 @@ build fails when it is violated. Treat an empty cell as a defect, not as a gap.
 |:---|:---|:---|
 | `assertNoInboundEntryDispatchesAJob` | `EdgeGovernanceTest`<br/>`JobServiceGovernanceTest`<br/>`KnowledgeServiceGovernanceTest`<br/>`RouterGovernanceTest`<br/>`StudioServiceGovernanceTest` | Asserts [DOOR-001] over this module's production classes, against the whole repository's sinks. |
 
+## SecretDefaultRules
+
+| Rule | Enforced by | Summary |
+|:---|:---|:---|
+| `assertNoModuleDefaultsASecret` | `SecretDefaultRulesTest` | [CFG-002] over the application configuration of every module of the repository: each src/main/resources folder that holds an application* file. |
+| `assertNoSecretHasADefault` | `SecretDefaultRulesTest` | [CFG-002] over the application configuration files of one folder. |
+
 ## SourceFileScanner
 
 | Rule | Enforced by | Summary |

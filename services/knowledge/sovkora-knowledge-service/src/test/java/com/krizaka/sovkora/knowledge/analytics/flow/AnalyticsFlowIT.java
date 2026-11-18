@@ -38,7 +38,8 @@ import tools.jackson.databind.json.JsonMapper;
     })
 class AnalyticsFlowIT {
 
-  private static final String SECRET = "sovkora-test-secret-at-least-32-characters!";
+  private static final String SECRET = "sovkora-test-service-token-key-at-least-32-chars";
+  private static final String SESSION_SECRET = "sovkora-test-session-key-at-least-32-characters!";
   private static final String KNOWLEDGE_PASSWORD = "orazaka_knowledge_it";
   private static final JsonMapper JSON = JsonMapper.builder().build();
   private static final HttpClient HTTP = HttpClient.newHttpClient();
@@ -79,7 +80,8 @@ class AnalyticsFlowIT {
     registry.add("orazaka.knowledge-service.datasource.url", () -> url);
     registry.add("orazaka.knowledge-service.datasource.username", () -> "orazaka_knowledge");
     registry.add("orazaka.knowledge-service.datasource.password", () -> KNOWLEDGE_PASSWORD);
-    registry.add("krizaka.security.jwt.secret", () -> SECRET);
+    registry.add("krizaka.security.jwt.secret", () -> SESSION_SECRET);
+    registry.add("sovkora.security.service-token.secret", () -> SECRET);
   }
 
   private static final String[] PEOPLE = {

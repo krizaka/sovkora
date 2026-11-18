@@ -2,8 +2,8 @@ package com.krizaka.sovkora.studio.infrastructure.adapter.jobs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.krizaka.security.jwt.SessionJwtProperties;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityRoute;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import com.krizaka.sovkora.studio.infrastructure.config.CapabilityRoutingProperties;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -72,7 +72,7 @@ class HttpCapabilityRoutingAdapterTest {
     return new HttpCapabilityRoutingAdapter(
         RestClient.builder(),
         new CapabilityRoutingProperties("http://127.0.0.1:" + stub.getAddress().getPort(), ttl),
-        new SessionJwtProperties("sovkora-test-secret-at-least-32-characters!"));
+        new ServiceTokenProperties("sovkora-test-secret-at-least-32-characters!"));
   }
 
   @Test
@@ -111,7 +111,7 @@ class HttpCapabilityRoutingAdapterTest {
             RestClient.builder(),
             // Port 1 is reserved and unbound: the connection fails rather than hanging.
             new CapabilityRoutingProperties("http://127.0.0.1:1", Duration.ofMinutes(1)),
-            new SessionJwtProperties("sovkora-test-secret-at-least-32-characters!"));
+            new ServiceTokenProperties("sovkora-test-secret-at-least-32-characters!"));
 
     assertThat(offline.route("orazaka.core.media.vision")).isEmpty();
   }
@@ -130,7 +130,7 @@ class HttpCapabilityRoutingAdapterTest {
         new HttpCapabilityRoutingAdapter(
             RestClient.builder(),
             new CapabilityRoutingProperties("http://127.0.0.1:1", Duration.ofHours(1)),
-            new SessionJwtProperties("sovkora-test-secret-at-least-32-characters!"));
+            new ServiceTokenProperties("sovkora-test-secret-at-least-32-characters!"));
     assertThat(offline.route("orazaka.core.media.vision")).isEmpty();
     assertThat(offline.route("orazaka.core.media.vision")).isEmpty();
   }

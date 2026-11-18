@@ -63,6 +63,8 @@ jobs:
         working-directory: workspace
         run: |
           node tests/load/stub-stack.mjs 9000 > stub.log 2>&1 &
+          # The edge refuses to start without its key: a random one, drawn for this run only (the stubs verify nothing).
+          IDENTITY_JWT_SECRET="$(openssl rand -hex 32)" \
           IDENTITY_INTERNAL_URL=http://127.0.0.1:9000 \
           ROUTER_INTERNAL_URL=http://127.0.0.1:9000 \
           STUDIO_INTERNAL_URL=http://127.0.0.1:9000 \

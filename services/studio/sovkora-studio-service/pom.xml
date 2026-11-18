@@ -26,6 +26,12 @@
             <groupId>com.krizaka</groupId>
             <artifactId>krizaka-security</artifactId>
         </dependency>
+        <!-- Sessions and service tokens verified with separate keys; no start without either. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-service-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- The Tier-1 contract this service serves (models + ports, zero impl deps) -->
         <dependency>
             <groupId>com.krizaka.sovkora</groupId>
