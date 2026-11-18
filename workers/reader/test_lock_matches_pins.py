@@ -1,4 +1,4 @@
-"""uv.lock resolves exactly the pins of requirements.txt (the set CI installs): a bump of one without the other fails."""
+"""uv.lock resolves exactly the pins of requirements.txt (what CI installs); a bump of one alone fails."""
 
 import re
 import tomllib
