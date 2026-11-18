@@ -1,0 +1,54 @@
+# The document-reader worker (krizaka-internal#4198): its lint, format and test configuration. The installable set is
+# requirements.txt (pip, as the CI's python-ci installs it).
+
+[project]
+name = "sovkora-worker-reader"
+version = "0.1.0"
+license = "FSL-1.1-ALv2"
+description = "Document readers behind one DocumentReader port: PaddleOCR PP-OCRv5, docTR, Tesseract, AWS Textract."
+requires-python = ">=3.12"
+# The pins of requirements.txt, which the CI installs: uv.lock resolves exactly these (`uv lock --check` holds them together).
+dependencies = [
+  "numpy>=2.0",
+  "Pillow==13.0.0",
+  # 3.2.2, not 3.3: 3.3 fails on x86 CPUs in its oneDNN path (PaddlePaddle/Paddle#77340).
+  "paddlepaddle==3.2.2",
+  "paddleocr==3.7.0",
+  "python-doctr==1.1.0",
+  "torch==2.15.0",
+  "torchvision==0.29.2",
+]
+
+[dependency-groups]
+dev = ["pytest", "ruff", "coverage"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+torchvision = { index = "pytorch-cpu", marker = "sys_platform == 'linux'" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [".venv", "__pycache__"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S"]
+ignore = [
+  "S603",  # subprocess without a shell: the Tesseract adapter runs the tesseract command
+]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["document_reader", "conftest"]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
+addopts = "-q"

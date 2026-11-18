@@ -1,0 +1,13 @@
+# The readers of the document-reader worker, CPU only (krizaka-internal#4198). Top-level pins; the rest follows them.
+# PyTorch from its CPU wheel index: the default Linux wheel carries the CUDA libraries, gigabytes this host never uses.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.15.0+cpu ; sys_platform == "linux"
+torch==2.15.0 ; sys_platform != "linux"
+torchvision==0.29.2+cpu ; sys_platform == "linux"
+torchvision==0.29.2 ; sys_platform != "linux"
+python-doctr==1.1.0
+# 3.2.2, not 3.3: 3.3 fails on x86 CPUs in its oneDNN path (PaddlePaddle/Paddle#77340); the Mac has no oneDNN and hid it.
+paddlepaddle==3.2.2
+paddleocr==3.7.0
+numpy>=2.0
+Pillow==13.0.0
