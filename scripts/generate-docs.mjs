@@ -948,7 +948,7 @@ function covers(pattern, concrete) {
   const regex = new RegExp(
     "^" +
       pattern
-        .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/[.+?^${}()|[\]\\]/g, String.raw`\$&`)
         .replaceAll("**", ".*")
         .replace(/(?<!\.)\*/g, "[^/]*") +
       "$",
@@ -1021,7 +1021,7 @@ function summaryAbove(src, index) {
     .filter((l) => l && !l.startsWith("@"))
     .join(" ");
   const sentence = text.split(/(?<=\.)\s/)[0] ?? "";
-  return sentence.replace(/\{@\w+\s([^}]*)\}/g, (_, text) => text.trimStart()).replace(/[{}]/g, "").replaceAll("\\", "\\\\").replaceAll("|", "\\|").trim();
+  return sentence.replace(/\{@\w+\s([^}]*)\}/g, (_, text) => text.trimStart()).replace(/[{}]/g, "").replaceAll("\\", "\\\\").replaceAll("|", String.raw`\|`).trim();
 }
 
 /**
@@ -1751,7 +1751,7 @@ function docText(doc) {
     .replace(JAVADOC_INLINE_TAG, "`$1`")
     .replace(/[{}]/g, "")
     .replaceAll("\\", "\\\\")
-    .replaceAll("|", "\\|")
+    .replaceAll("|", String.raw`\|`)
     .replace(/\s+/g, " ")
     .trim();
 }

@@ -658,14 +658,14 @@ const BROKER = {
 const BROKER_DIR = join(COMPANY_DIR, "orazaka-broker");
 
 /** The platform user has everything on `/`; the GPU worker only touches `orazaka.*` names. */
-export const BROKER_PERMISSIONS = { orazaka: ".*", "gpu-worker": "^orazaka\\..*" };
+export const BROKER_PERMISSIONS = { orazaka: ".*", "gpu-worker": String.raw`^orazaka\..*` };
 
 /**
  * The one-shot script cloud-init runs once RabbitMQ is up: users through rabbitmqctl (the broker
  * hashes the passwords itself), permissions, no guest. Deleted (shred) after it ran.
  */
 export function brokerUsersScript(passwords) {
-  const q = (v) => `'${String(v).replaceAll("'", "'\\''")}'`;
+  const q = (v) => "'" + String(v).replaceAll("'", String.raw`'\''`) + "'";
   const lines = ["set -e", "docker exec rabbitmq rabbitmqctl delete_user guest || true"];
   for (const [user, re] of Object.entries(BROKER_PERMISSIONS)) {
     lines.push(`docker exec rabbitmq rabbitmqctl add_user ${q(user)} ${q(passwords[user])}`, `docker exec rabbitmq rabbitmqctl set_permissions -p / ${q(user)} ${q(re)} ${q(re)} ${q(re)}`);

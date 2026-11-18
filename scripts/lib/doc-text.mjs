@@ -13,7 +13,7 @@ export function stripTags(text) {
 
 /** A Markdown table cell: the backslash is escaped first, then the pipe. */
 export function mdCell(text) {
-  return String(text).replaceAll("\\", "\\\\").replaceAll("|", "\\|");
+  return String(text).replaceAll("\\", "\\\\").replaceAll("|", String.raw`\|`);
 }
 
 /** XML character references, `&amp;` last so `&amp;lt;` reads `&lt;`, not `<`. */
