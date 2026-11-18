@@ -128,6 +128,8 @@ services:
       - { key: SPRING_SSL_BUNDLE_PEM_BROKER_TRUSTSTORE_CERTIFICATE, scope: RUN_TIME, value: "file:/app/var/broker-ca.pem" }
       # Identity and crypto: prod's own values, never another environment's.
       - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__PROD_IDENTITY_JWT_SECRET__" }
+      # The key Sovkora's own service tokens are signed and verified with: never IDENTITY_JWT_SECRET's value.
+      - { key: AUTH_SERVICE_TOKEN_SECRET, scope: RUN_TIME, type: SECRET, value: "__PROD_AUTH_SERVICE_TOKEN_SECRET__" }
       - { key: CRYPTO_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_CRYPTO_KEY__" }
       - { key: CRYPTO_SALT, scope: RUN_TIME, type: SECRET, value: "__PROD_CRYPTO_SALT__" }
       - { key: MEDIA_ENCRYPTION_KEY, scope: RUN_TIME, type: SECRET, value: "__PROD_MEDIA_ENCRYPTION_KEY__" }

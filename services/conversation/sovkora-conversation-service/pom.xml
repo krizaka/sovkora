@@ -43,6 +43,12 @@
             <groupId>com.krizaka</groupId>
             <artifactId>krizaka-spring-boot-starter-security</artifactId>
         </dependency>
+        <!-- Sessions and service tokens verified with separate keys; no start without either. -->
+        <dependency>
+            <groupId>com.krizaka.sovkora</groupId>
+            <artifactId>sovkora-service-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.krizaka</groupId>
             <artifactId>krizaka-spring-boot-starter-rabbitmq</artifactId>

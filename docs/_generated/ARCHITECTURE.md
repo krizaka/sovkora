@@ -14,7 +14,7 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 |:---|:---|:---|
 | **Clients** | a UI repository of the workspace manifest (layer app, kind npm) | `cli`, `desktop`, `mobile`, `web` |
 | **Services & workers** | a module with a main (SpringApplication.run), or a native worker | `sovkora-automation-service`, `sovkora-conversation-service`, `sovkora-edge-service`, `sovkora-job-service`, `sovkora-knowledge-service`, `sovkora-studio-service`, `worker-media`, `worker-reader`, `krizaka-billing-service`, `krizaka-notifications-service`, `krizaka-users-service` |
-| **Adapters** | an imported module that is none of the below: persistence, typed HTTP clients, asset store, bridge | `sovkora-crypto`, `sovkora-engine-architecture`, `sovkora-engine-assets`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-springai`, `sovkora-studio-client`, `krizaka-billing-client`, `krizaka-payments`, `krizaka-quality`, `krizaka-rewrite-style`, `krizaka-users-client`, `krizaka-users-persistence` |
+| **Adapters** | an imported module that is none of the below: persistence, typed HTTP clients, asset store, bridge | `sovkora-crypto`, `sovkora-engine-architecture`, `sovkora-engine-assets`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-springai`, `sovkora-service-auth`, `sovkora-studio-client`, `krizaka-billing-client`, `krizaka-payments`, `krizaka-quality`, `krizaka-rewrite-style`, `krizaka-users-client`, `krizaka-users-persistence` |
 | **Application** | the orchestration, pipeline and capability libraries around the core (AGENTS.md §2: business, interceptors, tools) | `sovkora-engine-business`, `sovkora-engine-interceptors`, `sovkora-engine-tools` |
 | **Domain core** | a `*-core` module — the centre of its hexagon, depending on no outer layer | `sovkora-engine-core`, `krizaka-users-core` |
 | **Contracts** | a Tier-1 `*-api` module — pure interfaces and records | `sovkora-jobs-api`, `sovkora-persistence-api`, `sovkora-studio-api`, `krizaka-billing-api`, `krizaka-users-api` |
@@ -45,6 +45,7 @@ Ports & Adapters: dependencies point toward the core. Each module has one **role
 | `sovkora-engine-persistence` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-persistence-bridge` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-engine-springai` | adapter | `engine` | 1.0.0-SNAPSHOT | — | — |
+| `sovkora-service-auth` | adapter | `contracts` | 1.0.0-SNAPSHOT | — | — |
 | `sovkora-studio-client` | adapter | `studio` | 1.0.0-SNAPSHOT | — | — |
 | `krizaka-billing-client` | adapter | `krizaka-java` | 0.12.0 | — | — |
 | `krizaka-payments` | adapter | `krizaka-java` | 0.12.0 | — | — |
@@ -88,12 +89,12 @@ Build dependencies between the modules above (test scope excluded): who packages
 
 | Module | Depends on |
 |:---|:---|
-| `sovkora-automation-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `sovkora-engine-assets` |
-| `sovkora-conversation-service` | `krizaka-billing-client`, `krizaka-spring-boot-starter-app-config`, `krizaka-spring-boot-starter-observability`, `krizaka-spring-boot-starter-rabbitmq`, `krizaka-spring-boot-starter-security`, `krizaka-spring-boot-starter-web`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api`, `sovkora-studio-client` |
+| `sovkora-automation-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `sovkora-engine-assets`, `sovkora-service-auth` |
+| `sovkora-conversation-service` | `krizaka-billing-client`, `krizaka-spring-boot-starter-app-config`, `krizaka-spring-boot-starter-observability`, `krizaka-spring-boot-starter-rabbitmq`, `krizaka-spring-boot-starter-security`, `krizaka-spring-boot-starter-web`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api`, `sovkora-service-auth`, `sovkora-studio-client` |
 | `sovkora-edge-service` | `krizaka-security` |
-| `sovkora-job-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api` |
-| `sovkora-knowledge-service` | `krizaka-messaging`, `krizaka-security` |
-| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-spring-boot-starter-observability`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-studio-api` |
+| `sovkora-job-service` | `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-users-api`, `krizaka-users-client`, `sovkora-engine-assets`, `sovkora-engine-business`, `sovkora-engine-core`, `sovkora-engine-interceptors`, `sovkora-engine-persistence`, `sovkora-engine-persistence-bridge`, `sovkora-engine-tools`, `sovkora-jobs-api`, `sovkora-service-auth` |
+| `sovkora-knowledge-service` | `krizaka-messaging`, `krizaka-security`, `sovkora-service-auth` |
+| `sovkora-studio-service` | `krizaka-billing-api`, `krizaka-billing-client`, `krizaka-messaging`, `krizaka-security`, `krizaka-spring-boot-starter-observability`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-service-auth`, `sovkora-studio-api` |
 | `krizaka-billing-service` | `krizaka-billing-api`, `krizaka-messaging`, `krizaka-security` |
 | `krizaka-notifications-service` | `krizaka-messaging`, `krizaka-notifications-api` |
 | `krizaka-users-service` | `krizaka-security`, `krizaka-users-core` |
@@ -102,6 +103,7 @@ Build dependencies between the modules above (test scope excluded): who packages
 | `sovkora-engine-persistence` | `krizaka-messaging`, `sovkora-crypto`, `sovkora-jobs-api`, `sovkora-persistence-api` |
 | `sovkora-engine-persistence-bridge` | `sovkora-crypto`, `sovkora-engine-core`, `sovkora-persistence-api` |
 | `sovkora-engine-springai` | `sovkora-engine-business`, `sovkora-engine-core` |
+| `sovkora-service-auth` | `krizaka-security` |
 | `sovkora-studio-client` | `krizaka-security`, `sovkora-studio-api` |
 | `krizaka-billing-client` | `krizaka-billing-api`, `krizaka-security` |
 | `krizaka-users-client` | `krizaka-security`, `krizaka-users-api` |

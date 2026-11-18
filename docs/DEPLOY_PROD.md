@@ -70,7 +70,8 @@ The founder runs the steps that create or pay for anything; an agent prepares th
    the values of `broker/prod.json` (its own CA and server certificate, the one user `sovkora`, a firewall that admits
    5671 from the VPC range only, no SSH, no volume, no backup), and the private name `broker-prod.sovkora.com` → its
    private IP.
-2. **Secrets** in the operator's vault, never in a repository: `PROD_IDENTITY_JWT_SECRET`, `PROD_CRYPTO_KEY`,
+2. **Secrets** in the operator's vault, never in a repository: `PROD_IDENTITY_JWT_SECRET`,
+   `PROD_AUTH_SERVICE_TOKEN_SECRET` (the service-token key, never the session key's value), `PROD_CRYPTO_KEY`,
    `PROD_CRYPTO_SALT`, `PROD_MEDIA_ENCRYPTION_KEY`, `PROD_RABBITMQ_PASS`, `PROD_RABBITMQ_CA_CERT_BASE64`, the prod model
    access key `PROD_AI_INFERENCE_KEY` and the VPC id. None is shared with dev.
 3. **The app**: fill the placeholders, `doctl apps spec validate`, then create `sovkora-prod` (founder), and point

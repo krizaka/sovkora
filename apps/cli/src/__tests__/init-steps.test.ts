@@ -28,14 +28,24 @@ describe("renderEnvFile", () => {
 });
 
 describe("injectGeneratedValues", () => {
-  it("gives the three generated keys fresh hex values of the right length and keeps the others", () => {
+  it("gives the generated keys fresh hex values of the right length and keeps the others", () => {
     const out = injectGeneratedValues(
-      ["SPRING_DATASOURCE_PASSWORD=changeme", "CRYPTO_KEY=x", "CRYPTO_SALT=y", "PORT=8080"].join("\n"),
+      [
+        "SPRING_DATASOURCE_PASSWORD=changeme",
+        "CRYPTO_KEY=x",
+        "CRYPTO_SALT=y",
+        "IDENTITY_JWT_SECRET=CHANGE_ME",
+        "AUTH_SERVICE_TOKEN_SECRET=CHANGE_ME",
+        "PORT=8080",
+      ].join("\n"),
     );
     const read = (key: string): string => new RegExp(`${key}=(.*)`).exec(out)![1]!;
     expect(read("SPRING_DATASOURCE_PASSWORD")).toMatch(/^[0-9a-f]{32}$/);
     expect(read("CRYPTO_KEY")).toMatch(/^[0-9a-f]{32}$/);
     expect(read("CRYPTO_SALT")).toMatch(/^[0-9a-f]{16}$/);
+    expect(read("IDENTITY_JWT_SECRET")).toMatch(/^[0-9a-f]{64}$/);
+    expect(read("AUTH_SERVICE_TOKEN_SECRET")).toMatch(/^[0-9a-f]{64}$/);
+    expect(read("AUTH_SERVICE_TOKEN_SECRET")).not.toBe(read("IDENTITY_JWT_SECRET"));
     expect(read("PORT")).toBe("8080");
   });
 

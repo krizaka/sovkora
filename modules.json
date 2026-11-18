@@ -15,7 +15,7 @@
       "path": "contracts",
       "kind": "maven",
       "layer": "foundation",
-      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api) and the secret sealing (sovkora-crypto). Pure interfaces and records.",
+      "description": "Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkora-jobs-api), the application-persistence ports (sovkora-persistence-api), the secret sealing (sovkora-crypto) and the two-key token verification of every service that verifies tokens (sovkora-service-auth). Pure interfaces and records, beside these two small leaves.",
       "dependsOn": [
         "build"
       ]
@@ -86,7 +86,8 @@
       "layer": "ai",
       "description": "Knowledge & RAG retrieval service (pgvector) with asynchronous indexing.",
       "dependsOn": [
-        "build"
+        "build",
+        "contracts"
       ],
       "initdb": [
         "40-knowledge.sql"
@@ -100,6 +101,7 @@
       "description": "Connector automation (Jira, Slack, WhatsApp, Messenger, CLI agents) with Quartz scheduling and execution telemetry.",
       "dependsOn": [
         "build",
+        "contracts",
         "engine"
       ],
       "initdb": [

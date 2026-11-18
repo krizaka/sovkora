@@ -15,7 +15,11 @@ import javax.crypto.spec.SecretKeySpec;
  */
 final class ActingTokens {
 
-  static final String SECRET = "sovkora-local-dev-identity-jwt-secret-256bit!";
+  /** The service-token key these tests start the service with. */
+  static final String SECRET = "knowledge-it-service-token-key-0123456789";
+
+  /** The identity session key: a SERVICE token signed with it is the forgery of the key split. */
+  static final String SESSION_SECRET = "knowledge-it-identity-session-key-0123456789";
 
   private ActingTokens() {}
 

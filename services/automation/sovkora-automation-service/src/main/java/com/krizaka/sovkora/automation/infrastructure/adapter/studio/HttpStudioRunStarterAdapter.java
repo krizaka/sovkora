@@ -1,11 +1,11 @@
 package com.krizaka.sovkora.automation.infrastructure.adapter.studio;
 
-import com.krizaka.security.jwt.SessionJwtProperties;
 import com.krizaka.security.token.ServiceTokenProvider;
 import com.krizaka.sovkora.automation.domain.exception.StudioStartRefusedException;
 import com.krizaka.sovkora.automation.domain.model.RunStatus;
 import com.krizaka.sovkora.automation.domain.port.StudioRunStarter;
 import com.krizaka.sovkora.automation.infrastructure.config.StudioClientProperties;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,8 +24,8 @@ import tools.jackson.databind.JsonNode;
  * Starts and reads Studio runs over the Studio service's REST surface, <b>as the automation's
  * owner</b>: the token is minted per call with the platform's own provider ({@code
  * krizaka-security}, subject = the owner), exactly the trust ADR-035 already states — the boundary
- * is the shared secret, which this service holds like every other. The run takes its credit hold
- * and its entitlement check like a run the owner clicked.
+ * is the service-token key, which this service holds like every Sovkora service. The run takes its
+ * credit hold and its entitlement check like a run the owner clicked.
  *
  * <p>Refusals keep a stable code and a few words, never the response body.
  */
@@ -38,9 +38,10 @@ class HttpStudioRunStarterAdapter implements StudioRunStarter {
   private final RestClient studio;
   private final String secret;
 
-  HttpStudioRunStarterAdapter(StudioClientProperties properties, SessionJwtProperties jwt) {
+  HttpStudioRunStarterAdapter(
+      StudioClientProperties properties, ServiceTokenProperties serviceTokens) {
     Objects.requireNonNull(properties, "StudioClientProperties cannot be null");
-    this.secret = Objects.requireNonNull(jwt, "SessionJwtProperties cannot be null").secret();
+    this.secret = serviceTokens.secret();
     SimpleClientHttpRequestFactory requests = new SimpleClientHttpRequestFactory();
     requests.setConnectTimeout(properties.connectTimeout());
     requests.setReadTimeout(properties.readTimeout());

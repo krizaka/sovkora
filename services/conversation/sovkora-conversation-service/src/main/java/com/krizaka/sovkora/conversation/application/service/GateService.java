@@ -5,8 +5,9 @@ import com.krizaka.sovkora.conversation.domain.model.gate.CostShieldGate;
 import com.krizaka.sovkora.conversation.domain.model.gate.SecOpsGate;
 import com.krizaka.sovkora.conversation.domain.model.gate.StaticGate;
 import com.krizaka.sovkora.conversation.domain.model.intent.IntentToken;
-import com.krizaka.sovkora.conversation.infrastructure.config.M2mJwtProperties;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
@@ -19,17 +20,21 @@ import org.springframework.stereotype.Service;
  *
  * <p>CRITICAL: This service performs ZERO database interaction. It evaluates static gate conditions
  * and produces a signed {@link IntentToken} using HMAC-SHA256.
+ *
+ * <p>The signing key is derived from the service-token key under a fixed label, so it is never a
+ * value written in a file and never the key a service token is signed with.
  */
 @Service
 public final class GateService {
 
   private static final String HMAC_ALGORITHM = "HmacSHA256";
   private static final Duration TOKEN_TTL = Duration.ofMinutes(5);
+  private static final String KEY_LABEL = "sovkora-intent-token";
 
   private final byte[] signingKey;
 
-  public GateService(M2mJwtProperties properties) {
-    this.signingKey = properties.intentTokenSecret().getBytes(StandardCharsets.UTF_8);
+  public GateService(ServiceTokenProperties serviceTokens) {
+    this.signingKey = hmac(serviceTokens.secret().getBytes(StandardCharsets.UTF_8), KEY_LABEL);
   }
 
   /**
@@ -83,12 +88,15 @@ public final class GateService {
   }
 
   private String sign(String payload) {
+    return HexFormat.of().formatHex(hmac(signingKey, payload));
+  }
+
+  private static byte[] hmac(byte[] key, String payload) {
     try {
       Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-      mac.init(new SecretKeySpec(signingKey, HMAC_ALGORITHM));
-      byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-      return HexFormat.of().formatHex(hash);
-    } catch (Exception e) {
+      mac.init(new SecretKeySpec(key, HMAC_ALGORITHM));
+      return mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+    } catch (GeneralSecurityException e) {
       throw new IllegalStateException("HMAC signing failed", e);
     }
   }

@@ -231,7 +231,8 @@ Cut-over (the old app serves the live console until step 3):
 ## Deploy
 
 Secrets never enter the repository: `~/Documents/krizaka/env/dev.env` (mode 600; read through `$(kz-config tools)/secret.sh @dev KEY`, or give it with `--env-file`) holds the database role
-passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDENTITY_JWT_SECRET`, `CRYPTO_KEY`,
+passwords (`DATABASE_PASSWORD_<DB>`, read with `doctl databases user get`), `IDENTITY_JWT_SECRET`, `AUTH_SERVICE_TOKEN_SECRET`
+(the service-token key, at least 32 characters and never `IDENTITY_JWT_SECRET`'s value: the Java services refuse to start without it), `CRYPTO_KEY`,
 `CRYPTO_SALT` (16 hex), `MEDIA_ENCRYPTION_KEY` (32 bytes, base64 — the asset keyring), `RABBITMQ_PASS`,
 `NEXTAUTH_SECRET_WEB`, `NEXTAUTH_SECRET_ADMIN`, `AUTH_ALLOWED_IPS` (the console's allowed addresses, above) and `AI_INFERENCE_KEY` (a **model access key**, created in the control
 panel: Agent Platform → Serverless Inference → Model Access Keys — the API no longer creates them).

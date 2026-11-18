@@ -1,10 +1,10 @@
 package com.krizaka.sovkora.studio.infrastructure.adapter.jobs;
 
-import com.krizaka.security.jwt.SessionJwtProperties;
 import com.krizaka.security.token.ServiceTokenProvider;
 import com.krizaka.sovkora.jobs.api.domain.exception.CapabilityRegistrationException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.port.CapabilityRegistrationClient;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import com.krizaka.sovkora.studio.infrastructure.config.CapabilityRoutingProperties;
 import java.util.Objects;
 import org.slf4j.Logger;
@@ -37,10 +37,10 @@ class HttpCapabilityRegistrationAdapter implements CapabilityRegistrationClient 
   HttpCapabilityRegistrationAdapter(
       RestClient.Builder restClientBuilder,
       CapabilityRoutingProperties properties,
-      SessionJwtProperties sessionJwt) {
+      ServiceTokenProperties serviceTokens) {
     Objects.requireNonNull(properties, "CapabilityRoutingProperties cannot be null");
     ServiceTokenProvider tokens =
-        new ServiceTokenProvider(sessionJwt.secret(), "sovkora-studio-service");
+        new ServiceTokenProvider(serviceTokens.secret(), "sovkora-studio-service");
     this.jobPlaneClient =
         restClientBuilder
             .baseUrl(properties.baseUrl())

@@ -10,6 +10,7 @@ Tier-1 platform contracts shared by every Sovkora service: the job plane (sovkor
 |:---|:---|:---|
 | `sovkora-jobs-api` | `com.krizaka.sovkora:sovkora-jobs-api` | Job plane contract: job commands/events, lanes, typed failure causes, capability descriptors. |
 | `sovkora-persistence-api` | `com.krizaka.sovkora:sovkora-persistence-api` | Application-persistence ports & DTOs (chat, jobs, models, configs, outbox) implemented by `sovkora-engine-persistence`. |
+| `sovkora-service-auth` | `com.krizaka.sovkora:sovkora-service-auth` | The token verification of every service that verifies tokens: sessions with `IDENTITY_JWT_SECRET` (and their issuer), service tokens with `AUTH_SERVICE_TOKEN_SECRET`; no start without either. |
 
 Domain contracts live with their domain: `krizaka-users-api` in
 [krizaka-users](https://github.com/krizaka/krizaka-java/tree/main/krizaka-users), `krizaka-billing-api` in [krizaka-billing](https://github.com/krizaka/krizaka-java/tree/main/krizaka-billing),

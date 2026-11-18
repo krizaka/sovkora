@@ -17,7 +17,7 @@ function render(profile) {
   writeFileSync(
     env,
     [
-      `IDENTITY_JWT_SECRET=${JWT}`,
+      `AUTH_SERVICE_TOKEN_SECRET=${JWT}`,
       "RABBITMQ_PASS_GPU=rabbit-secret-value",
       `RABBITMQ_CA_CERT_BASE64=${Buffer.from("-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n").toString("base64")}`,
       "AI_GPU_RELAY_PASSWORD=relay-secret-value-0123456789abcdef",
@@ -239,7 +239,7 @@ test("secrets come from the secret tool by logical source, never from ~/Document
   const dir = mkdtempSync(join(tmpdir(), "gpu-dev-tool-"));
   const tool = join(dir, "secret.sh");
   const values = {
-    IDENTITY_JWT_SECRET: JWT,
+    AUTH_SERVICE_TOKEN_SECRET: JWT,
     RABBITMQ_PASS_GPU: "rabbit-from-tool",
     AI_GPU_RELAY_PASSWORD: "relay-from-tool-0123456789abcdef",
     GPU_WATCHDOG_DO_TOKEN: "dop_v1_tool",

@@ -9,6 +9,7 @@ import com.krizaka.sovkora.test.support.architecture.GovernanceRules;
 import com.krizaka.sovkora.test.support.architecture.LoggedContentRules;
 import com.krizaka.sovkora.test.support.architecture.PackPurityRules;
 import com.krizaka.sovkora.test.support.architecture.RunSurfaceRules;
+import com.krizaka.sovkora.test.support.architecture.SecretDefaultRules;
 import com.krizaka.sovkora.test.support.architecture.SourceFileScanner;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaModifier;
@@ -276,5 +277,11 @@ class RouterGovernanceTest {
   @Test
   void noLoggingCallTakesContent() {
     LoggedContentRules.assertNoLoggingCallTakesContent();
+  }
+
+  @Test
+  @DisplayName("[CFG-002] no *_SECRET variable has a default in the application configuration")
+  void noSecretHasADefault() {
+    SecretDefaultRules.assertNoSecretHasADefault();
   }
 }

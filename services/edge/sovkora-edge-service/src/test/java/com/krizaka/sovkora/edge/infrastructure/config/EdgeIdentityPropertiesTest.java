@@ -45,4 +45,19 @@ class EdgeIdentityPropertiesTest {
         .isThrownBy(() -> new EdgeIdentityProperties(identity, secret, " "))
         .withMessageContaining("api-key-environment");
   }
+
+  @Test
+  @DisplayName("an edge without the identity session key, or with a short one, does not start")
+  void serviceSecretIsRequired() {
+    URI identity = URI.create("http://localhost:8083");
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new EdgeIdentityProperties(identity, null))
+        .withMessageContaining("IDENTITY_JWT_SECRET is not set");
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new EdgeIdentityProperties(identity, ""))
+        .withMessageContaining("IDENTITY_JWT_SECRET is not set");
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new EdgeIdentityProperties(identity, "too-short"))
+        .withMessageContaining("32 characters");
+  }
 }

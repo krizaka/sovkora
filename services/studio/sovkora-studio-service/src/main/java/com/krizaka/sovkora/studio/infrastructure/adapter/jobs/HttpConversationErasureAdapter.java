@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.studio.infrastructure.adapter.jobs;
 
-import com.krizaka.security.jwt.SessionJwtProperties;
 import com.krizaka.security.token.ServiceTokenProvider;
+import com.krizaka.sovkora.service.auth.ServiceTokenProperties;
 import com.krizaka.sovkora.studio.domain.exception.ErasureIncompleteException;
 import com.krizaka.sovkora.studio.domain.port.ConversationErasureClient;
 import com.krizaka.sovkora.studio.infrastructure.config.ConversationPlaneProperties;
@@ -30,10 +30,10 @@ class HttpConversationErasureAdapter implements ConversationErasureClient {
   HttpConversationErasureAdapter(
       RestClient.Builder restClientBuilder,
       ConversationPlaneProperties properties,
-      SessionJwtProperties sessionJwt) {
+      ServiceTokenProperties serviceTokens) {
     Objects.requireNonNull(properties, "ConversationPlaneProperties cannot be null");
     ServiceTokenProvider tokens =
-        new ServiceTokenProvider(sessionJwt.secret(), "sovkora-studio-service");
+        new ServiceTokenProvider(serviceTokens.secret(), "sovkora-studio-service");
     this.conversationClient =
         restClientBuilder
             .baseUrl(properties.baseUrl())

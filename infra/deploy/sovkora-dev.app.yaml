@@ -173,6 +173,8 @@ services:
       # ADR-083 slice 2: the products' service accounts are on the `service` tier (infra/migrations/2026-10-20-service-rate-tier.sql), so the per-key limit leaves observe.
       - { key: ABUSE_RATE_LIMIT_MODE, scope: RUN_TIME, value: enforce }
       - { key: IDENTITY_JWT_SECRET, scope: RUN_TIME, type: SECRET, value: "__IDENTITY_JWT_SECRET__" }
+      # The key Sovkora's own service tokens are signed and verified with: never IDENTITY_JWT_SECRET's value (the services refuse to start with one key for both).
+      - { key: AUTH_SERVICE_TOKEN_SECRET, scope: RUN_TIME, type: SECRET, value: "__AUTH_SERVICE_TOKEN_SECRET__" }
       - { key: CRYPTO_KEY, scope: RUN_TIME, type: SECRET, value: "__CRYPTO_KEY__" }
       - { key: CRYPTO_SALT, scope: RUN_TIME, type: SECRET, value: "__CRYPTO_SALT__" }
       - { key: MEDIA_ENCRYPTION_KEY, scope: RUN_TIME, type: SECRET, value: "__MEDIA_ENCRYPTION_KEY__" }

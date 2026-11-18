@@ -35,7 +35,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
       "orazaka.knowledge-service.datasource.url=${spring.datasource.url}",
       "orazaka.knowledge-service.datasource.username=${spring.datasource.username}",
       "orazaka.knowledge-service.datasource.password=${spring.datasource.password}",
-      "krizaka.security.jwt.secret=" + ActingTokens.SECRET
+      "krizaka.security.jwt.secret=" + ActingTokens.SESSION_SECRET,
+      "sovkora.security.service-token.secret=" + ActingTokens.SECRET
     })
 class KnowledgeAccessIT extends AbstractContainerIntegrationTest {
 
@@ -204,7 +205,9 @@ class KnowledgeAccessIT extends AbstractContainerIntegrationTest {
   }
 
   @Test
-  @DisplayName("a principal that is unsigned, signed with another secret or edited is rejected")
+  @DisplayName(
+      "a principal that is unsigned, signed with another secret or the session key, or edited, is"
+          + " rejected")
   void forgedPrincipalIsRejected() throws Exception {
     String hr = ActingTokens.principal("acme", "hr-2", "ROLE_HR");
     String employee = ActingTokens.principal("acme", "emp-1", "ROLE_USER");
@@ -212,6 +215,7 @@ class KnowledgeAccessIT extends AbstractContainerIntegrationTest {
         List.of(
             ActingTokens.unsigned(hr),
             ActingTokens.service("another-secret-another-secret-another-secret", hr),
+            ActingTokens.service(ActingTokens.SESSION_SECRET, hr),
             ActingTokens.tampered(ActingTokens.service(ActingTokens.SECRET, employee), hr));
     for (String forged : forgeries) {
       assertThat(
