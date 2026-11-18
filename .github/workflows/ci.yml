@@ -113,6 +113,10 @@ jobs:
       - name: The test counts, per module
         if: ${{ always() }}
         run: node scripts/test-counts.mjs >> "$GITHUB_STEP_SUMMARY"
+      # sonar.java.libraries / sonar.java.test.libraries read these jars: without them the Java rules run less precisely (krizaka-internal#4314).
+      - name: The dependency jars of every module, for SonarCloud
+        if: ${{ !cancelled() }}
+        run: ./mvnw -B -ntp -q dependency:copy-dependencies -DoutputDirectory="$GITHUB_WORKSPACE/sonar-libs" -DskipTests
       - name: Keep the coverage and classes for SonarCloud
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -124,6 +128,7 @@ jobs:
             **/target/site/jacoco/jacoco.xml
             **/target/classes/**
             **/target/test-classes/**
+            sonar-libs/*.jar
 
   # ── the clients ─────────────────────────────────────────────────────────────────────────────────────────────────
   web:
@@ -355,6 +360,61 @@ jobs:
       setup-command: ${{ matrix.setup || '' }}
       test-command: python -m pytest -q ${{ matrix.tests }}
 
+  # The Python coverage for SonarCloud (krizaka-internal#4314). The three python-ci jobs above write their coverage.xml on their own
+  # runner and keep nothing (the shared workflow uploads only for its own scan); this job re-runs the same suites with coverage and ships
+  # one report per part, named after it (the sonar job merges every coverage-* artifact into one folder).
+  python-coverage:
+    name: Python coverage (${{ matrix.part }})
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [media, reader, packs]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Media worker
+        if: ${{ matrix.part == 'media' }}
+        working-directory: workers/media
+        run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          pip install --only-binary :all: pytest pyyaml pika Pillow psutil cryptography numpy coverage
+          python -m coverage run -m pytest -q test_*.py || true
+          python -m coverage xml -o "$GITHUB_WORKSPACE/coverage-py-media.xml"
+      - name: Document-reader worker
+        if: ${{ matrix.part == 'reader' }}
+        working-directory: workers/reader
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-eng tesseract-ocr-fra
+          pip install -r requirements.txt
+          pip install --only-binary :all: pytest coverage
+          python -m coverage run --source=document_reader,conftest,reader_server -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py test_reader_server.py test_lock_matches_pins.py || true
+          python -m coverage xml -o "$GITHUB_WORKSPACE/coverage-py-reader.xml"
+      - name: Pack workers
+        if: ${{ matrix.part == 'packs' }}
+        run: |
+          pip install --only-binary :all: pypdf pika pyyaml pikepdf reportlab Pillow pytest coverage
+          rm -f .coverage.*
+          for dir in document-validation message-authenticity media-safety echo-toolkit data-analytics tenant-screening-qc identity-document-check; do
+            (cd "packs/$dir/worker" && python -m coverage run --data-file="$GITHUB_WORKSPACE/.coverage.$dir" -m pytest -q || true)
+          done
+          (cd packs/worker-common && python -m coverage run --data-file="$GITHUB_WORKSPACE/.coverage.worker-common" -m pytest -q || true)
+          python -m coverage combine --keep .coverage.*
+          python -m coverage xml -o coverage-py-packs.xml
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-python-${{ matrix.part }}
+          retention-days: 1
+          if-no-files-found: error
+          path: coverage-py-${{ matrix.part }}.xml
+
   # ── the repository's own tooling ────────────────────────────────────────────────────────────────────────────────
   scripts:
     name: Repository tooling, layout and docs
@@ -430,7 +490,7 @@ jobs:
   # required checks run on, merge_group included (krizaka-internal#2000). It reads the coverage of every part that ran.
   sonar:
     name: SonarCloud
-    needs: [java, web, mobile, cli, scripts]
+    needs: [java, web, mobile, cli, scripts, python-coverage]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -446,6 +506,13 @@ jobs:
         with:
           fetch-depth: 0 # blame and new-code detection need the history
           persist-credentials: false
+      # The scanner resolves each app's tsconfig.json (an `extends` of a package, a path alias): the dependencies must be installed.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: "22"
+      - run: npm install -g pnpm@12.10.1
+      - name: Install the apps (their tsconfig.json resolve for the scanner)
+        run: for app in web mobile cli desktop; do (cd "apps/$app" && pnpm install --frozen-lockfile --ignore-scripts --filter .); done
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: coverage-*
