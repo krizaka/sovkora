@@ -33,29 +33,35 @@ class ReadService:
         clock: Callable[[], float],
         workers: int = 2,
     ) -> None:
-        self._readers = dict(readers)
+        # Kept as given, not copied: a lazy mapping loads a reader the first time a routing names it.
+        self._readers = readers
         self._routing = routing
         self._clock = clock
         # A reader past its timeout keeps its thread until it returns: the pool bounds how many can pile up.
         self._pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="reader")
 
-    def read_pages(self, pages: Sequence[Page]) -> list[Reading]:
-        """Every page read, or ``BUDGET_EXHAUSTED`` before any is when there are more than the budget allows."""
-        if len(pages) > self._routing.page_budget:
-            raise ReaderError(BUDGET_EXHAUSTED)
-        return [self.read(page) for page in pages]
+    def read_pages(self, pages: Sequence[Page], routing: ReaderRouting | None = None) -> list[Reading]:
+        """Every page read, or ``BUDGET_EXHAUSTED`` before any is when there are more than the budget allows.
 
-    def read(self, page: Page) -> Reading:
+        ``routing`` is the one of this call (the door's database row); without it the service's own applies.
+        """
+        applied = routing or self._routing
+        if len(pages) > applied.page_budget:
+            raise ReaderError(BUDGET_EXHAUSTED)
+        return [self.read(page, applied) for page in pages]
+
+    def read(self, page: Page, routing: ReaderRouting | None = None) -> Reading:
+        applied = routing or self._routing
         started = self._clock()
-        chosen = self._routing.default_for(page.kind)
+        chosen = applied.default_for(page.kind)
         try:
-            transcript, reader = self._attempt(chosen, page), chosen
+            transcript, reader = self._attempt(chosen, page, applied), chosen
             fallback_from = None
         except ReaderError as failed:
-            fallback = self._routing.fallback
+            fallback = applied.fallback
             if failed.code not in RETRYABLE or fallback is None or fallback == chosen:
                 raise
-            transcript, reader = self._attempt(fallback, page), fallback
+            transcript, reader = self._attempt(fallback, page, applied), fallback
             fallback_from = chosen
         latency_ms = round((self._clock() - started) * 1000)
         return Reading(
@@ -65,17 +71,17 @@ class ReadService:
             version=transcript.version,
             generative=self._readers[reader].generative,
             page_hash=page.sha256,
-            cost_micros=self._routing.cost_micros(reader),
+            cost_micros=applied.cost_micros(reader),
             latency_ms=latency_ms,
             fallback_from=fallback_from,
         )
 
-    def _attempt(self, reader_id: str, page: Page) -> Transcript:
+    def _attempt(self, reader_id: str, page: Page, routing: ReaderRouting) -> Transcript:
         reader = self._readers.get(reader_id)
         if reader is None:
             raise ReaderError(READER_UNAVAILABLE)
         future = self._pool.submit(reader.read, page)
         try:
-            return future.result(timeout=self._routing.timeout_ms / 1000)
+            return future.result(timeout=routing.timeout_ms / 1000)
         except FutureTimeout:
             raise ReaderError(READER_TIMEOUT) from None

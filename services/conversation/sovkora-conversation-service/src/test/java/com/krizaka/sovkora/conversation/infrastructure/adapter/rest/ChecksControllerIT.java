@@ -18,7 +18,6 @@ import com.krizaka.sovkora.engine.core.domain.model.checks.CheckResult;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.CheckMeter;
 import com.krizaka.sovkora.engine.core.domain.ports.outbound.ExternalCheckConnector;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
-import com.krizaka.users.domain.model.User;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,9 +36,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -325,20 +320,6 @@ class ChecksControllerIT extends AbstractContainerIntegrationTest {
 
   /** Puts one signed-in user, of one tenant, in the security context. */
   private static void authenticate(String id, String tenant, String role) {
-    Set<String> authorities = Set.of(role, "TENANT_" + tenant);
-    User user =
-        new User(
-            UUID.fromString(id),
-            "actor-" + id,
-            id + "@orazaka.test",
-            true,
-            authorities,
-            Map.of(),
-            List.of());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            user, "token", authorities.stream().map(SimpleGrantedAuthority::new).toList()));
-    SecurityContextHolder.setContext(context);
+    SignedInUser.signIn(id, tenant, role);
   }
 }

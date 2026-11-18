@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * Without a provider row, a key or a sealed pepper the answer is {@code REFUSED / NOT_CONFIGURED}
  * or {@code NO_KEY}: never a made-up result.
  */
-public class ProductCheckService implements ProductChecks {
+public class ProductCheckService extends ProductDoorService implements ProductChecks {
 
   private static final Logger log = LoggerFactory.getLogger(ProductCheckService.class);
 
@@ -42,8 +42,6 @@ public class ProductCheckService implements ProductChecks {
   private final CheckMeter meter;
   private final CheckSubjectPepper pepper;
   private final ProductCheckAudit audit;
-  private final CheckRateLimitService limiter;
-  private final Set<String> allowedRoles;
   private final Clock clock;
 
   /**
@@ -65,24 +63,13 @@ public class ProductCheckService implements ProductChecks {
       CheckRateLimitService limiter,
       Set<String> allowedRoles,
       Clock clock) {
+    super(limiter, allowedRoles);
     this.router = Objects.requireNonNull(router, "router must not be null");
     this.keys = Objects.requireNonNull(keys, "keys must not be null");
     this.meter = Objects.requireNonNull(meter, "meter must not be null");
     this.pepper = Objects.requireNonNull(pepper, "pepper must not be null");
     this.audit = Objects.requireNonNull(audit, "audit must not be null");
-    this.limiter = Objects.requireNonNull(limiter, "limiter must not be null");
-    this.allowedRoles = Set.copyOf(allowedRoles);
     this.clock = Objects.requireNonNull(clock, "clock must not be null");
-  }
-
-  @Override
-  public boolean permits(Actor actor) {
-    return actor.holdsAny(allowedRoles);
-  }
-
-  @Override
-  public long throttle(Actor actor) {
-    return limiter.tryAcquire(actor.tenant() + "/" + actor.subject());
   }
 
   @Override

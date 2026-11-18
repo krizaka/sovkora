@@ -11,6 +11,8 @@
 # ==============================================================================
 
 spring:
+  # The document reader worker (workers/reader), reached only through POST /api/v1/document-reads (krizaka-internal#4198).
+  http.serviceclient.reader.base-url: "${AI_READER_URL:http://127.0.0.1:8098}"
   flyway:
     # The schema is db/migration (V1 = the baseline), applied at startup as the owner role, never by hand (krizaka-internal#2255).
     # The migrator connection is distinct from the runtime datasource; locally it falls back to the datasource values.
@@ -143,3 +145,9 @@ orazaka:
         "[/api/v1/chat]": orazaka.core.chat.completion
         # A voice turn's answer is a chat completion (ADR-076): no engine, no turn.
         "[/api/v1/voice/turns]": orazaka.core.chat.completion
+
+# The door to the document readers (krizaka-internal#4198): the worker's service token. Which reader reads which
+# page is the document_reader_setting rows, never a key here.
+sovkora:
+  document-reader:
+    service-token: "${AI_READER_SERVICE_TOKEN:}"

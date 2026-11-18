@@ -53,6 +53,7 @@ no matcher covers the path — the service has no security on it whatsoever.
 | GET | `/api/v1/checks/{providerRef}` | authenticated | ChecksController | Collects a check that came back PENDING. |
 | POST | `/api/v1/checks/{purpose}` | authenticated | ChecksController | Starts a check. |
 | POST | `/api/v1/code` | authenticated | CodeController | Streams code generation via SSE using POST. |
+| POST | `/api/v1/document-reads` | authenticated | DocumentReadController | Reads document pages: one reading per page, in order. |
 | POST | `/api/v1/embeddings` | ADMIN + USER | EmbeddingController |  |
 | GET | `/api/v1/features` | ADMIN + USER | FeatureController | What this deployment can currently run: every enabled capability with its live degraded-mode state. |
 | PUT | `/api/v1/features/{featureKey}` | ADMIN | FeatureController | Admin: toggles an existing capability's enabled state. |

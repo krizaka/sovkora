@@ -29,7 +29,13 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
   @Configuration
   static class NoBeans {}
 
-  private static final int TABLES = 7;
+  /**
+   * V1's seven tables and V2's three (the document reader's routing, its history, its
+   * measurements).
+   */
+  private static final int TABLES = 10;
+
+  private static final int MIGRATIONS = 2;
 
   private static final String CONTEXT_TABLES =
       "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"
@@ -94,7 +100,7 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(conversation(database).migrate().migrationsExecuted)
         .as("first run on an empty database")
-        .isEqualTo(1);
+        .isEqualTo(MIGRATIONS);
     assertThat(conversation(database).migrate().migrationsExecuted).as("second run").isZero();
     conversation(database).validate();
 
@@ -122,7 +128,7 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
     // Baselining at the default 1 would mark V1 applied and skip it; baselining at 0 runs it.
     assertThat(conversation(database).migrate().migrationsExecuted)
         .as("conversation V1 on a database another context filled")
-        .isEqualTo(1);
+        .isEqualTo(MIGRATIONS);
     // Each context keeps its own history and neither disturbs the other.
     assertThat(flyway(database, jobLocation, "flyway_history_job").migrate().migrationsExecuted)
         .isZero();
@@ -161,7 +167,7 @@ class ConversationMigrationsIT extends AbstractContainerIntegrationTest {
     String database = "conversation_governance_check";
     freshDatabase(database);
     Flyway host = conversation(database);
-    assertThat(host.migrate().migrationsExecuted).isEqualTo(1);
+    assertThat(host.migrate().migrationsExecuted).isEqualTo(MIGRATIONS);
     assertThat(
             com.krizaka.sovkora.engine.persistence.infrastructure.config.GovernanceMigrations
                 .migrate(host.getConfiguration()))
