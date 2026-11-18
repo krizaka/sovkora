@@ -7,8 +7,6 @@ import com.nimbusds.jwt.SignedJWT;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Objects;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -59,7 +57,6 @@ final class TwoKeyJwtDecoder implements JwtDecoder {
    */
   TwoKeyJwtDecoder(
       String sessionSecret, String sessionIssuer, String sessionAudience, String serviceSecret) {
-    Objects.requireNonNull(sessionIssuer, "sessionIssuer");
     if (sessionSecret.equals(serviceSecret)) {
       throw new IllegalArgumentException(
           "AUTH_SERVICE_TOKEN_SECRET must differ from IDENTITY_JWT_SECRET: a service token signed"
@@ -111,9 +108,11 @@ final class TwoKeyJwtDecoder implements JwtDecoder {
 
   @SafeVarargs
   private static JwtDecoder decoder(String secret, OAuth2TokenValidator<Jwt>... validators) {
-    SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
     NimbusJwtDecoder decoder =
-        NimbusJwtDecoder.withSecretKey(key).macAlgorithm(MacAlgorithm.HS256).build();
+        NimbusJwtDecoder.withSecretKey(
+                new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"))
+            .macAlgorithm(MacAlgorithm.HS256)
+            .build();
     decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(List.of(validators)));
     return decoder;
   }

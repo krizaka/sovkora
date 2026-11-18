@@ -7,7 +7,6 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.function.UnaryOperator;
@@ -44,10 +43,10 @@ final class TokenSigner {
   }
 
   private static JWTClaimsSet.Builder base(String subject) {
-    Instant now = Instant.now();
+    long now = System.currentTimeMillis();
     return new JWTClaimsSet.Builder()
         .subject(subject)
-        .issueTime(Date.from(now))
-        .expirationTime(Date.from(now.plusSeconds(300)));
+        .issueTime(new Date(now))
+        .expirationTime(new Date(now + 300_000));
   }
 }
