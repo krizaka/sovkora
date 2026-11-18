@@ -12,7 +12,7 @@ export const USERS_DATABASE = "krizaka_users_db";
 
 /** Read-only: the service accounts that exist now (the underscore is escaped: it is a LIKE wildcard). */
 export function serviceAccountsSql() {
-  return "SELECT username FROM users WHERE username LIKE 'svc\\_%' ESCAPE '\\' ORDER BY username";
+  return String.raw`SELECT username FROM users WHERE username LIKE 'svc\_%' ESCAPE '\' ORDER BY username`;
 }
 
 /** `svc_verikora` → `verikora` (the account names of `serviceAccount()` turn `-` into `_`). */

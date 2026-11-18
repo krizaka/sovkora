@@ -84,7 +84,7 @@ function waitForRoles(expected) {
       const out = execFileSync(
         toolPath("docker"),
         [...compose, "exec", "-T", "db-vector", "psql", "-U", superuser, "-d", "postgres", "-tAc",
-          `SELECT count(*) FROM pg_roles WHERE rolname LIKE 'orazaka\\_%'`],
+          String.raw`SELECT count(*) FROM pg_roles WHERE rolname LIKE 'orazaka\_%'`],
         { cwd: ROOT, stdio: ["pipe", "pipe", "pipe"] },
       ).toString().trim();
       if (Number(out) >= expected) return true;
