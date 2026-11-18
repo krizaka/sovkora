@@ -79,8 +79,9 @@ public class DocumentReadController {
     }
     ReadResult result = reads.read(actor, pages.get());
     return switch (result) {
-      case ReadResult.Readings read -> ResponseEntity.ok(DocumentReadsResponse.of(read.readings()));
-      case ReadResult.Refused refused -> problem(refused.refusal());
+      case ReadResult.Readings(var readings) ->
+          ResponseEntity.ok(DocumentReadsResponse.of(readings));
+      case ReadResult.Refused(var refusal) -> problem(refusal);
     };
   }
 

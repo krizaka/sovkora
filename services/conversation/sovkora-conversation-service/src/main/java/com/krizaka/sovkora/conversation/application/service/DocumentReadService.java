@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.conversation.application.service;
 
 import com.krizaka.sovkora.conversation.domain.model.reader.DocumentPage;
+import com.krizaka.sovkora.conversation.domain.model.reader.DocumentReading;
 import com.krizaka.sovkora.conversation.domain.model.reader.ReadResult;
 import com.krizaka.sovkora.conversation.domain.port.DocumentReadLedger;
 import com.krizaka.sovkora.conversation.domain.port.DocumentReader;
@@ -44,9 +45,9 @@ public class DocumentReadService extends ProductDoorService implements DocumentR
   @Override
   public ReadResult read(Actor actor, List<DocumentPage> pages) {
     ReadResult result = reader.read(pages, routing.current());
-    if (result instanceof ReadResult.Readings read) {
+    if (result instanceof ReadResult.Readings(List<DocumentReading> readings)) {
       for (int i = 0; i < pages.size(); i++) {
-        ledger.record(actor, pages.get(i).kind(), read.readings().get(i));
+        ledger.record(actor, pages.get(i).kind(), readings.get(i));
       }
     }
     return result;

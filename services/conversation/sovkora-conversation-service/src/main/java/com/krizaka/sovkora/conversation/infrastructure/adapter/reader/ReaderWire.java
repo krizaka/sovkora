@@ -16,7 +16,15 @@ final class ReaderWire {
   record Page(String image, String kind) {}
 
   /** The answer: one reading per page, in order. */
-  record Answer(List<Reading> readings) {}
+  record Answer(@Nullable List<@Nullable Reading> readings) {
+
+    /** Whether there is one whole reading per page: a field the worker left out is not guessed. */
+    boolean isComplete(int pages) {
+      return readings != null
+          && readings.size() == pages
+          && readings.stream().allMatch(reading -> reading != null && reading.isComplete());
+    }
+  }
 
   /** One reading, in the worker's names. */
   record Reading(
@@ -29,7 +37,19 @@ final class ReaderWire {
       String key,
       long costMicros,
       long latencyMs,
-      @Nullable String fallbackFrom) {}
+      @Nullable String fallbackFrom) {
+
+    boolean isComplete() {
+      return text != null
+          && reader != null
+          && version != null
+          && pageHash != null
+          && key != null
+          && lines != null
+          && lines.stream()
+              .allMatch(line -> line != null && line.text() != null && line.box() != null);
+    }
+  }
 
   /** One line and its box. */
   record Line(String text, Box box, double confidence) {}

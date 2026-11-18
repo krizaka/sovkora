@@ -129,6 +129,21 @@ class HttpDocumentReaderAdapterTest {
   }
 
   @Test
+  @DisplayName(
+      "an answer missing a field, or a reading per page, is unavailable: nothing is guessed")
+  void anIncompleteAnswerIsUnavailable() {
+    assertThat(
+            client(200, "{\"readings\":[{\"text\":\"x\"}]}", "t")
+                .read(List.of(new DocumentPage("UEFHRQ==", PageKind.PHOTO)), ROUTING))
+        .isEqualTo(new ReadResult.Refused(ReadRefusal.READER_UNAVAILABLE));
+    stop();
+    assertThat(
+            client(200, "{\"readings\":[]}", "t")
+                .read(List.of(new DocumentPage("UEFHRQ==", PageKind.PHOTO)), ROUTING))
+        .isEqualTo(new ReadResult.Refused(ReadRefusal.READER_UNAVAILABLE));
+  }
+
+  @Test
   @DisplayName("a worker that does not answer is unavailable, never an exception")
   void aWorkerThatIsDownIsUnavailable() {
     HttpDocumentReaderAdapter client = client(200, READING, "t");

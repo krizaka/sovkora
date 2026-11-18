@@ -38,7 +38,7 @@ final class HttpDocumentReaderAdapter implements DocumentReader {
             routing.settings());
     try {
       ReaderWire.Answer answer = exchange.read(ask);
-      if (answer == null || answer.readings() == null || answer.readings().size() != pages.size()) {
+      if (answer == null || !answer.isComplete(pages.size())) {
         log.warn("The document reader answered no reading per page");
         return new ReadResult.Refused(ReadRefusal.READER_UNAVAILABLE);
       }
@@ -48,8 +48,8 @@ final class HttpDocumentReaderAdapter implements DocumentReader {
       ReadRefusal refusal = ReadRefusal.fromCode(codeOf(refused));
       log.debug("The document reader refused: status={} code={}", refused.getStatusCode(), refusal);
       return new ReadResult.Refused(refusal);
-    } catch (RestClientException | IllegalArgumentException | NullPointerException down) {
-      log.warn("The document reader is unavailable ({})", down.getClass().getSimpleName());
+    } catch (RestClientException | IllegalArgumentException down) {
+      log.warn("The document reader is unavailable", down);
       return new ReadResult.Refused(ReadRefusal.READER_UNAVAILABLE);
     }
   }
@@ -58,7 +58,8 @@ final class HttpDocumentReaderAdapter implements DocumentReader {
     try {
       ReaderWire.Refusal body = refused.getResponseBodyAs(ReaderWire.Refusal.class);
       return body == null || body.code() == null ? "" : body.code();
-    } catch (RuntimeException unreadable) {
+    } catch (RestClientException unreadable) {
+      log.debug("The document reader's refusal carries no readable code", unreadable);
       return "";
     }
   }

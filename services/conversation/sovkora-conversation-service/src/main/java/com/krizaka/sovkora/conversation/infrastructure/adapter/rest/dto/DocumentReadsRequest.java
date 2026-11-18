@@ -5,6 +5,8 @@ import com.krizaka.sovkora.conversation.domain.model.reader.PageKind;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The body of {@code POST /api/v1/document-reads}: the pages and nothing else. There is no field
@@ -13,6 +15,8 @@ import org.jspecify.annotations.Nullable;
  * @param pages the pages, in order
  */
 public record DocumentReadsRequest(@Nullable List<Page> pages) {
+
+  private static final Logger log = LoggerFactory.getLogger(DocumentReadsRequest.class);
 
   /** At most this many pages in one call: the routing's page budget cannot be set above it. */
   public static final int MAX_PAGES = 12;
@@ -54,6 +58,8 @@ public record DocumentReadsRequest(@Nullable List<Page> pages) {
       try {
         return Optional.of(new DocumentPage(image, known.get()));
       } catch (IllegalArgumentException malformed) {
+        // The reason only (empty, oversized or not base64): never a byte of the page.
+        log.debug("A page was refused: {}", malformed.getMessage(), malformed);
         return Optional.empty();
       }
     }
