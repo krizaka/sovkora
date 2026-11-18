@@ -1,0 +1,14 @@
+# The seed of the document readers' routing (krizaka-internal#4198): which reader reads which kind of page.
+# Every key is described in document_reader/routing.py and checked when the server starts; a wrong value stops it.
+# The default per kind is chosen by the measurement (krizaka-internal#4060): change it here, never in a product.
+reader.default.pdf-scan: paddleocr
+reader.default.screenshot: paddleocr
+reader.default.photo: paddleocr
+reader.fallback: tesseract
+# A generative reader (a vision-language model) is the last resort: off, and off in production.
+reader.vlm.enabled: "false"
+reader.page-budget: "12"
+reader.timeout-ms: "30000"
+# AWS's list price of DetectDocumentText is 0.0015 USD a page (US West, first million pages); the Montréal price is
+# confirmed when the account exists. The local readers cost the host they run on, measured by #4060: 0 until then.
+reader.cost-micros.textract: "1500"

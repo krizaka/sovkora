@@ -27,10 +27,31 @@ and what the call cost and took. Which reader reads which kind of page is a **ro
   dollar) and `Reading.latency_ms` (the whole call, fallback included).
 - **Nothing is kept**: the page lives in the call; no reader or the service writes it anywhere.
 
+## The endpoint
+
+`reader_server.py` serves one endpoint, `POST /v1/document-reads`:
+
+```json
+{"pages": [{"image": "<the page, base64>", "kind": "photo"}]}
+```
+
+It answers one reading per page, in order: `text`, `lines` (`text`, `box` with `left`, `top`, `right` and `bottom`
+as fractions of the page, `confidence`), `reader`, `version`, `generative`, `pageHash`, `key`, `costMicros`,
+`latencyMs` and `fallbackFrom`. A failure is `{"code": …}`: `INPUT_INVALID` 400, `BUDGET_EXHAUSTED` 413,
+`READER_REFUSED` 422, `READER_UNAVAILABLE` 503, `READER_TIMEOUT` 504. `GET /v1/health` names the readers loaded on this
+host. Each call writes one measurement line (`document.read`: kind, reader, version, cost, latency, fallback, number of
+lines) and no word of the page.
+
+| Variable | What | Default |
+|---|---|---|
+| `AI_READER_ROUTING_FILE` | the routing settings | `routing.yaml` beside the server |
+| `AI_READER_PORT` · `AI_READER_LISTEN_IP` | where it listens | `8095` · `127.0.0.1` |
+| `AI_READER_SERVICE_TOKEN` | when set, every call must carry `Authorization: Bearer <token>` | unset (loopback only) |
+
 ## The routing settings
 
-Flat keys, the shape of the platform's runtime configuration; every value is checked at load and a wrong one is refused
-by its key (`routing.py`):
+Flat keys, seeded in `routing.yaml`; every value is checked when the server starts, and a wrong one is refused by its
+key (`routing.py`):
 
 | Key | Bounds | Seed |
 |---|---|---|
@@ -48,7 +69,8 @@ The fallback is tried once, only when the default is unavailable or too slow; a 
 ```bash
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt pytest   # brew install tesseract tesseract-lang · apt-get install tesseract-ocr tesseract-ocr-fra
-python -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py
+python -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py test_reader_server.py
+python reader_server.py   # POST http://127.0.0.1:8095/v1/document-reads
 ```
 
 `test_reader_contract.py` is the contract every reader passes: PaddleOCR, docTR and Tesseract read a fictional page for
