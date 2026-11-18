@@ -62,4 +62,11 @@ class SecretDefaultRulesTest {
     assertThatThrownBy(() -> SecretDefaultRules.assertNoSecretHasADefault(dir))
         .hasMessageContaining("CFG-002");
   }
+
+  @Test
+  @DisplayName("[CFG-002] no module of this repository defaults a *_SECRET variable")
+  void noModuleDefaultsASecret() {
+    SecretDefaultRules.assertNoModuleDefaultsASecret(
+        Workspace.rootOrRepository(Path.of(System.getProperty("user.dir"))));
+  }
 }

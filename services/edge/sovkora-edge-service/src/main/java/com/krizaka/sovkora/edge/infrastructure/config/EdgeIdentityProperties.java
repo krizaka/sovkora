@@ -20,19 +20,16 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 @ConfigurationProperties(prefix = "orazaka.edge.identity")
 public record EdgeIdentityProperties(URI baseUrl, String serviceSecret, String apiKeyEnvironment) {
 
-  /** The minimum key length, in characters, for a 256-bit HS256 key. */
-  public static final int MINIMUM_SECRET_LENGTH = 32;
-
   @ConstructorBinding
   public EdgeIdentityProperties {
     Objects.requireNonNull(baseUrl, "identity base-url is required");
     if (baseUrl.getHost() == null) {
       throw new IllegalArgumentException("identity base-url must be absolute: " + baseUrl);
     }
-    if (serviceSecret == null || serviceSecret.length() < MINIMUM_SECRET_LENGTH) {
+    // 32 characters = a 256-bit HS256 key, the floor the users service verifies with.
+    if (serviceSecret == null || serviceSecret.length() < 32) {
       throw new IllegalArgumentException(
-          "IDENTITY_JWT_SECRET is not set (orazaka.edge.identity.service-secret) or shorter than "
-              + MINIMUM_SECRET_LENGTH
+          "IDENTITY_JWT_SECRET is not set (orazaka.edge.identity.service-secret) or shorter than 32"
               + " characters: the edge does not start without the key its API-key exchange is"
               + " signed with");
     }

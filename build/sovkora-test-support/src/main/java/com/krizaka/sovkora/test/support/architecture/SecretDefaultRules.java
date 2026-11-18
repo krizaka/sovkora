@@ -29,11 +29,25 @@ public final class SecretDefaultRules {
   private SecretDefaultRules() {}
 
   /**
-   * [CFG-002] over the application configuration of the module under test ({@code
-   * src/main/resources}, from the module's own directory, where the build runs its tests).
+   * [CFG-002] over the application configuration of every module of the repository: each {@code
+   * src/main/resources} folder that holds an {@code application*} file. Skipped outside the Sovkora
+   * repository; the folders under a dot directory (the krizaka-java checkout) are not ours.
+   *
+   * @param root the repository root ({@link Workspace#rootOrRepository})
    */
-  public static void assertNoSecretHasADefault() {
-    assertNoSecretHasADefault(Path.of("src", "main", "resources"));
+  public static void assertNoModuleDefaultsASecret(Path root) {
+    Workspace.require(root, "CFG-002");
+    List<Path> folders =
+        RepositoryTree.directories(root).stream()
+            .filter(d -> d.endsWith(Path.of("src", "main", "resources")))
+            .filter(d -> !root.relativize(d).toString().startsWith("."))
+            .filter(SecretDefaultRules::holdsApplicationConfig)
+            .sorted()
+            .toList();
+    for (Path folder :
+        GovernanceSubjects.require("CFG-002", "module configuration folders", folders)) {
+      assertNoSecretHasADefault(folder);
+    }
   }
 
   /**
@@ -72,6 +86,14 @@ public final class SecretDefaultRules {
       names.add(m.group(1));
     }
     return names;
+  }
+
+  private static boolean holdsApplicationConfig(Path folder) {
+    try (Stream<Path> files = Files.list(folder)) {
+      return files.anyMatch(SecretDefaultRules::isApplicationConfig);
+    } catch (IOException e) {
+      throw new UncheckedIOException("cannot list " + folder, e);
+    }
   }
 
   private static boolean isApplicationConfig(Path file) {
