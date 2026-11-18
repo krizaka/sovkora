@@ -26,6 +26,8 @@ public final class SecretDefaultRules {
   /** The innermost placeholder of a {@code *_SECRET} variable with a non-empty literal default. */
   private static final Pattern DEFAULTED = Pattern.compile("\\$\\{([A-Z0-9_]*_SECRET):([^}$]+)}");
 
+  private static final String RULE = "CFG-002";
+
   private SecretDefaultRules() {}
 
   /**
@@ -36,7 +38,7 @@ public final class SecretDefaultRules {
    * @param root the repository root ({@link Workspace#rootOrRepository})
    */
   public static void assertNoModuleDefaultsASecret(Path root) {
-    Workspace.require(root, "CFG-002");
+    Workspace.require(root, RULE);
     List<Path> folders =
         RepositoryTree.directories(root).stream()
             .filter(d -> d.endsWith(Path.of("src", "main", "resources")))
@@ -44,8 +46,7 @@ public final class SecretDefaultRules {
             .filter(SecretDefaultRules::holdsApplicationConfig)
             .sorted()
             .toList();
-    for (Path folder :
-        GovernanceSubjects.require("CFG-002", "module configuration folders", folders)) {
+    for (Path folder : GovernanceSubjects.require(RULE, "module configuration folders", folders)) {
       assertNoSecretHasADefault(folder);
     }
   }
@@ -64,7 +65,7 @@ public final class SecretDefaultRules {
     }
     List<String> found = new ArrayList<>();
     for (Path config :
-        GovernanceSubjects.require("CFG-002", "application configuration files", configs)) {
+        GovernanceSubjects.require(RULE, "application configuration files", configs)) {
       defaultedSecrets(read(config)).forEach(v -> found.add(config.getFileName() + ": " + v));
     }
     if (!found.isEmpty()) {
