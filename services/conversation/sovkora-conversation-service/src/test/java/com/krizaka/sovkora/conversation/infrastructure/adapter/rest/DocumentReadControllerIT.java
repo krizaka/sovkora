@@ -17,7 +17,6 @@ import com.krizaka.sovkora.conversation.domain.port.DocumentReader;
 import com.krizaka.sovkora.conversation.infrastructure.adapter.persistence.JdbcDocumentReadLedgerAdapter;
 import com.krizaka.sovkora.conversation.infrastructure.adapter.persistence.JdbcReaderRoutingStoreAdapter;
 import com.krizaka.sovkora.test.support.AbstractContainerIntegrationTest;
-import com.krizaka.users.domain.model.User;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +36,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -289,20 +284,6 @@ class DocumentReadControllerIT extends AbstractContainerIntegrationTest {
 
   /** Puts one signed-in user of the tenant {@code acme} in the security context. */
   private static void authenticate(String role) {
-    Set<String> authorities = Set.of(role, "TENANT_acme");
-    User user =
-        new User(
-            UUID.fromString(MARIE),
-            "actor-" + MARIE,
-            MARIE + "@sovkora.test",
-            true,
-            authorities,
-            Map.of(),
-            List.of());
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(
-        new UsernamePasswordAuthenticationToken(
-            user, "token", authorities.stream().map(SimpleGrantedAuthority::new).toList()));
-    SecurityContextHolder.setContext(context);
+    SignedInUser.signIn(MARIE, "acme", role);
   }
 }

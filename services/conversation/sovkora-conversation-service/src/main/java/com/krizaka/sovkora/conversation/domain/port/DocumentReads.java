@@ -5,20 +5,11 @@ import com.krizaka.sovkora.conversation.domain.model.reader.ReadResult;
 import com.krizaka.sovkora.engine.core.domain.model.security.Actor;
 import java.util.List;
 
-/** The document reads a product asks for over HTTP (krizaka-internal#4198). */
-public interface DocumentReads {
-
-  /**
-   * @param actor the verified caller
-   * @return whether the caller holds one of the allowed roles
-   */
-  boolean permits(Actor actor);
-
-  /**
-   * @param actor the verified caller
-   * @return {@code 0} when the call may go on, else the seconds to wait
-   */
-  long throttle(Actor actor);
+/**
+ * The document reads a product asks for over HTTP (krizaka-internal#4198), behind the gate every
+ * product door shares.
+ */
+public interface DocumentReads extends ProductDoor {
 
   /**
    * Reads the pages by the routing as it stands now and measures each page read.

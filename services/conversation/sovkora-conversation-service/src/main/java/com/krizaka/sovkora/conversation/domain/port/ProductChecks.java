@@ -12,7 +12,7 @@ import java.util.Optional;
  * adds what only a caller has: a verified actor with an allowed role (ADR-091), a rate limit, and
  * the tenant a pending reference belongs to.
  */
-public interface ProductChecks {
+public interface ProductChecks extends ProductDoor {
 
   /**
    * The answer of a collected check.
@@ -21,22 +21,6 @@ public interface ProductChecks {
    * @param result the closed result
    */
   record Collected(CheckPurpose purpose, CheckResult result) {}
-
-  /**
-   * Whether the actor may use the door at all.
-   *
-   * @param actor the verified actor
-   * @return {@code true} when it holds one of the allowed roles
-   */
-  boolean permits(Actor actor);
-
-  /**
-   * Takes one call of the actor's rate window.
-   *
-   * @param actor the verified actor
-   * @return {@code 0} when it may go on, else the seconds to wait
-   */
-  long throttle(Actor actor);
 
   /**
    * Starts a check.

@@ -16,13 +16,11 @@ import java.util.Set;
  * door (ADR-091); the reader is the routing's, read from the database at each call and never taken
  * from the caller; every page read is measured under the caller's tenant before it is answered.
  */
-public class DocumentReadService implements DocumentReads {
+public class DocumentReadService extends ProductDoorService implements DocumentReads {
 
   private final DocumentReader reader;
   private final ReaderRoutingStore routing;
   private final DocumentReadLedger ledger;
-  private final CheckRateLimitService limiter;
-  private final Set<String> allowedRoles;
 
   /**
    * @param reader the document readers
@@ -37,21 +35,10 @@ public class DocumentReadService implements DocumentReads {
       DocumentReadLedger ledger,
       CheckRateLimitService limiter,
       Set<String> allowedRoles) {
+    super(limiter, allowedRoles);
     this.reader = reader;
     this.routing = routing;
     this.ledger = ledger;
-    this.limiter = limiter;
-    this.allowedRoles = Set.copyOf(allowedRoles);
-  }
-
-  @Override
-  public boolean permits(Actor actor) {
-    return actor.holdsAny(allowedRoles);
-  }
-
-  @Override
-  public long throttle(Actor actor) {
-    return limiter.tryAcquire(actor.tenant() + "/" + actor.subject());
   }
 
   @Override
