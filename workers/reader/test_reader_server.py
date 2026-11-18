@@ -202,3 +202,74 @@ def test_over_http_a_product_gets_its_readings_and_an_oversized_body_is_refused_
     finally:
         server.shutdown()
         server.server_close()
+
+
+def door_routing(**changes):
+    """The settings the door reads from its database at each call and sends with the pages."""
+    return {
+        "reader.default.pdf-scan": "paddleocr",
+        "reader.default.screenshot": "paddleocr",
+        "reader.default.photo": "paddleocr",
+        "reader.fallback": "tesseract",
+        "reader.page-budget": "12",
+        "reader.timeout-ms": "1000",
+        "reader.cost-micros.tesseract": "3",
+        **changes,
+    }
+
+
+def with_routing(body, settings):
+    return json.dumps({**json.loads(body), "routing": settings}).encode()
+
+
+def test_the_routing_the_door_sends_wins_over_the_seed_so_a_row_switches_the_reader():
+    seeded, _ = call(READERS, with_routing(pages("photo"), door_routing()))
+    row = door_routing(**{"reader.default.photo": "tesseract"})
+    switched, recorded = call(READERS, with_routing(pages("photo"), row))
+    assert seeded.body["readings"][0]["reader"] == "paddleocr"
+    assert switched.body["readings"][0]["reader"] == "tesseract"
+    assert switched.body["readings"][0]["costMicros"] == 3
+    assert recorded[0]["reader"] == "tesseract"
+
+
+def test_a_routing_out_of_its_bounds_is_routing_invalid_named_by_its_key_and_nothing_is_read():
+    done, recorded = call(READERS, with_routing(pages("photo"), door_routing(**{"reader.page-budget": "99"})))
+    assert (done.status, done.body) == (500, {"code": "ROUTING_INVALID", "key": "reader.page-budget"})
+    assert recorded == []
+
+
+@pytest.mark.parametrize("routing_value", [[], "reader.fallback=tesseract", {"reader.fallback": 3}])
+def test_a_routing_that_is_not_a_map_of_strings_is_input_invalid(routing_value):
+    done, _ = call(READERS, with_routing(pages("photo"), routing_value))
+    assert (done.status, done.body) == (400, {"code": "INPUT_INVALID"})
+
+
+def test_a_reader_is_loaded_the_first_time_a_routing_names_it_and_once():
+    loads = []
+
+    def factory(name):
+        def make():
+            loads.append(name)
+            return FakeReader(name)
+
+        return make
+
+    readers = reader_server.Readers({"paddleocr": factory("paddleocr"), "doctr": factory("doctr")})
+    assert list(readers) == []
+    assert readers.get("doctr").id == "doctr"
+    assert readers.get("doctr").id == "doctr"
+    assert readers.get("textract") is None
+    assert (loads, list(readers)) == (["doctr"], ["doctr"])
+
+
+def test_a_reader_this_host_cannot_load_is_unavailable_and_not_tried_again():
+    tries = []
+
+    def broken():
+        tries.append(1)
+        raise ReaderError(READER_UNAVAILABLE)
+
+    readers = reader_server.Readers({"paddleocr": broken})
+    assert readers.get("paddleocr") is None
+    assert readers.get("paddleocr") is None
+    assert tries == [1]

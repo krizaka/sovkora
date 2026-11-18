@@ -32,8 +32,14 @@ and what the call cost and took. Which reader reads which kind of page is a **ro
 `reader_server.py` serves one endpoint, `POST /v1/document-reads`:
 
 ```json
-{"pages": [{"image": "<the page, base64>", "kind": "photo"}]}
+{"pages": [{"image": "<the page, base64>", "kind": "photo"}], "routing": {"reader.default.photo": "paddleocr", "…": "…"}}
 ```
+
+A product never calls this worker: it calls `POST /api/v1/document-reads` on sovkora-conversation-service (the
+authenticated door), which reads the routing settings from its database (`document_reader_setting`) at each call and
+sends them as `routing`. The worker checks them with the same bounds as the seed; one out of its bounds answers
+`ROUTING_INVALID` 500 with its `key`, and nothing is read. Without `routing` the seed (`routing.yaml`) applies. A reader
+is loaded the first time a routing names it, so switching the default in the database needs no restart.
 
 It answers one reading per page, in order: `text`, `lines` (`text`, `box` with `left`, `top`, `right` and `bottom`
 as fractions of the page, `confidence`), `reader`, `version`, `generative`, `pageHash`, `key`, `costMicros`,
@@ -45,13 +51,14 @@ lines) and no word of the page.
 | Variable | What | Default |
 |---|---|---|
 | `AI_READER_ROUTING_FILE` | the routing settings | `routing.yaml` beside the server |
-| `AI_READER_PORT` · `AI_READER_LISTEN_IP` | where it listens | `8095` · `127.0.0.1` |
+| `AI_READER_PORT` · `AI_READER_LISTEN_IP` | where it listens | `8098` · `127.0.0.1` |
 | `AI_READER_SERVICE_TOKEN` | when set, every call must carry `Authorization: Bearer <token>` | unset (loopback only) |
 
 ## The routing settings
 
-Flat keys, seeded in `routing.yaml`; every value is checked when the server starts, and a wrong one is refused by its
-key (`routing.py`):
+Flat keys, the rows of `document_reader_setting` in the conversation database (seeded by its Flyway `V2`, the same
+values as `routing.yaml`, which is this worker's own seed when it is called without a routing); every value is checked,
+and a wrong one is refused by its key (`routing.py`):
 
 | Key | Bounds | Seed |
 |---|---|---|
@@ -70,7 +77,7 @@ The fallback is tried once, only when the default is unavailable or too slow; a 
 python3.12 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt pytest   # brew install tesseract tesseract-lang · apt-get install tesseract-ocr tesseract-ocr-fra
 python -m pytest -q test_reader_contract.py test_routing.py test_service.py test_textract.py test_reader_server.py
-python reader_server.py   # POST http://127.0.0.1:8095/v1/document-reads
+python reader_server.py   # POST http://127.0.0.1:8098/v1/document-reads
 ```
 
 `test_reader_contract.py` is the contract every reader passes: PaddleOCR, docTR and Tesseract read a fictional page for
