@@ -62,7 +62,7 @@ RUN echo "core build ${CORE_REBUILD}" \
 # ── 3. Runtime: a JRE, the jars, one supervisor ──────────────────────────────
 FROM eclipse-temurin:21-jre@sha256:ccbad9e7cb84c27092b12c40a4143e5733e050db9c3784d84f632dcf423fb2ef
 # CVE-2026-114938 (jdk-21.0.12.1 is affected; no fixed Temurin 21 yet): the vendor workaround, read by every java launch
-# whatever ORAZAKA_JAVA_OPTS says. Drop it once the digest above carries the fix (krizaka-internal#4271).
+# whatever the services' own JVM options say. Drop it once the digest above carries the fix (krizaka-internal#4271).
 ENV JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"
 # The document-validation worker (packs/, Tier-W, Python): it drains job.validation.* for the document
 # Studios. Its venv is built here with the pack's pinned dependencies; run-services.sh starts it beside the JVMs.
