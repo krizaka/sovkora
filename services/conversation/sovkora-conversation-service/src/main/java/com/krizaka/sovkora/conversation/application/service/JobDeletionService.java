@@ -84,9 +84,10 @@ public class JobDeletionService {
       throw new IllegalStateException("could not delete the files of job " + jobId, e);
     }
     jobs.updateJobStatus(jobId, "DELETED", Map.of(), null);
+    String loggedJob = LogText.neutralise(jobId);
     logger.info(
         "Job {} of {} deleted by {}{}",
-        LogText.neutralise(jobId),
+        loggedJob,
         owner,
         actorId,
         admin && !owner.equals(actorId) ? " (admin)" : "");

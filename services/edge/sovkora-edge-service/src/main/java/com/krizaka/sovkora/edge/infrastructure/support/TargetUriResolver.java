@@ -59,7 +59,7 @@ public final class TargetUriResolver {
     if (base.endsWith("/")) {
       base = base.substring(0, base.length() - 1);
     }
-    return Optional.of(URI.create(base + path + (query != null ? "?" + query : "")));
+    return Optional.of(URI.create(base + path + (query != null ? ("?" + query) : "")));
   }
 
   private static boolean isNormalPath(String path) {

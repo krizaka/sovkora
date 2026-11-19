@@ -885,14 +885,12 @@ class StudioRunLifecycleIT {
   @DisplayName("[studio#63] a run still going, or a step the blueprint lacks, cannot be resumed")
   void aResumeIsRefusedWhenItCannotBeRight() {
     RunDetail running = startRun();
+    UUID runId = running.id();
+    assertThrows(IllegalStateException.class, () -> runService.resume(runId, ACTOR, "showcase"));
+    runService.cancel(runId, ACTOR);
+    assertThrows(IllegalArgumentException.class, () -> runService.resume(runId, ACTOR, "nope"));
     assertThrows(
-        IllegalStateException.class, () -> runService.resume(running.id(), ACTOR, "showcase"));
-    runService.cancel(running.id(), ACTOR);
-    assertThrows(
-        IllegalArgumentException.class, () -> runService.resume(running.id(), ACTOR, "nope"));
-    assertThrows(
-        RunNotFoundException.class,
-        () -> runService.resume(running.id(), "someone-else", "caption"));
+        RunNotFoundException.class, () -> runService.resume(runId, "someone-else", "caption"));
   }
 
   // ── §15: install → run → step outcomes → settle ───────────────────────────
@@ -931,11 +929,12 @@ class StudioRunLifecycleIT {
     List<String> fanOut = List.copyOf(executor.dispatched);
     sagaService.applyOutcome(fanOut.get(0), Map.of("content", "ok"), null);
 
+    String second = fanOut.get(1);
+    Map<String, Object> output = Map.of("content", "ok");
     executor.failSubmit = new IllegalStateException("the outbox refused the dependants");
     try {
       assertThrows(
-          IllegalStateException.class,
-          () -> sagaService.applyOutcome(fanOut.get(1), Map.of("content", "ok"), null));
+          IllegalStateException.class, () -> sagaService.applyOutcome(second, output, null));
     } finally {
       executor.failSubmit = null;
     }
@@ -943,7 +942,7 @@ class StudioRunLifecycleIT {
     assertEquals(
         RunStepStatus.RUNNING.name(),
         jdbcTemplate.queryForObject(
-            "SELECT status FROM studio_run_step WHERE job_id = ?", String.class, fanOut.get(1)),
+            "SELECT status FROM studio_run_step WHERE job_id = ?", String.class, second),
         "the outcome is not recorded when the advance it triggered failed");
     assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
     assertEquals(2, executor.dispatched.size(), "nothing was dispatched past the failure");
@@ -1469,9 +1468,9 @@ class StudioRunLifecycleIT {
     UUID installation = install();
     int heldBefore = credits.holds;
 
+    Map<String, Object> withoutPhotos = Map.of("trade", "plombier");
     assertThrows(
-        IllegalArgumentException.class,
-        () -> runService.start(installation, ACTOR, Map.of("trade", "plombier")));
+        IllegalArgumentException.class, () -> runService.start(installation, ACTOR, withoutPhotos));
 
     assertEquals(heldBefore, credits.holds, "validation must precede the hold");
     assertNull(

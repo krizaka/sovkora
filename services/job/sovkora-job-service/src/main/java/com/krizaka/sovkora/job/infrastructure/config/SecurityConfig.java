@@ -53,7 +53,6 @@ public class SecurityConfig {
    * @param tokens the revocation rows
    * @param clock the source of "now" for {@code exp}
    * @return the built chain
-   * @throws Exception if the chain cannot be built
    */
   @Bean
   @Order(1)
@@ -62,8 +61,7 @@ public class SecurityConfig {
       JwtAuthenticationConverter roles,
       PodTokenProperties properties,
       PodTokenService tokens,
-      Clock clock)
-      throws Exception {
+      Clock clock) {
     PodTokenDecoder pods = new PodTokenDecoder(properties.signingKey(), tokens, clock);
     return http.securityMatcher(PodTokenDecoder::carriesPodToken)
         // A bearer token is no ambient credential a browser could forge: the four routes this chain
