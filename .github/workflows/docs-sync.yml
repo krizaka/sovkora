@@ -23,9 +23,9 @@ jobs:
   sync:
     # Write scopes live on the job, not at the top level (Scorecard TokenPermissions).
     permissions:
-      contents: write
-      pull-requests: write
-      actions: write
+      contents: write # pushes the synced documents
+      pull-requests: write # opens the sync pull request
+      actions: write # dispatches the follow-up workflow
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

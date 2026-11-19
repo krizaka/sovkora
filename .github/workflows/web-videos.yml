@@ -86,8 +86,8 @@ jobs:
     # The Mac film failing (a runner, a build) must not hold the web videos back.
     if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.showcase-web.result == 'success' }}
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write # commits the generated videos
+      pull-requests: write # opens the pull request with the generated videos
     uses: krizaka/.github/.github/workflows/app-videos.yml@93402d11fa137c4344a6f15dce921f02b48e238e # main (krizaka/.github#425: the action pinned to sites/<product>/download)
     with:
       product: orazaka
