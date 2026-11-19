@@ -129,7 +129,7 @@ no matcher covers the path — the service has no security on it whatsoever.
 
 | Method | Path | Access | Controller | Summary |
 |:---|:---|:---|:---|:---|
-| ANY | `/**` | ⚠ no rule | ProxyController | Catch-all proxy entry point — everything not served by the edge itself is forwarded. |
+| ANY | `/**` | ⚠ no rule | ProxyController | Catch-all proxy entry point — everything not served by the edge itself is forwarded, for the methods an API uses. |
 
 ## job-service
 

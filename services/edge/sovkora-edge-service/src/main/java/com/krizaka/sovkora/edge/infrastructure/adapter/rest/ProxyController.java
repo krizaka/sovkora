@@ -15,11 +15,13 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -82,11 +84,33 @@ public class ProxyController {
     this.backendBreaker = Objects.requireNonNull(backendBreaker, "BackendBreaker cannot be null");
   }
 
-  /** Catch-all proxy entry point — everything not served by the edge itself is forwarded. */
-  @RequestMapping("/**")
+  /**
+   * Catch-all proxy entry point — everything not served by the edge itself is forwarded, for the
+   * methods an API uses. TRACE is not among them: it echoes the request, headers included, and a
+   * proxy has no reason to carry it (krizaka-internal#4361).
+   */
+  @RequestMapping(
+      value = "/**",
+      method = {
+        RequestMethod.GET,
+        RequestMethod.HEAD,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.PATCH,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+      })
   public void proxy(HttpServletRequest request, HttpServletResponse response) throws IOException {
     URI backend = routeResolver.resolve(request.getRequestURI());
-    URI target = buildTargetUri(backend, request);
+    Optional<URI> forwardable =
+        TargetUriResolver.resolve(backend, request.getRequestURI(), request.getQueryString());
+    if (forwardable.isEmpty()) {
+      // A path not in normal form could be re-normalised by the backend into a route the edge did
+      // not choose (krizaka-internal#4361): refused before any backend is called.
+      PathRefusal.write(response);
+      return;
+    }
+    URI target = forwardable.get();
     BackendAdmission admission = backendBreaker.admit(backend);
     switch (admission) {
       case BackendAdmission.Refused(Duration retryAfter) ->
@@ -150,16 +174,6 @@ public class ProxyController {
       }
     }
     return false;
-  }
-
-  private static URI buildTargetUri(URI backend, HttpServletRequest request) {
-    String query = request.getQueryString();
-    String pathAndQuery = request.getRequestURI() + (query != null ? ("?" + query) : "");
-    String base = backend.toString();
-    if (base.endsWith("/")) {
-      base = base.substring(0, base.length() - 1);
-    }
-    return URI.create(base + pathAndQuery);
   }
 
   private void copyRequestHeaders(HttpServletRequest request, HeaderSink sink) {

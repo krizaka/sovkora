@@ -19,7 +19,7 @@ export const fixtureName = (key) => `${key.replace(/^[a-z]+\./, "")}.json`;
 /** Every pack folder, with what its manifest declares. */
 export function discoverPacks(root) {
   return readdirSync(root)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .filter((name) => existsSync(join(root, name, "pack.yaml")))
     .map((pack) => {
       const manifest = YAML.parse(readFileSync(join(root, pack, "pack.yaml"), "utf8"));

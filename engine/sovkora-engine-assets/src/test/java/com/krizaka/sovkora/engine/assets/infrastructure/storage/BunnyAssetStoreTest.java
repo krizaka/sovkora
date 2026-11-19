@@ -7,6 +7,7 @@ import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +120,8 @@ class BunnyAssetStoreTest extends DurableAssetStoreContract {
   void aWrongAccessKeyIsRefusedByName_withoutLeakingTheKey() throws IOException {
     DurableAssetStore wrong =
         new BunnyAssetStore("http://127.0.0.1:" + server.getAddress().getPort(), ZONE, "nope");
-    assertThatThrownBy(() -> wrong.put("t/x/u/1/jobs/j/f", file("a", "x")))
+    Path source = file("a", "x");
+    assertThatThrownBy(() -> wrong.put("t/x/u/1/jobs/j/f", source))
         .isInstanceOf(IOException.class)
         .hasMessageContaining("HTTP 401")
         .hasMessageNotContaining("nope");

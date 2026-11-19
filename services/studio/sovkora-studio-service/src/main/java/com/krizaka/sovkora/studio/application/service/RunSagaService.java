@@ -149,7 +149,7 @@ public class RunSagaService {
    */
   @Transactional
   public void applyOutcome(String jobId, Map<String, Object> output, String error) {
-    applyOutcome(jobId, output, Map.of(), null, error, null);
+    recordOutcome(jobId, output, Map.of(), null, error, null, BigDecimal.ZERO);
   }
 
   /**
@@ -177,7 +177,7 @@ public class RunSagaService {
       String model,
       String error,
       FailureCause cause) {
-    applyOutcome(jobId, output, consumption, model, error, cause, BigDecimal.ZERO);
+    recordOutcome(jobId, output, consumption, model, error, cause, BigDecimal.ZERO);
   }
 
   /**
@@ -197,6 +197,22 @@ public class RunSagaService {
    */
   @Transactional
   public void applyOutcome(
+      String jobId,
+      Map<String, Object> output,
+      Map<String, Object> consumption,
+      String model,
+      String error,
+      FailureCause cause,
+      BigDecimal costUsd) {
+    recordOutcome(jobId, output, consumption, model, error, cause, costUsd);
+  }
+
+  /**
+   * The body of the three {@code applyOutcome} entries. Private, so each public entry opens the
+   * transaction through the proxy and none — nor the saga's own failure and success paths — calls
+   * another through {@code this} (krizaka-internal#4361).
+   */
+  private void recordOutcome(
       String jobId,
       Map<String, Object> output,
       Map<String, Object> consumption,
@@ -474,6 +490,11 @@ public class RunSagaService {
    */
   @Transactional
   public void advance(UUID runId) {
+    advanceRun(runId);
+  }
+
+  /** The body of {@link #advance}, which the saga re-enters without the proxy. */
+  private void advanceRun(UUID runId) {
     RunRow run = loadRun(runId);
     if (run == null || isTerminal(run.status())) {
       return;
@@ -715,7 +736,7 @@ public class RunSagaService {
     } catch (RuntimeException refused) {
       logger.info(
           "Run {} step {} could not call {}", run.id(), step.id(), step.studioKey(), refused);
-      applyOutcome(
+      recordOutcome(
           child.toString(),
           Map.of(),
           Map.of(),
@@ -726,7 +747,8 @@ public class RunSagaService {
               + step.studioKey()
               + ": "
               + reasonOf(refused),
-          causeOf(refused));
+          causeOf(refused),
+          BigDecimal.ZERO);
     }
   }
 
@@ -987,7 +1009,7 @@ public class RunSagaService {
     outboxService.append(run.id().toString(), "evt.studio.run.succeeded", runEvent(run));
     if (run.parentRunId() != null) {
       // A called run's outputs are its parent step's: {{steps.<id>.<output key>}} downstream.
-      applyOutcome(run.id().toString(), outputs, Map.of(), null, null, null);
+      recordOutcome(run.id().toString(), outputs, Map.of(), null, null, null, BigDecimal.ZERO);
     }
   }
 
@@ -1084,7 +1106,8 @@ public class RunSagaService {
     if (run.parentRunId() != null) {
       // The child's failure is the parent step's, with the child's cause: the parent's policy for
       // that cause decides (retry, skip or end the request).
-      applyOutcome(run.id().toString(), Map.of(), Map.of(), null, reason, declared);
+      recordOutcome(
+          run.id().toString(), Map.of(), Map.of(), null, reason, declared, BigDecimal.ZERO);
     }
   }
 
@@ -1145,7 +1168,7 @@ public class RunSagaService {
 
   /** A skipped step unblocks its dependants immediately; re-entering keeps that in one path. */
   private void advanceLater(UUID runId) {
-    advance(runId);
+    advanceRun(runId);
   }
 
   private boolean allTerminal(Blueprint blueprint, Map<String, RunStepStatus> states) {

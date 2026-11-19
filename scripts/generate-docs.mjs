@@ -1113,7 +1113,7 @@ function extractCli() {
   const registered = new Set([...read(join(cliRoot, "src/index.ts")).matchAll(/\.addCommand\(\s*(\w+)\s*\)/g)].map((m) => m[1]));
   const str = String.raw`"((?:[^"\\]|\\.)*)"`;
   const commands = [];
-  for (const n of readdirSync(dir).filter((x) => x.endsWith(".command.ts")).sort()) {
+  for (const n of readdirSync(dir).filter((x) => x.endsWith(".command.ts")).sort((a, b) => a.localeCompare(b))) {
     const src = read(join(dir, n));
     const exported = new RegExp(String.raw`export const (\w+)\s*=\s*new Command\(\s*"([^"]+)"\s*\)`).exec(src);
     if (!exported || (registered.size && !registered.has(exported[1]))) continue;
@@ -1323,7 +1323,7 @@ function extractGovernance() {
 const readModelSql = () => {
   const dir = (d) => {
     const p = join(ROOT, d);
-    return existsSync(p) ? readdirSync(p).filter((n) => n.endsWith(".sql")).sort().map((n) => read(join(p, n))) : [];
+    return existsSync(p) ? readdirSync(p).filter((n) => n.endsWith(".sql")).sort((a, b) => a.localeCompare(b)).map((n) => read(join(p, n))) : [];
   };
   return [readInitDb(), ...dir("infra/migrations"), ...dir("infra/deploy")].join("\n");
 };
@@ -2470,7 +2470,7 @@ function extractPackCatalog() {
   const text = (o) => (o ? { label: o.label ?? null, tagline: o.tagline ?? null, description: o.description ?? null } : null);
   return readdirSync(dir)
     .filter((n) => existsSync(join(dir, n, "pack.yaml")))
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .map((name) => {
       const root = join(dir, name);
       const m = parseYaml(read(join(root, "pack.yaml")));
@@ -2479,7 +2479,7 @@ function extractPackCatalog() {
         ? Object.fromEntries(
             readdirSync(i18nDir)
               .filter((f) => f.endsWith(".yaml"))
-              .sort()
+              .sort((a, b) => a.localeCompare(b))
               .map((f) => [f.replace(/\.yaml$/, ""), parseYaml(read(join(i18nDir, f)))]),
           )
         : {};
@@ -2506,9 +2506,9 @@ function extractPackCatalog() {
       const rulesetsDir = join(root, "rulesets");
       const rulesets = existsSync(rulesetsDir)
         ? readdirSync(rulesetsDir)
-            .sort()
+            .sort((a, b) => a.localeCompare(b))
             .map((id) => {
-              const versions = readdirSync(join(rulesetsDir, id)).filter((f) => f.endsWith(".json")).sort();
+              const versions = readdirSync(join(rulesetsDir, id)).filter((f) => f.endsWith(".json")).sort((a, b) => a.localeCompare(b));
               const latest = versions.length ? JSON.parse(read(join(rulesetsDir, id, versions.at(-1)))) : {};
               return { id, label: latest.label ?? id, jurisdiction: latest.jurisdiction ?? null, versions: versions.map((v) => v.replace(/\.json$/, "")), rules: (latest.rules ?? []).length };
             })
@@ -2571,7 +2571,7 @@ function extractPacks() {
   const schema = JSON.parse(read(join(dir, "pack.schema.json")) || "{}");
   const packs = (existsSync(dir) ? readdirSync(dir) : [])
     .filter((n) => existsSync(join(dir, n, "pack.yaml")))
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .map((n) => ({ dir: n, ...packSummary(read(join(dir, n, "pack.yaml"))) }));
   const fields = Object.entries(schema.properties ?? {}).map(([name, p]) => ({
     name,

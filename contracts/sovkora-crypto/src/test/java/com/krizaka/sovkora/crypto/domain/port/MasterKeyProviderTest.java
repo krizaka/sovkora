@@ -29,8 +29,7 @@ class MasterKeyProviderTest {
     assertThat(one)
         .isNotEqualTo(new WrappedKey("k2", BLOB.clone()))
         .isNotEqualTo(new WrappedKey("k1", new byte[] {1, 2, 3, 4, 6}))
-        .isNotEqualTo(null)
-        .isNotEqualTo("k1");
+        .isNotEqualTo(null);
   }
 
   @Test

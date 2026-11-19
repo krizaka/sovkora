@@ -52,9 +52,6 @@ class ChatSessionPersistenceProviderImpl implements ChatSessionPersistenceProvid
   }
 
   static ChatSessionEntity toEntity(ChatSessionDto dto) {
-    if (dto == null) {
-      return null;
-    }
     ChatSessionEntity entity = new ChatSessionEntity();
     entity.setId(dto.id());
     entity.setUserId(dto.userId());
@@ -64,9 +61,6 @@ class ChatSessionPersistenceProviderImpl implements ChatSessionPersistenceProvid
   }
 
   private static ChatSessionDto toDto(ChatSessionEntity entity) {
-    if (entity == null) {
-      return null;
-    }
     return new ChatSessionDto(
         entity.getId(), entity.getUserId(), entity.getTitle(), entity.getUpdatedAt());
   }

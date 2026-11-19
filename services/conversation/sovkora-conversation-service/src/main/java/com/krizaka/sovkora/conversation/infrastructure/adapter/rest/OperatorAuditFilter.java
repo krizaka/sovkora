@@ -33,7 +33,7 @@ import org.springframework.web.servlet.HandlerMapping;
 @Order(Ordered.LOWEST_PRECEDENCE)
 class OperatorAuditFilter extends OncePerRequestFilter {
 
-  private static final Logger logger = LoggerFactory.getLogger(OperatorAuditFilter.class);
+  private static final Logger auditLogger = LoggerFactory.getLogger(OperatorAuditFilter.class);
   private static final Set<String> WRITES = Set.of("POST", "PUT", "PATCH", "DELETE");
   private static final Set<Integer> REFUSALS = Set.of(400, 403, 409, 422);
 
@@ -65,7 +65,7 @@ class OperatorAuditFilter extends OncePerRequestFilter {
     try {
       store.append(line(request.getMethod(), path, mapped(request), auth, response.getStatus()));
     } catch (RuntimeException failed) {
-      logger.warn(
+      auditLogger.warn(
           "The operator audit line of {} {} could not be written",
           request.getMethod(),
           path,

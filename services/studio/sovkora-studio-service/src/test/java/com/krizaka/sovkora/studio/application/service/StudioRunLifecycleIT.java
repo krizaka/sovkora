@@ -885,17 +885,68 @@ class StudioRunLifecycleIT {
   @DisplayName("[studio#63] a run still going, or a step the blueprint lacks, cannot be resumed")
   void aResumeIsRefusedWhenItCannotBeRight() {
     RunDetail running = startRun();
+    UUID runId = running.id();
+    assertThrows(IllegalStateException.class, () -> runService.resume(runId, ACTOR, "showcase"));
+    runService.cancel(runId, ACTOR);
+    assertThrows(IllegalArgumentException.class, () -> runService.resume(runId, ACTOR, "nope"));
     assertThrows(
-        IllegalStateException.class, () -> runService.resume(running.id(), ACTOR, "showcase"));
-    runService.cancel(running.id(), ACTOR);
-    assertThrows(
-        IllegalArgumentException.class, () -> runService.resume(running.id(), ACTOR, "nope"));
-    assertThrows(
-        RunNotFoundException.class,
-        () -> runService.resume(running.id(), "someone-else", "caption"));
+        RunNotFoundException.class, () -> runService.resume(runId, "someone-else", "caption"));
   }
 
   // ── §15: install → run → step outcomes → settle ───────────────────────────
+
+  @Test
+  @DisplayName(
+      "[#4361] a run started through either short entry is one transaction: a failed dispatch"
+          + " leaves no run behind")
+  void aShortStartEntryRollsBackAsOne() {
+    UUID installation = install();
+    Map<String, Object> inputs = Map.of("photos", List.of("p1", "p2"), "trade", "plombier");
+
+    executor.failSubmit = new IllegalStateException("the outbox refused the second dispatch");
+    try {
+      assertThrows(
+          IllegalStateException.class, () -> runService.start(installation, ACTOR, inputs));
+      assertThrows(IllegalStateException.class, () -> runService.start(STUDIO_KEY, ACTOR, inputs));
+    } finally {
+      executor.failSubmit = null;
+    }
+
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject("SELECT count(*) FROM studio_run", Integer.class),
+        "the run, its steps and its first dispatch roll back together");
+    assertEquals(
+        0, jdbcTemplate.queryForObject("SELECT count(*) FROM studio_run_step", Integer.class));
+  }
+
+  @Test
+  @DisplayName(
+      "[#4361] a step outcome applied through the short entry rolls back with the advance that"
+          + " failed after it")
+  void aShortOutcomeEntryRollsBackAsOne() {
+    RunDetail run = startRun();
+    List<String> fanOut = List.copyOf(executor.dispatched);
+    sagaService.applyOutcome(fanOut.get(0), Map.of("content", "ok"), null);
+
+    String second = fanOut.get(1);
+    Map<String, Object> output = Map.of("content", "ok");
+    executor.failSubmit = new IllegalStateException("the outbox refused the dependants");
+    try {
+      assertThrows(
+          IllegalStateException.class, () -> sagaService.applyOutcome(second, output, null));
+    } finally {
+      executor.failSubmit = null;
+    }
+
+    assertEquals(
+        RunStepStatus.RUNNING.name(),
+        jdbcTemplate.queryForObject(
+            "SELECT status FROM studio_run_step WHERE job_id = ?", String.class, second),
+        "the outcome is not recorded when the advance it triggered failed");
+    assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
+    assertEquals(2, executor.dispatched.size(), "nothing was dispatched past the failure");
+  }
 
   @Test
   @DisplayName("[§15] install → run fans out, advances on outcomes, and reaches SUCCEEDED")
@@ -1417,9 +1468,9 @@ class StudioRunLifecycleIT {
     UUID installation = install();
     int heldBefore = credits.holds;
 
+    Map<String, Object> withoutPhotos = Map.of("trade", "plombier");
     assertThrows(
-        IllegalArgumentException.class,
-        () -> runService.start(installation, ACTOR, Map.of("trade", "plombier")));
+        IllegalArgumentException.class, () -> runService.start(installation, ACTOR, withoutPhotos));
 
     assertEquals(heldBefore, credits.holds, "validation must precede the hold");
     assertNull(
@@ -2339,8 +2390,14 @@ class StudioRunLifecycleIT {
     Map<String, Object> lastInputs = Map.of();
     Optional<String> lastProduct = Optional.empty();
 
+    /** When set, every submit throws it: a dispatch the outbox refused. */
+    volatile RuntimeException failSubmit;
+
     @Override
     public String submit(StepDispatch dispatch) {
+      if (failSubmit != null) {
+        throw failSubmit;
+      }
       String jobId = UUID.randomUUID().toString();
       dispatched.add(jobId);
       lastInputs = dispatch.resolvedInputs();

@@ -42,8 +42,7 @@ function listLogFiles(logDir: string): string[] {
   return fs
     .readdirSync(logDir)
     .filter((f) => f.endsWith(".log"))
-    .sort()
-    .reverse();
+    .sort((a, b) => b.localeCompare(a));
 }
 
 function describeLogFile(logDir: string, file: string): { line: string; size: number } {

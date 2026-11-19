@@ -201,8 +201,8 @@ class ScheduleIT extends AutomationServiceIT {
                   "SELECT status::text FROM automation_run WHERE automation_id = ?::uuid ORDER BY started_at",
                   String.class,
                   automationId))
-          .containsExactly("QUEUED", "SKIPPED_BUDGET")
-          .as("the first may already be RUNNING");
+          .as("the first may already be RUNNING")
+          .containsExactly("QUEUED", "SKIPPED_BUDGET");
     } catch (AssertionError raced) {
       assertThat(
               jdbc.queryForList(

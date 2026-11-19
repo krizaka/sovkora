@@ -224,6 +224,42 @@ class SecurityConfigIT extends AbstractContainerIntegrationTest {
     mvc.perform(podRoutes().getFirst()).andExpect(status().isUnauthorized());
   }
 
+  /**
+   * Why CSRF may be off on the pod chain (krizaka-internal#4361, java:S4502): CSRF rides an ambient
+   * credential a browser attaches by itself — a cookie, a session, HTTP Basic. This service accepts
+   * none: every route, on both chains, answers 401 to a request that carries a session cookie and
+   * even a CSRF token but no {@code Authorization: Bearer}, and no request ever opens a session.
+   */
+  @Test
+  @DisplayName("CSRF has nothing to ride on: every route refuses a cookie without a bearer token")
+  void everyRouteIsBearerTokenOnly() throws Exception {
+    List<MockHttpServletRequestBuilder> every = new java.util.ArrayList<>(podRoutes());
+    every.addAll(otherRoutes());
+    every.add(post("/api/v1/anything/else"));
+    every.add(put("/somewhere/never/routed"));
+    for (MockHttpServletRequestBuilder route : every) {
+      mvc.perform(
+              route
+                  .cookie(new jakarta.servlet.http.Cookie("JSESSIONID", "a-browser-session"))
+                  .header("X-CSRF-TOKEN", "a-token")
+                  .param("_csrf", "a-token"))
+          .andExpect(status().isUnauthorized());
+    }
+  }
+
+  @Test
+  @DisplayName("no request opens a session or sets a cookie, with a pod or a service token")
+  void noRequestOpensASession() throws Exception {
+    for (String token : List.of(podToken(), serviceToken())) {
+      for (MockHttpServletRequestBuilder route : podRoutes()) {
+        var result = mvc.perform(bearer(route, token)).andExpect(status().isOk()).andReturn();
+        org.assertj.core.api.Assertions.assertThat(result.getRequest().getSession(false)).isNull();
+        org.assertj.core.api.Assertions.assertThat(result.getResponse().getHeaders("Set-Cookie"))
+            .isEmpty();
+      }
+    }
+  }
+
   /** A token signed with the pod key, recorded for {@link #POD}, with the given role and kid. */
   private String sign(PodTokenProperties keys, String role, String kid) throws Exception {
     return forge(keys.signingKey().getEncoded(), role, kid);

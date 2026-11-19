@@ -122,14 +122,11 @@ class EncryptedAssetServiceTest {
     raw[raw.length - 20] ^= 0x01;
     Files.write(file, raw);
 
-    assertThatThrownBy(
-            () -> {
-              try (InputStream in = service.read(file)) {
-                in.readAllBytes();
-              }
-            })
-        .isInstanceOf(IOException.class)
-        .hasMessageContaining("did not authenticate");
+    try (InputStream in = service.read(file)) {
+      assertThatThrownBy(in::readAllBytes)
+          .isInstanceOf(IOException.class)
+          .hasMessageContaining("did not authenticate");
+    }
   }
 
   @Test
@@ -147,13 +144,9 @@ class EncryptedAssetServiceTest {
     System.arraycopy(first, 0, raw, header + sealed, sealed);
     Files.write(file, raw);
 
-    assertThatThrownBy(
-            () -> {
-              try (InputStream in = service.read(file)) {
-                in.readAllBytes();
-              }
-            })
-        .isInstanceOf(IOException.class);
+    try (InputStream in = service.read(file)) {
+      assertThatThrownBy(in::readAllBytes).isInstanceOf(IOException.class);
+    }
   }
 
   @Test

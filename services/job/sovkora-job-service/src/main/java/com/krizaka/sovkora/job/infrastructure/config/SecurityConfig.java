@@ -53,7 +53,6 @@ public class SecurityConfig {
    * @param tokens the revocation rows
    * @param clock the source of "now" for {@code exp}
    * @return the built chain
-   * @throws Exception if the chain cannot be built
    */
   @Bean
   @Order(1)
@@ -62,12 +61,14 @@ public class SecurityConfig {
       JwtAuthenticationConverter roles,
       PodTokenProperties properties,
       PodTokenService tokens,
-      Clock clock)
-      throws Exception {
+      Clock clock) {
     PodTokenDecoder pods = new PodTokenDecoder(properties.signingKey(), tokens, clock);
     return http.securityMatcher(PodTokenDecoder::carriesPodToken)
         // A bearer token is no ambient credential a browser could forge: the four routes this chain
-        // lets through are exempt from CSRF; everything else is denied below anyway.
+        // lets through are exempt from CSRF; everything else is denied below anyway. The service
+        // accepts no cookie, no session and no Basic credential on any route, so CSRF has nothing
+        // to ride on — proven by SecurityConfigIT#everyRouteIsBearerTokenOnly and
+        // #noRequestOpensASession (krizaka-internal#4361).
         .csrf(csrf -> csrf.ignoringRequestMatchers(SecurityBaseline.INTERNAL_PATHS))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -3,26 +3,57 @@ package com.krizaka.sovkora.conversation.infrastructure.adapter.persistence;
 import com.krizaka.sovkora.conversation.domain.port.ProtectedConversationStore;
 import java.util.Objects;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * The index of regulated conversations over this service's own table ({@code
  * orazaka_protected_conversation}), and the erasure that goes through it.
  *
- * <p>Every delete is one transaction over the messages, the chat session row and the index row, so
- * a crash cannot leave messages nobody can find again. The clock is the database's ({@code now()}).
+ * <p>Every erasure is one statement over the index row, the messages and the chat session row, so a
+ * crash cannot leave messages nobody can find again. The clock is the database's ({@code now()}).
+ *
+ * <p>Every statement is a constant: the actor, the pack and the window are bound parameters, never
+ * text of the query (krizaka-internal#4361).
  */
 @Component
 class JdbcProtectedConversationStoreAdapter implements ProtectedConversationStore {
 
-  private final JdbcTemplate jdbcTemplate;
-  private final TransactionTemplate transaction;
+  private static final String ERASE_OF =
+      """
+      WITH gone AS (
+        DELETE FROM orazaka_protected_conversation WHERE actor_id = ? AND pack_key = ?
+        RETURNING conversation_id),
+      messages AS (
+        DELETE FROM orazaka_chat_messages
+        WHERE conversation_id IN (SELECT conversation_id FROM gone) RETURNING 1),
+      sessions AS (
+        DELETE FROM orazaka_chat_sessions
+        WHERE user_id = ? AND id IN (SELECT conversation_id FROM gone) RETURNING 1)
+      SELECT (SELECT count(*) FROM gone), (SELECT count(*) FROM messages)""";
 
-  JdbcProtectedConversationStoreAdapter(
-      JdbcTemplate jdbcTemplate, TransactionTemplate transaction) {
+  private static final String ERASE_OLDER_THAN =
+      """
+      WITH gone AS (
+        DELETE FROM orazaka_protected_conversation
+        WHERE last_seen_at < now() - make_interval(days => ?)
+        RETURNING conversation_id),
+      messages AS (
+        DELETE FROM orazaka_chat_messages
+        WHERE conversation_id IN (SELECT conversation_id FROM gone) RETURNING 1),
+      sessions AS (
+        DELETE FROM orazaka_chat_sessions
+        WHERE id IN (SELECT conversation_id FROM gone) RETURNING 1)
+      SELECT (SELECT count(*) FROM gone), (SELECT count(*) FROM messages)""";
+
+  /** The two counts the erasure statements select: conversations, then messages. */
+  private static final RowMapper<Erased> ERASED =
+      (row, rowNum) -> new Erased(row.getInt(1), row.getInt(2));
+
+  private final JdbcTemplate jdbcTemplate;
+
+  JdbcProtectedConversationStoreAdapter(JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
-    this.transaction = Objects.requireNonNull(transaction, "TransactionTemplate cannot be null");
   }
 
   @Override
@@ -39,49 +70,11 @@ class JdbcProtectedConversationStoreAdapter implements ProtectedConversationStor
 
   @Override
   public Erased eraseOf(String actorId, String packKey) {
-    return transaction.execute(status -> deleteOf(actorId, packKey));
-  }
-
-  private Erased deleteOf(String actorId, String packKey) {
-    String mine =
-        "SELECT conversation_id FROM orazaka_protected_conversation"
-            + " WHERE actor_id = ? AND pack_key = ?";
-    int messages =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_chat_messages WHERE conversation_id IN (" + mine + ")",
-            actorId,
-            packKey);
-    jdbcTemplate.update(
-        "DELETE FROM orazaka_chat_sessions WHERE user_id = ? AND id IN (" + mine + ")",
-        actorId,
-        actorId,
-        packKey);
-    int conversations =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_protected_conversation WHERE actor_id = ? AND pack_key = ?",
-            actorId,
-            packKey);
-    return new Erased(conversations, messages);
+    return jdbcTemplate.queryForObject(ERASE_OF, ERASED, actorId, packKey, actorId);
   }
 
   @Override
   public Erased eraseOlderThan(int days) {
-    return transaction.execute(status -> deleteOlderThan(days));
-  }
-
-  private Erased deleteOlderThan(int days) {
-    String old =
-        "SELECT conversation_id FROM orazaka_protected_conversation"
-            + " WHERE last_seen_at < now() - make_interval(days => ?)";
-    int messages =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_chat_messages WHERE conversation_id IN (" + old + ")", days);
-    jdbcTemplate.update("DELETE FROM orazaka_chat_sessions WHERE id IN (" + old + ")", days);
-    int conversations =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_protected_conversation"
-                + " WHERE last_seen_at < now() - make_interval(days => ?)",
-            days);
-    return new Erased(conversations, messages);
+    return jdbcTemplate.queryForObject(ERASE_OLDER_THAN, ERASED, days);
   }
 }

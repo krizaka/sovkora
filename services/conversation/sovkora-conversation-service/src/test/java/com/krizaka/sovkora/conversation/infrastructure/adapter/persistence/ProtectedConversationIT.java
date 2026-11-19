@@ -18,10 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * The memory of a regulated pack's voice and listening turns is erased on request and ages out
@@ -76,9 +74,7 @@ class ProtectedConversationIT extends AbstractContainerIntegrationTest {
       executed++;
     }
     assertThat(executed).as("the three tables read from the V1 baseline").isEqualTo(3);
-    service =
-        new JdbcProtectedConversationStoreAdapter(
-            jdbc, new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
+    service = new JdbcProtectedConversationStoreAdapter(jdbc);
   }
 
   private static Path baseline() {
@@ -163,6 +159,26 @@ class ProtectedConversationIT extends AbstractContainerIntegrationTest {
     service.eraseOf(ERIC, "bien-etre");
 
     assertThat(service.eraseOf(ERIC, "bien-etre")).isEqualTo(new Erased(0, 0));
+  }
+
+  @Test
+  @DisplayName(
+      "an injection string as the actor or the pack is a value, never SQL: it erases nothing")
+  void anInjectionStringIsInert() {
+    conversation("conv-a", ERIC, WORDS, true);
+    conversation("conv-other", OTHER, OTHER_WORDS, true);
+    String injection = "' OR '1'='1";
+
+    assertThat(service.eraseOf(injection, "bien-etre")).isEqualTo(new Erased(0, 0));
+    assertThat(service.eraseOf(ERIC, injection)).isEqualTo(new Erased(0, 0));
+    assertThat(service.eraseOf(ERIC + "') OR ('1'='1", "bien-etre' OR '1'='1"))
+        .isEqualTo(new Erased(0, 0));
+
+    assertThat(tablesMentioning(WORDS)).as("Eric's turns are untouched").isPositive();
+    assertThat(tablesMentioning(OTHER_WORDS)).as("somebody else's turns").isPositive();
+    assertThat(service.eraseOf(ERIC, "bien-etre"))
+        .as("Eric's index row and messages were all still there")
+        .isEqualTo(new Erased(1, 2));
   }
 
   @Test
