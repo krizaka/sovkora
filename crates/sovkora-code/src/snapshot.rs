@@ -33,9 +33,9 @@ fn git_private_index(
         .args(args)
         .env("GIT_INDEX_FILE", index)
         .env("GIT_AUTHOR_NAME", "Sovkora")
-        .env("GIT_AUTHOR_EMAIL", "orazaka@localhost")
+        .env("GIT_AUTHOR_EMAIL", "sovkora@localhost")
         .env("GIT_COMMITTER_NAME", "Sovkora")
-        .env("GIT_COMMITTER_EMAIL", "orazaka@localhost")
+        .env("GIT_COMMITTER_EMAIL", "sovkora@localhost")
         .output()
         .map_err(|e| CodeError::Io(e.to_string()))?;
     if out.status.success() {
@@ -51,7 +51,7 @@ fn git_private_index(
 pub fn create(repo: &Repo, run_id: &str) -> Result<String, CodeError> {
     let name = ref_name(run_id)?;
     let dir =
-        std::env::temp_dir().join(format!("orazaka-snapshot-{}-{run_id}", std::process::id()));
+        std::env::temp_dir().join(format!("sovkora-snapshot-{}-{run_id}", std::process::id()));
     fs::create_dir_all(&dir).map_err(|e| CodeError::Io(e.to_string()))?;
     let index = dir.join("index");
     let result = (|| {
@@ -64,7 +64,7 @@ pub fn create(repo: &Repo, run_id: &str) -> Result<String, CodeError> {
                 "commit-tree",
                 &tree,
                 "-m",
-                &format!("orazaka snapshot {run_id}"),
+                &format!("sovkora snapshot {run_id}"),
             ],
         )?;
         repo.git(&["update-ref", &name, &sha])?;

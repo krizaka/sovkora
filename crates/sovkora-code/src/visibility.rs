@@ -1,9 +1,11 @@
 //! The visibility filter (one function, used by every read) and the redactor (ADR-093 §4.6).
 
-use super::scope::Repo;
+use super::scope::{CodeError, Repo};
 use regex::Regex;
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::io::Write;
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::OnceLock;
 
@@ -66,60 +68,73 @@ pub fn is_secret_path(rel: &str) -> Option<&'static str> {
     None
 }
 
-/// Gitignored paths among `paths`, even when tracked (`--no-index`).
-fn ignored(repo: &Repo, paths: &[String]) -> HashSet<String> {
+/// Gitignored paths among `paths`, even when tracked (`--no-index`). Fails closed: when git cannot answer, the
+/// answer is an error, never « nothing is ignored ».
+fn ignored(repo: &Repo, paths: &[String]) -> Result<HashSet<String>, CodeError> {
+    ignored_by(OsStr::new("git"), repo.root(), paths)
+}
+
+fn ignored_by(git: &OsStr, root: &Path, paths: &[String]) -> Result<HashSet<String>, CodeError> {
     if paths.is_empty() {
-        return HashSet::new();
+        return Ok(HashSet::new());
     }
-    let Ok(mut child) = Command::new("git")
+    let unknown = |why: String| CodeError::VisibilityUnknown(why);
+    let mut child = Command::new(git)
         .arg("-C")
-        .arg(repo.root())
+        .arg(root)
         .args(["check-ignore", "--no-index", "-z", "--stdin"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-    else {
-        return HashSet::new();
-    };
+        .map_err(|e| unknown(format!("git did not start: {e}")))?;
     let mut input = Vec::new();
     for p in paths {
         input.extend_from_slice(p.as_bytes());
         input.push(0);
     }
-    let mut stdin = child.stdin.take().expect("piped");
-    let writer = std::thread::spawn(move || {
-        let _ = stdin.write_all(&input);
-    });
-    let out = child.wait_with_output();
-    let _ = writer.join();
-    match out {
-        Ok(o) => o
-            .stdout
-            .split(|b| *b == 0)
-            .filter(|s| !s.is_empty())
-            .map(|s| String::from_utf8_lossy(s).to_string())
-            .collect(),
-        Err(_) => HashSet::new(),
+    let mut stdin = child
+        .stdin
+        .take()
+        .ok_or_else(|| unknown("no stdin".into()))?;
+    let writer = std::thread::spawn(move || stdin.write_all(&input));
+    let out = child
+        .wait_with_output()
+        .map_err(|e| unknown(format!("git did not finish: {e}")))?;
+    let written = writer
+        .join()
+        .map_err(|_| unknown("the writer stopped".into()))?;
+    // 0: some paths are ignored, 1: none is. Anything else (128: git failed) is not an answer.
+    match out.status.code() {
+        Some(0 | 1) => {}
+        other => return Err(unknown(format!("git check-ignore exited with {other:?}"))),
     }
+    written.map_err(|e| unknown(format!("the paths did not reach git: {e}")))?;
+    Ok(out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|s| !s.is_empty())
+        .map(|s| String::from_utf8_lossy(s).to_string())
+        .collect())
 }
 
-/// The visible subset of `paths`, in order. The single filter behind every read tool.
-pub fn filter_visible(repo: &Repo, paths: &[String]) -> Vec<String> {
+/// The visible subset of `paths`, in order. The single filter behind every read tool. An error when the gitignore
+/// check cannot answer: then nothing is visible.
+pub fn filter_visible(repo: &Repo, paths: &[String]) -> Result<Vec<String>, CodeError> {
     let candidates: Vec<String> = paths
         .iter()
         .filter(|p| !is_git_internal(p) && is_secret_path(p).is_none())
         .cloned()
         .collect();
-    let hidden = ignored(repo, &candidates);
-    candidates
+    let hidden = ignored(repo, &candidates)?;
+    Ok(candidates
         .into_iter()
         .filter(|p| !hidden.contains(p))
-        .collect()
+        .collect())
 }
 
-pub fn is_visible(repo: &Repo, rel: &str) -> bool {
-    !filter_visible(repo, &[rel.to_string()]).is_empty()
+pub fn is_visible(repo: &Repo, rel: &str) -> Result<bool, CodeError> {
+    Ok(!filter_visible(repo, &[rel.to_string()])?.is_empty())
 }
 
 fn token_patterns() -> &'static Vec<Regex> {
@@ -132,6 +147,11 @@ fn token_patterns() -> &'static Vec<Regex> {
             r"\boz_[A-Za-z0-9_\-]{16,}",
             r"\bsk-[A-Za-z0-9_\-]{16,}",
             r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b",
+            r"\bdo[opr]_v1_[a-f0-9]{64}\b",
+            r"\b[rs]k_(?:live|test)_[A-Za-z0-9]{16,}",
+            r"\bxox[abprs]-[A-Za-z0-9\-]{10,}",
+            r"\bAIza[A-Za-z0-9_\-]{35}",
+            r"\beyJ[A-Za-z0-9_\-]{8,}\.eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]*",
         ]
         .iter()
         .map(|r| Regex::new(r).expect("static pattern"))
@@ -153,4 +173,33 @@ pub fn redact(text: &str) -> String {
 /// True when `text` holds a token-shaped string (a diff that introduces one is flagged).
 pub fn has_secret(text: &str) -> bool {
     token_patterns().iter().any(|re| re.is_match(text))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_git_that_does_not_start_is_an_error_not_an_empty_answer() {
+        let tmp = tempfile::tempdir().unwrap();
+        let got = ignored_by(
+            OsStr::new("/nonexistent/git"),
+            tmp.path(),
+            &["a.txt".to_string()],
+        );
+        assert!(matches!(got, Err(CodeError::VisibilityUnknown(_))));
+    }
+
+    #[test]
+    fn git_outside_a_repository_is_an_error_not_an_empty_answer() {
+        let tmp = tempfile::tempdir().unwrap();
+        let got = ignored_by(OsStr::new("git"), tmp.path(), &["a.txt".to_string()]);
+        assert!(matches!(got, Err(CodeError::VisibilityUnknown(_))));
+    }
+
+    #[test]
+    fn no_path_asks_nothing() {
+        let got = ignored_by(OsStr::new("/nonexistent/git"), Path::new("/"), &[]);
+        assert_eq!(got, Ok(HashSet::new()));
+    }
 }

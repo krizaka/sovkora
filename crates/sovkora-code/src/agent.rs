@@ -6,6 +6,7 @@ use super::checks::{self, Book, CheckError, CheckRun, Limits};
 use super::data::{self, Part};
 use super::diff::{self, FileProposal};
 use super::scope::Repo;
+use super::secret::Secret;
 use super::tools;
 use super::visibility::redact;
 use serde::{Deserialize, Serialize};
@@ -155,14 +156,39 @@ pub trait Engine {
 /// the credits on every turn, picks the routing key from the Studio (a key sent by the app is ignored) and passes the
 /// engine's refusals on in its own words. A remote engine must be https (the excerpts leave the Mac).
 pub struct SessionEngine {
-    pub base_url: String,
-    pub bearer: String,
+    base_url: String,
+    bearer: Secret,
     /// `code-issue-to-pr` or `code-read-write`.
-    pub studio_key: String,
+    studio_key: String,
     /// The task's run, started by the first turn and kept for all the others.
-    pub run_id: Option<String>,
-    pub timeout: Duration,
+    run_id: Option<String>,
+    agent: ureq::Agent,
 }
+
+/// Why an engine address is refused.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EngineUrlError {
+    /// Not a URL.
+    Invalid(String),
+    /// Not `https://`, and not plain http to this machine (the excerpts and the bearer would travel in clear).
+    NotHttps(String),
+}
+
+impl std::fmt::Display for EngineUrlError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EngineUrlError::Invalid(u) => write!(f, "not an engine address: {u}"),
+            EngineUrlError::NotHttps(u) => {
+                write!(
+                    f,
+                    "an engine outside this machine must be reached over https: {u}"
+                )
+            }
+        }
+    }
+}
+
+impl std::error::Error for EngineUrlError {}
 
 /// `POST {base}/api/v1/studios/{studio}/runs`: starts the task's run.
 pub fn start_run_url(base: &str, studio_key: &str) -> String {
@@ -194,19 +220,25 @@ pub fn turn_body(req: &TurnRequest) -> Value {
 }
 
 impl SessionEngine {
+    /// Refuses an address that is not https (plain http only to this machine, for tests and a local engine).
     pub fn new(
-        base_url: String,
-        bearer: String,
+        base_url: &str,
+        bearer: Secret,
         studio_key: String,
         timeout: Duration,
-    ) -> SessionEngine {
-        SessionEngine {
-            base_url,
+    ) -> Result<SessionEngine, EngineUrlError> {
+        validate_base_url(base_url)?;
+        Ok(SessionEngine {
+            base_url: base_url.to_string(),
             bearer,
             studio_key,
             run_id: None,
-            timeout,
-        }
+            // a redirect would carry the bearer to an address nobody checked
+            agent: ureq::AgentBuilder::new()
+                .timeout(timeout)
+                .redirects(0)
+                .build(),
+        })
     }
 
     fn post(
@@ -215,9 +247,10 @@ impl SessionEngine {
         body: Value,
         idempotency_key: Option<&str>,
     ) -> Result<Value, EngineError> {
-        let mut request = ureq::post(url)
-            .timeout(self.timeout)
-            .set("Authorization", &format!("Bearer {}", self.bearer));
+        let mut request = self
+            .agent
+            .post(url)
+            .set("Authorization", &format!("Bearer {}", self.bearer.expose()));
         if let Some(key) = idempotency_key {
             request = request.set("Idempotency-Key", key);
         }
@@ -252,10 +285,25 @@ impl SessionEngine {
     }
 }
 
+/// A remote engine over https only; plain http only to this machine (a loopback address or `localhost`).
+fn validate_base_url(base_url: &str) -> Result<(), EngineUrlError> {
+    let url =
+        url::Url::parse(base_url).map_err(|_| EngineUrlError::Invalid(base_url.to_string()))?;
+    let loopback = match url.host() {
+        Some(url::Host::Domain(name)) => name.eq_ignore_ascii_case("localhost"),
+        Some(url::Host::Ipv4(ip)) => ip.is_loopback(),
+        Some(url::Host::Ipv6(ip)) => ip.is_loopback(),
+        None => false,
+    };
+    match url.scheme() {
+        "https" => Ok(()),
+        "http" if loopback => Ok(()),
+        _ => Err(EngineUrlError::NotHttps(base_url.to_string())),
+    }
+}
+
 impl Engine for SessionEngine {
     fn turn(&mut self, req: &TurnRequest) -> Result<TurnReply, EngineError> {
-        crate::automation::model::OpenAiCompatible::validate_base_url(&self.base_url)
-            .map_err(EngineError::Unavailable)?;
         let run_id = self.ensure_run()?;
         let reply = self.post(&turns_url(&self.base_url, &run_id), turn_body(req), None)?;
         serde_json::from_value::<TurnReply>(reply)

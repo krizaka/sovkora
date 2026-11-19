@@ -17,6 +17,8 @@ pub enum CodeError {
     /// Invisible to every read tool (gitignored, secret pattern, `.git/`).
     Invisible(String),
     NotFound(String),
+    /// The gitignore check failed, so what is visible is unknown: nothing is shown.
+    VisibilityUnknown(String),
     /// The file changed since the diff was proposed: refuse and re-propose.
     Conflict(String),
     Io(String),
@@ -30,6 +32,9 @@ impl std::fmt::Display for CodeError {
             CodeError::Refused(p) => write!(f, "refused target: {p}"),
             CodeError::Invisible(p) => write!(f, "not visible: {p}"),
             CodeError::NotFound(p) => write!(f, "not found: {p}"),
+            CodeError::VisibilityUnknown(why) => {
+                write!(f, "the gitignore check failed, nothing is shown: {why}")
+            }
             CodeError::Conflict(p) => {
                 write!(f, "the file changed since the proposal, propose again: {p}")
             }
@@ -108,7 +113,7 @@ impl Repo {
             .map(str::to_string)
             .collect();
         let all = self.candidate_files()?;
-        let visible = visibility::filter_visible(self, &all).len();
+        let visible = visibility::filter_visible(self, &all)?.len();
         Ok(RepoInfo {
             root: self.root.display().to_string(),
             branch,
@@ -163,7 +168,7 @@ impl Repo {
             .map_err(|_| CodeError::OutsideRepository(rel.to_string()))?;
         let target_rel = inside.to_string_lossy().to_string();
         for r in [&rel_s, &target_rel] {
-            if !r.is_empty() && !visibility::is_visible(self, r) {
+            if !r.is_empty() && !visibility::is_visible(self, r)? {
                 return Err(CodeError::Invisible(rel.to_string()));
             }
         }

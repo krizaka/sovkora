@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - "apps/desktop/**"
+      - "crates/**"
       - ".github/workflows/desktop.yml"
   push:
     tags: ["desktop-v*"]

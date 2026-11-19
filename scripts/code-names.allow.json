@@ -165,6 +165,26 @@
       "reason": "The release manifest file the CLI reads (a live file name).",
       "row": "K3",
       "scope": "model"
+    },
+    {
+      "token": "refs/orazaka/snapshots",
+      "reason": "The undo refs the Mac app already wrote into people's repositories (sovkora-code snapshot); renamed only with a read of the old prefix, or the undo of an earlier run is lost.",
+      "row": "K7"
+    },
+    {
+      "token": ".orazaka/checks.json",
+      "reason": "The checks file repositories already carry as a suggestion to the code agent (sovkora-code checks); renamed only with a fallback read of the old name.",
+      "row": "K7"
+    },
+    {
+      "token": "ORAZAKA_",
+      "reason": "The credential variable prefix the code agent's checks scrub from their environment (sovkora-code checks): the ORAZAKA_* variables still exist (K7), so dropping it would let them reach a check.",
+      "row": "K7"
+    },
+    {
+      "token": "Orazaka for Mac",
+      "reason": "The registered name of the GitHub App whose public client id the Mac app uses (App ID 5549153); renamed on GitHub first.",
+      "row": "K4"
     }
   ]
 }

@@ -8,7 +8,7 @@ generated: true
 
 # Modules
 
-Sovkora is **one repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029), made of **16 modules**; the Krizaka building blocks come from Maven Central.
+Sovkora is **one repository**, [`krizaka/sovkora`](https://github.com/krizaka/sovkora) (ADR-029), made of **17 modules**; the Krizaka building blocks come from Maven Central.
 
 ```bash
 ./mvnw verify          # every Java module, in one reactor
@@ -54,7 +54,8 @@ pnpm install           # the clients: apps/web, mobile, cli, desktop
 | [`apps/web`](https://github.com/krizaka/sovkora/tree/main/apps/web) | pnpm | Next.js (App Router) client of the Sovkora platform with its mandatory BFF. Modules: `web`. | — |
 | [`apps/mobile`](https://github.com/krizaka/sovkora/tree/main/apps/mobile) | pnpm | Expo / React Native client of the Sovkora platform (talks to the edge with Bearer tokens). Modules: `mobile`. | — |
 | [`apps/cli`](https://github.com/krizaka/sovkora/tree/main/apps/cli) | pnpm | The developer CLI: install, start, dev, test, docs and pack tooling for the local Sovkora stack, with an offline SQLite queue. Modules: `cli`. | — |
-| [`apps/desktop`](https://github.com/krizaka/sovkora/tree/main/apps/desktop) | pnpm | The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app. Modules: `desktop`. | — |
+| [`crates/sovkora-code`](https://github.com/krizaka/sovkora/tree/main/crates/sovkora-code) | cargo | The code agent core (Rust, no Tauri): the granted repository, the visibility filter and redactor, the read tools, per-hunk diffs, sandboxed checks and the agent loop, shared by the Mac app and a headless runner. | — |
+| [`apps/desktop`](https://github.com/krizaka/sovkora/tree/main/apps/desktop) | pnpm | The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app. Modules: `desktop`. | `code` |
 
 ## Content
 

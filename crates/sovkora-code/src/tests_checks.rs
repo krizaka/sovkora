@@ -60,9 +60,10 @@ fn a_name_that_is_not_a_confirmed_check_is_refused() {
 fn a_suggestion_from_the_repository_is_not_a_confirmation() {
     let tmp = tempfile::tempdir().unwrap();
     let repo = repo_in(tmp.path());
-    fs::create_dir_all(repo.root().join(".orazaka")).unwrap();
+    let suggestions = repo.root().join(checks::GRANT_SUGGESTIONS);
+    fs::create_dir_all(suggestions.parent().unwrap()).unwrap();
     fs::write(
-        repo.root().join(".orazaka/checks.json"),
+        &suggestions,
         r#"[{"name":"evil","argv":["/bin/echo","x"]}]"#,
     )
     .unwrap();
@@ -319,9 +320,10 @@ fn the_repository_may_suggest_checks() {
     .unwrap();
     fs::write(r.join("Cargo.toml"), "[package]\nname=\"x\"\n").unwrap();
     fs::write(r.join("pom.xml"), "<project/>").unwrap();
-    fs::create_dir_all(r.join(".orazaka")).unwrap();
+    let suggestions = r.join(checks::GRANT_SUGGESTIONS);
+    fs::create_dir_all(suggestions.parent().unwrap()).unwrap();
     fs::write(
-        r.join(".orazaka/checks.json"),
+        &suggestions,
         r#"[{"name":"e2e","argv":["npm","run","e2e"],"cwd":"web","timeoutSecs":600,"network":true},
             {"name":"escape","argv":["x"],"cwd":"../out"},{"name":"","argv":["x"]},{"name":"noargv","argv":[]}]"#,
     )
@@ -416,7 +418,7 @@ mod sandboxed {
         let tmp = tempfile::tempdir().unwrap();
         let repo = repo_in(tmp.path());
         let home_file = format!(
-            "{}/orazaka-sandbox-probe-{}",
+            "{}/sovkora-sandbox-probe-{}",
             std::env::var("HOME").unwrap(),
             std::process::id()
         );

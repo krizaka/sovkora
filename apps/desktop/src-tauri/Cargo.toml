@@ -15,6 +15,8 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+# the code agent core (ADR-093), Tauri-free, shared with the headless runner (krizaka-internal#4344)
+sovkora-code = { version = "0.1.0", path = "../../../crates/sovkora-code" }
 krizaka-rust = { version = "0.4.0", git = "https://github.com/krizaka/krizaka-rust", tag = "v0.4.0", features = ["keychain"] }
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-dialog = "2"
@@ -30,9 +32,6 @@ sha2 = "0.11"
 uuid = { version = "1", features = ["v4"] }
 ureq = { version = "2", default-features = false, features = ["json", "tls"] }
 pdf-extract = "0.12"
-# code on the Mac (ADR-093): token redaction and exact per-hunk diffs
-regex = "1"
-similar = "3"
 # checks (ADR-093 slice 2): kill the whole process group of a timed-out run
 libc = "0.2"
 

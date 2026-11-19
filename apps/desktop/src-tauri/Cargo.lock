@@ -3131,11 +3131,10 @@ dependencies = [
  "libc",
  "notify",
  "pdf-extract",
- "regex",
  "serde",
  "serde_json",
  "sha2 0.11.1",
- "similar",
+ "sovkora-code",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
@@ -4222,6 +4221,22 @@ dependencies = [
  "gobject-sys 0.18.0",
  "libc",
  "system-deps 6.2.2",
+]
+
+[[package]]
+name = "sovkora-code"
+version = "0.1.0"
+dependencies = [
+ "krizaka-rust",
+ "libc",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2 0.11.1",
+ "similar",
+ "ureq",
+ "url",
+ "uuid",
 ]
 
 [[package]]

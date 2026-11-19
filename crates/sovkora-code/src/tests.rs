@@ -245,6 +245,22 @@ fn every_known_token_shape_is_redacted() {
         token("oz_"),
         token("sk-"),
         format!("{}{}", "AKIA", "0123456789ABCDEF"),
+        format!("{}{}", "dop_v1_", "0123456789abcdef".repeat(4)),
+        format!("{}{}", "doo_v1_", "0123456789abcdef".repeat(4)),
+        format!("{}{}", "dor_v1_", "0123456789abcdef".repeat(4)),
+        token("sk_live_"),
+        token("rk_live_"),
+        token("sk_test_"),
+        format!("{}{}", "xoxb-", "1234567890-abcdefABCDEF"),
+        format!("{}{}", "xoxp-", "1234567890-abcdefABCDEF"),
+        format!("{}{}", "xoxa-", "1234567890-abcdefABCDEF"),
+        format!("{}{}", "xoxr-", "1234567890-abcdefABCDEF"),
+        format!("{}{}", "xoxs-", "1234567890-abcdefABCDEF"),
+        format!("{}{}", "AIza", "Sy0123456789abcdefABCDEF_-012345678"),
+        format!(
+            "{}.{}.{}",
+            "eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJjb2RlciJ9", "c2lnbmF0dXJlLXNpZ25hdHVyZQ"
+        ),
     ] {
         let out = super::visibility::redact(&format!("x {t} y"));
         assert_eq!(out, "x [redacted] y", "{t}");
@@ -534,4 +550,43 @@ fn opening_in_an_editor_goes_through_the_read_scope() {
     let (_t, repo) = fixture();
     assert!(editor::open(&repo, Editor::VsCode, "../outside/secret.txt", 1).is_err());
     assert!(editor::open(&repo, Editor::VsCode, ".env", 1).is_err());
+}
+
+#[test]
+fn a_shape_is_redacted_where_it_sits_in_a_line() {
+    let jwt = format!(
+        "{}.{}.{}",
+        "eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJjb2RlciJ9", "c2ln"
+    );
+    let out = super::visibility::redact(&format!("Authorization: Bearer {jwt}\nnext"));
+    assert_eq!(out, "Authorization: Bearer [redacted]\nnext");
+    let key = format!("{}{}", "dop_v1_", "0123456789abcdef".repeat(4));
+    assert_eq!(
+        super::visibility::redact(&format!("DO=\"{key}\";")),
+        "DO=\"[redacted]\";"
+    );
+}
+
+// ---- the gitignore check fails closed --------------------------------------------------------------------------
+
+#[test]
+fn when_the_gitignore_check_fails_no_read_tool_shows_anything() {
+    let (_t, repo) = fixture();
+    // git cannot read the repository any more: `check-ignore` exits with an error and says nothing
+    fs::write(repo.root().join(".git/HEAD"), "not a ref\n").unwrap();
+    for path in ["ignored.txt", "notes.md"] {
+        assert!(
+            matches!(
+                tools::read_file(&repo, path),
+                Err(CodeError::VisibilityUnknown(_))
+            ),
+            "{path}"
+        );
+    }
+    assert!(matches!(
+        tools::list_dir(&repo, ""),
+        Err(CodeError::VisibilityUnknown(_))
+    ));
+    assert!(tools::search_text(&repo, "ignored").is_err());
+    assert!(tools::outline(&repo, "src/main.rs").is_err());
 }

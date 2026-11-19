@@ -1,10 +1,11 @@
 //! Slice 4 of ADR-093: the connection to GitHub, by the OAuth device flow of the GitHub App « Orazaka for Mac ».
 //!
 //! The flow, the refresh and the Keychain vault are the kit's (`krizaka_rust::device_flow`); this module holds what
-//! is Orazaka's: the App's public client id (a settings row, so a firm on GitHub Enterprise registers its own), the HTTP
+//! is Sovkora's: the App's public client id (a settings row, so a firm on GitHub Enterprise registers its own), the HTTP
 //! transport, and the state the page polls. The tokens stay on the Rust side: the page sees `connected` and, while a
 //! sign-in waits, the code to type and where. No client secret exists on the Mac.
 
+use crate::secret::Secret;
 use krizaka_rust::device_flow::{
     self, DeviceCode, Failure, Provider, Session, TokenVault, Tokens, Transport, TransportError,
 };
@@ -215,9 +216,10 @@ impl Connection {
         transport: &dyn Transport,
         store: &dyn SecretStore,
         config: &GithubConfig,
-    ) -> Result<Option<String>, String> {
+    ) -> Result<Option<Secret>, String> {
         TokenVault::new(store, VAULT_PREFIX)
             .access_token(transport, &config.provider(), unix_now())
+            .map(|token| token.map(Secret::new))
             .map_err(|e| e.to_string())
     }
 }
@@ -243,6 +245,9 @@ mod tests {
     fn device() -> Value {
         json!({"device_code": "dc", "user_code": "ABCD-1234", "verification_uri": "https://github.com/login/device", "expires_in": 900, "interval": 1})
     }
+
+    /// A wait the test holds back instead of spawning it.
+    type Held = Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>>;
 
     fn store() -> Arc<Checked<MemorySecrets>> {
         Arc::new(Checked(MemorySecrets::default()))
@@ -283,7 +288,7 @@ mod tests {
             json!({"access_token": "ghu_fake", "refresh_token": "ghr_fake", "expires_in": 28800}),
         ]);
         // `spawn` is held back, so the status can be read while the sign-in waits
-        let held: Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>> = Arc::default();
+        let held: Held = Arc::default();
         let h = held.clone();
         let code = conn
             .begin(t, s.clone(), &GithubConfig::default(), move |job| {
@@ -326,7 +331,7 @@ mod tests {
     fn sign_out_removes_both_secrets_and_a_late_approval_writes_nothing() {
         let conn = Connection::default();
         let s = store();
-        let held: Arc<Mutex<Option<Box<dyn FnOnce() + Send>>>> = Arc::default();
+        let held: Held = Arc::default();
         let h = held.clone();
         let t = fake(vec![
             device(),
@@ -355,11 +360,10 @@ mod tests {
             ),
             (None, None)
         );
-        assert_eq!(
-            conn.access_token(&*fake(vec![]), &*s, &GithubConfig::default())
-                .unwrap(),
-            None
-        );
+        assert!(conn
+            .access_token(&*fake(vec![]), &*s, &GithubConfig::default())
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -376,12 +380,11 @@ mod tests {
         let t = fake(vec![
             json!({"access_token": "new", "refresh_token": "r2", "expires_in": 28800}),
         ]);
-        assert_eq!(
-            conn.access_token(&*t, &*s, &GithubConfig::default())
-                .unwrap()
-                .as_deref(),
-            Some("new")
-        );
+        let token = conn
+            .access_token(&*t, &*s, &GithubConfig::default())
+            .unwrap()
+            .expect("a refreshed token");
+        assert_eq!(token.expose(), "new");
         assert_eq!(s.get("github.refresh").unwrap().as_deref(), Some("r2"));
     }
 }
