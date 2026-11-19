@@ -1,0 +1,27 @@
+# The Krizaka cargo-deny baseline (krizaka/.github docs/standards/lang/deny.toml) plus this repository's recorded exceptions.
+# An exception is debt with a reason and an exit: it goes when the upstream crate is bumped, never to get green.
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+ignore = []
+
+[licenses]
+version = 2
+allow = ["MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0", "Unicode-DFS-2016", "Zlib", "MPL-2.0", "CC0-1.0", "0BSD", "BSL-1.0", "OpenSSL", "CDLA-Permissive-2.0"]
+confidence-threshold = 0.9
+exceptions = [{ crate = "sovkora-code", allow = ["FSL-1.1-ALv2"] }]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# The crates are Tauri-free (krizaka-internal#4344): the Mac app wires tauri around them, never the other way.
+deny = [{ crate = "tauri", reason = "the code agent core runs headless too; Tauri glue stays in apps/desktop/src-tauri" }]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = ["https://github.com/krizaka/krizaka-rust"]

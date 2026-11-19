@@ -252,10 +252,23 @@ impl SessionEngine {
     }
 }
 
+/// A remote engine over https only; plain http to this machine for tests.
+fn validate_base_url(url: &str) -> Result<(), String> {
+    let u = url::Url::parse(url).map_err(|_| format!("invalid model URL: {url}"))?;
+    let loopback = matches!(
+        u.host_str(),
+        Some("localhost") | Some("127.0.0.1") | Some("[::1]")
+    );
+    match u.scheme() {
+        "https" => Ok(()),
+        "http" if loopback => Ok(()),
+        _ => Err("a model outside this Mac must be reached over https".into()),
+    }
+}
+
 impl Engine for SessionEngine {
     fn turn(&mut self, req: &TurnRequest) -> Result<TurnReply, EngineError> {
-        crate::automation::model::OpenAiCompatible::validate_base_url(&self.base_url)
-            .map_err(EngineError::Unavailable)?;
+        validate_base_url(&self.base_url).map_err(EngineError::Unavailable)?;
         let run_id = self.ensure_run()?;
         let reply = self.post(&turns_url(&self.base_url, &run_id), turn_body(req), None)?;
         serde_json::from_value::<TurnReply>(reply)

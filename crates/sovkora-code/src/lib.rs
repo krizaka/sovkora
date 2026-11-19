@@ -1,4 +1,5 @@
-//! Code on the Mac — slice 1 of ADR-093: the read and write core.
+//! Sovkora's code agent core (ADR-093), free of Tauri so that the Mac app and a headless runner share it
+//! (krizaka-internal#4344). The Mac app's commands are the glue; every rule is here.
 //!
 //! * `scope`      — a granted repository; every path is resolved here (canonical, inside, no symlink out).
 //! * `visibility` — the one function every read goes through, and the redactor.

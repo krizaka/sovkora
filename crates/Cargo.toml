@@ -1,0 +1,5 @@
+# The Cargo workspace of Sovkora's Tauri-free crates (krizaka-internal#4344). The Mac app (apps/desktop/src-tauri) is its
+# own workspace and depends on these crates by path; nothing here may depend on tauri (deny.toml bans it).
+[workspace]
+resolver = "2"
+members = ["sovkora-code"]

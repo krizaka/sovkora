@@ -7,7 +7,7 @@
 //! * `automation` — scheduled automations run on this Mac, tools over MCP behind approvals (ADR-079).
 
 pub mod automation;
-pub mod code;
+pub use sovkora_code as code;
 // The folder scope and the files inside a grant are krizaka-tauri-kit's (ADR-005: one implementation, tested once).
 pub use krizaka_rust::{files, scope};
 pub mod settings;
