@@ -61,12 +61,15 @@ class TwoKeyJwtDecoderTest {
     TwoKeyJwtDecoder withAudience =
         new TwoKeyJwtDecoder(SESSION_KEY, ISSUER, "sovkora", SERVICE_KEY);
 
-    assertThat(withAudience.decode(TokenSigner.session(c -> c.audience("sovkora")))).isNotNull();
-    assertThatThrownBy(() -> withAudience.decode(TokenSigner.session(c -> c.audience("other"))))
+    String addressed = TokenSigner.session(c -> c.audience("sovkora"));
+    String elsewhere = TokenSigner.session(c -> c.audience("other"));
+    String unaddressed = TokenSigner.session(UnaryOperator.identity());
+
+    assertThat(withAudience.decode(addressed)).isNotNull();
+    assertThatThrownBy(() -> withAudience.decode(elsewhere))
         .isInstanceOf(JwtException.class)
         .hasMessageContaining("not addressed to sovkora");
-    assertThatThrownBy(() -> withAudience.decode(TokenSigner.session(UnaryOperator.identity())))
-        .isInstanceOf(JwtException.class);
+    assertThatThrownBy(() -> withAudience.decode(unaddressed)).isInstanceOf(JwtException.class);
   }
 
   @Test

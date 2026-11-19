@@ -193,6 +193,34 @@ class ContentPolicyServiceTest {
   }
 
   @Test
+  @DisplayName("a studio key with a line break cannot forge a second log line (S5145)")
+  void aRefusalIsLoggedOnOneLine() {
+    ch.qos.logback.classic.Logger log =
+        (ch.qos.logback.classic.Logger)
+            org.slf4j.LoggerFactory.getLogger(ContentPolicyService.class);
+    ch.qos.logback.core.read.ListAppender<ch.qos.logback.classic.spi.ILoggingEvent> captured =
+        new ch.qos.logback.core.read.ListAppender<>();
+    captured.start();
+    log.addAppender(captured);
+    try {
+      String forged = "s\r\n2026-11-19 INFO Admin approved everything";
+      Map<String, Object> inputs = Map.of("prompt", prompt("minor-risk"));
+      ContentPolicyService service = service(new FakePolicyJdbc());
+
+      assertThatThrownBy(() -> service.enforce(ACTOR, forged, inputs, List.of(VIDEO)))
+          .isInstanceOf(ContentPolicyRefusedException.class);
+
+      assertThat(captured.list)
+          .extracting(ch.qos.logback.classic.spi.ILoggingEvent::getFormattedMessage)
+          .containsExactly(
+              "Content policy refused studio s__2026-11-19 INFO Admin approved everything run:"
+                  + " minors_risk.always");
+    } finally {
+      log.detachAppender(captured);
+    }
+  }
+
+  @Test
   @DisplayName("Benign prompts leave no audit row")
   void benignNotAudited() {
     FakePolicyJdbc jdbc = new FakePolicyJdbc();

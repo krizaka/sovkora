@@ -58,7 +58,7 @@ public class DocumentReadController {
    *     answer
    */
   @PostMapping
-  public ResponseEntity<?> read(
+  public ResponseEntity<Object> read(
       @RequestBody DocumentReadsRequest request, @AuthenticationPrincipal @Nullable User user) {
     Actor actor = actorOf(user);
     if (actor == null) {
@@ -85,7 +85,7 @@ public class DocumentReadController {
     };
   }
 
-  private static ResponseEntity<ProblemDetail> problem(ReadRefusal refusal) {
+  private static ResponseEntity<Object> problem(ReadRefusal refusal) {
     ProblemDetail problem = ProblemDetail.forStatus(refusal.status());
     problem.setProperty("code", refusal.name());
     return ResponseEntity.status(refusal.status()).body(problem);
