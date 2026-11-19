@@ -48,6 +48,9 @@ public class ContentPolicyService {
 
   private static final Logger logger = LoggerFactory.getLogger(ContentPolicyService.class);
 
+  /** A carriage return or a line feed: replaced where a caller-chosen value is logged. */
+  private static final String LINE_BREAK = "[\n\r]";
+
   static final String RULE_MINORS = "minors_risk.always";
   static final String RULE_PERMISSIVE = "permissive.default";
 
@@ -120,20 +123,20 @@ public class ContentPolicyService {
     record(actorId, studioKey, decision, false);
     // A studio key from the URL and rules named after caller-chosen providers: each is one line in
     // the log, never a forged second one (Sonar S5145).
-    String studio = studioKey.replaceAll("[\n\r]", "_");
+    String studio = studioKey.replaceAll(LINE_BREAK, "_");
     decision
         .warnings()
         .forEach(
             w ->
                 logger.warn(
                     "Content policy warning ({}) for studio {}",
-                    w.replaceAll("[\n\r]", "_"),
+                    w.replaceAll(LINE_BREAK, "_"),
                     studio));
     if (decision.refused()) {
       logger.info(
           "Content policy refused studio {} run: {}",
           studio,
-          decision.rule().replaceAll("[\n\r]", "_"));
+          decision.rule().replaceAll(LINE_BREAK, "_"));
       throw new ContentPolicyRefusedException(decision);
     }
     return decision;
