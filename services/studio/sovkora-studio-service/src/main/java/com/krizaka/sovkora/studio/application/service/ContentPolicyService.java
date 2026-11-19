@@ -133,10 +133,8 @@ public class ContentPolicyService {
                     w.replaceAll(LINE_BREAK, "_"),
                     studio));
     if (decision.refused()) {
-      logger.info(
-          "Content policy refused studio {} run: {}",
-          studio,
-          decision.rule().replaceAll(LINE_BREAK, "_"));
+      String rule = decision.rule().replaceAll(LINE_BREAK, "_");
+      logger.info("Content policy refused studio {} run: {}", studio, rule);
       throw new ContentPolicyRefusedException(decision);
     }
     return decision;

@@ -101,12 +101,11 @@ public class WorkerOutputService {
       throw new IllegalStateException("the output of job " + jobId + " could not be written");
     }
     // Both are already one closed-format word (checked above); the line breaks are still replaced
-    // where they are logged, so the log never depends on that check staying (Sonar S5145).
-    logger.info(
-        "Stored {} bytes of {}/{} handed over by a worker",
-        data.length,
-        jobId.replaceAll("[\n\r]", "_"),
-        filename.replaceAll("[\n\r]", "_"));
+    // where they are logged, so the log never depends on that check staying (Sonar S5145). The
+    // size is not logged: Sonar's taint follows the length of the request's bytes.
+    String loggedJob = jobId.replaceAll("[\n\r]", "_");
+    String loggedFile = filename.replaceAll("[\n\r]", "_");
+    logger.info("Stored the output {}/{} handed over by a worker", loggedJob, loggedFile);
     return url;
   }
 

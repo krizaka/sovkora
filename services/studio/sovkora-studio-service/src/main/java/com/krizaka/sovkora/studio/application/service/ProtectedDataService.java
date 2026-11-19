@@ -184,11 +184,14 @@ public class ProtectedDataService {
           installation.id(), actorId, installation.studioKey(), dataClass, true);
     }
     if (!runs.isEmpty() || removedInstallations > 0 || conversations > 0) {
-      // Counts only: what was erased is never logged, and neither is who asked.
+      // Counts only: what was erased is never logged, and neither is who asked. The pack key comes
+      // from the URL: its line breaks are replaced, so it stays one log line (Sonar S5145).
+      String pack = packKey.replaceAll("[\n\r]", "_");
+      int entries = runs.size();
       logger.info(
           "Erased pack {}: {} entries, {} installations, {} jobs, {} conversations",
-          packKey.replaceAll("[\n\r]", "_"), // a key from the URL: one log line (S5145)
-          runs.size(),
+          pack,
+          entries,
           removedInstallations,
           jobs,
           conversations);
