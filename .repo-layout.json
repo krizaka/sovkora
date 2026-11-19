@@ -6,6 +6,10 @@
       "why": "the clients of the pnpm workspace: web, mobile, CLI, desktop (ADR-029)"
     },
     {
+      "path": "crates",
+      "why": "the Cargo workspace of the Tauri-free Rust crates the Mac app and a headless runner share (krizaka-internal#4344)"
+    },
+    {
       "path": "services",
       "why": "the Spring Boot services, one folder per bounded context (ADR-029 N4)"
     },

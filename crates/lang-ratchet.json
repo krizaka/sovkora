@@ -1,0 +1,18 @@
+{
+  "clippy:clippy::assert_is_empty": 8,
+  "clippy:clippy::assigning_clones": 6,
+  "clippy:clippy::case_sensitive_file_extension_comparisons": 2,
+  "clippy:clippy::cast_possible_truncation": 6,
+  "clippy:clippy::cast_possible_wrap": 6,
+  "clippy:clippy::expect_used": 5,
+  "clippy:clippy::format_collect": 3,
+  "clippy:clippy::format_push_string": 4,
+  "clippy:clippy::inefficient_to_string": 6,
+  "clippy:clippy::manual_assert_eq": 1,
+  "clippy:clippy::map_unwrap_or": 6,
+  "clippy:clippy::needless_pass_by_value": 2,
+  "clippy:clippy::redundant_closure_for_method_calls": 4,
+  "clippy:clippy::similar_names": 2,
+  "clippy:clippy::unnecessary_wraps": 2,
+  "clippy:clippy::unwrap_used": 230
+}

@@ -16,7 +16,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 # the code agent core (ADR-093), Tauri-free, shared with the headless runner (krizaka-internal#4344)
-sovkora-code = { path = "../../../crates/sovkora-code" }
+sovkora-code = { version = "0.1.0", path = "../../../crates/sovkora-code" }
 krizaka-rust = { version = "0.4.0", git = "https://github.com/krizaka/krizaka-rust", tag = "v0.4.0", features = ["keychain"] }
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-dialog = "2"

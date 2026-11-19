@@ -159,12 +159,20 @@
       "dependsOn": []
     },
     {
+      "name": "code",
+      "path": "crates/sovkora-code",
+      "kind": "cargo",
+      "layer": "app",
+      "description": "The code agent core (Rust, no Tauri): the granted repository, the visibility filter and redactor, the read tools, per-hunk diffs, sandboxed checks and the agent loop, shared by the Mac app and a headless runner.",
+      "dependsOn": []
+    },
+    {
       "name": "desktop",
       "path": "apps/desktop",
       "kind": "pnpm",
       "layer": "app",
       "description": "The Sovkora desktop app (Tauri 2, Rust and React): the local runtime, the code workspace and the Mac engines, one signed app.",
-      "dependsOn": []
+      "dependsOn": ["code"]
     },
     {
       "name": "packs",

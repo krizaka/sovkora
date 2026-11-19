@@ -26,6 +26,16 @@ jobs:
       prepare: node ../scripts/build-sidecar.mjs
       timeout-minutes: 30
 
+  # The Tauri-free crates the Mac app depends on (krizaka-internal#4344): macOS, so the Seatbelt checks run instead of skipping.
+  rust-crates:
+    permissions:
+      contents: read
+    uses: krizaka/.github/.github/workflows/rust-quality.yml@e5f2d98652cbeed7942a56667d4046ee6ed573d1 # main
+    with:
+      working-directory: crates
+      runs-on: macos-latest
+      timeout-minutes: 30
+
   python-media:
     permissions:
       contents: read
