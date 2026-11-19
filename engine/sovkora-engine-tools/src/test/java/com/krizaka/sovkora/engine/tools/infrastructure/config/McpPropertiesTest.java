@@ -40,7 +40,7 @@ class McpPropertiesTest {
 
   @Test
   void aDeclarationWithoutACommandFailsTheBinding() {
-    assertThatThrownBy(() -> bind(Map.of("sovkora.mcp.stdio.broken.args[0]", "-y")))
-        .isInstanceOf(BindException.class);
+    Map<String, String> withoutCommand = Map.of("sovkora.mcp.stdio.broken.args[0]", "-y");
+    assertThatThrownBy(() -> bind(withoutCommand)).isInstanceOf(BindException.class);
   }
 }
