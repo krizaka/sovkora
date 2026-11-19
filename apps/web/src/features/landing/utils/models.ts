@@ -17,7 +17,8 @@ export type Capability =
   | "speech-to-text"
   | "text-to-speech"
   | "music"
-  | "video-to-audio";
+  | "video-to-audio"
+  | "video-upscale";
 export type RunsOn = "local" | "provider";
 export type ModelStatus = "default" | "available" | "planned";
 
@@ -54,6 +55,7 @@ const CAPABILITY_ORDER: Capability[] = [
   "text-to-speech",
   "music",
   "video-to-audio",
+  "video-upscale",
 ];
 export const capabilitiesOf = (models: readonly ModelEntry[]): Capability[] =>
   CAPABILITY_ORDER.filter((c) => models.some((m) => m.capabilities.includes(c)));
