@@ -105,15 +105,18 @@ public class MediaFileStore {
       return "";
     }
     try {
+      // Closed format first (krizaka-internal#4361): each id and the file name must be one plain
+      // segment, the same rule as the durable key, so `..`, a separator or a line break is refused
+      // before anything touches the disk.
+      String durableKey = AssetKeys.jobFile(storage.tenant(), userId, jobId, filename);
       Path root = PathResolver.resolve(uploadDir).toAbsolutePath().normalize();
-      Path dir = root.resolve(userId).resolve(jobId).resolve("output");
-
+      Path dir = root.resolve(userId).resolve(jobId).resolve("output").normalize();
       Path filePath = dir.resolve(filename).normalize();
-      // Containment before the write, not after. Today `filename` is a literal and the ids come
-      // off the broker, so this is not reachable — but it guards a *write* primitive, and the
-      // cost of the guarantee not depending on every future caller is one comparison.
-      if (!filePath.startsWith(root)) {
-        logger.error("Refused to write outside the upload root: {}", filePath);
+      // Containment of the directory itself, not only of the file: `createDirectories` is a write
+      // too, and a file that lands back inside the root says nothing about the directories made on
+      // the way there.
+      if (!dir.startsWith(root) || !filePath.startsWith(dir)) {
+        logger.error("Refused to write outside the upload root");
         return "";
       }
 
@@ -124,8 +127,7 @@ public class MediaFileStore {
       if (durableAssetStore.enabled()) {
         // The sealed envelope, not the plaintext. A copy that could not be made is a failed save:
         // an output reported stored here and gone at the next deploy is the bug this prevents.
-        durableAssetStore.put(
-            AssetKeys.jobFile(storage.tenant(), userId, jobId, filename), filePath);
+        durableAssetStore.put(durableKey, filePath);
       }
 
       logger.info("Saved generated media file to: {}", filePath);

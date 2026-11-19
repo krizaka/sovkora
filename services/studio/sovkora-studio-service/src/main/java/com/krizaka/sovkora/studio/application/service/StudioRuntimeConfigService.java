@@ -28,6 +28,14 @@ public class StudioRuntimeConfigService {
   /** The longest history page one request may read. @fixed: a page size, not a business knob. */
   static final int HISTORY_MAX = 200;
 
+  // Constant SQL (krizaka-internal#4361, Sonar S2077): the key and the limit are bound, never
+  // formatted into the text.
+  private static final String HISTORY_SELECT =
+      "SELECT at, actor_id, config_key, before_value, after_value FROM studio_runtime_config_audit";
+  private static final String HISTORY_ALL = HISTORY_SELECT + " ORDER BY at DESC, id DESC LIMIT ?";
+  private static final String HISTORY_OF_KEY =
+      HISTORY_SELECT + " WHERE config_key = ? ORDER BY at DESC, id DESC LIMIT ?";
+
   private static final String SELECT_COLUMNS =
       "SELECT config_key, config_value, value_type, description, default_value, min_value,"
           + " max_value, max_items FROM studio_runtime_config";
@@ -146,16 +154,9 @@ public class StudioRuntimeConfigService {
                 rs.getString("config_key"),
                 rs.getString("before_value"),
                 rs.getString("after_value"));
-    String select =
-        "SELECT at, actor_id, config_key, before_value, after_value"
-            + " FROM studio_runtime_config_audit";
     return key == null || key.isBlank()
-        ? jdbcTemplate.query(select + " ORDER BY at DESC, id DESC LIMIT ?", change, bounded)
-        : jdbcTemplate.query(
-            select + " WHERE config_key = ? ORDER BY at DESC, id DESC LIMIT ?",
-            change,
-            key,
-            bounded);
+        ? jdbcTemplate.query(HISTORY_ALL, change, bounded)
+        : jdbcTemplate.query(HISTORY_OF_KEY, change, key, bounded);
   }
 
   private static String encode(JsonNode submitted, ConfigRow config) {

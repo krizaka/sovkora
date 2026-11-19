@@ -7,11 +7,11 @@ import com.krizaka.sovkora.studio.domain.exception.PackNotFoundException;
 import com.krizaka.sovkora.studio.domain.exception.RunNotFoundException;
 import com.krizaka.sovkora.studio.domain.model.ConsentNotice;
 import com.krizaka.sovkora.studio.domain.model.ErasureReceipt;
+import com.krizaka.sovkora.studio.domain.model.LogText;
 import com.krizaka.sovkora.studio.domain.policy.CrisisResources;
 import com.krizaka.sovkora.studio.domain.port.ConversationErasureClient;
 import com.krizaka.sovkora.studio.domain.port.JobErasureClient;
 import com.krizaka.sovkora.studio.infrastructure.support.ColumnValueResolver;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -54,6 +54,21 @@ public class ProtectedDataService {
 
   private static final String RETENTION_KEY = "retention.sensitive-run-days";
   private static final int RETENTION_FALLBACK_DAYS = 30;
+
+  // Every statement that takes a list of ids binds it as one array parameter (Sonar S2077,
+  // krizaka-internal#4361): the SQL text is a compile-time constant, and no value can reach it.
+  private static final String DELETE_INSTALLATIONS =
+      "DELETE FROM studio_installation WHERE actor_id = ? AND id = ANY(?::uuid[])";
+  private static final String SELECT_JOB_IDS =
+      "SELECT DISTINCT job_id FROM studio_run_step"
+          + " WHERE job_id IS NOT NULL AND run_id = ANY(?::uuid[])";
+  private static final String DELETE_WEBHOOK_DELIVERIES =
+      "DELETE FROM studio_webhook_delivery WHERE run_id = ANY(?::uuid[])";
+  private static final String DELETE_OUTBOX_MESSAGES =
+      "DELETE FROM studio_outbox WHERE event_type NOT LIKE 'job.cancel.%'"
+          + " AND aggregate_id = ANY(?::varchar[])";
+  private static final String DELETE_RUNS =
+      "DELETE FROM studio_run WHERE actor_id = ? AND id = ANY(?::uuid[])";
 
   private final JdbcTemplate jdbcTemplate;
   private final ColumnValueResolver columns;
@@ -161,10 +176,9 @@ public class ProtectedDataService {
     if (!installations.isEmpty()) {
       removedInstallations =
           jdbcTemplate.update(
-              "DELETE FROM studio_installation WHERE actor_id = ? AND id IN ("
-                  + placeholders(installations.size())
-                  + ")",
-              args(actorId, installations.stream().map(Installation::id).toList()));
+              DELETE_INSTALLATIONS,
+              actorId,
+              uuidArray(installations.stream().map(Installation::id).toList()));
     }
     for (Installation installation : installations) {
       auditService.recordErased(
@@ -174,7 +188,7 @@ public class ProtectedDataService {
       // Counts only: what was erased is never logged, and neither is who asked.
       logger.info(
           "Erased pack {}: {} entries, {} installations, {} jobs, {} conversations",
-          packKey,
+          LogText.neutralise(packKey),
           runs.size(),
           removedInstallations,
           jobs,
@@ -242,31 +256,19 @@ public class ProtectedDataService {
         }
       }
     }
+    String[] runIds = uuidArray(ids);
     List<String> jobIds =
-        jdbcTemplate.query(
-            "SELECT DISTINCT job_id FROM studio_run_step WHERE job_id IS NOT NULL AND run_id IN ("
-                + placeholders(ids.size())
-                + ")",
-            (rs, rowNum) -> rs.getString(1),
-            ids.toArray());
+        jdbcTemplate.query(SELECT_JOB_IDS, (rs, rowNum) -> rs.getString(1), (Object) runIds);
     // First, and able to stop everything: if the plane that holds the files cannot erase them,
     // nothing of this service's is deleted either.
     int jobs = jobIds.isEmpty() ? 0 : jobErasure.erase(actorId, jobIds);
 
-    String in = placeholders(ids.size());
-    Object[] runArgs = ids.toArray();
-    jdbcTemplate.update(
-        "DELETE FROM studio_webhook_delivery WHERE run_id IN (" + in + ")", runArgs);
+    jdbcTemplate.update(DELETE_WEBHOOK_DELIVERIES, (Object) runIds);
     // The messages built from a run: its dispatch commands carry the person's words. A stop
     // command (job.cancel.*) carries a job id only and must still reach the executor.
-    jdbcTemplate.update(
-        "DELETE FROM studio_outbox WHERE event_type NOT LIKE 'job.cancel.%' AND aggregate_id IN ("
-            + in
-            + ")",
-        ids.stream().map(UUID::toString).toArray());
+    jdbcTemplate.update(DELETE_OUTBOX_MESSAGES, (Object) runIds);
     // Steps and events go with the run (ON DELETE CASCADE).
-    jdbcTemplate.update(
-        "DELETE FROM studio_run WHERE actor_id = ? AND id IN (" + in + ")", args(actorId, ids));
+    jdbcTemplate.update(DELETE_RUNS, actorId, runIds);
     return jobs;
   }
 
@@ -288,16 +290,12 @@ public class ProtectedDataService {
     return dataClass;
   }
 
-  private static String placeholders(int count) {
-    return String.join(",", java.util.Collections.nCopies(count, "?"));
-  }
-
-  /** The actor first, then the ids. */
-  private static Object[] args(String actorId, List<UUID> ids) {
-    List<Object> args = new ArrayList<>();
-    args.add(actorId);
-    args.addAll(ids);
-    return args.toArray();
+  /**
+   * The ids as one bound array parameter, for {@code = ANY(?::uuid[])}: a list of any length is one
+   * placeholder, so every statement of this service is a constant string.
+   */
+  private static String[] uuidArray(List<UUID> ids) {
+    return ids.stream().map(UUID::toString).toArray(String[]::new);
   }
 
   private record Installation(UUID id, String studioKey) {}

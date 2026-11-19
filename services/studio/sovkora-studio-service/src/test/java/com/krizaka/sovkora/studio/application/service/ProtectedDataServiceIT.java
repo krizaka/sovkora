@@ -410,6 +410,34 @@ class ProtectedDataServiceIT {
   }
 
   @Test
+  @DisplayName("the stop command of an erased run is kept, and nothing else of it in the outbox")
+  void theStopCommandOfAnErasedRunIsKept() {
+    UUID install = installation(ERIC, "guided-journaling");
+    UUID active = run(ERIC, "guided-journaling", install, WORDS, false);
+    UUID done = run(ERIC, "guided-journaling", install, WORDS, true);
+    jdbc.update(
+        "INSERT INTO studio_outbox (aggregate_id, event_type, payload)"
+            + " VALUES (?, 'job.cancel.text', '{}'::jsonb)",
+        active.toString());
+
+    service.eraseAll(ERIC, "bien-etre");
+
+    assertThat(
+            count(
+                "SELECT count(*) FROM studio_outbox WHERE aggregate_id IN (?, ?)",
+                active.toString(),
+                done.toString()))
+        .as("the one stop command, bound as one array with every other id")
+        .isOne();
+    assertThat(
+            count(
+                "SELECT count(*) FROM studio_outbox WHERE aggregate_id = ?"
+                    + " AND event_type = 'job.cancel.text'",
+                active.toString()))
+        .isOne();
+  }
+
+  @Test
   @DisplayName("a pack that holds no protected data, or no pack, has nothing to erase")
   void unknownOrStandardPackIsNotFound() {
     assertThatThrownBy(() -> service.eraseAll(ERIC, "trade"))

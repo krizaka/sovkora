@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.job.application.service;
 
+import com.krizaka.sovkora.job.domain.model.LogText;
 import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
 import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
@@ -100,7 +101,11 @@ public class WorkerOutputService {
     if (url == null || url.isEmpty()) {
       throw new IllegalStateException("the output of job " + jobId + " could not be written");
     }
-    logger.info("Stored {} bytes of {}/{} handed over by a worker", data.length, jobId, filename);
+    logger.info(
+        "Stored {} bytes of {}/{} handed over by a worker",
+        data.length,
+        LogText.neutralise(jobId),
+        LogText.neutralise(filename));
     return url;
   }
 
