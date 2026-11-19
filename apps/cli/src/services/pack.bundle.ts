@@ -179,7 +179,7 @@ function readTranslations(bundleDir: string): Record<string, unknown> {
     return {};
   }
   const translations: Record<string, unknown> = {};
-  for (const file of fs.readdirSync(dir).sort()) {
+  for (const file of fs.readdirSync(dir).sort((a, b) => a.localeCompare(b))) {
     if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
       continue;
     }

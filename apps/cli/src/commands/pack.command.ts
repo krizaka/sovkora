@@ -114,7 +114,7 @@ function bundleDirectories(root: string): string[] {
     .filter((entry) => entry.isDirectory())
     .map((entry) => path.join(root, entry.name))
     .filter((directory) => fs.existsSync(path.join(directory, "pack.yaml")))
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 }
 
 const installCommand = new Command("install")

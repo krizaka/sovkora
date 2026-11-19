@@ -31,7 +31,7 @@ function readInitDb(root: string): { files: string[]; sql: string } | null {
   const files = fs
     .readdirSync(dir)
     .filter((n) => n.endsWith(".sql"))
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
   if (files.length === 0) {
     return null;
   }

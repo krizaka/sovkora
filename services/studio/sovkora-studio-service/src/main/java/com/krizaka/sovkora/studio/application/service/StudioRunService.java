@@ -142,7 +142,7 @@ public class StudioRunService {
    */
   @Transactional
   public RunDetail start(UUID installationId, String actorId, Map<String, Object> inputs) {
-    return start(installationId, actorId, inputs, Optional.empty());
+    return startInstallation(installationId, actorId, inputs, Optional.empty());
   }
 
   /**
@@ -158,6 +158,18 @@ public class StudioRunService {
    */
   @Transactional
   public RunDetail start(
+      UUID installationId,
+      String actorId,
+      Map<String, Object> inputs,
+      Optional<String> productKey) {
+    return startInstallation(installationId, actorId, inputs, productKey);
+  }
+
+  /**
+   * The body of both installation entries. Private, so each public entry opens the transaction
+   * through the proxy and none calls another through {@code this} (krizaka-internal#4361).
+   */
+  private RunDetail startInstallation(
       UUID installationId,
       String actorId,
       Map<String, Object> inputs,
@@ -209,7 +221,7 @@ public class StudioRunService {
    */
   @Transactional
   public RunDetail start(String studioKey, String actorId, Map<String, Object> inputs) {
-    return start(studioKey, actorId, inputs, Optional.empty());
+    return startStudio(studioKey, actorId, inputs, Optional.empty());
   }
 
   /**
@@ -226,9 +238,17 @@ public class StudioRunService {
   @Transactional
   public RunDetail start(
       String studioKey, String actorId, Map<String, Object> inputs, Optional<String> productKey) {
+    return startStudio(studioKey, actorId, inputs, productKey);
+  }
+
+  /**
+   * The body of both Studio-key entries, private for the same reason as {@link #startInstallation}.
+   */
+  private RunDetail startStudio(
+      String studioKey, String actorId, Map<String, Object> inputs, Optional<String> productKey) {
     Target target = resolve(studioKey, actorId);
     if (target.installationId() != null) {
-      return start(target.installationId(), actorId, inputs, productKey);
+      return startInstallation(target.installationId(), actorId, inputs, productKey);
     }
     return launch(null, studioKey, target.version(), Map.of(), actorId, inputs, productKey);
   }
@@ -805,7 +825,7 @@ public class StudioRunService {
         reason == null ? "" : reason,
         runId,
         RunStepStatus.PENDING.name());
-    cancel(runId, actorId);
+    cancelRun(runId, actorId);
   }
 
   private void requireAwaitingInput(UUID runId, String actorId) {
@@ -828,6 +848,11 @@ public class StudioRunService {
    */
   @Transactional
   public void cancel(UUID runId, String actorId) {
+    cancelRun(runId, actorId);
+  }
+
+  /** The body of {@link #cancel}, which {@link #deny} and a called run reach without the proxy. */
+  private void cancelRun(UUID runId, String actorId) {
     RunDetail run = find(runId, actorId).orElseThrow(() -> new RunNotFoundException(runId));
     if (run.finishedAt() != null) {
       return;
@@ -838,7 +863,7 @@ public class StudioRunService {
     if (parent != null) {
       // A called run holds nothing of its own: cancelling it is cancelling the request it is part
       // of, whose hold this releases and whose stop reaches it.
-      cancel(parent, actorId);
+      cancelRun(parent, actorId);
       return;
     }
     // Told to the executors first, in this transaction (outbox): a worker that is rendering stops

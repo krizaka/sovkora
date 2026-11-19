@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.conversation.application.service;
 
+import com.krizaka.sovkora.conversation.domain.model.LogText;
 import com.krizaka.sovkora.conversation.domain.model.asset.AssetRef;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
 import com.krizaka.sovkora.conversation.infrastructure.support.EncryptedFileResource;
@@ -82,13 +83,20 @@ public class AssetService {
     }
     String owner = job.get().userId();
     if (!isAdmin && !Objects.equals(owner, actorId)) {
-      logger.info("Denied asset read: actor {} is not the owner of job {}", actorId, jobId);
+      logger.info(
+          "Denied asset read: actor {} is not the owner of job {}",
+          actorId,
+          LogText.neutralise(jobId));
       return Optional.empty();
     }
     if (isAdmin && !Objects.equals(owner, actorId)) {
       // Logged rather than silent: an administrator reading someone else's media is legitimate
       // (the jobs dashboard needs it) and is exactly the access an audit trail must retain.
-      logger.info("Admin {} is reading an asset owned by {} (job {})", actorId, owner, jobId);
+      logger.info(
+          "Admin {} is reading an asset owned by {} (job {})",
+          actorId,
+          owner,
+          LogText.neutralise(jobId));
     }
 
     Path uploadRoot = PathResolver.resolve(routerProperties.uploads().directory());
@@ -96,7 +104,8 @@ public class AssetService {
     try {
       file = new AssetRef(owner, jobId, filename).resolveUnder(uploadRoot);
     } catch (IllegalArgumentException ex) {
-      logger.info("Rejected asset reference for job {}: {}", jobId, ex.getMessage());
+      logger.info(
+          "Rejected asset reference for job {}: {}", LogText.neutralise(jobId), ex.getMessage());
       return Optional.empty();
     }
 
@@ -126,12 +135,18 @@ public class AssetService {
           durableAssetStore.fetch(
               AssetKeys.jobFile(storage.tenant(), owner, jobId, filename), file);
       if (restored) {
-        logger.info("Restored asset {}/{} from the durable store", jobId, filename);
+        logger.info(
+            "Restored asset {}/{} from the durable store",
+            LogText.neutralise(jobId),
+            LogText.neutralise(filename));
       }
       return restored;
     } catch (IOException | IllegalArgumentException ex) {
       logger.warn(
-          "Durable store could not serve asset {}/{}: {}", jobId, filename, ex.getMessage());
+          "Durable store could not serve asset {}/{}: {}",
+          LogText.neutralise(jobId),
+          LogText.neutralise(filename),
+          ex.getMessage());
       return false;
     }
   }

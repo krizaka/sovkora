@@ -166,6 +166,24 @@ class ProtectedConversationIT extends AbstractContainerIntegrationTest {
   }
 
   @Test
+  @DisplayName(
+      "an injection string as the actor or the pack is a value, never SQL: it erases nothing")
+  void anInjectionStringIsInert() {
+    conversation("conv-a", ERIC, WORDS, true);
+    conversation("conv-other", OTHER, OTHER_WORDS, true);
+    String injection = "' OR '1'='1";
+
+    assertThat(service.eraseOf(injection, "bien-etre")).isEqualTo(new Erased(0, 0));
+    assertThat(service.eraseOf(ERIC, injection)).isEqualTo(new Erased(0, 0));
+    assertThat(service.eraseOf(ERIC + "') OR ('1'='1", "bien-etre' OR '1'='1"))
+        .isEqualTo(new Erased(0, 0));
+
+    assertThat(tablesMentioning(WORDS)).as("Eric's turns are untouched").isPositive();
+    assertThat(tablesMentioning(OTHER_WORDS)).as("somebody else's turns").isPositive();
+    assertThat(count("SELECT count(*) FROM orazaka_protected_conversation")).isEqualTo(2);
+  }
+
+  @Test
   @DisplayName("a conversation ages out after the retention window, counted from its last turn")
   void agesOut() {
     conversation("conv-old", ERIC, WORDS, true);

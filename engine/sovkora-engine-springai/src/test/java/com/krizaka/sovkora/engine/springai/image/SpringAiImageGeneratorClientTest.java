@@ -306,8 +306,12 @@ public class SpringAiImageGeneratorClientTest {
 
   @org.junit.jupiter.api.Test
   void requireRealImage_acceptsAPictureOrAHostedUrl() {
-    SpringAiImageGeneratorClient.requireRealImage(new byte[200_000], null);
-    SpringAiImageGeneratorClient.requireRealImage(new byte[0], "https://cdn.example/x.png");
+    org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+        () -> SpringAiImageGeneratorClient.requireRealImage(new byte[200_000], null));
+    org.junit.jupiter.api.Assertions.assertDoesNotThrow(
+        () ->
+            SpringAiImageGeneratorClient.requireRealImage(
+                new byte[0], "https://cdn.example/x.png"));
   }
 
   @Test

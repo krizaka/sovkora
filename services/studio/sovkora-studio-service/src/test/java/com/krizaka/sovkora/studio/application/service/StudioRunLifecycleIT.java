@@ -898,6 +898,58 @@ class StudioRunLifecycleIT {
   // ── §15: install → run → step outcomes → settle ───────────────────────────
 
   @Test
+  @DisplayName(
+      "[#4361] a run started through either short entry is one transaction: a failed dispatch"
+          + " leaves no run behind")
+  void aShortStartEntryRollsBackAsOne() {
+    UUID installation = install();
+    Map<String, Object> inputs = Map.of("photos", List.of("p1", "p2"), "trade", "plombier");
+
+    executor.failSubmit = new IllegalStateException("the outbox refused the second dispatch");
+    try {
+      assertThrows(
+          IllegalStateException.class, () -> runService.start(installation, ACTOR, inputs));
+      assertThrows(IllegalStateException.class, () -> runService.start(STUDIO_KEY, ACTOR, inputs));
+    } finally {
+      executor.failSubmit = null;
+    }
+
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject("SELECT count(*) FROM studio_run", Integer.class),
+        "the run, its steps and its first dispatch roll back together");
+    assertEquals(
+        0, jdbcTemplate.queryForObject("SELECT count(*) FROM studio_run_step", Integer.class));
+  }
+
+  @Test
+  @DisplayName(
+      "[#4361] a step outcome applied through the short entry rolls back with the advance that"
+          + " failed after it")
+  void aShortOutcomeEntryRollsBackAsOne() {
+    RunDetail run = startRun();
+    List<String> fanOut = List.copyOf(executor.dispatched);
+    sagaService.applyOutcome(fanOut.get(0), Map.of("content", "ok"), null);
+
+    executor.failSubmit = new IllegalStateException("the outbox refused the dependants");
+    try {
+      assertThrows(
+          IllegalStateException.class,
+          () -> sagaService.applyOutcome(fanOut.get(1), Map.of("content", "ok"), null));
+    } finally {
+      executor.failSubmit = null;
+    }
+
+    assertEquals(
+        RunStepStatus.RUNNING.name(),
+        jdbcTemplate.queryForObject(
+            "SELECT status FROM studio_run_step WHERE job_id = ?", String.class, fanOut.get(1)),
+        "the outcome is not recorded when the advance it triggered failed");
+    assertEquals(RunStatus.RUNNING, runService.find(run.id(), ACTOR).orElseThrow().status());
+    assertEquals(2, executor.dispatched.size(), "nothing was dispatched past the failure");
+  }
+
+  @Test
   @DisplayName("[§15] install → run fans out, advances on outcomes, and reaches SUCCEEDED")
   void installRunSettle() {
     RunDetail run = startRun();
@@ -2339,8 +2391,14 @@ class StudioRunLifecycleIT {
     Map<String, Object> lastInputs = Map.of();
     Optional<String> lastProduct = Optional.empty();
 
+    /** When set, every submit throws it: a dispatch the outbox refused. */
+    volatile RuntimeException failSubmit;
+
     @Override
     public String submit(StepDispatch dispatch) {
+      if (failSubmit != null) {
+        throw failSubmit;
+      }
       String jobId = UUID.randomUUID().toString();
       dispatched.add(jobId);
       lastInputs = dispatch.resolvedInputs();

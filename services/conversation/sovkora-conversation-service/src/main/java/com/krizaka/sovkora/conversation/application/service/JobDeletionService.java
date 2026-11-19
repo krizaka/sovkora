@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.conversation.application.service;
 
+import com.krizaka.sovkora.conversation.domain.model.LogText;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
 import com.krizaka.sovkora.conversation.infrastructure.support.PathResolver;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
@@ -85,7 +86,7 @@ public class JobDeletionService {
     jobs.updateJobStatus(jobId, "DELETED", Map.of(), null);
     logger.info(
         "Job {} of {} deleted by {}{}",
-        jobId,
+        LogText.neutralise(jobId),
         owner,
         actorId,
         admin && !owner.equals(actorId) ? " (admin)" : "");

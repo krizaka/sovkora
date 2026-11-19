@@ -33,6 +33,11 @@ public class SpendLedgerStore implements SpendLedger, SpendCapAdministration {
   @Override
   @Transactional(readOnly = true)
   public BigDecimal spentIn(SpendScope scope, YearMonth month) {
+    return currentSpend(scope, month);
+  }
+
+  /** The month's spend, read inside whichever transaction the caller opened (no {@code this}). */
+  private BigDecimal currentSpend(SpendScope scope, YearMonth month) {
     return spend
         .findByEnvironmentAndProductKeyAndMonth(
             scope.environment(), scope.productKey(), month.atDay(1))
@@ -50,7 +55,7 @@ public class SpendLedgerStore implements SpendLedger, SpendCapAdministration {
   @Transactional
   public BigDecimal add(SpendScope scope, YearMonth month, BigDecimal usd) {
     spend.add(UUID.randomUUID(), scope.environment(), scope.productKey(), month.atDay(1), usd);
-    return spentIn(scope, month);
+    return currentSpend(scope, month);
   }
 
   @Override

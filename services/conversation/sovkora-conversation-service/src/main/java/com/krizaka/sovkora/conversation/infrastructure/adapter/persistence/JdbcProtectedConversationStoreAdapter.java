@@ -16,6 +16,39 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Component
 class JdbcProtectedConversationStoreAdapter implements ProtectedConversationStore {
 
+  /*
+   * Every statement is a constant: the actor, the pack and the window are bound parameters, never
+   * text of the query (krizaka-internal#4361). The subquery is written out in each statement rather
+   * than concatenated in at run time, so no SQL is ever assembled from a variable.
+   */
+  private static final String DELETE_MESSAGES_OF =
+      """
+      DELETE FROM orazaka_chat_messages WHERE conversation_id IN
+        (SELECT conversation_id FROM orazaka_protected_conversation
+         WHERE actor_id = ? AND pack_key = ?)""";
+  private static final String DELETE_SESSIONS_OF =
+      """
+      DELETE FROM orazaka_chat_sessions WHERE user_id = ? AND id IN
+        (SELECT conversation_id FROM orazaka_protected_conversation
+         WHERE actor_id = ? AND pack_key = ?)""";
+  private static final String DELETE_INDEX_OF =
+      """
+      DELETE FROM orazaka_protected_conversation WHERE actor_id = ? AND pack_key = ?""";
+  private static final String DELETE_MESSAGES_OLDER_THAN =
+      """
+      DELETE FROM orazaka_chat_messages WHERE conversation_id IN
+        (SELECT conversation_id FROM orazaka_protected_conversation
+         WHERE last_seen_at < now() - make_interval(days => ?))""";
+  private static final String DELETE_SESSIONS_OLDER_THAN =
+      """
+      DELETE FROM orazaka_chat_sessions WHERE id IN
+        (SELECT conversation_id FROM orazaka_protected_conversation
+         WHERE last_seen_at < now() - make_interval(days => ?))""";
+  private static final String DELETE_INDEX_OLDER_THAN =
+      """
+      DELETE FROM orazaka_protected_conversation
+      WHERE last_seen_at < now() - make_interval(days => ?)""";
+
   private final JdbcTemplate jdbcTemplate;
   private final TransactionTemplate transaction;
 
@@ -43,24 +76,9 @@ class JdbcProtectedConversationStoreAdapter implements ProtectedConversationStor
   }
 
   private Erased deleteOf(String actorId, String packKey) {
-    String mine =
-        "SELECT conversation_id FROM orazaka_protected_conversation"
-            + " WHERE actor_id = ? AND pack_key = ?";
-    int messages =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_chat_messages WHERE conversation_id IN (" + mine + ")",
-            actorId,
-            packKey);
-    jdbcTemplate.update(
-        "DELETE FROM orazaka_chat_sessions WHERE user_id = ? AND id IN (" + mine + ")",
-        actorId,
-        actorId,
-        packKey);
-    int conversations =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_protected_conversation WHERE actor_id = ? AND pack_key = ?",
-            actorId,
-            packKey);
+    int messages = jdbcTemplate.update(DELETE_MESSAGES_OF, actorId, packKey);
+    jdbcTemplate.update(DELETE_SESSIONS_OF, actorId, actorId, packKey);
+    int conversations = jdbcTemplate.update(DELETE_INDEX_OF, actorId, packKey);
     return new Erased(conversations, messages);
   }
 
@@ -70,18 +88,9 @@ class JdbcProtectedConversationStoreAdapter implements ProtectedConversationStor
   }
 
   private Erased deleteOlderThan(int days) {
-    String old =
-        "SELECT conversation_id FROM orazaka_protected_conversation"
-            + " WHERE last_seen_at < now() - make_interval(days => ?)";
-    int messages =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_chat_messages WHERE conversation_id IN (" + old + ")", days);
-    jdbcTemplate.update("DELETE FROM orazaka_chat_sessions WHERE id IN (" + old + ")", days);
-    int conversations =
-        jdbcTemplate.update(
-            "DELETE FROM orazaka_protected_conversation"
-                + " WHERE last_seen_at < now() - make_interval(days => ?)",
-            days);
+    int messages = jdbcTemplate.update(DELETE_MESSAGES_OLDER_THAN, days);
+    jdbcTemplate.update(DELETE_SESSIONS_OLDER_THAN, days);
+    int conversations = jdbcTemplate.update(DELETE_INDEX_OLDER_THAN, days);
     return new Erased(conversations, messages);
   }
 }

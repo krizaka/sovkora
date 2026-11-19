@@ -136,11 +136,11 @@ export function discover(root) {
     return input;
   };
   for (const pack of readdirSync(root)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .filter((name) => existsSync(join(root, name, "pack.yaml")))) {
     const studios = join(root, pack, "studios");
     const covered = [];
-    for (const studio of readdirSync(studios).sort()) {
+    for (const studio of readdirSync(studios).sort((a, b) => a.localeCompare(b))) {
       const blueprintFile = join(studios, studio, "blueprint.json");
       if (!existsSync(blueprintFile)) continue;
       const key = `${pack}/${studio}`;

@@ -275,4 +275,38 @@ class ProxyControllerTest {
         .noneMatch(name -> name.toLowerCase(java.util.Locale.ROOT).startsWith("x-sovkora-"));
     assertThat(lastRequestHeaders.keySet()).anyMatch("X-Custom"::equalsIgnoreCase);
   }
+
+  @Test
+  @DisplayName(
+      "a path that would traverse out of its route is refused with a 400, the backend never called")
+  void aTraversingPathIsRefused() throws Exception {
+    lastRequestPath = "untouched";
+
+    HttpResponse<String> response =
+        client.send(
+            HttpRequest.newBuilder(edge("/api/v1/jobs/../../internal/v1/capabilities"))
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(400);
+    assertThat(lastRequestPath).isEqualTo("untouched");
+  }
+
+  @Test
+  @DisplayName(
+      "an encoded dot-segment is refused too: the backend would decode it into a traversal")
+  void anEncodedDotSegmentIsRefused() throws Exception {
+    lastRequestPath = "untouched";
+
+    HttpResponse<String> response =
+        client.send(
+            HttpRequest.newBuilder(edge("/api/v1/jobs/%2e%2e/%2e%2e/internal/v1/capabilities"))
+                .GET()
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(400);
+    assertThat(lastRequestPath).isEqualTo("untouched");
+  }
 }
