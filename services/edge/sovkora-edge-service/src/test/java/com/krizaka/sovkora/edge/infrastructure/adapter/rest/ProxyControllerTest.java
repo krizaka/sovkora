@@ -309,4 +309,38 @@ class ProxyControllerTest {
     assertThat(response.statusCode()).isEqualTo(400);
     assertThat(lastRequestPath).isEqualTo("untouched");
   }
+
+  @org.junit.jupiter.params.ParameterizedTest
+  @org.junit.jupiter.params.provider.ValueSource(
+      strings = {"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"})
+  @DisplayName("every method the proxy declares reaches the backend (krizaka-internal#4361)")
+  void everyDeclaredMethodIsForwarded(String method) throws Exception {
+    lastRequestPath = "untouched";
+
+    HttpResponse<String> response =
+        client.send(
+            HttpRequest.newBuilder(edge("/api/v1/anything"))
+                .method(method, HttpRequest.BodyPublishers.noBody())
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(200);
+    assertThat(lastRequestPath).isEqualTo("/api/v1/anything");
+  }
+
+  @Test
+  @DisplayName("TRACE is not a method the proxy forwards: the backend is never called")
+  void traceIsNotForwarded() throws Exception {
+    lastRequestPath = "untouched";
+
+    HttpResponse<String> response =
+        client.send(
+            HttpRequest.newBuilder(edge("/api/v1/anything"))
+                .method("TRACE", HttpRequest.BodyPublishers.noBody())
+                .build(),
+            HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isGreaterThanOrEqualTo(400);
+    assertThat(lastRequestPath).isEqualTo("untouched");
+  }
 }
