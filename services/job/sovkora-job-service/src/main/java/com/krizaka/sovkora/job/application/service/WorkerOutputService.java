@@ -1,6 +1,5 @@
 package com.krizaka.sovkora.job.application.service;
 
-import com.krizaka.sovkora.job.domain.model.LogText;
 import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
 import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
@@ -101,11 +100,13 @@ public class WorkerOutputService {
     if (url == null || url.isEmpty()) {
       throw new IllegalStateException("the output of job " + jobId + " could not be written");
     }
+    // Both are already one closed-format word (checked above); the line breaks are still replaced
+    // where they are logged, so the log never depends on that check staying (Sonar S5145).
     logger.info(
         "Stored {} bytes of {}/{} handed over by a worker",
         data.length,
-        LogText.neutralise(jobId),
-        LogText.neutralise(filename));
+        jobId.replaceAll("[\n\r]", "_"),
+        filename.replaceAll("[\n\r]", "_"));
     return url;
   }
 

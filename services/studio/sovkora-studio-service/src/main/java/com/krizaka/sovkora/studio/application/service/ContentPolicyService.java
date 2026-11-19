@@ -3,7 +3,6 @@ package com.krizaka.sovkora.studio.application.service;
 import com.krizaka.sovkora.studio.domain.exception.ContentPolicyRefusedException;
 import com.krizaka.sovkora.studio.domain.model.ContentDecision;
 import com.krizaka.sovkora.studio.domain.model.ContentLabel;
-import com.krizaka.sovkora.studio.domain.model.LogText;
 import com.krizaka.sovkora.studio.infrastructure.support.RulesContentClassifier;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -119,19 +118,22 @@ public class ContentPolicyService {
       String actorId, String studioKey, Map<String, Object> inputs, List<String> providers) {
     ContentDecision decision = evaluate(actorId, inputs, providers);
     record(actorId, studioKey, decision, false);
+    // A studio key from the URL and rules named after caller-chosen providers: each is one line in
+    // the log, never a forged second one (Sonar S5145).
+    String studio = studioKey.replaceAll("[\n\r]", "_");
     decision
         .warnings()
         .forEach(
             w ->
                 logger.warn(
                     "Content policy warning ({}) for studio {}",
-                    LogText.neutralise(w),
-                    LogText.neutralise(studioKey)));
+                    w.replaceAll("[\n\r]", "_"),
+                    studio));
     if (decision.refused()) {
       logger.info(
           "Content policy refused studio {} run: {}",
-          LogText.neutralise(studioKey),
-          LogText.neutralise(decision.rule()));
+          studio,
+          decision.rule().replaceAll("[\n\r]", "_"));
       throw new ContentPolicyRefusedException(decision);
     }
     return decision;

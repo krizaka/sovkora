@@ -7,7 +7,6 @@ import com.krizaka.sovkora.studio.domain.exception.PackNotFoundException;
 import com.krizaka.sovkora.studio.domain.exception.RunNotFoundException;
 import com.krizaka.sovkora.studio.domain.model.ConsentNotice;
 import com.krizaka.sovkora.studio.domain.model.ErasureReceipt;
-import com.krizaka.sovkora.studio.domain.model.LogText;
 import com.krizaka.sovkora.studio.domain.policy.CrisisResources;
 import com.krizaka.sovkora.studio.domain.port.ConversationErasureClient;
 import com.krizaka.sovkora.studio.domain.port.JobErasureClient;
@@ -188,7 +187,7 @@ public class ProtectedDataService {
       // Counts only: what was erased is never logged, and neither is who asked.
       logger.info(
           "Erased pack {}: {} entries, {} installations, {} jobs, {} conversations",
-          LogText.neutralise(packKey),
+          packKey.replaceAll("[\n\r]", "_"), // a key from the URL: one log line (S5145)
           runs.size(),
           removedInstallations,
           jobs,
