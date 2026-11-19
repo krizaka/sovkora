@@ -217,6 +217,24 @@
       "lastVerified": null
     },
     {
+      "id": "flux-1-schnell",
+      "name": "FLUX.1 [schnell] (Q8_0)",
+      "vendor": "Black Forest Labs",
+      "family": "FLUX.1 schnell",
+      "capabilities": ["image"],
+      "runsOn": "local",
+      "runtime": "stable-diffusion.cpp · CUDA (24 GB)",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/black-forest-labs/FLUX.1-schnell"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
       "id": "v1-5-pruned-emaonly",
       "name": "Stable Diffusion 1.5",
       "vendor": "Stability AI",
@@ -246,6 +264,24 @@
       "licence": {
         "name": "Apache-2.0",
         "url": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo/blob/main/README.md"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "kokoro-82m",
+      "name": "Kokoro 82M (GPU host)",
+      "vendor": "hexgrad",
+      "family": "Kokoro",
+      "capabilities": ["text-to-speech"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/hexgrad/Kokoro-82M"
       },
       "commercialUse": "yes",
       "contextWindow": null,
@@ -343,6 +379,24 @@
       "lastVerified": null
     },
     {
+      "id": "ltx-video-0.9.8-13b-distilled",
+      "name": "LTX-Video 0.9.8 13B distilled (720p, GPU)",
+      "vendor": "Lightricks",
+      "family": "LTX-Video",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA (80 GB)",
+      "openWeights": true,
+      "licence": {
+        "name": "LTX-Video Open Weights License 0.X",
+        "url": "https://huggingface.co/Lightricks/LTX-Video-0.9.8-13B-distilled/blob/main/LTX-Video-Open-Weights-License-0.X.txt"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
       "id": "stable-video-diffusion-img2vid-xt",
       "name": "Stable Video Diffusion XT (heavy, >64GB)",
       "vendor": "Stability AI",
@@ -379,6 +433,60 @@
       "lastVerified": null
     },
     {
+      "id": "wan2.2-i2v-a14b",
+      "name": "Wan 2.2 I2V A14B (720p, 4-step distill)",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.2",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA (80 GB)",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "wan2.2-i2v-a14b-hq",
+      "name": "Wan 2.2 I2V A14B (720p, 40 steps)",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.2",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA (80 GB)",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "wan2.2-t2v-a14b",
+      "name": "Wan 2.2 T2V A14B (720p, 80 GB GPU)",
+      "vendor": "Alibaba (Wan-AI)",
+      "family": "Wan 2.2",
+      "capabilities": ["video"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA (80 GB)",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B-Diffusers"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
       "id": "wan2.2-ti2v-5b",
       "name": "Wan 2.2 TI2V 5B",
       "vendor": "Alibaba (Wan-AI)",
@@ -397,8 +505,26 @@
       "lastVerified": null
     },
     {
-      "id": "deepseek-v4-pro",
-      "name": "DeepSeek V4 Pro",
+      "id": "seedvr2-3b",
+      "name": "SeedVR2 3B (video upscale, GPU)",
+      "vendor": "ByteDance Seed",
+      "family": "SeedVR2",
+      "capabilities": ["video-upscale"],
+      "runsOn": "local",
+      "runtime": "worker-media · CUDA",
+      "openWeights": true,
+      "licence": {
+        "name": "Apache-2.0",
+        "url": "https://huggingface.co/ByteDance-Seed/SeedVR2-3B"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "deepseek-v4-pro-0813",
+      "name": "DeepSeek V4 Pro (0813)",
       "vendor": "DeepSeek",
       "family": "DeepSeek V4",
       "capabilities": ["chat", "reasoning"],
@@ -505,6 +631,42 @@
       "lastVerified": null
     },
     {
+      "id": "seedance-2-5-i2v-1080p",
+      "name": "Seedance 2.5 I2V 1080p (Runpod)",
+      "vendor": "ByteDance",
+      "family": "Seedance 2.5",
+      "capabilities": ["video"],
+      "runsOn": "provider",
+      "runtime": "Runpod Public Endpoints",
+      "openWeights": false,
+      "licence": {
+        "name": "Provider terms (ByteDance Seedance, served by Runpod)",
+        "url": "https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "seedance-2-5-i2v-480p",
+      "name": "Seedance 2.5 I2V 480p (Runpod)",
+      "vendor": "ByteDance",
+      "family": "Seedance 2.5",
+      "capabilities": ["video"],
+      "runsOn": "provider",
+      "runtime": "Runpod Public Endpoints",
+      "openWeights": false,
+      "licence": {
+        "name": "Provider terms (ByteDance Seedance, served by Runpod)",
+        "url": "https://docs.runpod.io/public-endpoints/models/seedance-2-5-i2v"
+      },
+      "commercialUse": "conditions",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
       "id": "wan2-2-t2v-a14b",
       "name": "Wan 2.2 T2V A14B (serverless)",
       "vendor": "Alibaba (Wan-AI)",
@@ -516,6 +678,24 @@
       "licence": {
         "name": "Apache-2.0",
         "url": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B"
+      },
+      "commercialUse": "yes",
+      "contextWindow": null,
+      "status": "available",
+      "lastVerified": null
+    },
+    {
+      "id": "nemotron-nano-12b-v2-vl",
+      "name": "Nemotron Nano 12B v2 VL",
+      "vendor": "NVIDIA",
+      "family": "Nemotron Nano v2 VL",
+      "capabilities": ["vision", "chat"],
+      "runsOn": "provider",
+      "runtime": "DigitalOcean serverless inference",
+      "openWeights": true,
+      "licence": {
+        "name": "NVIDIA Open Model License",
+        "url": "https://huggingface.co/nvidia/NVIDIA-Nemotron-Nano-12B-v2-VL-BF16"
       },
       "commercialUse": "yes",
       "contextWindow": null,

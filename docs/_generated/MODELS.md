@@ -68,7 +68,7 @@ How fast and at what price they really run — time, cost and every parameter of
 
 | Model | Vendor · family | Does | Runs | Licence | Context | Status | Last verified |
 |:---|:---|:---|:---|:---|---:|:---|:---|
-| `deepseek-v4-pro` — DeepSeek V4 Pro | DeepSeek · DeepSeek V4 | Chat, Reasoning | DigitalOcean serverless inference | [MIT](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE) | 1,048,576 | available | — |
+| `deepseek-v4-pro-0813` — DeepSeek V4 Pro (0813) | DeepSeek · DeepSeek V4 | Chat, Reasoning | DigitalOcean serverless inference | [MIT](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE) | 1,048,576 | available | — |
 | `gemma-4-31B-it` — Gemma 4 31B | Google · Gemma 4 | Chat | DigitalOcean serverless inference | [Apache-2.0](https://huggingface.co/google/gemma-4-31B-it/blob/main/README.md) | 262,144 | available | — |
 | `llama-4-maverick` — Llama 4 Maverick | Meta · Llama 4 | Chat | DigitalOcean serverless inference | [Llama 4 Community Licence](https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE) — commercial use under conditions | 1,048,576 | available | — |
 | `mistral-3-14B` — Mistral 3 14B | Mistral AI · Mistral 3 | Chat | DigitalOcean serverless inference | [Apache-2.0](https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/blob/main/README.md) | 262,144 | available | — |
@@ -82,4 +82,4 @@ How fast and at what price they really run — time, cost and every parameter of
 
 ## In the catalogue, not published
 
-13 rows are aliases, runtime variants or test fixtures of the models above (`status = 'internal'`): `dolphin-llama3:8b`, `huihui_ai/qwen2.5-abliterate:7b`, `mdq100/Gemma3-Instruct-Abliterated:27b`, `tinyllama:latest`, `tts-1`, `apple-coreml-video-pipeline`, `ByteDance/AnimateDiff-Lightning`, `mlx-animatediff-lightning`, `mlx-stable-diffusion-video`, `stable-video-diffusion-img2vid-xt-mps-fp32`, `bakllava:latest`, `llama3.2-vision:latest`, `llava:v1.6`.
+14 rows are aliases, runtime variants or test fixtures of the models above (`status = 'internal'`): `deepseek-v4-pro`, `dolphin-llama3:8b`, `huihui_ai/qwen2.5-abliterate:7b`, `mdq100/Gemma3-Instruct-Abliterated:27b`, `tinyllama:latest`, `tts-1`, `apple-coreml-video-pipeline`, `ByteDance/AnimateDiff-Lightning`, `mlx-animatediff-lightning`, `mlx-stable-diffusion-video`, `stable-video-diffusion-img2vid-xt-mps-fp32`, `bakllava:latest`, `llama3.2-vision:latest`, `llava:v1.6`.
