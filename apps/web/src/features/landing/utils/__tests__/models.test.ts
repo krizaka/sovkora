@@ -21,6 +21,7 @@ const CAPS = [
   "text-to-speech",
   "music",
   "video-to-audio",
+  "video-upscale",
 ];
 
 describe("the registry the site shows (models.generated.json)", () => {

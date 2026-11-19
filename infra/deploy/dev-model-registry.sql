@@ -4,7 +4,7 @@
 -- infra/migrations/2026-10-14-model-registry.sql and 2026-10-15-commercial-defaults.sql. Idempotent; routing and
 -- defaults are never touched here.
 --
--- 'available' = the dev inference key was measured to serve the model (2026-10-14: mistral-3-14B, deepseek-v4-pro,
+-- 'available' = the dev inference key was measured to serve the model (2026-10-14: mistral-3-14B, deepseek-v4-pro (2026-11-18: deepseek-v4-pro-0813 replaces it),
 -- llama-4-maverick, gemma-4-31B-it and the gte-large-en-v1.5 embeddings). 'planned' would mean the row exists but the
 -- key does not serve it yet — the site publishes what this says. Licences and context windows are those of each card.
 -- =============================================================================
@@ -15,10 +15,18 @@ VALUES ('mistral-3-14B', 'Mistral 3 14B', 'chat', NULL, 'do-inference', FALSE)
 ON CONFLICT (model_name) DO NOTHING;
 UPDATE orazaka_models SET vendor = 'Mistral AI', family = 'Mistral 3', capabilities = 'chat', runs_on = 'provider', runtime = 'DigitalOcean serverless inference', open_weights = TRUE, licence = 'Apache-2.0', licence_url = 'https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512/blob/main/README.md', commercial_use = 'yes', context_window = 262144, status = 'available' WHERE model_name = 'mistral-3-14B';
 
+-- deepseek-v4-pro is retired by DigitalOcean on 2026-11-23 (404 after): its row leaves the catalogue ('internal') and deepseek-v4-pro-0813
+-- (same 1,048,576-token context, same licence) takes its place (krizaka-internal#4355).
+INSERT INTO orazaka_models (model_name, model_label, category, options, provider_name, is_default)
+VALUES ('deepseek-v4-pro-0813', 'DeepSeek V4 Pro (0813)', 'chat', NULL, 'do-inference', FALSE)
+ON CONFLICT (model_name) DO NOTHING;
+UPDATE orazaka_models SET vendor = 'DeepSeek', family = 'DeepSeek V4', capabilities = 'chat,reasoning', runs_on = 'provider', runtime = 'DigitalOcean serverless inference', open_weights = TRUE, licence = 'MIT', licence_url = 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE', commercial_use = 'yes', context_window = 1048576, status = 'available' WHERE model_name = 'deepseek-v4-pro-0813';
+
+-- Retired: DigitalOcean answers 404 for deepseek-v4-pro from 2026-11-23 (krizaka-internal#4355); 'internal' keeps it out of the published catalogue.
 INSERT INTO orazaka_models (model_name, model_label, category, options, provider_name, is_default)
 VALUES ('deepseek-v4-pro', 'DeepSeek V4 Pro', 'chat', NULL, 'do-inference', FALSE)
 ON CONFLICT (model_name) DO NOTHING;
-UPDATE orazaka_models SET vendor = 'DeepSeek', family = 'DeepSeek V4', capabilities = 'chat,reasoning', runs_on = 'provider', runtime = 'DigitalOcean serverless inference', open_weights = TRUE, licence = 'MIT', licence_url = 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE', commercial_use = 'yes', context_window = 1048576, status = 'available' WHERE model_name = 'deepseek-v4-pro';
+UPDATE orazaka_models SET vendor = 'DeepSeek', family = 'DeepSeek V4', capabilities = 'chat,reasoning', runs_on = 'provider', runtime = 'DigitalOcean serverless inference', open_weights = TRUE, licence = 'MIT', licence_url = 'https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/LICENSE', commercial_use = 'yes', context_window = 1048576, status = 'internal' WHERE model_name = 'deepseek-v4-pro';
 
 INSERT INTO orazaka_models (model_name, model_label, category, options, provider_name, is_default)
 VALUES ('llama-4-maverick', 'Llama 4 Maverick', 'chat', NULL, 'do-inference', FALSE)
