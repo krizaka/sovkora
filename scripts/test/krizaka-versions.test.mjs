@@ -21,6 +21,7 @@ const built = new Map([["krizaka-security", "0.3.0"], ["krizaka-spring-boot-star
 const central = (published) => async (c) => published.includes(`${c.artifactId}:${c.version}`);
 const CENTRAL = "https://repo1.maven.org/maven2";
 const SPACES = "https://artifacts.example.test/maven2";
+const noWait = async () => {};
 
 test("reads a pom's own coordinates, not the nested ones, and inherits the parent's version", () => {
   assert.deepEqual(projectCoordinates(KIT_POM), { artifactId: "krizaka-platform-kit", version: "0.3.0" });
@@ -60,7 +61,7 @@ test("Central unreachable never fails the build", async () => {
   const probe = { group: "com.krizaka", artifactId: "a", version: "1" };
   assert.equal(await onRepository(probe, [CENTRAL], async () => Promise.reject(new Error("offline"))), null);
   assert.equal(await onRepository(probe, [CENTRAL], async () => ({ status: 503 })), null);
-  assert.equal(await onRepository(probe, [CENTRAL], async () => ({ status: 404 })), false);
+  assert.equal(await onRepository(probe, [CENTRAL], async () => ({ status: 404 }), noWait), false);
   assert.deepEqual(await unprovided(claims({ built: new Map(), bom: bom("0.4.0"), parent: parentPom("0.2.0") }), async () => null), []);
 });
 
@@ -86,7 +87,7 @@ test("the BOM is read from the repositories: its text when published, null when 
   const ok = async (url) => { seen.push(url); return { status: 200, text: async () => "<project/>" }; };
   assert.equal(await publishedPom(probe, [CENTRAL], ok), "<project/>");
   assert.equal(seen[0], "https://repo1.maven.org/maven2/com/krizaka/krizaka-bom/0.12.0/krizaka-bom-0.12.0.pom");
-  assert.equal(await publishedPom(probe, [CENTRAL], async () => ({ status: 404 })), null);
+  assert.equal(await publishedPom(probe, [CENTRAL], async () => ({ status: 404 }), noWait), null);
   assert.equal(await publishedPom(probe, [CENTRAL], async () => Promise.reject(new Error("offline"))), null);
   assert.deepEqual(claims({ bom: null, parent: parentPom("0.12.0") }).map((c) => c.artifactId), ["krizaka-bom"]);
 });
@@ -101,7 +102,25 @@ test("#3445: the repository our builds publish to is asked first, from ARTIFACT_
   assert.equal(asked[0], `${SPACES}/com/krizaka/krizaka-bom/0.17.0/krizaka-bom-0.17.0.pom`);
   assert.equal(await publishedPom(probe, [SPACES], onlyOnSpaces), "<project/>");
   const nowhere = async () => ({ status: 404 });
-  assert.equal(await onRepository(probe, [SPACES, "https://repo1.maven.org/maven2"], nowhere), false);
+  assert.equal(await onRepository(probe, [SPACES, "https://repo1.maven.org/maven2"], nowhere, noWait), false);
+});
+
+test("sovkora#786: one 404 from Central is asked again before it fails the build; a 404 that stays fails", async () => {
+  const probe = { group: "com.krizaka", artifactId: "krizaka-bom", version: "0.12.0" };
+  const flaky = (misses) => {
+    let asked = 0;
+    return async () => ({ status: ++asked > misses ? 200 : 404, text: async () => "<project/>" });
+  };
+  const waits = [];
+  const wait = async (ms) => { waits.push(ms); };
+  assert.equal(await onRepository(probe, [CENTRAL], flaky(1), wait), true);
+  assert.equal(await onRepository(probe, [CENTRAL], flaky(2), wait), true);
+  assert.equal(await publishedPom(probe, [CENTRAL], flaky(1), wait), "<project/>");
+  assert.ok(waits.every((ms) => ms > 0), "each new ask waits first");
+  const asked = [];
+  const absent = async (url) => { asked.push(url); return { status: 404 }; };
+  assert.equal(await onRepository(probe, [CENTRAL], absent, noWait), false);
+  assert.equal(asked.length, 3, "a version is called absent after three 404s, not one");
 });
 
 test("#3445: a version on no configured repository fails and says which were asked", async () => {
