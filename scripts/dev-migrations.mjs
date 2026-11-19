@@ -96,7 +96,7 @@ function psqlBinary() {
   if (onDisk) return onDisk;
   const cellar = "/opt/homebrew/Cellar/libpq";
   if (existsSync(cellar)) {
-    const v = readdirSync(cellar).sort().pop();
+    const v = readdirSync(cellar).sort((a, b) => a.localeCompare(b, "en", { numeric: true })).pop();
     if (v) return join(cellar, v, "bin/psql");
   }
   throw new Error("psql not found (set PSQL)");

@@ -45,7 +45,7 @@ function declared(directory) {
   const assertions = [];
   let requests = 0;
   let regions = 0;
-  for (const name of readdirSync(directory).filter((f) => f.endsWith(".http")).sort()) {
+  for (const name of readdirSync(directory).filter((f) => f.endsWith(".http")).sort((a, b) => a.localeCompare(b))) {
     const text = readFileSync(join(directory, name), "utf8");
     for (const region of text.split(/^###/m).filter((r) => r.trim())) {
       regions += 1;
