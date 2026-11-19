@@ -81,7 +81,7 @@ pub fn list_dir(repo: &Repo, rel: &str) -> Result<Vec<Entry>, CodeError> {
             format!("{prefix}/{name}")
         });
     }
-    let mut out: Vec<Entry> = filter_visible(repo, &names)
+    let mut out: Vec<Entry> = filter_visible(repo, &names)?
         .into_iter()
         .filter_map(|full| {
             let real = repo.root().join(&full).canonicalize().ok()?;
@@ -105,7 +105,7 @@ pub fn search_text(repo: &Repo, query: &str) -> Result<Vec<Match>, CodeError> {
         return Ok(vec![]);
     }
     let mut out = Vec::new();
-    for rel in filter_visible(repo, &repo.candidate_files()?) {
+    for rel in filter_visible(repo, &repo.candidate_files()?)? {
         let Ok(path) = repo.resolve_read(&rel) else {
             continue;
         };

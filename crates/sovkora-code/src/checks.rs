@@ -326,6 +326,10 @@ const CREDENTIAL_WORDS: &[&str] = &[
     "SESSION",
     "COOKIE",
 ];
+/// The checks a repository suggests, a file of the repository (a suggestion, never a confirmation).
+// @fixed: the file name repositories already carry; renamed only with a fallback read of the old one
+pub const GRANT_SUGGESTIONS: &str = ".orazaka/checks.json";
+
 const CREDENTIAL_PREFIXES: &[&str] = &[
     "GH_",
     "GITHUB_",
@@ -427,8 +431,8 @@ pub fn suggest(repo: &Repo) -> Vec<Check> {
     if read_small(repo, "pom.xml").is_some() {
         out.push(suggestion("mvn-test", &["mvn", "-B", "test"]));
     }
-    if let Some(Value::Array(items)) = read_small(repo, ".orazaka/checks.json")
-        .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+    if let Some(Value::Array(items)) =
+        read_small(repo, GRANT_SUGGESTIONS).and_then(|s| serde_json::from_str::<Value>(&s).ok())
     {
         out.extend(
             items
@@ -555,7 +559,7 @@ pub fn run(
     }
     book.session.runs += 1;
 
-    let runtmp = std::env::temp_dir().join(format!("orazaka-check-{}", uuid::Uuid::new_v4()));
+    let runtmp = std::env::temp_dir().join(format!("sovkora-check-{}", uuid::Uuid::new_v4()));
     fs::create_dir_all(&runtmp).map_err(|e| CheckError::Io(e.to_string()))?;
     let runtmp_path = runtmp
         .canonicalize()

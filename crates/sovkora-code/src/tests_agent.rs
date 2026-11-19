@@ -4,6 +4,7 @@ use super::agent::*;
 use super::checks::{Book, Check, Limits};
 use super::data;
 use super::scope::Repo;
+use super::secret::Secret;
 use serde_json::{json, Value};
 use std::collections::VecDeque;
 use std::fs;
@@ -690,15 +691,25 @@ fn the_wire_is_one_start_then_turns_of_that_run() {
 }
 
 /// A one-thread HTTP server that answers each request in `answers` and keeps what it received.
-fn serve(answers: Vec<(u16, String)>) -> (String, std::thread::JoinHandle<Vec<String>>) {
+pub(crate) fn serve(answers: Vec<(u16, String)>) -> (String, std::thread::JoinHandle<Vec<String>>) {
+    serve_raw(
+        answers
+            .into_iter()
+            .map(|(code, body)| format!("HTTP/1.1 {code} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()))
+            .collect(),
+    )
+}
+
+/// The same server, answering each request with the given raw HTTP response.
+pub(crate) fn serve_raw(answers: Vec<String>) -> (String, std::thread::JoinHandle<Vec<String>>) {
     use std::io::{Read, Write};
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let base = format!("http://{}", listener.local_addr().unwrap());
     let handle = std::thread::spawn(move || {
         let mut seen = vec![];
-        for (code, body) in answers {
+        for reply in answers {
             let (mut stream, _) = listener.accept().unwrap();
-            let mut buf = vec![0u8; 65536];
+            let mut buf = vec![0u8; 1 << 20];
             let mut got = 0;
             loop {
                 let n = stream.read(&mut buf[got..]).unwrap();
@@ -721,7 +732,6 @@ fn serve(answers: Vec<(u16, String)>) -> (String, std::thread::JoinHandle<Vec<St
                 }
             }
             seen.push(String::from_utf8_lossy(&buf[..got]).to_string());
-            let reply = format!("HTTP/1.1 {code} X\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\n{body}", body.len());
             let _ = stream.write_all(reply.as_bytes());
         }
         seen
@@ -740,11 +750,12 @@ fn a_task_starts_one_run_and_every_turn_goes_to_it() {
         (204, "{}".to_string()),
     ]);
     let mut engine = SessionEngine::new(
-        base,
-        "bearer-x".into(),
+        &base,
+        Secret::new("bearer-x"),
         "code-issue-to-pr".into(),
         std::time::Duration::from_secs(5),
-    );
+    )
+    .unwrap();
     let tmp = tempfile::tempdir().unwrap();
     let repo = repo_in(tmp.path());
     let report = run_agent(
@@ -784,12 +795,7 @@ fn a_refused_task_still_closes_its_session() {
         (409, json!({"status": "consent_required"}).to_string()),
         (204, "{}".to_string()),
     ]);
-    let mut engine = SessionEngine::new(
-        base,
-        "b".into(),
-        "code-issue-to-pr".into(),
-        std::time::Duration::from_secs(5),
-    );
+    let mut engine = engine_at(&base).unwrap();
     let tmp = tempfile::tempdir().unwrap();
     let repo = repo_in(tmp.path());
     let report = run_agent(
@@ -813,12 +819,7 @@ fn a_refusal_on_the_start_or_on_a_later_turn_is_the_servers_own_word() {
         409,
         json!({"status": "studio_not_entitled"}).to_string(),
     )]);
-    let mut engine = SessionEngine::new(
-        base,
-        "b".into(),
-        "code-issue-to-pr".into(),
-        std::time::Duration::from_secs(5),
-    );
+    let mut engine = engine_at(&base).unwrap();
     let req = TurnRequest {
         run_id: "x",
         feature_key: "k",
@@ -834,13 +835,76 @@ fn a_refusal_on_the_start_or_on_a_later_turn_is_the_servers_own_word() {
         (202, json!({"id": "run-7"}).to_string()),
         (409, json!({"status": "consent_required"}).to_string()),
     ]);
-    let mut engine = SessionEngine::new(
-        base,
-        "b".into(),
-        "code-issue-to-pr".into(),
-        std::time::Duration::from_secs(5),
-    );
+    let mut engine = engine_at(&base).unwrap();
     assert_eq!(engine.turn(&req), Err(EngineError::ConsentRequired));
     assert_eq!(engine.run_id().as_deref(), Some("run-7"));
     server.join().unwrap();
+}
+
+// ---- the wire to the engine: https only, no redirect ---------------------------------------------------------------
+
+fn engine_at(base: &str) -> Result<SessionEngine, EngineUrlError> {
+    SessionEngine::new(
+        base,
+        Secret::new("b"),
+        "code-issue-to-pr".into(),
+        std::time::Duration::from_secs(5),
+    )
+}
+
+#[test]
+fn a_remote_engine_is_refused_unless_it_is_https() {
+    for refused in [
+        "http://engine.example",
+        "http://dev.sovkora.com/",
+        "http://127.0.0.1.evil.example",
+        "http://localhost.evil.example:8080",
+        "ws://engine.example",
+        "ftp://127.0.0.1",
+    ] {
+        assert!(
+            matches!(engine_at(refused), Err(EngineUrlError::NotHttps(_))),
+            "{refused}"
+        );
+    }
+    assert!(matches!(
+        engine_at("not a url"),
+        Err(EngineUrlError::Invalid(_))
+    ));
+    for allowed in [
+        "https://dev.sovkora.com",
+        "http://127.0.0.1:8088",
+        "http://127.8.9.10:1",
+        "http://localhost:3000/",
+        "http://[::1]:9",
+    ] {
+        assert!(engine_at(allowed).is_ok(), "{allowed}");
+    }
+}
+
+#[test]
+fn the_engine_follows_no_redirect_so_the_bearer_never_reaches_another_address() {
+    let elsewhere = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    elsewhere.set_nonblocking(true).unwrap();
+    let target = format!("http://{}", elsewhere.local_addr().unwrap());
+    let (base, server) = serve_raw(vec![format!(
+        "HTTP/1.1 307 X\r\nLocation: {target}/api/v1/studios/code-issue-to-pr/runs\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+    )]);
+    let mut engine = engine_at(&base).unwrap();
+    let req = TurnRequest {
+        run_id: "x",
+        feature_key: "k",
+        system: "s",
+        messages: &[],
+        tools: &[],
+    };
+    assert!(matches!(
+        engine.turn(&req),
+        Err(EngineError::Unavailable(_))
+    ));
+    assert_eq!(server.join().unwrap().len(), 1);
+    assert!(
+        matches!(elsewhere.accept(), Err(e) if e.kind() == std::io::ErrorKind::WouldBlock),
+        "the redirect target received nothing"
+    );
 }

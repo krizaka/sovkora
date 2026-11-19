@@ -247,7 +247,7 @@ pub fn apply(repo: &Repo, file: &FileProposal, approved: &[usize]) -> Result<App
         fs::create_dir_all(parent).map_err(|e| CodeError::Io(e.to_string()))?;
         repo.resolve_write(&file.path)?;
     }
-    let tmp = target.with_file_name(format!(".orazaka-{}.tmp", std::process::id()));
+    let tmp = target.with_file_name(format!(".sovkora-{}.tmp", std::process::id()));
     fs::write(&tmp, out.concat()).map_err(|e| CodeError::Io(e.to_string()))?;
     if let Ok(md) = fs::metadata(&target) {
         let _ = fs::set_permissions(&tmp, md.permissions());
