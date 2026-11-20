@@ -88,11 +88,30 @@ export function repositories(env = process.env) {
 
 const pomUrl = (base, { group, artifactId, version }) => `${base}/${group.replaceAll(".", "/")}/${artifactId}/${version}/${artifactId}-${version}.pom`;
 
+/**
+ * The waits before each new ask of a pom a repository answered 404 for. Central once answered 404 for krizaka-bom 0.12.0,
+ * published eight days before, to one merge-group run while the pull-request run of the same commit got 200 (sovkora#786):
+ * one 404 is not proof of absence. A version still absent after the last ask fails, so the rule keeps its teeth.
+ */
+const ASK_AGAIN_MS = [2_000, 6_000];
+const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+
+/** The answer of a repository for one URL, a 404 asked again after each wait; a network error propagates to the caller. */
+async function ask(url, init, fetchImpl, wait) {
+  let res = await fetchImpl(url, init);
+  for (const ms of ASK_AGAIN_MS) {
+    if (res.status !== 404) break;
+    await wait(ms);
+    res = await fetchImpl(url, init);
+  }
+  return res;
+}
+
 /** The text of a pom on the first repository that carries it, or null when none does or none can be reached. */
-export async function publishedPom(coords, repos = repositories(), fetchImpl = fetch) {
+export async function publishedPom(coords, repos = repositories(), fetchImpl = fetch, wait = pause) {
   for (const base of repos) {
     try {
-      const res = await fetchImpl(pomUrl(base, coords));
+      const res = await ask(pomUrl(base, coords), undefined, fetchImpl, wait);
       if (res.status === 200) return await res.text();
     } catch {
       // unreachable: try the next repository
@@ -101,12 +120,12 @@ export async function publishedPom(coords, repos = repositories(), fetchImpl = f
   return null;
 }
 
-/** True when a repository carries the pom; false when every one answers 404; null when one cannot be reached and none has it (never a failure). */
-export async function onRepository(coords, repos = repositories(), fetchImpl = fetch) {
+/** True when a repository carries the pom; false when every one keeps answering 404; null when one cannot be reached and none has it (never a failure). */
+export async function onRepository(coords, repos = repositories(), fetchImpl = fetch, wait = pause) {
   let unreachable = false;
   for (const base of repos) {
     try {
-      const res = await fetchImpl(pomUrl(base, coords), { method: "HEAD" });
+      const res = await ask(pomUrl(base, coords), { method: "HEAD" }, fetchImpl, wait);
       if (res.status === 200) return true;
       if (res.status !== 404) unreachable = true;
     } catch {
