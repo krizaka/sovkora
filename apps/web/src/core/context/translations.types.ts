@@ -5,6 +5,7 @@
 
 import type { ClipsDictionary } from "./translations.clips";
 import type { NotFoundDictionary } from "./translations.notFound";
+import type { RouteErrorDictionary } from "./translations.routeError";
 import type { LandingDictionary } from "./translations.landing.types";
 import type { InsightsDictionary } from "./translations.insights";
 import type { JobsTableDictionary } from "./translations.jobsTable.types";
@@ -910,6 +911,8 @@ export interface TranslationDictionary {
   clips: ClipsDictionary;
   /** The 404 page. */
   notFound: NotFoundDictionary;
+  /** The error boundary of the signed-in console. */
+  routeError: RouteErrorDictionary;
   /** The Mobile section of the home page and /mobile. */
   mobile: MobileDictionary;
   /** /desktop (Sovkora for Mac) and the home page's "On your Mac" band. */

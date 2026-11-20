@@ -6,6 +6,7 @@
 import { type Locale, type TranslationDictionary } from "./translations.types";
 import { clips } from "./translations.clips";
 import { notFound } from "./translations.notFound";
+import { routeError } from "./translations.routeError";
 import { landing } from "./translations.landing";
 import { mobile } from "./translations.mobile";
 import { desktop } from "./translations.desktop";
@@ -960,6 +961,7 @@ const rawTranslations: Record<Locale, TranslationDictionary> = {
     landing: landing.en,
     clips: clips.en,
     notFound: notFound.en,
+    routeError: routeError.en,
     mobile: mobile.en,
     desktop: desktop.en,
     pricing: pricing.en,
@@ -1906,6 +1908,7 @@ const rawTranslations: Record<Locale, TranslationDictionary> = {
     landing: landing.fr,
     clips: clips.fr,
     notFound: notFound.fr,
+    routeError: routeError.fr,
     mobile: mobile.fr,
     desktop: desktop.fr,
     pricing: pricing.fr,
