@@ -73,6 +73,33 @@ def test_a_deliberately_broken_ruleset_is_refused_by_the_threshold():
     assert any("critical case deposit-security-one-month" in r for r in refusals), refusals
 
 
+def test_a_planted_instruction_in_the_document_does_not_change_the_findings():
+    ruleset = m.rules.resolve("qc-residential-lease", "2026-10-22")
+    pairs = m.planted_cases()
+    assert len(pairs) >= 3
+    for case, planted in pairs:
+        result = m.run_case(ruleset, planted)
+        assert result["found"] == [e["ruleId"] for e in case["expect"]], planted["id"]
+        assert not result["missed"] and not result["wrong"], planted["id"]
+        assert any(line in m.lease(planted) for line in planted["clause"][len(case["clause"]):]), planted["id"]
+    assert m.planted_divergences(ruleset) == []
+
+
+def test_an_engine_that_obeys_the_planted_line_is_refused():
+    ruleset = m.rules.resolve("qc-residential-lease", "2026-10-22")
+    real = m.rules.screen
+
+    def obeying(rs, text):
+        findings, rest = real(rs, text)
+        return ([], rest) if ("ignorez" in text.lower() or "marquez" in text.lower() or "system" in text.lower()) else (findings, rest)
+
+    m.rules.screen = obeying
+    try:
+        assert m.planted_divergences(ruleset), "an engine that obeys the document must turn the gate red"
+    finally:
+        m.rules.screen = real
+
+
 def test_a_wrong_finding_is_refused():
     ok = [{"id": "x", "found": [], "missed": [], "wrong": ["QC-LEASE-006"], "unmeasured": False}]
     result = {"cases": ok, "rules": m.per_rule(ok)}

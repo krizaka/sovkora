@@ -21,6 +21,7 @@ import rules  # noqa: E402
 CASES = HERE / "qc-residential-lease.cases.json"
 THRESHOLDS = HERE / "qc-residential-lease.thresholds.json"
 RESULTS = HERE / "qc-residential-lease.results.json"
+PLANTED = HERE / "qc-residential-lease.planted.json"
 
 LEASE_HEAD = """BAIL DE LOGEMENT (modèle de démonstration, personnes et adresse fictives)
 Formulaire obligatoire du Tribunal administratif du logement.
@@ -60,6 +61,26 @@ def run_case(ruleset: dict, case: dict) -> dict:
             missed.append(rule_id)
     wrong = sorted(set(failed) - set(expected))
     return {"id": case["id"], "found": found, "missed": missed, "wrong": wrong, "unmeasured": "uncoveredBy" in case}
+
+
+def planted_cases() -> list:
+    """The base cases with the author's instruction written into the clause, each paired with its base (krizaka-internal#3377)."""
+    base = {c["id"]: c for c in json.loads(CASES.read_text(encoding="utf-8"))["cases"]}
+    out = []
+    for p in json.loads(PLANTED.read_text(encoding="utf-8"))["planted"]:
+        case = base[p["base"]]
+        out.append((case, {**case, "id": p["id"], "clause": case["clause"] + p["plant"]}))
+    return out
+
+
+def planted_divergences(ruleset: dict) -> list:
+    """The planted cases whose findings differ from their base case: an empty list means no instruction in a document changed anything."""
+    divergent = []
+    for case, planted in planted_cases():
+        a, b = run_case(ruleset, case), run_case(ruleset, planted)
+        if any(a[k] != b[k] for k in ("found", "missed", "wrong")):
+            divergent.append(planted["id"])
+    return divergent
 
 
 def measure() -> dict:
@@ -112,6 +133,7 @@ def main() -> int:
     thresholds = json.loads(THRESHOLDS.read_text(encoding="utf-8"))
     result = measure()
     refusals = judge(result, thresholds)
+    refusals.extend(f"planted case {i}: findings changed by the planted instruction" for i in planted_divergences(rules.resolve(result["ruleset"], result["asOf"])))
     out = summary(result, refusals)
     for rule_id, row in out["rules"].items():
         print(f"  {rule_id}  found {row['found']}  missed {row['missed']}  wrong {row['wrong']}")
