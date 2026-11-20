@@ -29,7 +29,7 @@
 - Use self-validating records (validation in the compact constructor), `RestClient`/`@HttpExchange`, virtual threads; no `synchronized` around I/O, no raw SQL, no read-before-write.
 - Persist per bounded context: no JPA entity outside the persistence modules, no cross-context FK, bootstrap SQL in the owning module's `infra/initdb/`.
 - Messaging on RabbitMQ is for heavy or deferred work; chat streaming stays synchronous. A job is produced only by the studio outbox (details: docs/agents.md §6).
-- Web: browser traffic goes through the Next.js BFF, never straight to `:8080`; native clients call the edge (`:8088`). Types come from `@krizaka/orazaka-shared`; `.tsx` ≤ 250 lines; dates with `date-fns`.
+- Web: browser traffic goes through the Next.js BFF, never straight to `:8080`; native clients call the edge (`:8088`). Types come from the one shared types package (docs/agents.md §8); `.tsx` ≤ 250 lines; dates with `date-fns`.
 - Hierarchy: this root file holds the rules of the whole repository; a sub-folder with its own rules has a local `AGENTS.md` that says only what differs ([apps/web/AGENTS.md](apps/web/AGENTS.md)). The nearest file wins.
 
 ## Guard-rails & known pitfalls (read before coding)
