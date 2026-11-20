@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
-      packages: write
+      packages: write # pushes the image to the registry
     env:
       IMAGE: ghcr.io/krizaka/sovkora-media-worker
     steps:
