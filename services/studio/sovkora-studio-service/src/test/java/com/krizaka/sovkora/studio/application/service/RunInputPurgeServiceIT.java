@@ -169,9 +169,9 @@ class RunInputPurgeServiceIT extends AbstractContainerIntegrationTest {
             "SELECT id, status, input_fingerprint, inputs::text AS inputs,"
                 + " outputs::text AS outputs, inputs_purged_at FROM studio_run WHERE id = ?",
             run);
-    assertThat(row.get("id")).isEqualTo(run);
-    assertThat(row.get("status")).isEqualTo("SUCCEEDED");
-    assertThat(row.get("input_fingerprint")).isEqualTo("fp-1");
+    assertThat(row).containsEntry("id", run);
+    assertThat(row).containsEntry("status", "SUCCEEDED");
+    assertThat(row).containsEntry("input_fingerprint", "fp-1");
     assertThat((String) row.get("inputs")).doesNotContain("documentBase64").contains("pay-stub");
     assertThat((String) row.get("outputs")).contains("incremental-save").contains("éclaircir");
     assertThat(row.get("inputs_purged_at")).isNotNull();
@@ -207,10 +207,10 @@ class RunInputPurgeServiceIT extends AbstractContainerIntegrationTest {
             "SELECT tenant_id, studio_key, event, fields::text AS fields"
                 + " FROM studio_run_purge_audit WHERE run_id = ?",
             run);
-    assertThat(audit.get("tenant_id")).isEqualTo(TENANT);
-    assertThat(audit.get("studio_key")).isEqualTo(DOCUMENT_STUDIO);
-    assertThat(audit.get("event")).isEqualTo("run.inputs_purged");
-    assertThat(audit.get("fields")).isEqualTo("[\"documentBase64\"]");
+    assertThat(audit).containsEntry("tenant_id", TENANT);
+    assertThat(audit).containsEntry("studio_key", DOCUMENT_STUDIO);
+    assertThat(audit).containsEntry("event", "run.inputs_purged");
+    assertThat(audit).containsEntry("fields", "[\"documentBase64\"]");
     assertThatThrownBy(
             () ->
                 jdbc.update(

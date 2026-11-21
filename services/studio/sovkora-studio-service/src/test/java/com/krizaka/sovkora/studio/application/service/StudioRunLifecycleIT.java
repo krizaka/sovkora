@@ -964,9 +964,9 @@ class StudioRunLifecycleIT {
     assertTrue(storedInputs(run.id()).contains("pay-stub"), "the other inputs stay");
     assertTrue(String.valueOf(done.outputs()).contains("incremental-save"), "the findings remain");
     assertEquals(1, purgeTrail(run.id()), "one run.inputs_purged row, with the field name");
+    UUID runId = run.id();
     IllegalStateException refused =
-        assertThrows(
-            IllegalStateException.class, () -> runService.resume(run.id(), ACTOR, "signals"));
+        assertThrows(IllegalStateException.class, () -> runService.resume(runId, ACTOR, "signals"));
     assertTrue(refused.getMessage().contains("purged"));
   }
 
@@ -2285,8 +2285,12 @@ class StudioRunLifecycleIT {
     assertTrue(runService.find(run.id(), ACTOR).isEmpty());
     assertEquals(
         0,
-        jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM studio_run_step WHERE run_id = ?", Integer.class, run.id()));
+        jdbcTemplate
+            .query(
+                "SELECT count(*) FROM studio_run_step WHERE run_id = ?",
+                (rs, rowNum) -> rs.getInt(1),
+                run.id())
+            .getFirst());
   }
 
   @Test

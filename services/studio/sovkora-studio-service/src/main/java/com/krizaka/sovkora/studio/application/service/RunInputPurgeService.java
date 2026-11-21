@@ -122,6 +122,10 @@ public class RunInputPurgeService {
    */
   @Transactional
   public List<String> purge(UUID runId, String actorId) {
+    return purgeInCurrentTransaction(runId, actorId);
+  }
+
+  private List<String> purgeInCurrentTransaction(UUID runId, String actorId) {
     String fields =
         jdbcTemplate.queryForObject(
             FIELDS_OF_RUN, String.class, InputRetention.PURGE_AT_TERMINAL.name(), runId, actorId);
@@ -158,7 +162,7 @@ public class RunInputPurgeService {
             Math.max(1, limit));
     int purged = 0;
     for (String[] run : pending) {
-      if (!purge(UUID.fromString(run[0]), run[1]).isEmpty()) {
+      if (!purgeInCurrentTransaction(UUID.fromString(run[0]), run[1]).isEmpty()) {
         purged++;
       }
     }
