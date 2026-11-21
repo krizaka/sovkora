@@ -205,8 +205,9 @@ function handleStreamError(
     }
   }
 
-  queryClient.invalidateQueries({ queryKey: ["chatThreads"] });
-  queryClient.invalidateQueries({ queryKey: ["operationGraph"] });
+  // TanStack invalidateQueries catches refetch errors by default and surfaces them in the query error state.
+  void queryClient.invalidateQueries({ queryKey: ["chatThreads"] });
+  void queryClient.invalidateQueries({ queryKey: ["operationGraph"] });
 }
 
 /**

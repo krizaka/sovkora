@@ -94,7 +94,8 @@ export function useMcpServers(fetchHeaders: () => Promise<Record<string, string>
         setServerAuthToken("");
         setServerCommand("");
         setServerArgs("");
-        loadServers();
+        // TanStack invalidateQueries does not reject by default; refetch errors land in the query error state.
+        void loadServers();
       } else {
         const errorText = await res.text();
         setServerMessage(`${t.settings.mcpError}: ${errorText}`);
@@ -114,7 +115,8 @@ export function useMcpServers(fetchHeaders: () => Promise<Record<string, string>
       const endpoint = isAdmin ? `/api/v1/mcp/servers/platform/${id}` : `/api/v1/mcp/servers/user/${id}`;
       const res = await fetch(endpoint, { method: "DELETE", headers });
       setServerMessage(res.ok ? t.settings.mcpDeleteSuccess : t.settings.mcpDeleteError);
-      if (res.ok) loadServers();
+      // TanStack invalidateQueries does not reject by default; refetch errors land in the query error state.
+      if (res.ok) void loadServers();
     } catch {
       setServerMessage(t.settings.mcpDeleteError);
     } finally {

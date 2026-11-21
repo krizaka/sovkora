@@ -103,7 +103,8 @@ export function useThreadManagement() {
       const updatedThreads = [newThread, ...cached];
       saveStoredThreads(userId, updatedThreads);
       queryClient.setQueryData<ChatThread[]>(queryKey, updatedThreads);
-      queryClient.invalidateQueries({ queryKey });
+      // TanStack invalidateQueries catches refetch errors internally and surfaces them in query error state.
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -127,7 +128,8 @@ export function useThreadManagement() {
       const updatedThreads = cached.map((t) => (t.conversationId === updatedThread.conversationId ? updatedThread : t));
       saveStoredThreads(userId, updatedThreads);
       queryClient.setQueryData<ChatThread[]>(queryKey, updatedThreads);
-      queryClient.invalidateQueries({ queryKey });
+      // TanStack invalidateQueries catches refetch errors internally and surfaces them in query error state.
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -144,7 +146,8 @@ export function useThreadManagement() {
       saveStoredThreads(userId, updatedThreads);
       localStorage.removeItem(`orazaka_messages_${userId}_${id}`);
       queryClient.setQueryData<ChatThread[]>(queryKey, updatedThreads);
-      queryClient.invalidateQueries({ queryKey });
+      // TanStack invalidateQueries catches refetch errors internally and surfaces them in query error state.
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 
