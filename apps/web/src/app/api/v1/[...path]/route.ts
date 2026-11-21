@@ -9,19 +9,18 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/core/auth/auth-options";
+import type { NextRequest } from "next/server";
+import { backendToken } from "@/core/auth/backend-token";
 
-async function proxyRequest(req: Request, segments: string[], method: string) {
+async function proxyRequest(req: NextRequest, segments: string[], method: string) {
   const edgeUrl = process.env.ROUTER_URL || process.env.GATEWAY_URL || "http://localhost:8088";
 
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const token = await backendToken(req);
+    if (!token) {
       return NextResponse.json({ error: "Unauthorized: Missing active security context" }, { status: 401 });
     }
 
-    const userId = session.user.id;
     const pathStr = segments.join("/");
     const { search } = new URL(req.url);
     const targetUrl = `${edgeUrl}/api/v1/${pathStr}${search}`;
@@ -42,7 +41,7 @@ async function proxyRequest(req: Request, segments: string[], method: string) {
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${userId}`,
+      Authorization: `Bearer ${token}`,
     };
 
     // Forward incoming content type if present
@@ -99,27 +98,27 @@ async function proxyRequest(req: Request, segments: string[], method: string) {
   }
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return proxyRequest(req, resolvedParams.path, "POST");
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return proxyRequest(req, resolvedParams.path, "GET");
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return proxyRequest(req, resolvedParams.path, "PUT");
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return proxyRequest(req, resolvedParams.path, "DELETE");
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   return proxyRequest(req, resolvedParams.path, "PATCH");
 }

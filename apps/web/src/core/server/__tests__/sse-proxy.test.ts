@@ -2,10 +2,9 @@
 import { proxyEventStream } from "@/core/server/sse-proxy";
 import type { NextRequest } from "next/server";
 
-jest.mock("next-auth/next", () => ({ getServerSession: jest.fn() }));
-jest.mock("@/core/auth/auth-options", () => ({ authOptions: {} }));
+jest.mock("@/core/auth/backend-token", () => ({ backendToken: jest.fn() }));
 
-import { getServerSession } from "next-auth/next";
+import { backendToken } from "@/core/auth/backend-token";
 
 const request = (body: string) => ({ json: async () => JSON.parse(body) }) as unknown as NextRequest;
 const proxy = {
@@ -20,16 +19,16 @@ describe("proxyEventStream", () => {
   it("refuses a body that is not JSON, and a missing prompt, before looking at the session", async () => {
     expect((await proxyEventStream(request("not json"), proxy)).status).toBe(400);
     expect((await proxyEventStream(request("{}"), proxy)).status).toBe(400);
-    expect(getServerSession).not.toHaveBeenCalled();
+    expect(backendToken).not.toHaveBeenCalled();
   });
 
   it("requires a session", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue(null);
+    (backendToken as jest.Mock).mockResolvedValue(null);
     expect((await proxyEventStream(request('{"prompt":"hi"}'), proxy)).status).toBe(401);
   });
 
-  it("forwards the prompt with the user as bearer and pipes the event stream back", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue({ user: { id: "u1" } });
+  it("forwards the prompt with the session JWT as bearer and pipes the event stream back", async () => {
+    (backendToken as jest.Mock).mockResolvedValue("u1");
     const upstream = new Response("data: x\n\n", { status: 200 });
     const fetchMock = jest.spyOn(globalThis, "fetch").mockResolvedValue(upstream);
     const res = await proxyEventStream(request('{"prompt":"hi","model":"m"}'), proxy);
@@ -42,7 +41,7 @@ describe("proxyEventStream", () => {
   });
 
   it("answers the gateway's status when it refuses, and 500 when it is unreachable", async () => {
-    (getServerSession as jest.Mock).mockResolvedValue({ user: { id: "u1" } });
+    (backendToken as jest.Mock).mockResolvedValue("u1");
     jest
       .spyOn(globalThis, "fetch")
       .mockResolvedValueOnce(new Response("no", { status: 503, statusText: "Unavailable" }));

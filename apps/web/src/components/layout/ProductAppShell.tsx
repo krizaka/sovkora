@@ -68,7 +68,7 @@ export function ProductAppShell({ children }: Readonly<{ children: React.ReactNo
         avatar: {
           defaultAvatar: {
             brand: "sovkora",
-            seed: user?.id ?? user?.email ?? user?.name ?? undefined,
+            seed: user?.email ?? user?.name ?? undefined,
           },
           fallback: initial,
         },

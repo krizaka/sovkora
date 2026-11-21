@@ -71,7 +71,7 @@ export const saveStoredMessages = (userId: string, conversationId: string, messa
  */
 export function useMessageHistory(conversationId: string) {
   const { user } = useAuth();
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
   const queryKey = buildKey(userId, conversationId);
 
   const messagesQuery = useQuery({

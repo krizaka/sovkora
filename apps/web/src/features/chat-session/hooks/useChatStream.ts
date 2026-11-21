@@ -32,7 +32,7 @@ const createUserMessage = (prompt: string): ChatMessage => ({
 export function useChatStream(conversationId: string) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
 
   const { threads, isLoadingThreads, createThread, renameThread, deleteThread } = useThreadManagement();
   const { messages, isLoadingMessages, queryKey } = useMessageHistory(conversationId);

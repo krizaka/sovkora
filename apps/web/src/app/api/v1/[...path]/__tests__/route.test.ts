@@ -1,12 +1,12 @@
 /** @jest-environment node */
+import { NextRequest } from "next/server";
 import { DELETE, POST } from "@/app/api/v1/[...path]/route";
 
-jest.mock("next-auth/next", () => ({ getServerSession: jest.fn().mockResolvedValue({ user: { id: "u1" } }) }));
-jest.mock("@/core/auth/auth-options", () => ({ authOptions: {} }));
+jest.mock("@/core/auth/backend-token", () => ({ backendToken: jest.fn().mockResolvedValue("u1") }));
 
 const call = (handler: typeof POST, status: number, headers: Record<string, string> = {}) => {
   global.fetch = jest.fn().mockResolvedValue(new Response(null, { status, headers })) as never;
-  return handler(new Request("http://web/api/v1/studios/runs/r1/approve", { method: "POST", body: "{}" }), {
+  return handler(new NextRequest("http://web/api/v1/studios/runs/r1/approve", { method: "POST", body: "{}" }), {
     params: Promise.resolve({ path: ["studios", "runs", "r1", "approve"] }),
   });
 };
@@ -28,7 +28,7 @@ describe("BFF proxy: bodiless upstream answers", () => {
       .mockResolvedValue(
         new Response('{"a":1}', { status: 200, headers: { "content-type": "application/json" } }),
       ) as never;
-    const res = await POST(new Request("http://web/api/v1/x", { method: "POST", body: "{}" }), {
+    const res = await POST(new NextRequest("http://web/api/v1/x", { method: "POST", body: "{}" }), {
       params: Promise.resolve({ path: ["x"] }),
     });
     expect(await res.json()).toEqual({ a: 1 });
