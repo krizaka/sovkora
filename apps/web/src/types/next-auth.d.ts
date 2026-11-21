@@ -2,12 +2,10 @@ import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface Session {
+    /** Read by the page's JavaScript (`/api/auth/session`): never a backend token (krizaka-restricted#347). */
     user: {
-      id?: string;
       role?: string;
       activeInterceptions?: string[];
-      /** Console only: the identity service's session JWT, replayed as the Bearer token by the console's BFF. */
-      token?: string;
     } & DefaultSession["user"];
   }
 
@@ -20,10 +18,9 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
-    id?: string;
     role?: string;
     activeInterceptions?: string[];
-    /** Console only: the identity service's session JWT. */
-    sessionToken?: string;
+    /** The identity service's session JWT, replayed as the Bearer token by the BFF; server-side only (backend-token.ts). */
+    backendToken?: string;
   }
 }

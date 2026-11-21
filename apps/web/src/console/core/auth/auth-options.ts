@@ -6,8 +6,9 @@
  * accept a social identity provider, because the role that matters here is
  * granted by the identity service and an OAuth account proves nothing about it.
  *
- * The session JWT the identity service issues is carried verbatim and replayed
- * as the Bearer token by the BFF proxy. Every billing write is
+ * The session JWT the identity service issues stays in the encrypted, httpOnly
+ * session cookie (`backendToken`) and is replayed as the Bearer token by the BFF
+ * proxy; the session the page reads never carries it. Every billing write is
  * `@PreAuthorize("hasRole('ADMIN')")` server-side, so this token — not anything
  * this app decides — is what actually authorises an action.
  */
@@ -78,15 +79,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.sessionToken = user.id;
+        token.backendToken = user.id;
       }
       return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.token = token.sessionToken as string;
-      }
-      return session;
     },
   },
 };

@@ -74,7 +74,6 @@ export function useMcpServers(fetchHeaders: () => Promise<Record<string, string>
           };
         }
         return {
-          userId: user?.id || "",
           label: serverLabel,
           url: serverUrl,
           authToken: serverAuthToken || null,

@@ -47,7 +47,7 @@ export function BarActions({ placement }: Readonly<{ placement: "bar" | "panel" 
         <Avatar
           size="sm"
           alt={user?.name || user?.email || ""}
-          defaultAvatar={{ brand: "sovkora", seed: user?.id ?? user?.email ?? user?.name ?? undefined }}
+          defaultAvatar={{ brand: "sovkora", seed: user?.email ?? user?.name ?? undefined }}
           fallback={initial}
         />
         <Button

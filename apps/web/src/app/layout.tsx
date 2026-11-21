@@ -13,6 +13,7 @@ import { cn } from "@krizaka/ui/cn";
 import { siteJsonLd } from "@/app/_seo/seo";
 import { siteMetadata } from "@/app/_seo/site-metadata";
 import { LOCALE_HEADER, requestLocale } from "@/core/i18n/locale-negotiation";
+import { NONCE_HEADER } from "@/core/config/security-headers";
 
 /*
  * The typefaces are the files of @krizaka/fonts (SIL OFL 1.1), loaded by next/font/local: preloaded, fingerprinted and
@@ -57,6 +58,8 @@ export default async function RootLayout({
 }>) {
   const authFlags = readAuthFlags();
   const brand = await readBrandName(authFlags);
+  // The nonce of this request's Content-Security-Policy (src/proxy.ts): the one inline script must carry it to run.
+  const nonce = (await headers()).get(NONCE_HEADER) ?? undefined;
   return (
     <html
       lang="fr"
@@ -66,7 +69,7 @@ export default async function RootLayout({
     >
       <head>
         {/* The organisation's theme mechanism: applies the persisted mode and named theme before the first paint. */}
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
         {/* Without JavaScript nothing rises into view: no [data-reveal] block may stay invisible. */}
         <noscript>
           <style>{"[data-reveal]{opacity:1!important;transform:none!important;filter:none!important}"}</style>

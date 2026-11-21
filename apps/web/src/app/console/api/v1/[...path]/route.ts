@@ -13,16 +13,18 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import type { NextRequest } from "next/server";
 import { authOptions } from "@/console/core/auth/auth-options";
+import { SESSION_COOKIE } from "@/console/core/auth/session-cookie";
+import { backendToken } from "@/core/auth/backend-token";
 import { forwardedBody } from "@/console/core/config/bff-body";
 
-async function proxyRequest(req: Request, segments: string[], method: string) {
+async function proxyRequest(req: NextRequest, segments: string[], method: string) {
   const edgeUrl = process.env.ROUTER_URL || "http://localhost:8088";
 
   try {
-    const session = await getServerSession(authOptions);
-    const token = session?.user?.token;
+    // The console's own cookie and key, never the public site's.
+    const token = await backendToken(req, { cookieName: SESSION_COOKIE, secret: authOptions.secret });
     if (!token) {
       return NextResponse.json({ error: "Unauthorized: no active admin session" }, { status: 401 });
     }
@@ -59,18 +61,18 @@ async function proxyRequest(req: Request, segments: string[], method: string) {
   }
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxyRequest(req, (await params).path, "GET");
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxyRequest(req, (await params).path, "POST");
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxyRequest(req, (await params).path, "PUT");
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   return proxyRequest(req, (await params).path, "DELETE");
 }

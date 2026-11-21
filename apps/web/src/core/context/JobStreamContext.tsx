@@ -29,7 +29,7 @@ export function JobStreamProvider({ children }: Readonly<{ children: React.React
   }, [jobs]);
 
   // The open conversation belongs to who is signed in: another identity starts with none (derived, not reset by an effect).
-  const identity = `${user?.id ?? ""}|${isAuthenticated}`;
+  const identity = `${user?.email ?? ""}|${isAuthenticated}`;
   const [active, setActive] = useState<{ identity: string; id: string }>({ identity, id: "" });
   const activeConversationId = active.identity === identity ? active.id : "";
   const setActiveConversationId = useCallback((id: string) => setActive({ identity, id }), [identity]);
