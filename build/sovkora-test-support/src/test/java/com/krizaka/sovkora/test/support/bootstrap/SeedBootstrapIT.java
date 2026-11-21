@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,9 +96,12 @@ class SeedBootstrapIT {
     devFixtures = findDevFixtures(Workspace.initDbFiles(initdb));
     List<Path> files = platformFiles(Workspace.initDbFiles(initdb));
     seedFiles = files.stream().map(file -> file.getFileName().toString()).toList();
-    // A guard against judging the empty set: a wrong directory would otherwise bootstrap nothing
-    // and pass.
-    assertThat(seedFiles).as("the files in infra/initdb").hasSizeGreaterThanOrEqualTo(9);
+    // The set is declared, not counted: modules.json lists each module's initdb files and the
+    // root infra/initdb holds the platform's own. A wrong directory, a deleted file or an
+    // undeclared one all fail here, and an empty set cannot pass.
+    assertThat(seedFiles)
+        .as("the files in infra/initdb, against the set modules.json declares")
+        .containsExactlyElementsOf(declaredInitDbFiles(workspace, initdb));
 
     postgres =
         new PostgreSQLContainer<>(IMAGE)
@@ -273,6 +277,70 @@ class SeedBootstrapIT {
         .filter(file -> !DEV_FIXTURES.equals(file.getFileName().toString()))
         .sorted(Comparator.comparing(file -> file.getFileName().toString()))
         .toList();
+  }
+
+  /**
+   * The bootstrap set the repository declares: every module's {@code initdb} entry of {@code
+   * modules.json}, which must exist under that module's {@code infra/initdb}, plus the platform's
+   * own files at the root {@code infra/initdb}. Sorted by name, as psql applies them.
+   *
+   * @return the declared file names
+   */
+  private static List<String> declaredInitDbFiles(Path workspace, Path rootInitdb) {
+    List<String> declared = new ArrayList<>();
+    Map<String, Object> manifest;
+    try (Stream<Path> root = Files.list(rootInitdb)) {
+      root.map(file -> file.getFileName().toString())
+          .filter(name -> name.endsWith(".sql"))
+          .filter(name -> !DEV_FIXTURES.equals(name))
+          .forEach(declared::add);
+      manifest = new Yaml().load(Files.readString(workspace.resolve("modules.json")));
+      for (Object entry : (List<?>) manifest.get("modules")) {
+        Map<?, ?> module = (Map<?, ?>) entry;
+        if (module.get("initdb") instanceof List<?> files) {
+          for (Object file : files) {
+            Path declaredFile =
+                workspace
+                    .resolve(module.get("path").toString())
+                    .resolve("infra")
+                    .resolve("initdb")
+                    .resolve(file.toString());
+            assertThat(declaredFile)
+                .as("modules.json declares %s for %s", file, module.get("name"))
+                .isRegularFile();
+            declared.add(file.toString());
+          }
+        }
+      }
+    } catch (java.io.IOException unreadable) {
+      throw new java.io.UncheckedIOException(unreadable);
+    }
+    declared.addAll(externalInitDbFiles(workspace, manifest));
+    return declared.stream().sorted().toList();
+  }
+
+  /**
+   * The bootstrap files that come from a release of another repository, declared under {@code
+   * external} in {@code modules.json} (the users and billing contexts, from krizaka-java). Skips
+   * the suite when that checkout is absent: the platform bootstrap is then incomplete, and the CI
+   * job clones it at the release sovkora-parent imports.
+   */
+  private static List<String> externalInitDbFiles(Path workspace, Map<String, Object> manifest) {
+    List<String> declared = new ArrayList<>();
+    Map<?, ?> external = (Map<?, ?>) manifest.get("external");
+    for (Object entry : external.values()) {
+      Map<?, ?> source = (Map<?, ?>) entry;
+      Path checkout = workspace.resolve(source.get("checkout").toString());
+      Assumptions.assumeTrue(
+          Files.isDirectory(checkout),
+          () -> checkout.getFileName() + " is not checked out: clone krizaka-java at the release");
+      for (Object file : (List<?>) source.get("initdb")) {
+        Path declaredFile = checkout.resolve(file.toString());
+        assertThat(declaredFile).as("modules.json declares %s", file).isRegularFile();
+        declared.add(declaredFile.getFileName().toString());
+      }
+    }
+    return declared;
   }
 
   private static Optional<Path> findDevFixtures(List<Path> all) {

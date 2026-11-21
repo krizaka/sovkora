@@ -1,6 +1,15 @@
 {
   "$comment": "The modules of Sovkora, one repository (ADR-029), in build order: what each folder is, its toolchain and what it depends on. Read by the docs generator, the CI plan and the dev tools. A folder that is not here is not a module.",
   "repository": "krizaka/sovkora",
+  "external": {
+    "krizaka-java": {
+      "checkout": ".krizaka-java",
+      "initdb": [
+        "krizaka-users/infra/initdb/10-identity.sql",
+        "krizaka-billing/infra/initdb/70-billing.sql"
+      ]
+    }
+  },
   "modules": [
     {
       "name": "build",
