@@ -133,7 +133,10 @@ def main() -> int:
     thresholds = json.loads(THRESHOLDS.read_text(encoding="utf-8"))
     result = measure()
     refusals = judge(result, thresholds)
-    refusals.extend(f"planted case {i}: findings changed by the planted instruction" for i in planted_divergences(rules.resolve(result["ruleset"], result["asOf"])))
+    refusals.extend(
+        f"planted case {i}: findings changed by the planted instruction"
+        for i in planted_divergences(rules.resolve(result["ruleset"], result["asOf"]))
+    )
     out = summary(result, refusals)
     for rule_id, row in out["rules"].items():
         print(f"  {rule_id}  found {row['found']}  missed {row['missed']}  wrong {row['wrong']}")
