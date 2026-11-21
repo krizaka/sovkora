@@ -103,13 +103,13 @@ class RunInputPurgeServiceIT extends AbstractContainerIntegrationTest {
         run,
         "{\"status\":\"RUNNING\",\"documentBase64\":\"" + FILE + "\"}");
     jdbc.update(
-        "INSERT INTO studio_outbox (aggregate_id, event_type, exchange, message_id, payload)"
-            + " VALUES (?, 'job.validation.signals', 'orazaka.jobs', ?, ?::jsonb)",
+        "INSERT INTO studio_outbox (aggregate_id, event_type, message_id, payload)"
+            + " VALUES (?, 'job.validation.signals', ?, ?::jsonb)",
         run.toString(),
         run.toString(),
         "{\"jobId\":\""
             + run
-            + "\",\"featureKey\":\"orazaka.validation.document.signals\",\"dataClass\":"
+            + "\",\"featureKey\":\"validation.document.signals\",\"dataClass\":"
             + "\"SENSITIVE\",\"payload\":{\"documentBase64\":\""
             + FILE
             + "\"}}");

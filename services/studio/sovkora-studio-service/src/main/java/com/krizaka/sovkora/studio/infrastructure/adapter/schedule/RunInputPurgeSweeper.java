@@ -35,7 +35,7 @@ public class RunInputPurgeSweeper {
   }
 
   /** One sweep; a failure is logged and the next sweep tries again. */
-  @Scheduled(fixedDelayString = "${orazaka.studio-service.sweeper.interval:60000}")
+  @Scheduled(fixedDelayString = "${sovkora.studio.input-purge.interval:60000}")
   public void sweep() {
     try {
       int purged =
