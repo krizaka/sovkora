@@ -3,11 +3,9 @@ package com.krizaka.sovkora.studio.application.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.krizaka.sovkora.studio.StudioSchema;
-import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
-import com.krizaka.test.container.ServiceRoles;
+import com.krizaka.sovkora.studio.infrastructure.adapter.persistence.SharedStudioSchema;
+import com.krizaka.test.container.AbstractContainerIntegrationTest;
 import com.zaxxer.hikari.HikariDataSource;
-import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -20,23 +18,19 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.MountableFile;
 import tools.jackson.databind.ObjectMapper;
 
 /**
  * A run's input files are purged at its terminal state when its retention policy row says so
- * (krizaka-restricted#279), against the real Flyway schema and its seed row.
+ * (krizaka-restricted#279), against the real Flyway schema and its seed row, in the shared
+ * containers of {@link AbstractContainerIntegrationTest}.
  *
  * <p>The proof that the file is gone is not a list of columns that happen to be checked: the file's
  * bytes are searched for in <b>every table of the schema</b>, so a copy nobody thought of fails the
  * test.
  */
-class RunInputPurgeServiceIT {
+class RunInputPurgeServiceIT extends AbstractContainerIntegrationTest {
 
-  private static final String STUDIO_DB = "orazaka_studio_db";
-  private static final String STUDIO_ROLE = "orazaka_studio";
-  private static final String STUDIO_PASSWORD = "orazaka_studio_pass";
   private static final String TENANT = "550e8400-e29b-41d4-a716-446655440201";
   private static final String OTHER_TENANT = "550e8400-e29b-41d4-a716-446655440202";
 
@@ -45,57 +39,41 @@ class RunInputPurgeServiceIT {
 
   private static final String FILE = "JVBERi0xLjcKJcfsj6IKUEFZU1RVQi1MRVMtQ0VSSVNJRVJT";
 
-  @SuppressWarnings("resource")
-  private static final PostgreSQLContainer<?> POSTGRES =
-      new PostgreSQLContainer<>(
-              DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres"))
-          .withDatabaseName("bootstrap")
-          .withUsername("postgres")
-          .withPassword("postgres")
-          .withCopyFileToContainer(
-              MountableFile.forHostPath(
-                  SqlBoundaryRules.locateInitDb(Path.of(System.getProperty("user.dir")))
-                      .resolve("80-studio.sql")),
-              "/docker-entrypoint-initdb.d/80-studio.sql");
-
   private static HikariDataSource dataSource;
   private static JdbcTemplate jdbc;
 
   private RunInputPurgeService service;
 
   @BeforeAll
-  static void start() {
-    if (System.getProperty("api.version") == null && System.getenv("DOCKER_API_VERSION") == null) {
-      System.setProperty("api.version", "1.43");
-    }
-    POSTGRES.start();
-    ServiceRoles.assignPassword(POSTGRES, STUDIO_ROLE, STUDIO_PASSWORD);
-    StudioSchema.migrate(POSTGRES, STUDIO_ROLE, STUDIO_PASSWORD);
+  static void createStudioSchema() throws Exception {
+    PostgreSQLContainer<?> postgres = postgres();
+    SharedStudioSchema.ensureLoaded(postgres);
     dataSource = new HikariDataSource();
     dataSource.setJdbcUrl(
-        "jdbc:postgresql://"
-            + POSTGRES.getHost()
-            + ":"
-            + POSTGRES.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-            + "/"
-            + STUDIO_DB);
-    dataSource.setUsername(STUDIO_ROLE);
-    dataSource.setPassword(STUDIO_PASSWORD);
+        postgres
+            .getJdbcUrl()
+            .replace("/" + postgres.getDatabaseName(), "/" + SharedStudioSchema.STUDIO_DB));
+    dataSource.setUsername(postgres.getUsername());
+    dataSource.setPassword(postgres.getPassword());
     jdbc = new JdbcTemplate(dataSource);
   }
 
   @AfterAll
-  static void stop() {
+  static void close() {
     if (dataSource != null) {
       dataSource.close();
     }
-    POSTGRES.stop();
   }
 
   @BeforeEach
   void freshData() {
-    jdbc.update("DELETE FROM studio_outbox");
-    jdbc.update("DELETE FROM studio_run");
+    // The schema is shared with the other classes: only this class's tenants' rows are reset.
+    jdbc.update(
+        "DELETE FROM studio_outbox WHERE aggregate_id IN"
+            + " (SELECT id::text FROM studio_run WHERE actor_id IN (?, ?))",
+        TENANT,
+        OTHER_TENANT);
+    jdbc.update("DELETE FROM studio_run WHERE actor_id IN (?, ?)", TENANT, OTHER_TENANT);
     // The migration's own row stays: the tests run against the policy as it ships.
     jdbc.update(
         "DELETE FROM studio_run_retention_policy WHERE NOT (tenant_id = '*' AND studio_key = ?)",

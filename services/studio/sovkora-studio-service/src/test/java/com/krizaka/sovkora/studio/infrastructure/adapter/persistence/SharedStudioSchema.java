@@ -14,9 +14,9 @@ import org.testcontainers.utility.MountableFile;
  * once: {@code 80-studio.sql} creates the role and {@code orazaka_studio_db}, then Flyway applies
  * {@code db/migration}; a second class asking for it must find it, not build it again.
  */
-final class SharedStudioSchema {
+public final class SharedStudioSchema {
 
-  static final String STUDIO_DB = "orazaka_studio_db";
+  public static final String STUDIO_DB = "orazaka_studio_db";
   private static final String STUDIO_ROLE = "orazaka_studio";
   private static final String STUDIO_PASSWORD = "orazaka_studio_pass";
 
@@ -26,7 +26,7 @@ final class SharedStudioSchema {
    * @param postgres the shared container
    * @throws Exception when the container cannot be driven
    */
-  static synchronized void ensureLoaded(PostgreSQLContainer<?> postgres) throws Exception {
+  public static synchronized void ensureLoaded(PostgreSQLContainer<?> postgres) throws Exception {
     var exists =
         postgres.execInContainer(
             "psql",
