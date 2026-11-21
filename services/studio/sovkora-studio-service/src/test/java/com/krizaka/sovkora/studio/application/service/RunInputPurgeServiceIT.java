@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -45,24 +44,14 @@ class RunInputPurgeServiceIT extends AbstractContainerIntegrationTest {
   private RunInputPurgeService service;
 
   @BeforeAll
-  static void createStudioSchema() throws Exception {
-    PostgreSQLContainer<?> postgres = postgres();
-    SharedStudioSchema.ensureLoaded(postgres);
-    dataSource = new HikariDataSource();
-    dataSource.setJdbcUrl(
-        postgres
-            .getJdbcUrl()
-            .replace("/" + postgres.getDatabaseName(), "/" + SharedStudioSchema.STUDIO_DB));
-    dataSource.setUsername(postgres.getUsername());
-    dataSource.setPassword(postgres.getPassword());
+  static void openTheStudioDatabase() throws Exception {
+    dataSource = SharedStudioSchema.dataSource(postgres());
     jdbc = new JdbcTemplate(dataSource);
   }
 
   @AfterAll
-  static void close() {
-    if (dataSource != null) {
-      dataSource.close();
-    }
+  static void closeIt() {
+    dataSource.close();
   }
 
   @BeforeEach

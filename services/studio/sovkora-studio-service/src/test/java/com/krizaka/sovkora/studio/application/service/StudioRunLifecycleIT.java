@@ -88,7 +88,6 @@ class StudioRunLifecycleIT {
   private static final String STUDIO_KEY = "trade-showcase";
   private static final String COMPLIANCE_PACK = "document-validation";
   private static final String COMPLIANCE_KEY = "compliance-check";
-  private static final String DOCUMENT_KEY = "document-authenticity";
 
   @SuppressWarnings("resource")
   private static final PostgreSQLContainer<?> POSTGRES =
@@ -897,6 +896,7 @@ class StudioRunLifecycleIT {
 
   // ── restricted#279: a run's input file is purged at its terminal state ────
 
+  private static final String DOCUMENT_KEY = "document-authenticity";
   private static final String PDF = "JVBERi0xLjcKJUxJRkVDWUNMRS1URVNULUZJTEU=";
 
   private RunDetail startDocumentCheck() {

@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.krizaka.sovkora.studio.StudioSchema;
 import com.krizaka.sovkora.test.support.architecture.SqlBoundaryRules;
 import com.krizaka.test.container.ServiceRoles;
+import com.zaxxer.hikari.HikariDataSource;
 import java.nio.file.Path;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.MountableFile;
@@ -58,5 +59,22 @@ public final class SharedStudioSchema {
     assertThat(created.getExitCode()).as(created.getStderr()).isZero();
     ServiceRoles.assignPassword(postgres, STUDIO_ROLE, STUDIO_PASSWORD);
     StudioSchema.migrate(postgres, STUDIO_ROLE, STUDIO_PASSWORD);
+  }
+
+  /**
+   * The Studio database of the shared container, its schema loaded, as the container's owner.
+   *
+   * @param postgres the shared container
+   * @return a pool the caller closes
+   * @throws Exception when the container cannot be driven
+   */
+  public static HikariDataSource dataSource(PostgreSQLContainer<?> postgres) throws Exception {
+    ensureLoaded(postgres);
+    HikariDataSource dataSource = new HikariDataSource();
+    dataSource.setJdbcUrl(
+        postgres.getJdbcUrl().replace("/" + postgres.getDatabaseName(), "/" + STUDIO_DB));
+    dataSource.setUsername(postgres.getUsername());
+    dataSource.setPassword(postgres.getPassword());
+    return dataSource;
   }
 }
