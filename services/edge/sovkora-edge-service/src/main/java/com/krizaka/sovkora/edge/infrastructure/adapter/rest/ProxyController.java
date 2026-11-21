@@ -27,8 +27,9 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 /**
- * Streaming reverse proxy of the edge gateway: forwards every request to the backend resolved by
- * the route table and streams the response back chunk-by-chunk.
+ * Streaming reverse proxy of the edge gateway: forwards a request of a {@link ClientSurface} to the
+ * backend resolved by the route table and streams the response back chunk-by-chunk; any other path
+ * is a 404 and reaches no backend.
  *
  * <p>The per-chunk {@code flushBuffer()} on a virtual thread is the SSE pass-through:
  * token-by-token frames flow unbuffered for {@code text/event-stream} responses, so interactive
@@ -85,9 +86,9 @@ public class ProxyController {
   }
 
   /**
-   * Catch-all proxy entry point — everything not served by the edge itself is forwarded, for the
-   * methods an API uses. TRACE is not among them: it echoes the request, headers included, and a
-   * proxy has no reason to carry it (krizaka-internal#4361).
+   * Catch-all proxy entry point — a client surface's request not served by the edge itself is
+   * forwarded, for the methods an API uses. TRACE is not among them: it echoes the request, headers
+   * included, and a proxy has no reason to carry it (krizaka-internal#4361).
    */
   @RequestMapping(
       value = "/**",
@@ -101,13 +102,19 @@ public class ProxyController {
         RequestMethod.OPTIONS
       })
   public void proxy(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    if (!ClientSurface.forwards(request.getRequestURI())) {
+      // Only what a client calls leaves the edge (krizaka-restricted#348): a backend's actuator,
+      // its /internal surface or any other path is not served from outside.
+      PathRefusal.NOT_FORWARDED.write(response);
+      return;
+    }
     URI backend = routeResolver.resolve(request.getRequestURI());
     Optional<URI> forwardable =
         TargetUriResolver.resolve(backend, request.getRequestURI(), request.getQueryString());
     if (forwardable.isEmpty()) {
       // A path not in normal form could be re-normalised by the backend into a route the edge did
       // not choose (krizaka-internal#4361): refused before any backend is called.
-      PathRefusal.write(response);
+      PathRefusal.NOT_NORMAL.write(response);
       return;
     }
     URI target = forwardable.get();

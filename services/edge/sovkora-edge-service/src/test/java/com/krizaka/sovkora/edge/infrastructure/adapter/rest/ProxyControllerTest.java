@@ -82,7 +82,7 @@ class ProxyControllerTest {
     registry.add(
         "orazaka.edge.routes[0].target",
         () -> "http://127.0.0.1:" + stubBackend.getAddress().getPort());
-    registry.add("orazaka.edge.routes[1].path-prefix", () -> "/down");
+    registry.add("orazaka.edge.routes[1].path-prefix", () -> "/api/down");
     registry.add("orazaka.edge.routes[1].target", () -> "http://127.0.0.1:" + DEAD_PORT);
   }
 
@@ -192,7 +192,7 @@ class ProxyControllerTest {
   void unreachableBackendIsProblemDetails() throws Exception {
     HttpResponse<String> response =
         client.send(
-            HttpRequest.newBuilder(edge("/down/api/v1/anything")).GET().build(),
+            HttpRequest.newBuilder(edge("/api/down/v1/anything")).GET().build(),
             HttpResponse.BodyHandlers.ofString());
 
     assertThat(response.statusCode()).isEqualTo(503);
@@ -307,6 +307,33 @@ class ProxyControllerTest {
             HttpResponse.BodyHandlers.ofString());
 
     assertThat(response.statusCode()).isEqualTo(400);
+    assertThat(lastRequestPath).isEqualTo("untouched");
+  }
+
+  @org.junit.jupiter.params.ParameterizedTest
+  @org.junit.jupiter.params.provider.ValueSource(
+      strings = {
+        "/actuator/health",
+        "/actuator/env",
+        "/actuator/info",
+        "/internal/v1/capabilities",
+        "/",
+        "/apis/v1/anything"
+      })
+  @DisplayName("[r348] a path outside the client surfaces is a 404, the backend never called")
+  void aPathOutsideTheClientSurfacesIsNotForwarded(String path) throws Exception {
+    lastRequestPath = "untouched";
+
+    HttpResponse<String> response =
+        client.send(
+            HttpRequest.newBuilder(edge(path)).GET().build(), HttpResponse.BodyHandlers.ofString());
+
+    assertThat(response.statusCode()).isEqualTo(404);
+    assertThat(response.headers().firstValue("Content-Type"))
+        .hasValueSatisfying(type -> assertThat(type).startsWith("application/problem+json"));
+    assertThat(response.body())
+        .contains("\"code\":\"ROUTE_NOT_FORWARDED\"")
+        .doesNotContain("actuator", "internal");
     assertThat(lastRequestPath).isEqualTo("untouched");
   }
 

@@ -25,7 +25,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 /**
  * The service's real {@link SecurityConfig} with the beans it needs, for a test that drives the
- * filter chain: one person, signed in with {@link #TOKEN}; every other bearer token is refused.
+ * filter chain: one person, signed in with {@link #TOKEN}, and one administrator, signed in with
+ * {@link #ADMIN_TOKEN}; every other bearer token is refused.
  */
 @Configuration
 @EnableWebMvc
@@ -35,7 +36,11 @@ public class SecurityChainFixture {
   /** The one session token the decoder accepts. */
   public static final String TOKEN = "a-valid-session-jwt";
 
+  /** The administrator's session token. */
+  public static final String ADMIN_TOKEN = "an-administrator-session-jwt";
+
   private static final UUID USER_ID = UUID.randomUUID();
+  private static final UUID ADMIN_ID = UUID.randomUUID();
 
   /** A {@link MockMvc} over {@code context} with the service's security filter chain in front. */
   public static MockMvc securedMvc(WebApplicationContext context) {
@@ -51,18 +56,32 @@ public class SecurityChainFixture {
         .thenReturn(
             new User(
                 USER_ID, "person", "person@example.test", true, Set.of("ROLE_USER"), Map.of()));
+    when(directory.getUser(ADMIN_ID.toString()))
+        .thenReturn(
+            new User(
+                ADMIN_ID,
+                "operator",
+                "operator@example.test",
+                true,
+                Set.of("ROLE_ADMIN"),
+                Map.of()));
     return directory;
   }
 
   @Bean
   JwtDecoder sessionJwtDecoder() {
     return token -> {
-      if (!TOKEN.equals(token)) {
+      UUID subject;
+      if (TOKEN.equals(token)) {
+        subject = USER_ID;
+      } else if (ADMIN_TOKEN.equals(token)) {
+        subject = ADMIN_ID;
+      } else {
         throw new BadJwtException("not a session token");
       }
       return Jwt.withTokenValue(token)
           .header("alg", "HS256")
-          .subject(USER_ID.toString())
+          .subject(subject.toString())
           .issuedAt(Instant.now())
           .expiresAt(Instant.now().plusSeconds(60))
           .build();

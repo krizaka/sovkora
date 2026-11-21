@@ -13,7 +13,7 @@ import { useChatStreamClient } from "@/core/hooks/useChatStreamClient";
 // Mock router / auth
 jest.mock("@/core/hooks/useAuth", () => ({
   useAuth: () => ({
-    user: { id: "test-user", email: "test-user@orazaka.com" },
+    user: { email: "test-user@orazaka.com" },
   }),
 }));
 
@@ -117,7 +117,7 @@ describe("useChatStreamClient", () => {
     expect(result.current.isChatStreaming).toBe(false);
 
     // Verify localStorage message storage
-    const stored = localStorage.getItem("orazaka_messages_test-user_conv-123");
+    const stored = localStorage.getItem("orazaka_messages_test-user@orazaka.com_conv-123");
     expect(stored).toContain("Hello world!");
   });
 
@@ -142,7 +142,7 @@ describe("useChatStreamClient", () => {
       await result.current.startChatStream("conv-ctl", "hi");
     });
 
-    const stored = JSON.parse(localStorage.getItem("orazaka_messages_test-user_conv-ctl") ?? "[]");
+    const stored = JSON.parse(localStorage.getItem("orazaka_messages_test-user@orazaka.com_conv-ctl") ?? "[]");
     expect(stored.at(-1)).toMatchObject({
       content: "Hello",
       control: { state: "degraded", badge: "verification_unavailable" },
@@ -164,7 +164,7 @@ describe("useChatStreamClient", () => {
     });
 
     expect(consoleErrorSpy).toHaveBeenCalled();
-    const stored = localStorage.getItem("orazaka_messages_test-user_conv-123");
+    const stored = localStorage.getItem("orazaka_messages_test-user@orazaka.com_conv-123");
     expect(stored).toContain("Connection to the AI model failed");
     consoleErrorSpy.mockRestore();
   });

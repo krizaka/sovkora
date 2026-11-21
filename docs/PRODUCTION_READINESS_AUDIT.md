@@ -69,7 +69,8 @@ ratio would otherwise mislead.
 >   request received `401`. The media tree was **not** readable "with no credential at all".
 > - **The bearer claim is false.** `session.user.id` carries the signed HS256 session JWT, not a user
 >   id (`auth-options.ts:74` — `id: data.token`, with the comment above it saying so). The BFF was
->   sending a valid token; the field is misleadingly named.
+>   sending a valid token; the field is misleadingly named. (Since then the token is no longer in the
+>   session the page reads at all: the BFF reads it from the encrypted session cookie, `backend-token.ts`.)
 > - **Path B is true and was the whole finding.** `route.ts:45` builds the target from
 >   `segments.join("/")` without comparing `segments[0]` to the session, so **any signed-in user
 >   could read any other user's media**. Cross-tenant, and critical — but *authenticated*, which

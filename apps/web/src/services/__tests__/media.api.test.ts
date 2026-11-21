@@ -1,32 +1,22 @@
 /**
  * @file media.api.test.ts
- * @description Tests for the media API adapter.
+ * @description Tests for the media API adapter. It calls the BFF only, which adds the session's Bearer token
+ * server-side: the browser never holds or sends a backend token (krizaka-restricted#347).
  */
 
 import { MediaApi } from "@/services/media.api";
-import { getSession } from "next-auth/react";
 import { HTTP_METHOD } from "@/core/constants/http.constants";
-
-jest.mock("next-auth/react", () => ({
-  getSession: jest.fn(),
-}));
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
-const mockedGetSession = getSession as jest.MockedFunction<typeof getSession>;
 
 describe("MediaApi", () => {
   beforeEach(() => {
     mockFetch.mockClear();
-    mockedGetSession.mockClear();
   });
 
   describe("searchRag", () => {
-    it("sends encoded search query with auth header", async () => {
-      mockedGetSession.mockResolvedValueOnce({
-        user: { id: "u1" },
-        expires: "2099-01-01",
-      } as never);
+    it("sends the encoded search query to the BFF, with no Authorization header", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ context: "Virtual threads use..." }),
@@ -34,35 +24,20 @@ describe("MediaApi", () => {
 
       const result = await MediaApi.searchRag("virtual threads");
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/v1/media/search?q=virtual%20threads",
-        expect.objectContaining({
-          headers: { Authorization: "Bearer u1" },
-        }),
-      );
+      expect(mockFetch).toHaveBeenCalledWith("/api/v1/media/search?q=virtual%20threads");
       expect(result).toBe("Virtual threads use...");
     });
 
-    it("uses fallback token when no session", async () => {
-      mockedGetSession.mockResolvedValueOnce(null);
+    it("says so when nothing matches", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ context: "" }),
       });
 
-      const result = await MediaApi.searchRag("test");
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: { Authorization: "Bearer user-mock" },
-        }),
-      );
-      expect(result).toBe("No context found matching query.");
+      expect(await MediaApi.searchRag("test")).toBe("No context found matching query.");
     });
 
     it("throws on HTTP error", async () => {
-      mockedGetSession.mockResolvedValueOnce(null);
       mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
       await expect(MediaApi.searchRag("query")).rejects.toThrow("RAG query failed with status 500");
@@ -70,11 +45,7 @@ describe("MediaApi", () => {
   });
 
   describe("analyzeVideo", () => {
-    it("sends POST with assetId and model", async () => {
-      mockedGetSession.mockResolvedValueOnce({
-        user: { id: "u2" },
-        expires: "2099-01-01",
-      } as never);
+    it("sends POST with assetId and model, with no Authorization header", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ jobId: "job-abc" }),
@@ -84,17 +55,13 @@ describe("MediaApi", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("/api/v1/media/analyze/video", {
         method: HTTP_METHOD.POST,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer u2",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assetId: "asset-123", model: "llava:latest" }),
       });
       expect(result.jobId).toBe("job-abc");
     });
 
     it("throws on HTTP error", async () => {
-      mockedGetSession.mockResolvedValueOnce(null);
       mockFetch.mockResolvedValueOnce({
         ok: false,
         statusText: "Bad Request",
@@ -105,11 +72,7 @@ describe("MediaApi", () => {
   });
 
   describe("uploadMedia", () => {
-    it("sends FormData with file and auth header", async () => {
-      mockedGetSession.mockResolvedValueOnce({
-        user: { id: "u3" },
-        expires: "2099-01-01",
-      } as never);
+    it("sends FormData with the file, with no Authorization header", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ assetId: "uploaded-asset-id" }),
@@ -120,14 +83,12 @@ describe("MediaApi", () => {
 
       expect(mockFetch).toHaveBeenCalledWith("/api/v1/media/upload", {
         method: HTTP_METHOD.POST,
-        headers: { Authorization: "Bearer u3" },
         body: expect.any(FormData),
       });
       expect(result.assetId).toBe("uploaded-asset-id");
     });
 
     it("throws on upload failure", async () => {
-      mockedGetSession.mockResolvedValueOnce(null);
       mockFetch.mockResolvedValueOnce({ ok: false, status: 413 });
 
       const file = new File(["x".repeat(200)], "big.mp4");

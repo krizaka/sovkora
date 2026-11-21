@@ -49,7 +49,7 @@ export const saveStoredThreads = (userId: string, threads: ChatThread[]): void =
 export function useThreadManagement() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
   const queryKey = ["chatThreads", userId] as const;
 
   const threadsQuery = useQuery({

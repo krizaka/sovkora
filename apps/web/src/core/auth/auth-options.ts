@@ -52,7 +52,7 @@ async function provisionOAuthUser(jwt: JWT, account: Account, user: User): Promi
       return;
     }
     const dbUser = await response.json();
-    jwt.id = dbUser.token;
+    jwt.backendToken = dbUser.token;
     jwt.role = "user";
     jwt.activeInterceptions = dbUser.active_interceptions || [];
   } catch (error) {
@@ -101,8 +101,9 @@ export const authOptions: NextAuthOptions = {
           }
 
           // returns { token: "<session JWT>", username, email, authorities: [...], active_interceptions: [...] }
-          // `token` is the signed HS256 session JWT every backend validates — it is carried
-          // through as `user.id` and replayed verbatim as the Bearer token by the BFF proxies.
+          // `token` is the signed HS256 session JWT every backend validates. NextAuth names it `user.id`
+          // here; the jwt callback keeps it in the encrypted, httpOnly cookie only (`backendToken`), and the
+          // BFF replays it as the Bearer token (backend-token.ts). It never reaches the session the page reads.
           const data = await res.json();
           if (data && data.token) {
             const role = data.authorities?.includes("ROLE_ADMIN") ? "admin" : "user";
@@ -131,7 +132,7 @@ export const authOptions: NextAuthOptions = {
           await provisionOAuthUser(token, account, user);
         } else {
           token.role = user.role;
-          token.id = user.id;
+          token.backendToken = user.id;
           token.activeInterceptions = user.activeInterceptions || [];
         }
       }
@@ -141,10 +142,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+    // What `/api/auth/session` hands to the page's JavaScript: no backend token (krizaka-restricted#347).
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role;
-        session.user.id = token.id;
         session.user.activeInterceptions = token.activeInterceptions || [];
       }
       return session;

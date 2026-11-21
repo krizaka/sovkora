@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.e2e;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,13 +20,16 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Tier 3 — Infrastructure Integrity Sensor.
  *
- * <p>Interrogates the Spring Boot Actuator endpoint and explicitly parses the JSON payload to
- * assert individual health indicators for db (Postgres), diskSpace, and ping report explicit UP
- * statuses.
+ * <p>Reads the router's actuator at its internal address (UP, no component without an
+ * administrator's token), the edge's own {@code /healthz}, and proves the edge does not forward a
+ * backend's {@code /actuator/**}.
  */
 class RouterHealthIT {
 
   private static final String ROUTER_URL = System.getProperty("router.target.url");
+
+  /** The router's own port, never routed by the edge: where its actuator is read. */
+  private static final String ROUTER_INTERNAL_URL = "http://localhost:8080";
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -48,62 +52,39 @@ class RouterHealthIT {
   }
 
   @Test
-  @DisplayName("GET /actuator/health returns 200 with individual component statuses")
-  void actuatorHealthReturnsUpWithComponents() throws Exception {
-    Page page = browser.newPage();
-    Response response = page.navigate(ROUTER_URL + "/actuator/health");
+  @DisplayName(
+      "The router's own health, read at its internal address, is UP and names no component")
+  void routerHealthIsUpWithoutDetail() throws Exception {
+    JsonNode root = readJson(ROUTER_INTERNAL_URL + "/actuator/health", 200);
 
-    assertNotNull(response, "Response must not be null");
-    assertEquals(200, response.status(), "Health endpoint must return 200");
-
-    String body = page.innerText("body");
-    assertNotNull(body, "Health body must not be null");
-
-    // Parse the full JSON payload — no weak string matching
-    JsonNode root = MAPPER.readTree(body);
-
-    // Assert overall status
+    // The aggregate is DOWN when any indicator (db, diskSpace, ping, rabbit) is: UP proves them
+    // all.
     assertEquals("UP", root.path("status").asString(), "Overall health status must be UP");
+    // No administrator's token: the components are not shown (krizaka-restricted#348).
+    assertFalse(root.has("components"), "An anonymous health answer must name no component");
+  }
 
-    // Assert individual components exist and are UP
-    JsonNode components = root.path("components");
-    assertTrue(components.has("db"), "Health payload must contain a 'db' component for Postgres");
-    assertEquals(
-        "UP",
-        components.path("db").path("status").asString(),
-        "Postgres health indicator must report UP");
+  @Test
+  @DisplayName("Through the edge, /healthz is UP and a backend's actuator is not reachable")
+  void theEdgeServesItsHealthAndForwardsNoActuator() throws Exception {
+    JsonNode root = readJson(ROUTER_URL + "/healthz", 200);
+    assertEquals("UP", root.path("status").asString(), "The edge's liveness must be UP");
 
-    assertTrue(components.has("diskSpace"), "Health payload must contain a 'diskSpace' component");
-    assertEquals(
-        "UP",
-        components.path("diskSpace").path("status").asString(),
-        "DiskSpace health indicator must report UP");
-
-    assertTrue(components.has("ping"), "Health payload must contain a 'ping' component");
-    assertEquals(
-        "UP",
-        components.path("ping").path("status").asString(),
-        "Ping health indicator must report UP");
-
-    // Redis and RabbitMQ health indicators are only auto-configured when
-    // spring-boot-starter-data-redis / spring-boot-starter-amqp are on the
-    // classpath. The gateway uses raw Lettuce (Bucket4j) and raw amqp-client,
-    // so these indicators may not be present. Connectivity is proven by
-    // the dedicated redisConnectivityIsLive() and amqpConnectivityIsLive() tests.
-    if (components.has("redis")) {
-      assertEquals(
-          "UP",
-          components.path("redis").path("status").asString(),
-          "Redis health indicator must report UP against provisioned container");
-    }
-    if (components.has("rabbit")) {
-      assertEquals(
-          "UP",
-          components.path("rabbit").path("status").asString(),
-          "RabbitMQ health indicator must report UP against provisioned container");
-    }
-
+    Page page = browser.newPage();
+    Response actuator = page.navigate(ROUTER_URL + "/actuator/health");
+    assertNotNull(actuator, "Response must not be null");
+    assertEquals(404, actuator.status(), "The edge must not forward a backend's actuator");
     page.close();
+  }
+
+  private static JsonNode readJson(String url, int expectedStatus) throws Exception {
+    Page page = browser.newPage();
+    Response response = page.navigate(url);
+    assertNotNull(response, "Response must not be null");
+    assertEquals(expectedStatus, response.status(), url + " status");
+    String body = page.innerText("body");
+    page.close();
+    return MAPPER.readTree(body);
   }
 
   @Test

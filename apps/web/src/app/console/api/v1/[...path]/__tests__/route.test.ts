@@ -1,12 +1,13 @@
 /** @jest-environment node */
 // The console's BFF relays the law corpus' manual import (ADR-089 §8) as it came — multipart, its boundary intact —
 // and a JSON write as JSON, with the operator's token.
+import { NextRequest } from "next/server";
+import { backendToken } from "@/core/auth/backend-token";
+import { SESSION_COOKIE } from "@/console/core/auth/session-cookie";
 import { POST } from "@/app/console/api/v1/[...path]/route";
 
-jest.mock("next-auth/next", () => ({
-  getServerSession: jest.fn().mockResolvedValue({ user: { token: "operator-jwt" } }),
-}));
-jest.mock("@/console/core/auth/auth-options", () => ({ authOptions: {} }));
+jest.mock("@/core/auth/backend-token", () => ({ backendToken: jest.fn().mockResolvedValue("operator-jwt") }));
+jest.mock("@/console/core/auth/auth-options", () => ({ authOptions: { secret: "console-seal" } }));
 
 const params = (path: string[]) => ({ params: Promise.resolve({ path }) });
 
@@ -24,13 +25,21 @@ describe("console BFF: request bodies", () => {
     const form = new FormData();
     form.append("file", new Blob(["<loi/>"], { type: "application/xml" }), "ccq.xml");
     form.append("datasetUrl", "https://www.donneesquebec.ca/ccq.xml");
-    const request = new Request("https://admin.sovkora.com/api/v1/admin/law/imports", { method: "POST", body: form });
+    const request = new NextRequest("https://admin.sovkora.com/api/v1/admin/law/imports", {
+      method: "POST",
+      body: form,
+    });
     const type = request.headers.get("content-type");
     const res = await POST(request, params(["admin", "law", "imports"]));
     expect(res.status).toBe(200);
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("http://localhost:8088/api/v1/admin/law/imports");
     expect(init.headers).toEqual({ "Content-Type": type, Authorization: "Bearer operator-jwt" });
+    // The console's own session cookie and key, never the public site's.
+    expect(backendToken).toHaveBeenCalledWith(request, {
+      cookieName: SESSION_COOKIE,
+      secret: "console-seal",
+    });
     const relayed = await new Request("http://x", {
       method: "POST",
       body: init.body,
@@ -42,7 +51,7 @@ describe("console BFF: request bodies", () => {
   it("relays a JSON write as JSON", async () => {
     const fetchMock = upstream();
     await POST(
-      new Request("https://admin.sovkora.com/api/v1/admin/law/proposals/p1/reject", {
+      new NextRequest("https://admin.sovkora.com/api/v1/admin/law/proposals/p1/reject", {
         method: "POST",
         body: '{"reason":"wrong article"}',
         headers: { "content-type": "application/json" },

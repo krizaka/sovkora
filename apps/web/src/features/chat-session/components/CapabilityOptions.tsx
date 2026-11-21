@@ -3,7 +3,6 @@
 import { Button } from "@krizaka/ui/button";
 import * as React from "react";
 import { useQuery } from "@krizaka/query";
-import { getSession } from "next-auth/react";
 import { Icon } from "@krizaka/orazaka-design-system";
 import type { ComposerStudio } from "@krizaka/orazaka-shared";
 import type { ComposerRunOptions as Options } from "@/features/chat-session/utils/startComposerRun";
@@ -58,10 +57,7 @@ export function CapabilityOptions({
     enabled: Boolean(category),
     retry: false,
     queryFn: async () => {
-      const session = await getSession();
-      const res = await fetch("/api/v1/models/catalog", {
-        headers: session?.user?.id ? { Authorization: `Bearer ${session.user.id}` } : {},
-      });
+      const res = await fetch("/api/v1/models/catalog");
       if (!res.ok) throw new Error("catalog unavailable");
       const data: {
         modelName: string;

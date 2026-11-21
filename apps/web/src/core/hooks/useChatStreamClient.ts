@@ -226,7 +226,7 @@ export function useChatStreamClient() {
   const chatAbortControllerRef = useRef<AbortController | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
 
   const stopChatStream = useCallback(() => {
     if (chatAbortControllerRef.current) {

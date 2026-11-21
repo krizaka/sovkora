@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { getSession } from "next-auth/react";
 import type { CatalogModel } from "@/app/dashboard/admin/CategoryCard";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { HTTP_METHOD } from "@/core/constants/http.constants";
@@ -36,12 +35,10 @@ export function useAdminModels(): UseAdminModelsReturn {
   const [saving, setSaving] = React.useState(false);
 
   const fetchWithAuth = React.useCallback(async (url: string, options: RequestInit = {}) => {
-    const session = await getSession();
     return fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(session?.user?.id ? { Authorization: `Bearer ${session.user.id}` } : {}),
         ...options.headers,
       },
     });

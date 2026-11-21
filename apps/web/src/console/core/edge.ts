@@ -20,10 +20,14 @@ function noindex(response: NextResponse): NextResponse {
   return response;
 }
 
-/** `rewritePath` is the `/console/…` page this admin-host request is served by. */
-export function consoleResponse(request: NextRequest, rewritePath: string): NextResponse {
+/**
+ * `rewritePath` is the `/console/…` page this admin-host request is served by; `forward` is the request as that page
+ * renders it (with the nonce of its Content-Security-Policy).
+ */
+export function consoleResponse(request: NextRequest, rewritePath: string, forward: Headers): NextResponse {
   const { pathname, search } = request.nextUrl;
-  const rewrite = () => noindex(NextResponse.rewrite(new URL(`${rewritePath}${search}`, request.url)));
+  const rewrite = () =>
+    noindex(NextResponse.rewrite(new URL(`${rewritePath}${search}`, request.url), { request: { headers: forward } }));
   if (pathname === "/robots.txt") return rewrite();
 
   const production = process.env.NODE_ENV === "production";

@@ -21,7 +21,6 @@ import { JobsGallery } from "./JobsGallery";
 import { JobsRunningBanner } from "./JobsRunningBanner";
 import { JobsEmpty } from "./JobsEmpty";
 import { Suspense } from "react";
-import { getSession } from "next-auth/react";
 import { JOB_STATUS } from "@/core/constants/http.constants";
 
 function JobsDashboardContent() {
@@ -101,9 +100,7 @@ function JobsDashboardContent() {
     enabled: Boolean(targetJobId) && !knownJob,
     retry: false,
     queryFn: async () => {
-      const session = await getSession();
-      const headers: Record<string, string> = session?.user?.id ? { Authorization: `Bearer ${session.user.id}` } : {};
-      const res = await fetch(`/api/v1/jobs/${targetJobId}`, { headers });
+      const res = await fetch(`/api/v1/jobs/${targetJobId}`);
       if (!res.ok) throw new Error("Job not found");
       return (await res.json()) as Job;
     },

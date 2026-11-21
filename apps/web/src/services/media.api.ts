@@ -1,4 +1,3 @@
-import { getSession } from "next-auth/react";
 import { HTTP_METHOD } from "@/core/constants/http.constants";
 
 export interface VideoAnalysisResult {
@@ -17,12 +16,7 @@ export const MediaApi = {
    * @returns The retrieved semantic context string.
    */
   searchRag: async (query: string): Promise<string> => {
-    const session = await getSession();
-    const token = session?.user?.id || "user-mock";
-
-    const response = await fetch(`/api/v1/media/search?q=${encodeURIComponent(query)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(`/api/v1/media/search?q=${encodeURIComponent(query)}`);
 
     if (!response.ok) {
       throw new Error(`RAG query failed with status ${response.status}`);
@@ -40,17 +34,9 @@ export const MediaApi = {
    * @returns The active Job ID wrapper.
    */
   analyzeVideo: async (assetId: string, model: string): Promise<{ jobId: string }> => {
-    const session = await getSession();
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-    if (session?.user?.id) {
-      headers["Authorization"] = `Bearer ${session.user.id}`;
-    }
-
     const response = await fetch("/api/v1/media/analyze/video", {
       method: HTTP_METHOD.POST,
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ assetId, model }),
     });
 
@@ -74,15 +60,8 @@ export const MediaApi = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const session = await getSession();
-    const headers: Record<string, string> = {};
-    if (session?.user?.id) {
-      headers["Authorization"] = `Bearer ${session.user.id}`;
-    }
-
     const response = await fetch("/api/v1/media/upload", {
       method: HTTP_METHOD.POST,
-      headers,
       body: formData,
     });
 
