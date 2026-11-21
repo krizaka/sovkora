@@ -115,7 +115,9 @@ services:
         value: 2
         window: FIVE_MINUTES
     health_check:
-      http_path: /actuator/health
+      # The edge's own liveness on the public port, the status alone: the edge forwards no /actuator/** path.
+      # A JVM of this container that stops stops the container (run-services.sh `wait -n`).
+      http_path: /healthz
       initial_delay_seconds: 240
       period_seconds: 20
       timeout_seconds: 5

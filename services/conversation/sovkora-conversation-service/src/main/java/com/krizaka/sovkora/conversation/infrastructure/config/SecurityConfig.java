@@ -130,8 +130,11 @@ public class SecurityConfig {
     SecurityBaseline.apply(
             http,
             auth ->
+                // The sovereign readiness report names the default provider, the model server's
+                // address and the vector store's state: an administrator's (the operator console),
+                // never a caller with no token (krizaka-restricted#348).
                 auth.requestMatchers("/api/v1/status/health")
-                    .permitAll()
+                    .hasAuthority(ADMIN)
                     // The apps' version contract (krizaka-app-config): the config is public, so
                     // an old build with an expired session still learns it must update; its
                     // parameters are edited by administrators only.

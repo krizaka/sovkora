@@ -69,7 +69,7 @@ A Next.js console served by `orazaka-web-client` on the admin host (`admin.sovko
 | GET | `/api/v1/models/admin/audit` | ADMIN | — |
 | GET | `/api/v1/models/catalog` | authenticated | Retrieves the complete AI model catalog definitions from the database. |
 | GET | `/api/v1/models/providers` | authenticated | Retrieves all available AI provider names from the database. |
-| GET | `/api/v1/status/health` | public | Returns sovereign readiness health details (public probe). |
+| GET | `/api/v1/status/health` | ADMIN | Returns sovereign readiness health details (administrators only). |
 | GET | `/api/v1/status/infrastructure` | authenticated | Returns the current online/offline snapshot of the local inference engines. |
 | GET | `/api/v1/studios` | authenticated | The catalogue, optionally narrowed to one profession. |
 | GET | `/api/v1/studios/{studioKey}` | authenticated | One Studio's detail, including the schemas its forms are generated from. |
@@ -117,6 +117,7 @@ administrator's token (through the edge, `http://localhost:8088` locally).
 | POST | `/api/v1/pipeline/interceptors/reset` | Resets all pipeline interceptor configurations to hardcoded defaults. |
 | GET | `/api/v1/pipeline/validation` | Retrieves all validation pipeline tier configurations ordered by execution order. |
 | PUT | `/api/v1/pipeline/validation` | Bulk-updates validation pipeline tier ordering and enabled state. |
+| GET | `/api/v1/status/health` | Returns sovereign readiness health details (administrators only). |
 
 ### studio-service
 

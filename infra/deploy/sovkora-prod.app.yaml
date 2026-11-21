@@ -174,9 +174,9 @@ services:
         value: 2
         window: FIVE_MINUTES
     health_check:
-      # The edge's own actuator is on its management port: the main port proxies everything to core.
-      port: 8089
-      http_path: /actuator/health
+      # The edge's own liveness on the public port, the status alone: the edge forwards only the client
+      # surfaces (/api/, /hooks/) to core, never an /actuator/** path.
+      http_path: /healthz
     envs:
       - { key: ORAZAKA_SERVICES, scope: RUN_TIME, value: "edge:edge.jar:80" }
       - { key: ORAZAKA_WORKERS, scope: RUN_TIME, value: "" }

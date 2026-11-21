@@ -44,6 +44,18 @@ class ConversationServiceDefaultsTest {
   }
 
   @Test
+  void aHealthAnswerCarriesNoDetailWithoutAnAdministrator() {
+    StandardEnvironment environment = withDefaults(Map.of());
+
+    // krizaka-restricted#348: the components (database, broker, disk, outbox) are an operator's.
+    assertThat(environment.getProperty("management.endpoint.health.show-details"))
+        .isEqualTo("when-authorized");
+    assertThat(environment.getProperty("management.endpoint.health.show-components"))
+        .isEqualTo("when-authorized");
+    assertThat(environment.getProperty("management.endpoint.health.roles")).isEqualTo("ADMIN");
+  }
+
+  @Test
   void everyOtherSourceWins() {
     StandardEnvironment environment =
         withDefaults(Map.of("spring.rabbitmq.listener.simple.prefetch", "5"));

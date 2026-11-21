@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
  * compliance health, and the compiled operation graph.
  *
  * <p>Consolidates the former InfrastructureStatus, Compliance and OperationGraph controllers.
- * {@code /health} is the public sovereign readiness probe (permitted via SecurityConfig).
+ * {@code /health} is the sovereign readiness report, an administrator's only (SecurityConfig).
  */
 @RestController
 @RequestMapping("/api/v1/status")
@@ -73,7 +73,7 @@ public class StatusController {
     return ResponseEntity.ok(graphEngine.compileGraph());
   }
 
-  /** Returns sovereign readiness health details (public probe). */
+  /** Returns sovereign readiness health details (administrators only). */
   @GetMapping("/health")
   public ResponseEntity<@NotNull ComplianceResponse> getComplianceHealth() {
     boolean dbConnected = checkDbConnection();

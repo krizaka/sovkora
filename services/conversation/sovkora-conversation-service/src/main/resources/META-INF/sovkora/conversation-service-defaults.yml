@@ -103,7 +103,11 @@ krizaka:
 management:
   endpoint:
     health:
-      show-details: always
+      # The components (database, broker, disk, outbox) are an operator's: an administrator's token sees them,
+      # anyone else the status alone (krizaka-restricted#348).
+      show-details: when-authorized
+      show-components: when-authorized
+      roles: ADMIN
   # Distributed tracing: OTLP/HTTP export to the local Jaeger container.
   otlp:
     tracing:
