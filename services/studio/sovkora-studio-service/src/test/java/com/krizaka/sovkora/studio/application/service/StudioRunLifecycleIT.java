@@ -149,6 +149,7 @@ class StudioRunLifecycleIT {
   private static void installCatalogueFixture() {
     installStudio(STUDIO_KEY, STUDIO_KEY, "Vitrine Artisan");
     installStudio(COMPLIANCE_PACK, COMPLIANCE_KEY, "Contrôle de conformité");
+    installStudio(COMPLIANCE_PACK, DOCUMENT_KEY, "Authenticité du document");
   }
 
   /**
@@ -891,6 +892,110 @@ class StudioRunLifecycleIT {
     assertThrows(IllegalArgumentException.class, () -> runService.resume(runId, ACTOR, "nope"));
     assertThrows(
         RunNotFoundException.class, () -> runService.resume(runId, "someone-else", "caption"));
+  }
+
+  // ── restricted#279: a run's input file is purged at its terminal state ────
+
+  private static final String DOCUMENT_KEY = "document-authenticity";
+  private static final String PDF = "JVBERi0xLjcKJUxJRkVDWUNMRS1URVNULUZJTEU=";
+
+  private RunDetail startDocumentCheck() {
+    UUID installation = installationService.install(DOCUMENT_KEY, ACTOR, Map.of(), "fr").id();
+    return runService.start(
+        installation, ACTOR, Map.of("documentBase64", PDF, "documentType", "pay-stub"));
+  }
+
+  private String storedInputs(UUID run) {
+    return jdbcTemplate.queryForObject(
+        "SELECT inputs::text FROM studio_run WHERE id = ?", String.class, run);
+  }
+
+  private int purgeTrail(UUID run) {
+    Integer rows =
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM studio_run_purge_audit WHERE run_id = ?"
+                + " AND event = 'run.inputs_purged' AND fields = '[\"documentBase64\"]'::jsonb",
+            Integer.class,
+            run);
+    return rows == null ? 0 : rows;
+  }
+
+  @Test
+  @DisplayName(
+      "[restricted#279] a document-authenticity run that succeeds loses documentBase64; its"
+          + " findings and id remain")
+  void aSucceededDocumentCheckLosesItsFile() {
+    RunDetail run = startDocumentCheck();
+    assertTrue(storedInputs(run.id()).contains(PDF), "the file is there while the run runs");
+
+    Map<String, Object> report =
+        Map.of(
+            "header",
+            "Rapport d'intégrité du document",
+            "pages",
+            1,
+            "signals",
+            List.of(
+                Map.of(
+                    "signalId",
+                    "incremental-save",
+                    "level",
+                    "inhabituel",
+                    "observation",
+                    "Le fichier a été enregistré deux fois.",
+                    "mayIndicate",
+                    "Une modification après la création.",
+                    "where",
+                    "structure")),
+            "realExamination",
+            List.of("métadonnées"));
+    sagaService.applyOutcome(
+        executor.dispatched.getLast(),
+        Map.of(
+            "reportText",
+            "Un point à éclaircir",
+            "reportJson",
+            new ObjectMapper().writeValueAsString(report)),
+        null);
+
+    RunDetail done = runService.find(run.id(), ACTOR).orElseThrow();
+    assertEquals(RunStatus.SUCCEEDED, done.status());
+    assertFalse(storedInputs(run.id()).contains("documentBase64"), "the file is gone");
+    assertTrue(storedInputs(run.id()).contains("pay-stub"), "the other inputs stay");
+    assertTrue(String.valueOf(done.outputs()).contains("incremental-save"), "the findings remain");
+    assertEquals(1, purgeTrail(run.id()), "one run.inputs_purged row, with the field name");
+    UUID runId = run.id();
+    IllegalStateException refused =
+        assertThrows(IllegalStateException.class, () -> runService.resume(runId, ACTOR, "signals"));
+    assertTrue(refused.getMessage().contains("purged"));
+  }
+
+  @Test
+  @DisplayName("[restricted#279] a cancelled document check loses its file too")
+  void aCancelledDocumentCheckLosesItsFile() {
+    RunDetail run = startDocumentCheck();
+
+    runService.cancel(run.id(), ACTOR);
+
+    assertEquals(RunStatus.CANCELLED, runService.find(run.id(), ACTOR).orElseThrow().status());
+    assertFalse(storedInputs(run.id()).contains("documentBase64"));
+    assertEquals(1, purgeTrail(run.id()));
+  }
+
+  @Test
+  @DisplayName("[restricted#279] a run of a Studio no purge row names keeps its inputs")
+  void aRunUnderNoPurgeRowKeepsItsInputs() {
+    RunDetail run = startRun();
+
+    runService.cancel(run.id(), ACTOR);
+
+    assertTrue(storedInputs(run.id()).contains("plombier"));
+    assertEquals(
+        0,
+        jdbcTemplate.queryForObject(
+            "SELECT count(*) FROM studio_run_purge_audit WHERE run_id = ?",
+            Integer.class,
+            run.id()));
   }
 
   // ── §15: install → run → step outcomes → settle ───────────────────────────
@@ -2086,6 +2191,7 @@ class StudioRunLifecycleIT {
             jdbcTemplate,
             context.getBean(RunSettlementService.class),
             context.getBean(RunAuditService.class),
+            context.getBean(RunInputPurgeService.class),
             context.getBean(OutboxService.class),
             new io.micrometer.core.instrument.simple.SimpleMeterRegistry())
         .failUndispatched(java.time.Instant.now().minus(timeout), limit);
@@ -2179,8 +2285,12 @@ class StudioRunLifecycleIT {
     assertTrue(runService.find(run.id(), ACTOR).isEmpty());
     assertEquals(
         0,
-        jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM studio_run_step WHERE run_id = ?", Integer.class, run.id()));
+        jdbcTemplate
+            .query(
+                "SELECT count(*) FROM studio_run_step WHERE run_id = ?",
+                (rs, rowNum) -> rs.getInt(1),
+                run.id())
+            .getFirst());
   }
 
   @Test
@@ -2545,6 +2655,12 @@ class StudioRunLifecycleIT {
     }
 
     @Bean
+    RunInputPurgeService runInputPurgeService(
+        JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+      return new RunInputPurgeService(jdbcTemplate, objectMapper);
+    }
+
+    @Bean
     StudioAccessService studioAccessService(
         com.krizaka.billing.domain.port.EntitlementProvider provider) {
       return new StudioAccessService(provider, actorId -> java.util.Set.of());
@@ -2604,6 +2720,7 @@ class StudioRunLifecycleIT {
         OutboxService outboxService,
         ColumnValueResolver columns,
         RunAuditService runAuditService,
+        RunInputPurgeService inputPurge,
         ObjectProvider<StudioRunService> runs,
         io.micrometer.core.instrument.MeterRegistry meterRegistry) {
       return new RunSagaService(
@@ -2618,6 +2735,7 @@ class StudioRunLifecycleIT {
           columns,
           meterRegistry,
           runAuditService,
+          inputPurge,
           runs);
     }
 
@@ -2638,7 +2756,8 @@ class StudioRunLifecycleIT {
         StudioAccessService accessService,
         ContentPolicyService contentPolicy,
         com.krizaka.sovkora.studio.domain.port.RunResultCache resultCache,
-        StepDeclarationService consentGate) {
+        StepDeclarationService consentGate,
+        RunInputPurgeService inputPurge) {
       return new StudioRunService(
           jdbcTemplate,
           installationService,
@@ -2656,7 +2775,8 @@ class StudioRunLifecycleIT {
           contentPolicy,
           new FormSchemaService(category -> java.util.Optional.empty(), objectMapper),
           resultCache,
-          consentGate);
+          consentGate,
+          inputPurge);
     }
 
     @Bean

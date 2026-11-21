@@ -85,6 +85,7 @@ public class RunSagaService {
   private final MeterRegistry meterRegistry;
   private final RunMeasureRegistry measures;
   private final RunAuditService runAuditService;
+  private final RunInputPurgeService inputPurge;
 
   /**
    * Starts the runs a STUDIO step calls. A provider, not the service: the run service starts a run
@@ -122,6 +123,7 @@ public class RunSagaService {
       ColumnValueResolver columns,
       MeterRegistry meterRegistry,
       RunAuditService runAuditService,
+      RunInputPurgeService inputPurge,
       ObjectProvider<StudioRunService> runs) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.blueprintRepository = Objects.requireNonNull(blueprintRepository, "repository required");
@@ -137,6 +139,7 @@ public class RunSagaService {
     this.meterRegistry = Objects.requireNonNull(meterRegistry, "MeterRegistry required");
     this.measures = new RunMeasureRegistry(meterRegistry);
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
+    this.inputPurge = Objects.requireNonNull(inputPurge, "RunInputPurgeService required");
     this.runs = Objects.requireNonNull(runs, "StudioRunService provider required");
   }
 
@@ -1006,6 +1009,8 @@ public class RunSagaService {
       measures.succeeded(run.ageSeconds());
     }
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), true, null);
+    // The file it was given is no longer needed once the run is over, when its policy row says so.
+    inputPurge.purge(run.id(), run.actorId());
     outboxService.append(run.id().toString(), "evt.studio.run.succeeded", runEvent(run));
     if (run.parentRunId() != null) {
       // A called run's outputs are its parent step's: {{steps.<id>.<output key>}} downstream.
@@ -1102,6 +1107,7 @@ public class RunSagaService {
     // The category, never the reason: `reason` is the failed step's message, which for a refusal is
     // the pack's reviewed answer — a crisis response on a REGULATED pack (ADR-065).
     runAuditService.recordFinished(run.id(), run.actorId(), run.studioKey(), false, declared);
+    inputPurge.purge(run.id(), run.actorId());
     outboxService.append(run.id().toString(), "evt.studio.run.failed", runEvent(run));
     if (run.parentRunId() != null) {
       // The child's failure is the parent step's, with the child's cause: the parent's policy for

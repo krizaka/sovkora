@@ -32,6 +32,7 @@ public class StalledRunService {
   private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
   private final RunSettlementService settlementService;
   private final RunAuditService runAuditService;
+  private final RunInputPurgeService inputPurge;
   private final OutboxService outboxService;
   private final RunMeasureRegistry measures;
 
@@ -39,11 +40,13 @@ public class StalledRunService {
       org.springframework.jdbc.core.JdbcTemplate jdbcTemplate,
       RunSettlementService settlementService,
       RunAuditService runAuditService,
+      RunInputPurgeService inputPurge,
       OutboxService outboxService,
       MeterRegistry meterRegistry) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.settlementService = Objects.requireNonNull(settlementService, "settlement");
     this.runAuditService = Objects.requireNonNull(runAuditService, "RunAuditService required");
+    this.inputPurge = Objects.requireNonNull(inputPurge, "RunInputPurgeService required");
     this.outboxService = Objects.requireNonNull(outboxService, "OutboxService required");
     this.measures = new RunMeasureRegistry(meterRegistry);
   }
@@ -108,6 +111,7 @@ public class StalledRunService {
         FailureCause.TIMEOUT);
     runAuditService.recordFinished(
         run.id(), run.actorId(), run.studioKey(), false, FailureCause.TIMEOUT);
+    inputPurge.purge(run.id(), run.actorId());
     outboxService.appendRunFailed(
         run.id(), run.actorId(), run.studioKey(), run.blueprintVersion(), run.correlationId());
     return true;
