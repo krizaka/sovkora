@@ -70,8 +70,8 @@ its status and its age.
 ### Connectors and profile
 
 **Connecteurs** lists the account's connector credentials (`GET /api/v1/credentials`; none for Eric).
-**Profil** reads `GET /api/v1/profile` (name, e-mail, roles) and leads to Abonnement, Console d'intentions
-(`POST /api/v1/intent/route`) and Gouvernance, then sign-out.
+**Profil** reads `GET /api/v1/profile` (name, e-mail, roles) and leads to Abonnement and Gouvernance,
+then sign-out.
 
 ![Profile](https://krizaka-assets.b-cdn.net/site/docs/orazaka/mobile/08-profile.9c4ac4e531.webp)
 

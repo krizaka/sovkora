@@ -59,7 +59,6 @@ no matcher covers the path — the service has no security on it whatsoever.
 | PUT | `/api/v1/features/{featureKey}` | ADMIN | FeatureController | Admin: toggles an existing capability's enabled state. |
 | GET | `/api/v1/features/all` | ADMIN | FeatureController | Admin: all capabilities (enabled or not) from the database. |
 | POST | `/api/v1/intent` | authenticated | IntentController | Dispatches a synchronous user intention through the App Factory and returns the result. |
-| POST | `/api/v1/intent/route` | public | IntentController | M2M Level-0 gate routing: verifies the envelope and returns a signed intent token. |
 | GET | `/api/v1/jobs` | authenticated | JobController | Retrieves a paginated list of jobs for the authenticated user (or all jobs for admins). |
 | DELETE | `/api/v1/jobs/{id}` | ADMIN + USER | JobController | Deletes a finished job's result: files out of every store, row marked deleted (sovkora-web#86). |
 | GET | `/api/v1/jobs/{id}` | ADMIN + USER | JobController | Fetches the single, atomic state of a specific job. |

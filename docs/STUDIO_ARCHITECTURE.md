@@ -75,7 +75,7 @@ not capability.
 | Sell it | `billing_pack` + `billing_pack_entitlement` | A nullable `pack_key` on the Studio row |
 | Per-user secrets | `connector_credentials` (automation ctx) | Reused verbatim for publish-to-Instagram steps |
 | Enrich a prompt | `PromptContextInterceptor` pipeline, `governance/` predicates | A brand-kit enrichment interceptor |
-| Human approval | `PlanApprovalCard.tsx`, `IntentEnvelope` | An `approval: true` step type |
+| Human approval | `PlanApprovalCard.tsx` | An `approval: true` step type |
 | RAG grounding | `orazaka-knowledge-service`, `orazaka_tools_rag_source` | A `knowledge` step type |
 
 **Consequence.** No new execution engine, no new worker, no new transport. The Studio service is a

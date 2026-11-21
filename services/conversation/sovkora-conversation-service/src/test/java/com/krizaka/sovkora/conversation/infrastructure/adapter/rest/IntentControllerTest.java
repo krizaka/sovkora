@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.krizaka.sovkora.conversation.application.service.GateService;
 import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.IntentionRequest;
 import com.krizaka.sovkora.engine.business.api.Capability;
 import com.krizaka.sovkora.engine.business.api.ChatPayload;
@@ -24,9 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 class IntentControllerTest {
 
-  private final GateService gateEvaluator = mock(GateService.class);
   private final UseCaseDispatcher dispatcher = mock(UseCaseDispatcher.class);
-  private final IntentController controller = new IntentController(gateEvaluator, dispatcher);
+  private final IntentController controller = new IntentController(dispatcher);
 
   private static User user() {
     return new User(

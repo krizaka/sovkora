@@ -98,17 +98,10 @@ verification; they are listed in §4 so nobody re-finds them.
 - **Declared, three times** — `M2mJwtProperties` javadoc: *"Strict claim validation: iss, sub, aud,
   scopes"*; `SecurityConfig.java:160`: *"M2M JWT intent routing — claim validation via
   M2mJwtProperties"*; `IntentEnvelope` javadoc: *"verified by M2M JWT"*.
-- **Inert** — the only reader of `M2mJwtProperties` is `GateService.java:32`, and it reads
-  `intentTokenSecret()` only. `issuer`, `subject`, `audience`, `requiredScopes` have no reader.
-  `/api/v1/intent/route` is `.permitAll()`; `IntentController.resolveGate` takes `scopes` and
-  `verified` **from the request body's `metadata`**; `GateService.java:60` checks a hardcoded
-  `"intent:route"`, so `requiredScopes` changes nothing. `intentTokenSecret` is set in no yaml and
-  falls to the committed literal `"orazaka-default-dev-secret-change-in-production"`.
-- **Severity, stated exactly** — an unauthenticated POST of
-  `{"metadata":{"verified":true,"scopes":["intent:route"]}}` receives a server-signed `AUTH_PASS`.
-  **Nothing on the backend verifies an `IntentToken`** — the only consumers are a Zod shape schema
-  and `orazaka-mobile-client/src/screens/ConsoleScreen.tsx:83`, which displays it. Not exploitable
-  today. It becomes an authentication bypass the day anything trusts that signature.
+- **Inert** — the claims had no reader and the route took its scopes from the request body; nothing
+  verified the token it signed.
+- **Closed** — the route, its gate types and its signer were removed (no caller);
+  `IntentRouteSecurityTest` holds it (PRODUCTION_READINESS_AUDIT §2.6).
 - **What it would have caught** — a caller asserting its own authentication.
 
 ### 2.4 Two profiles, each the other's mirror
@@ -317,7 +310,7 @@ Reverted; `validate` green again; the full build ran the check on 28 modules.
 
 Five findings in this document share one shape — **a value that is declared, bound to nothing, and
 replaced by a default that fails open**: the two kill-switches, the image meter, the M2M claims, and
-the `intentTokenSecret`. AGENTS.md §12 already names the principle — *"a default is a declaration
+the intent-token key (since removed with its route). AGENTS.md §12 already names the principle — *"a default is a declaration
 nobody made"* — and applies it to data crossing between components. It has not yet been applied to
 configuration crossing into a component. That is an observation for the architect, not a rule this
 phase adds.

@@ -184,9 +184,7 @@ public class SecurityConfig {
                     // The law read API (#89): a person's session, or an oz_ key the edge
                     // exchanged for one; never a bare service token.
                     .requestMatchers("/api/v1/law/**")
-                    .hasAnyAuthority(ADMIN, USER)
-                    .requestMatchers("/api/v1/intent/route")
-                    .permitAll())
+                    .hasAnyAuthority(ADMIN, USER))
         .cors(Customizer.withDefaults())
         .oauth2ResourceServer(
             oauth2 ->

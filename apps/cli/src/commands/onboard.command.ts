@@ -90,9 +90,9 @@ function runHandshakeSmokeTest(): boolean {
     // Validate the router's intent endpoint is responding with correct JWT rejection
     const curlCmd = [
       "curl -s -o /dev/null -w '%{http_code}'",
-      "-X POST http://localhost:8080/api/v1/intent/route",
+      "-X POST http://localhost:8080/api/v1/intent",
       "-H 'Content-Type: application/json'",
-      '-d \'{"userId":"smoke-test","rawPrompt":"ping","sessionId":"test"}\'',
+      '-d \'{"capability":"chat","prompt":"ping","sessionId":"test"}\'',
     ].join(" ");
 
     const statusCode = execSync(curlCmd, { encoding: "utf-8", timeout: 10_000 }).trim();
