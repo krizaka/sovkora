@@ -124,15 +124,19 @@ def test_a_wrong_finding_is_refused():
     assert any("QC-LEASE-006: wrong 1 > maximum 0" in r for r in m.judge(result, THRESHOLDS))
 
 
+def _verdict(name: str, fn) -> str | None:
+    """The line to print for one test, and None when it fails: the file runs standalone as well as under pytest."""
+    try:
+        fn()
+    except AssertionError as exc:
+        return f"  FAIL {name}: {str(exc)[:400]}"
+    return None
+
+
 if __name__ == "__main__":
-    failures = 0
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            try:
-                fn()
-                print(f"  ok   {name}")
-            except AssertionError as exc:
-                failures += 1
-                print(f"  FAIL {name}: {str(exc)[:400]}")
-    print(f"\n{'FAILED' if failures else 'all green'} — {failures} failure(s)")
-    sys.exit(1 if failures else 0)
+    tests = sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f))
+    failed = [line for n, f in tests if (line := _verdict(n, f))]
+    for line in failed:
+        print(line)
+    print(f"{len(tests) - len(failed)} passed, {len(failed)} failed")
+    sys.exit(1 if failed else 0)
