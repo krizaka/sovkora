@@ -58,7 +58,8 @@ function JobsDashboardContent() {
 
   const handleRefresh = async () => {
     await refreshJobs();
-    refreshJobsQuery();
+    // TanStack invalidateQueries catches by default; refetch errors land in the query error state.
+    void refreshJobsQuery();
   };
 
   const deletion = useJobDeletion(() => void handleRefresh());
