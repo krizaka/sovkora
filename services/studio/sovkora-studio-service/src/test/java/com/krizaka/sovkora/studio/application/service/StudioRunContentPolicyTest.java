@@ -113,7 +113,8 @@ class StudioRunContentPolicyTest {
             policy,
             passthroughFormSchema(),
             (a, s, v, f) -> java.util.Optional.empty(),
-            mock(StepDeclarationService.class));
+            mock(StepDeclarationService.class),
+            mock(RunInputPurgeService.class));
   }
 
   private static Map<String, Object> inputs(String fixture) {

@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 class StudioMigrationsIT extends AbstractContainerIntegrationTest {
 
   private static final String DATABASE = "studio_migrations_check";
-  private static final long TABLES = 25;
+  private static final long TABLES = 27;
 
   private static String url(String database) {
     String url = postgres().getJdbcUrl();
@@ -56,8 +56,9 @@ class StudioMigrationsIT extends AbstractContainerIntegrationTest {
 
     assertThat(flyway().migrate().migrationsExecuted)
         .as(
-            "first run on an empty database: the baseline, the step re-issue, and the run's product and cost (#3368)")
-        .isEqualTo(3);
+            "first run on an empty database: the baseline, the step re-issue, the run's product and"
+                + " cost (#3368), and the run input retention (restricted#279)")
+        .isEqualTo(4);
     assertThat(flyway().migrate().migrationsExecuted).as("second run").isZero();
     flyway().validate();
 

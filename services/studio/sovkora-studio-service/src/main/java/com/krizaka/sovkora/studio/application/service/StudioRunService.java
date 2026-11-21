@@ -86,6 +86,7 @@ public class StudioRunService {
   private final ObjectMapper objectMapper;
   private final ColumnValueResolver columns;
   private final RunAuditService runAuditService;
+  private final RunInputPurgeService inputPurge;
   private final StudioCatalogService catalogService;
   private final StudioAccessService accessService;
   private final ContentPolicyService contentPolicy;
@@ -110,7 +111,8 @@ public class StudioRunService {
       ContentPolicyService contentPolicy,
       FormSchemaService formSchema,
       RunResultCache resultCache,
-      StepDeclarationService consentGate) {
+      StepDeclarationService consentGate,
+      RunInputPurgeService inputPurge) {
     this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "JdbcTemplate cannot be null");
     this.installationService = Objects.requireNonNull(installationService, "installations");
     this.blueprintRepository = Objects.requireNonNull(blueprintRepository, "blueprints");
@@ -129,6 +131,7 @@ public class StudioRunService {
     this.formSchema = Objects.requireNonNull(formSchema, "FormSchemaService required");
     this.resultCache = Objects.requireNonNull(resultCache, "RunResultCache required");
     this.consentGate = Objects.requireNonNull(consentGate, "StepDeclarationService required");
+    this.inputPurge = Objects.requireNonNull(inputPurge, "RunInputPurgeService required");
   }
 
   /**
@@ -512,6 +515,8 @@ public class StudioRunService {
         dataClass.name(),
         original);
     runAuditService.recordStarted(runId, actorId, studioKey, dataClass);
+    // Born finished, with the original's inputs: purged now if its policy row says so.
+    inputPurge.purge(runId, actorId);
     Map<String, Object> event =
         Map.of(
             KEY_RUN_ID,
@@ -621,6 +626,17 @@ public class StudioRunService {
         find(originId, actorId).orElseThrow(() -> new RunNotFoundException(originId));
     if (origin.finishedAt() == null) {
       throw new IllegalStateException("run is still " + origin.status() + " and cannot be resumed");
+    }
+    // A run whose input files its retention policy purged has nothing left to run again from: a
+    // resume would start without the file, so it is refused and a new run is started with it.
+    if (Boolean.TRUE.equals(
+        jdbcTemplate.queryForObject(
+            "SELECT inputs_purged_at IS NOT NULL FROM studio_run WHERE id = ? AND actor_id = ?",
+            Boolean.class,
+            originId,
+            actorId))) {
+      throw new IllegalStateException(
+          "its input files were purged when it ended and it cannot be resumed; start a new run");
     }
     if (jdbcTemplate.queryForObject(
             "SELECT parent_run_id FROM studio_run WHERE id = ?", UUID.class, originId)
@@ -883,6 +899,7 @@ public class StudioRunService {
         RunStepStatus.RUNNING.name());
     // One author closes a hold (ADR-059). This method decides the run is cancelled.
     settlementService.releaseAbandoned(run.holdId(), "cancelled by actor");
+    inputPurge.purge(runId, actorId);
   }
 
   private List<String> inFlightJobIds(UUID runId) {

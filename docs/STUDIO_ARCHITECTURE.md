@@ -940,7 +940,7 @@ own saga queue binds `job.*.done` / `job.*.error` on `orazaka.jobs`.
 | Support / debugging | Run detail exposes per-step `jobId`; admin can open the job in the existing jobs dashboard |
 | Analytics | Runs by Studio, success rate, credits/run, time-to-first-run, refusals by Studio |
 | Churn signal | `credit_refusal` rows keyed by Studio; `UPGRADE_AVAILABLE` never actioned |
-| GDPR / Loi 25 | Uninstall soft-revokes; a retention job purges `studio_run`, `studio_run_step` and generated assets after the configured window. Export = the run history endpoint |
+| GDPR / Loi 25 | Uninstall soft-revokes; a retention job purges `studio_run`, `studio_run_step` and generated assets after the configured window; a `studio_run_retention_policy` row can purge a run's input files at its terminal state (krizaka-restricted#279, [residency](../engine/docs/residency.md)). Export = the run history endpoint |
 | Multi-tenant | Every query is scoped by `actor_id`; a workspace/org is a *future* actor kind — the opaque `actorId` already permits it with no schema change |
 | Third-party publishers | `publisher_id` + `marketplace.third-party-enabled` flag; the review workflow (`DRAFT → IN_REVIEW → PUBLISHED`) is already in the status enum |
 | Localisation | `studio_i18n`; UI falls back to the base row |

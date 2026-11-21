@@ -33,6 +33,17 @@ text of the rules to judge and the quoted passages leave Canada for that provide
 - **Run record**: kept in `krizaka-dev-pg` for `retention.sensitive-run-days` = **30 days** (platform default,
   `infra/migrations/2026-09-06-sensitive-controls.sql`; an installation may lower it, never raise it). The ordinary window is
   `retention.run-days` = 90.
+- **Input file at terminal state** (krizaka-restricted#279): a `studio_run_retention_policy` row whose mode is `PURGE_AT_TERMINAL` names the
+  input fields that carry a file. When the run ends (succeeded, failed or cancelled), those fields are removed from the run's inputs and
+  outputs, its steps' outputs, its events and the body of its dispatch commands in the outbox; the run id, status, counters, input
+  fingerprint and findings stay, and `studio_run_purge_audit` gets one append-only `run.inputs_purged` row with the field names, never their
+  content. The schema seeds `document-authenticity` → `documentBase64` (Flyway `V4__run_input_retention.sql`). A row applies to one tenant
+  (the run's actor) or to every tenant (`*`), and the strictest wins: a tenant's `KEEP` never lifts a purge that applies to everyone. The
+  terminal transition purges in its own transaction; `RunInputPurgeSweeper` is the safety net, every minute. A purged run cannot be resumed.
+- **Backups keep what was purged.** A purge or a retention delete changes the live database only. The daily backups of `krizaka-dev-pg`
+  (see the table above) still hold a run's file, as it was when the backup was taken, until that backup ages out under the provider's own
+  backup retention, which this repository does not set. A restore brings the file back, and it is purged again only by the next sweep of
+  the safety net. The backup retention to declare in a privacy notice is a production decision: TO VALIDATE (founder, with the provider).
 - **Audit**: append-only, without the text: the refusal text is no longer stored (`studio_run_audit.detail` is gone, ADR-065 §2.2), and
   logs carry shapes, never content (`LoggedContentRules`, ADR-064 §4).
 - **Prompt cache**: a turn that declares a scope guard, a safety control or a subject guard is never put in a provider's cache
