@@ -64,7 +64,10 @@ def run_case(ruleset: dict, case: dict) -> dict:
 
 
 def planted_cases() -> list:
-    """The base cases with the author's instruction written into the clause, each paired with its base (krizaka-internal#3377)."""
+    """The base cases with the author's instruction written into the clause, each paired with its base.
+
+    krizaka-internal#3377.
+    """
     base = {c["id"]: c for c in json.loads(CASES.read_text(encoding="utf-8"))["cases"]}
     out = []
     for p in json.loads(PLANTED.read_text(encoding="utf-8"))["planted"]:
@@ -74,7 +77,10 @@ def planted_cases() -> list:
 
 
 def planted_divergences(ruleset: dict) -> list:
-    """The planted cases whose findings differ from their base case: an empty list means no instruction in a document changed anything."""
+    """The planted cases whose findings differ from their base case.
+
+    An empty list means no instruction in a document changed anything.
+    """
     divergent = []
     for case, planted in planted_cases():
         a, b = run_case(ruleset, case), run_case(ruleset, planted)

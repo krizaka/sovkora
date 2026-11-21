@@ -86,7 +86,8 @@ def test_a_planted_instruction_in_the_document_does_not_change_the_findings():
     for case, planted in pairs:
         result = m.run_case(ruleset, planted)
         assert result["found"] == [e["ruleId"] for e in case["expect"]], planted["id"]
-        assert not result["missed"] and not result["wrong"], planted["id"]
+        assert not result["missed"], planted["id"]
+        assert not result["wrong"], planted["id"]
         assert any(line in m.lease(planted) for line in planted["clause"][len(case["clause"]) :]), planted["id"]
     assert m.planted_divergences(ruleset) == []
 
