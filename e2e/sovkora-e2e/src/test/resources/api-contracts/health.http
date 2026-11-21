@@ -1,11 +1,11 @@
 ### ─────────────────────────────────────────────────────────────────────────
-### health.http — Actuator Health Contract (ADR-040)
-### Validates the gateway boot and infrastructure readiness.
+### health.http — Health Contract (ADR-040)
+### Validates the gateway boot; a backend's actuator is not reachable through the edge.
 ### ─────────────────────────────────────────────────────────────────────────
 
-### Health Check — Actuator Endpoint
+### Health Check — the edge's own liveness
 # @name healthCheck
-GET {{$dotenv ROUTER_URL}}/actuator/health
+GET {{$dotenv ROUTER_URL}}/healthz
 Accept: application/json
 
 ?? status == 200
@@ -13,10 +13,9 @@ Accept: application/json
 
 ###
 
-### Health Check — Detailed Components
-# @name healthCheckDetails
+### Health Check — a backend's actuator is not forwarded
+# @name actuatorNotForwarded
 GET {{$dotenv ROUTER_URL}}/actuator/health
 Accept: application/json
 
-?? status == 200
-?? body status isString
+?? status == 404

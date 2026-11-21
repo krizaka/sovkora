@@ -116,9 +116,9 @@ sovkora:
       retry-after: ${EDGE_BACKEND_RETRY_AFTER:5s}
 
 management:
-  # The edge's own actuator lives on a dedicated management port so the main
-  # port proxies EVERYTHING — including /actuator/** — to the routed backend
-  # (the facade stays fully transparent; backend health checks pass through).
+  # The edge's own actuator lives on a dedicated management port, never routed. The main port forwards only
+  # the client surfaces (/api/, /hooks/: ClientSurface), so no backend's /actuator/** or /internal/** is
+  # reachable from outside (krizaka-restricted#348).
   server:
     port: ${EDGE_MGMT_PORT:8089}
   endpoints:
@@ -127,7 +127,15 @@ management:
         include: health, info
   endpoint:
     health:
-      show-details: always
+      # The edge authenticates no one: its health answers carry the status alone.
+      show-details: never
+      show-components: never
+      group:
+        # The deploy health check of the public port (infra/deploy/sovkora-dev.app.yaml): the edge's own
+        # liveness at /healthz, {"status":"UP"} and nothing else.
+        public:
+          include: ping
+          additional-path: "server:/healthz"
   # Distributed tracing (Phase 0): OTLP/HTTP export to the local Jaeger container.
   otlp:
     tracing:

@@ -104,7 +104,7 @@ no matcher covers the path — the service has no security on it whatsoever.
 | GET | `/api/v1/pipeline/validation` | ADMIN | PipelineController | Retrieves all validation pipeline tier configurations ordered by execution order. |
 | PUT | `/api/v1/pipeline/validation` | ADMIN | PipelineController | Bulk-updates validation pipeline tier ordering and enabled state. |
 | GET | `/api/v1/status/graph` | ADMIN + USER | StatusController | Compiles and outputs the operations graph. |
-| GET | `/api/v1/status/health` | public | StatusController | Returns sovereign readiness health details (public probe). |
+| GET | `/api/v1/status/health` | ADMIN | StatusController | Returns sovereign readiness health details (administrators only). |
 | GET | `/api/v1/status/infrastructure` | authenticated | StatusController | Returns the current online/offline snapshot of the local inference engines. |
 | GET | `/api/v1/voice/clips/{clipId}` | public | VoiceController | One spoken sentence, by its signed URL — no bearer token, because an <audio> element cannot send one; the signature and its five-minute expiry are the authorisation. |
 | POST | `/api/v1/voice/turns` | ADMIN + USER | VoiceController | Takes a turn: audio (WAV, Ogg/Opus, WebM, MP3; ~30 s at most) or text, answered over SSE — transcript, delta, sentence (text and a signed audio URL valid 300 s), safety.crisis or scope.refused when a guard answers, then done with the turn's usage and timings. |
@@ -128,7 +128,7 @@ no matcher covers the path — the service has no security on it whatsoever.
 
 | Method | Path | Access | Controller | Summary |
 |:---|:---|:---|:---|:---|
-| ANY | `/**` | ⚠ no rule | ProxyController | Catch-all proxy entry point — everything not served by the edge itself is forwarded, for the methods an API uses. |
+| ANY | `/**` | ⚠ no rule | ProxyController | Catch-all proxy entry point — a client surface's request not served by the edge itself is forwarded, for the methods an API uses. |
 
 ## job-service
 

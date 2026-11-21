@@ -692,10 +692,11 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <echo message="Polling ${ROUTER_URL}/actuator/health ..." />
+                                        <!-- The edge forwards no /actuator/** path: its own /healthz. -->
+                                        <echo message="Polling ${ROUTER_URL}/healthz ..." />
                                         <waitfor maxwait="120" maxwaitunit="second"
                                                  checkevery="2" checkeveryunit="second">
-                                            <http url="${ROUTER_URL}/actuator/health" />
+                                            <http url="${ROUTER_URL}/healthz" />
                                         </waitfor>
                                         <echo message="Router is UP — releasing to test runners." />
                                     </target>

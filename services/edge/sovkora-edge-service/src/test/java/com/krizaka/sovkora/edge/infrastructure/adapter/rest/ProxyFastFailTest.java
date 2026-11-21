@@ -66,8 +66,9 @@ class ProxyFastFailTest {
   @BeforeAll
   static void startBackends() throws IOException {
     slowBackend = stub();
-    slowBackend.createContext("/slow", exchange -> answerAfter(exchange, Duration.ofSeconds(3)));
-    slowBackend.createContext("/stream", ProxyFastFailTest::streamPastTheTimeout);
+    slowBackend.createContext(
+        "/api/slow", exchange -> answerAfter(exchange, Duration.ofSeconds(3)));
+    slowBackend.createContext("/api/stream", ProxyFastFailTest::streamPastTheTimeout);
     failingBackend = stub();
     failingBackend.createContext(
         "/",
@@ -94,8 +95,8 @@ class ProxyFastFailTest {
   @DynamicPropertySource
   static void routes(DynamicPropertyRegistry registry) {
     route(registry, 0, "/", slowBackend);
-    route(registry, 1, "/failing", failingBackend);
-    route(registry, 2, "/recovering", recoveringBackend);
+    route(registry, 1, "/api/failing", failingBackend);
+    route(registry, 2, "/api/recovering", recoveringBackend);
   }
 
   @Test
@@ -103,7 +104,7 @@ class ProxyFastFailTest {
       "A backend that does not answer in time gets a 503 BACKEND_TIMEOUT with Retry-After, inside the timeout")
   void slowBackendIsATimeout() throws Exception {
     long started = System.nanoTime();
-    HttpResponse<String> response = get("/slow/api/v1/anything");
+    HttpResponse<String> response = get("/api/slow/v1/anything");
     Duration took = Duration.ofNanos(System.nanoTime() - started);
 
     assertThat(response.statusCode()).isEqualTo(503);
@@ -120,7 +121,7 @@ class ProxyFastFailTest {
   @Test
   @DisplayName("The response timeout bounds the wait for the headers, never an open stream")
   void openStreamOutlivesTheResponseTimeout() throws Exception {
-    HttpResponse<String> response = get("/stream/api/v1/jobs/stream");
+    HttpResponse<String> response = get("/api/stream/v1/jobs/stream");
 
     assertThat(response.statusCode()).isEqualTo(200);
     assertThat(response.body()).contains("data: 1").contains("data: 4");
@@ -131,12 +132,12 @@ class ProxyFastFailTest {
       "After the failures the breaker opens: the next call is a 503 BACKEND_UNAVAILABLE that never reaches the backend")
   void openBreakerRejectsWithoutCallingTheBackend() throws Exception {
     for (int call = 0; call < 3; call++) {
-      HttpResponse<String> failed = get("/failing/api/v1/anything");
+      HttpResponse<String> failed = get("/api/failing/v1/anything");
       assertThat(failed.statusCode()).isEqualTo(503);
     }
     assertThat(failingCalls).hasValue(3);
 
-    HttpResponse<String> rejected = get("/failing/api/v1/anything");
+    HttpResponse<String> rejected = get("/api/failing/v1/anything");
 
     assertThat(failingCalls).hasValue(3);
     assertThat(rejected.statusCode()).isEqualTo(503);
@@ -160,19 +161,19 @@ class ProxyFastFailTest {
   @DisplayName("After the open duration a half-open probe that succeeds closes the breaker")
   void halfOpenProbeClosesTheBreaker() throws Exception {
     for (int call = 0; call < 3; call++) {
-      get("/recovering/api/v1/anything");
+      get("/api/recovering/v1/anything");
     }
-    assertThat(get("/recovering/api/v1/anything").body()).contains("BACKEND_UNAVAILABLE");
+    assertThat(get("/api/recovering/v1/anything").body()).contains("BACKEND_UNAVAILABLE");
     assertThat(recoveringCalls).hasValue(3);
     recovered.set(true);
 
     await()
         .atMost(Duration.ofSeconds(3))
         .pollInterval(Duration.ofMillis(100))
-        .until(() -> get("/recovering/api/v1/anything").statusCode() == 200);
+        .until(() -> get("/api/recovering/v1/anything").statusCode() == 200);
 
     assertThat(recoveringCalls).hasValue(4);
-    assertThat(get("/recovering/api/v1/anything").statusCode()).isEqualTo(200);
+    assertThat(get("/api/recovering/v1/anything").statusCode()).isEqualTo(200);
     assertThat(recoveringCalls).hasValue(5);
     String backend = "127.0.0.1:" + recoveringBackend.getAddress().getPort();
     assertThat(
