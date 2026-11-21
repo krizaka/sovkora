@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.conversation.infrastructure.support;
+package com.krizaka.sovkora.engine.assets.domain.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

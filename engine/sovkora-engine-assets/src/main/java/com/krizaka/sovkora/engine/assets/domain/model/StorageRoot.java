@@ -1,4 +1,4 @@
-package com.krizaka.sovkora.job.infrastructure.support;
+package com.krizaka.sovkora.engine.assets.domain.model;
 
 import java.nio.file.Path;
 

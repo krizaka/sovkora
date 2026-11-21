@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.conversation.infrastructure.support;
 
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

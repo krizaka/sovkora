@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.support;
 
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;

@@ -3,8 +3,8 @@ package com.krizaka.sovkora.job.infrastructure.adapter.schedule;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.job.application.service.JobRetentionService;
-import com.krizaka.sovkora.job.infrastructure.support.StorageRoot;
 import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -2,7 +2,7 @@ package com.krizaka.sovkora.conversation.application.service;
 
 import com.krizaka.sovkora.conversation.domain.model.LogText;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
-import com.krizaka.sovkora.conversation.infrastructure.support.StorageRoot;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;

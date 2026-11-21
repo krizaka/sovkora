@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
 import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.UploadAssetResponse;
-import com.krizaka.sovkora.conversation.infrastructure.support.StorageRoot;
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;

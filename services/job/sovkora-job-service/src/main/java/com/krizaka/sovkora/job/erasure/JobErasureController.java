@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.erasure;
 
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.job.application.service.JobRetentionService;
-import com.krizaka.sovkora.job.infrastructure.support.StorageRoot;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;

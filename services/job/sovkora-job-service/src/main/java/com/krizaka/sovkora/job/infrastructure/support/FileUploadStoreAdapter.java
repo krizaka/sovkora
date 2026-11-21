@@ -1,5 +1,6 @@
 package com.krizaka.sovkora.job.infrastructure.support;
 
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.job.application.port.UploadStore;
 import java.io.File;
 import java.nio.file.Path;
