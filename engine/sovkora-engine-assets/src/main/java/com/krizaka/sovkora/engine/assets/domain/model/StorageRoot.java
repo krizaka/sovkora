@@ -13,11 +13,7 @@ public final class StorageRoot {
 
   private StorageRoot() {}
 
-  /**
-   * @param configured the configured storage directory
-   * @return the absolute, normalized root
-   * @throws IllegalStateException when the value is missing or blank
-   */
+  /** The absolute, normalized root; an {@link IllegalStateException} when the value is blank. */
   public static Path resolve(String configured) {
     if (configured == null || configured.isBlank()) {
       throw new IllegalStateException(
@@ -26,10 +22,7 @@ public final class StorageRoot {
     return Path.of(configured).toAbsolutePath().normalize();
   }
 
-  /**
-   * @param configured the configured storage directory
-   * @return the absolute, normalized root as a string
-   */
+  /** The same root, as a string. */
   public static String resolveToString(String configured) {
     return resolve(configured).toString();
   }
