@@ -29,12 +29,8 @@ def test_there_are_20_to_30_cases_each_with_its_source_and_no_party_name():
             assert c["source"]["url"], c["id"]
         assert c["clauseIdea"], c["id"]
         assert c["clause"], c["id"]
-        assert c["expect"] or c["source"]["kind"] == "control" or "uncoveredBy" in c, c[
-            "id"
-        ]
-        assert " c. " not in json.dumps(c, ensure_ascii=False), (
-            f"{c['id']} names parties"
-        )
+        assert c["expect"] or c["source"]["kind"] == "control" or "uncoveredBy" in c, c["id"]
+        assert " c. " not in json.dumps(c, ensure_ascii=False), f"{c['id']} names parties"
 
 
 def test_every_expected_passage_is_in_the_case_text_and_every_threshold_rule_has_cases():
@@ -53,9 +49,7 @@ def test_every_expected_passage_is_in_the_case_text_and_every_threshold_rule_has
 def test_the_committed_results_are_the_current_measure():
     committed = json.loads(m.RESULTS.read_text(encoding="utf-8"))
     current = m.summary(m.measure(), m.judge(m.measure(), THRESHOLDS))
-    assert committed == current, (
-        "the results file is stale: run measure_lease.py and commit it"
-    )
+    assert committed == current, "the results file is stale: run measure_lease.py and commit it"
 
 
 def test_a_complete_result_passes_the_threshold():
@@ -78,15 +72,11 @@ def test_a_deliberately_broken_ruleset_is_refused_by_the_threshold():
     broken = copy.deepcopy(ruleset)
     for rule in broken["rules"]:
         if rule["ruleId"] in ("QC-LEASE-004", "QC-LEASE-005"):
-            rule["check"]["pattern"] = (
-                "(?!x)x"  # never matches: the check the prompt stands for is gone
-            )
+            rule["check"]["pattern"] = "(?!x)x"  # never matches: the check the prompt stands for is gone
     cases = [m.run_case(broken, c) for c in CASES]
     refusals = m.judge({"cases": cases, "rules": m.per_rule(cases)}, THRESHOLDS)
     assert any("QC-LEASE-004: found 0" in r for r in refusals), refusals
-    assert any("critical case deposit-security-one-month" in r for r in refusals), (
-        refusals
-    )
+    assert any("critical case deposit-security-one-month" in r for r in refusals), refusals
 
 
 def test_a_planted_instruction_in_the_document_does_not_change_the_findings():
@@ -96,11 +86,9 @@ def test_a_planted_instruction_in_the_document_does_not_change_the_findings():
     for case, planted in pairs:
         result = m.run_case(ruleset, planted)
         assert result["found"] == [e["ruleId"] for e in case["expect"]], planted["id"]
-        assert not result["missed"] and not result["wrong"], planted["id"]
-        assert any(
-            line in m.lease(planted)
-            for line in planted["clause"][len(case["clause"]) :]
-        ), planted["id"]
+        assert not result["missed"], planted["id"]
+        assert not result["wrong"], planted["id"]
+        assert any(line in m.lease(planted) for line in planted["clause"][len(case["clause"]) :]), planted["id"]
     assert m.planted_divergences(ruleset) == []
 
 
@@ -112,19 +100,13 @@ def test_an_engine_that_obeys_the_planted_line_is_refused():
         findings, rest = real(rs, text)
         return (
             ([], rest)
-            if (
-                "ignorez" in text.lower()
-                or "marquez" in text.lower()
-                or "system" in text.lower()
-            )
+            if ("ignorez" in text.lower() or "marquez" in text.lower() or "system" in text.lower())
             else (findings, rest)
         )
 
     m.rules.screen = obeying
     try:
-        assert m.planted_divergences(ruleset), (
-            "an engine that obeys the document must turn the gate red"
-        )
+        assert m.planted_divergences(ruleset), "an engine that obeys the document must turn the gate red"
     finally:
         m.rules.screen = real
 
@@ -140,20 +122,22 @@ def test_a_wrong_finding_is_refused():
         }
     ]
     result = {"cases": ok, "rules": m.per_rule(ok)}
-    assert any(
-        "QC-LEASE-006: wrong 1 > maximum 0" in r for r in m.judge(result, THRESHOLDS)
-    )
+    assert any("QC-LEASE-006: wrong 1 > maximum 0" in r for r in m.judge(result, THRESHOLDS))
+
+
+def _verdict(name: str, fn) -> str | None:
+    """The line to print for one test, and None when it fails: the file runs standalone as well as under pytest."""
+    try:
+        fn()
+    except AssertionError as exc:
+        return f"  FAIL {name}: {str(exc)[:400]}"
+    return None
 
 
 if __name__ == "__main__":
-    failures = 0
-    for name, fn in sorted(globals().items()):
-        if name.startswith("test_") and callable(fn):
-            try:
-                fn()
-                print(f"  ok   {name}")
-            except AssertionError as exc:
-                failures += 1
-                print(f"  FAIL {name}: {str(exc)[:400]}")
-    print(f"\n{'FAILED' if failures else 'all green'} — {failures} failure(s)")
-    sys.exit(1 if failures else 0)
+    tests = sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f))
+    failed = [line for n, f in tests if (line := _verdict(n, f))]
+    for line in failed:
+        print(line)
+    print(f"{len(tests) - len(failed)} passed, {len(failed)} failed")
+    sys.exit(1 if failed else 0)
