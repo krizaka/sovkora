@@ -109,7 +109,10 @@ class DurableMirrorTest {
 
     var service =
         new com.krizaka.sovkora.job.application.service.WorkerInputService(
-            assets, new tools.jackson.databind.ObjectMapper(), fresh.toString(), mirror());
+            assets,
+            new tools.jackson.databind.ObjectMapper(),
+            new com.krizaka.sovkora.job.application.port.LocalUploadStore(fresh),
+            mirror());
 
     assertThat(service.startingImage("j-1", "u1")).contains(new byte[] {7, 7, 7});
     assertThat(service.uploadedImage("u1", ASSET)).contains(new byte[] {7, 7, 7});

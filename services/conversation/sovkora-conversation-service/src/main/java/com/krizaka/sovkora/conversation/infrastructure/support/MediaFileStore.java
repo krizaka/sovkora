@@ -1,6 +1,7 @@
 package com.krizaka.sovkora.conversation.infrastructure.support;
 
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +47,7 @@ public class MediaFileStore {
       return "";
     }
     try {
-      Path root = PathResolver.resolve(uploadDir).toAbsolutePath().normalize();
+      Path root = StorageRoot.resolve(uploadDir).toAbsolutePath().normalize();
       Path dir = root.resolve(userId).resolve(jobId).resolve("output");
 
       Path filePath = dir.resolve(filename).normalize();

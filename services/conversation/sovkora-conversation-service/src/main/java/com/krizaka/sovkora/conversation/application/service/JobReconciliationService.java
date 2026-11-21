@@ -1,8 +1,8 @@
 package com.krizaka.sovkora.conversation.application.service;
 
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
-import com.krizaka.sovkora.conversation.infrastructure.support.PathResolver;
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.AssetEncryptionProperties;
@@ -62,7 +62,7 @@ public class JobReconciliationService {
     this.jobPersistenceProvider =
         Objects.requireNonNull(jobPersistenceProvider, "JobPersistenceProvider cannot be null");
     this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper cannot be null");
-    this.uploadDir = PathResolver.resolveToString(routerProperties.uploads().directory());
+    this.uploadDir = StorageRoot.resolveToString(routerProperties.uploads().directory());
     this.encryptedAssetService =
         Objects.requireNonNull(encryptedAssetService, "EncryptedAssetService cannot be null");
     this.acceptPlaintext = encryption.acceptPlaintext();

@@ -2,7 +2,7 @@ package com.krizaka.sovkora.conversation.application.service;
 
 import com.krizaka.sovkora.conversation.domain.model.LogText;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
-import com.krizaka.sovkora.conversation.infrastructure.support.PathResolver;
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
 import com.krizaka.sovkora.engine.assets.infrastructure.config.MediaStorageProperties;
@@ -94,7 +94,7 @@ public class JobDeletionService {
   }
 
   private void removeLocal(String owner, String jobId) throws IOException {
-    Path root = PathResolver.resolve(router.uploads().directory()).toAbsolutePath().normalize();
+    Path root = StorageRoot.resolve(router.uploads().directory()).toAbsolutePath().normalize();
     Path dir = root.resolve(owner).resolve(jobId).normalize();
     if (!dir.startsWith(root) || dir.equals(root) || !Files.exists(dir)) {
       return;

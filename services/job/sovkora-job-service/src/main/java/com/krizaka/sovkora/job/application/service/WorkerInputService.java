@@ -1,9 +1,8 @@
 package com.krizaka.sovkora.job.application.service;
 
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
+import com.krizaka.sovkora.job.application.port.UploadStore;
 import com.krizaka.sovkora.job.durable.DurableMirror;
-import com.krizaka.sovkora.job.infrastructure.support.AssetFileResolver;
-import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,7 +12,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -43,19 +41,19 @@ public class WorkerInputService {
 
   private final EncryptedAssetService encryptedAssetService;
   private final ObjectMapper objectMapper;
-  private final String uploadDir;
+  private final UploadStore uploadStore;
   private final DurableMirror durableMirror;
 
   public WorkerInputService(
       EncryptedAssetService encryptedAssetService,
       ObjectMapper objectMapper,
-      @Value("${spring.servlet.multipart.location:var/sovkora-uploads}") String uploadDir,
+      UploadStore uploadStore,
       DurableMirror durableMirror) {
     this.durableMirror = Objects.requireNonNull(durableMirror, "DurableMirror cannot be null");
     this.encryptedAssetService =
         Objects.requireNonNull(encryptedAssetService, "EncryptedAssetService cannot be null");
     this.objectMapper = Objects.requireNonNull(objectMapper, "ObjectMapper cannot be null");
-    this.uploadDir = Objects.requireNonNull(uploadDir, "uploadDir cannot be null");
+    this.uploadStore = Objects.requireNonNull(uploadStore, "UploadStore cannot be null");
   }
 
   /**
@@ -74,7 +72,7 @@ public class WorkerInputService {
       throw new IllegalArgumentException("malformed actor id");
     }
     try {
-      Path root = PathResolver.resolve(uploadDir).toAbsolutePath().normalize();
+      Path root = uploadStore.root();
       Path ownerRoot = root.resolve(userId).normalize();
       Path input = ownerRoot.resolve(jobId).resolve("input").resolve("input.json").normalize();
       if (!input.startsWith(ownerRoot)) {
@@ -105,8 +103,8 @@ public class WorkerInputService {
    *
    * <p>A Studio step that animates a photo is dispatched straight to the worker, so no job input is
    * archived and the id is never resolved to a path: the worker names the asset it was given and
-   * this service resolves it against the actor's own files, exactly as {@link AssetFileResolver}
-   * does for every other capability (ownership is the path; another actor's id is "not found").
+   * this service resolves it against the actor's own files, exactly as the {@link UploadStore} does
+   * for every other capability (ownership is the path; another actor's id is "not found").
    *
    * @param userId the run's actor
    * @param assetId the asset id (a UUID)
@@ -121,11 +119,9 @@ public class WorkerInputService {
       throw new IllegalArgumentException("malformed asset id");
     }
     try {
-      Optional<java.io.File> file =
-          AssetFileResolver.resolve(PathResolver.resolveToString(uploadDir), userId, assetId);
+      Optional<java.io.File> file = uploadStore.find(userId, assetId);
       if (file.isEmpty()) {
-        file =
-            durableMirror.restoreUpload(PathResolver.resolveToString(uploadDir), userId, assetId);
+        file = durableMirror.restoreUpload(uploadStore.root().toString(), userId, assetId);
       }
       if (file.isEmpty() || file.get().length() > MAX_BYTES) {
         return Optional.empty();

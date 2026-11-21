@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.erasure;
 
+import com.krizaka.sovkora.engine.assets.domain.model.StorageRoot;
 import com.krizaka.sovkora.job.application.service.JobRetentionService;
-import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +33,7 @@ class JobErasureController {
       JobRetentionService retention,
       @Value("${spring.servlet.multipart.location:var/sovkora-uploads}") String uploadDir) {
     this.retention = Objects.requireNonNull(retention, "JobRetentionService cannot be null");
-    this.uploadRoot = PathResolver.resolve(uploadDir);
+    this.uploadRoot = StorageRoot.resolve(uploadDir);
   }
 
   /**
