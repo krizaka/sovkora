@@ -46,7 +46,7 @@ public class MediaFileStore {
       return "";
     }
     try {
-      Path root = PathResolver.resolve(uploadDir).toAbsolutePath().normalize();
+      Path root = StorageRoot.resolve(uploadDir).toAbsolutePath().normalize();
       Path dir = root.resolve(userId).resolve(jobId).resolve("output");
 
       Path filePath = dir.resolve(filename).normalize();

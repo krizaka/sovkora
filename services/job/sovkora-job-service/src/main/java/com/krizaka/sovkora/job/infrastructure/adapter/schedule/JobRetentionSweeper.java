@@ -1,7 +1,7 @@
 package com.krizaka.sovkora.job.infrastructure.adapter.schedule;
 
 import com.krizaka.sovkora.job.application.service.JobRetentionService;
-import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
+import com.krizaka.sovkora.job.infrastructure.support.StorageRoot;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +33,7 @@ public class JobRetentionSweeper {
       @Value("${spring.servlet.multipart.location:var/sovkora-uploads}") String uploadDir) {
     this.jobRetentionService =
         Objects.requireNonNull(jobRetentionService, "JobRetentionService cannot be null");
-    this.uploadRoot = PathResolver.resolve(uploadDir);
+    this.uploadRoot = StorageRoot.resolve(uploadDir);
   }
 
   /** Purges expired jobs, then deletes any purged job's directory that came back. */

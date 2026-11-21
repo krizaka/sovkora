@@ -1,6 +1,6 @@
 package com.krizaka.sovkora.job.application.service;
 
-import com.krizaka.sovkora.job.infrastructure.support.MediaFileStore;
+import com.krizaka.sovkora.job.application.port.MediaStore;
 import com.krizaka.sovkora.jobs.api.domain.model.DataClass;
 import com.krizaka.sovkora.persistence.api.domain.model.JobDto;
 import com.krizaka.sovkora.persistence.api.domain.ports.inbound.JobPersistenceProvider;
@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
  *       row's when the row exists; only an absent row takes the run's actor the worker relays, the
  *       same identity the job command carried (and a worker holds a {@code SERVICE} token,
  *       ADR-035);
- *   <li><b>seals it</b> with the platform's key ({@link MediaFileStore}, ADR-054) — the droplet
- *       never holds that key;
+ *   <li><b>seals it</b> with the platform's key ({@link MediaStore}, ADR-054) — the droplet never
+ *       holds that key;
  *   <li>answers the URL the asset is served under, {@code /api/v1/assets/{jobId}/{filename}}.
  * </ol>
  */
@@ -48,16 +48,16 @@ public class WorkerOutputService {
   static final int MAX_BYTES = 256 * 1024 * 1024;
 
   private final JobPersistenceProvider jobPersistenceProvider;
-  private final MediaFileStore mediaFileStore;
+  private final MediaStore mediaFileStore;
   private final String uploadDir;
 
   public WorkerOutputService(
       JobPersistenceProvider jobPersistenceProvider,
-      MediaFileStore mediaFileStore,
+      MediaStore mediaFileStore,
       @Value("${spring.servlet.multipart.location:var/sovkora-uploads}") String uploadDir) {
     this.jobPersistenceProvider =
         Objects.requireNonNull(jobPersistenceProvider, "JobPersistenceProvider cannot be null");
-    this.mediaFileStore = Objects.requireNonNull(mediaFileStore, "MediaFileStore cannot be null");
+    this.mediaFileStore = Objects.requireNonNull(mediaFileStore, "MediaStore cannot be null");
     this.uploadDir = Objects.requireNonNull(uploadDir, "uploadDir cannot be null");
   }
 

@@ -28,7 +28,7 @@ class WorkerInputServiceTest {
     return new WorkerInputService(
         assets,
         new ObjectMapper(),
-        uploads.toString(),
+        new com.krizaka.sovkora.job.application.port.LocalUploadStore(uploads),
         com.krizaka.sovkora.job.durable.DurableMirror.localOnly());
   }
 

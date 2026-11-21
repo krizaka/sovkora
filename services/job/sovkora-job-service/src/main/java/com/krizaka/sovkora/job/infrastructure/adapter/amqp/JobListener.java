@@ -17,7 +17,7 @@ import com.krizaka.sovkora.job.application.service.JobLeaseService;
 import com.krizaka.sovkora.job.durable.DurableMirror;
 import com.krizaka.sovkora.job.infrastructure.config.JobsProperties;
 import com.krizaka.sovkora.job.infrastructure.support.AssetFileResolver;
-import com.krizaka.sovkora.job.infrastructure.support.PathResolver;
+import com.krizaka.sovkora.job.infrastructure.support.StorageRoot;
 import com.krizaka.sovkora.jobs.api.domain.exception.JobExecutionException;
 import com.krizaka.sovkora.jobs.api.domain.model.CapabilityDeclaration;
 import com.krizaka.sovkora.jobs.api.domain.model.FailureCause;
@@ -184,7 +184,7 @@ public class JobListener {
     this.executorsByHandler = Map.copyOf(byHandler);
     this.capabilityManager =
         Objects.requireNonNull(capabilityManager, "CapabilityManager cannot be null");
-    this.uploadDirProperty = PathResolver.resolveToString(uploadDir);
+    this.uploadDirProperty = StorageRoot.resolveToString(uploadDir);
     this.virtualThreadExecutor =
         Objects.requireNonNull(virtualThreadExecutor, "virtualThreadExecutor cannot be null");
     this.jobTimeoutSeconds = jobsProperties.executionTimeout();

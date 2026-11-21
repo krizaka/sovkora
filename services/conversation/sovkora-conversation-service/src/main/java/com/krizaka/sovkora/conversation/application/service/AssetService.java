@@ -4,7 +4,7 @@ import com.krizaka.sovkora.conversation.domain.model.LogText;
 import com.krizaka.sovkora.conversation.domain.model.asset.AssetRef;
 import com.krizaka.sovkora.conversation.infrastructure.config.RouterProperties;
 import com.krizaka.sovkora.conversation.infrastructure.support.EncryptedFileResource;
-import com.krizaka.sovkora.conversation.infrastructure.support.PathResolver;
+import com.krizaka.sovkora.conversation.infrastructure.support.StorageRoot;
 import com.krizaka.sovkora.engine.assets.application.service.EncryptedAssetService;
 import com.krizaka.sovkora.engine.assets.domain.port.AssetKeys;
 import com.krizaka.sovkora.engine.assets.domain.port.DurableAssetStore;
@@ -94,7 +94,7 @@ public class AssetService {
       logger.info("Admin {} is reading an asset owned by {} (job {})", actorId, owner, loggedJob);
     }
 
-    Path uploadRoot = PathResolver.resolve(routerProperties.uploads().directory());
+    Path uploadRoot = StorageRoot.resolve(routerProperties.uploads().directory());
     Path file;
     try {
       file = new AssetRef(owner, jobId, filename).resolveUnder(uploadRoot);
