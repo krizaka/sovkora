@@ -192,24 +192,12 @@ Acceptable for the local phase; it must not survive the first deploy. **Fix**: p
 profiles. Add a build check that fails on a literal `PASSWORD '` in `infra/**` outside a `dev`
 guard — otherwise this reappears with the next context.
 
-### 2.6 🔴 CRITICAL, DEFERRED — `/intent/route` signs authentication the caller declares about itself
+### 2.6 ✅ CLOSED — `/intent/route` removed
 
-Recorded by M1.5 as a **blocking pre-deployment item**, not fixed there (ADR-062 §7).
-
-`POST /api/v1/intent/route` is `.permitAll()`. `IntentController.resolveGate` reads `verified` and
-`scopes` **from the request body's `metadata`**, `GateService` checks a hardcoded `"intent:route"`
-against that list, and signs `AUTH_PASS` with `intentTokenSecret` — which no yaml sets, so it is the
-committed literal `orazaka-default-dev-secret-change-in-production`. The claim validation
-`M2mJwtProperties` describes (`iss`, `sub`, `aud`, scopes) is written in three places and implemented
-in none (M0.5 inventory §2.3).
-
-**Why it is inert today and still blocking.** Nothing verifies an `IntentToken`; the only consumers
-are a Zod shape schema and a console that displays it. **The danger is the ordering.** The first
-service to implement verification of that signature will turn a self-declared-scope system into
-what looks like working authentication — green tests, a valid HMAC, and a caller who wrote their own
-`verified: true`. **Fix before that happens, not after**: validate a real M2M JWT on the route (issuer,
-subject, audience, scopes from the token, never from the body), take the secret from the environment
-with no default, and only then let anything trust the signature.
+The M2M gate route and the token signer behind it had no caller (web, mobile, CLI, edge). The route,
+its gate types and its signer were removed rather than secured: nothing signs an intent token any
+more, so nothing can come to trust one. `IntentRouteSecurityTest` holds it, through the service's
+real filter chain: no token is refused, and a signed-in person finds no route.
 
 ---
 
@@ -419,7 +407,7 @@ from ~200 lines of genuine domain code instead of ~600 with 400 copied.
 | 16 | 🟡 | `.tsx` 250-line rule violated by registries | `icon.tsx:841` |
 | 17 | 🟡 | `JobCommand` duplicated — a wire contract with two owners | conversation + job |
 | 18 | 🟡 | Governance gap: name-based service rule permits SQL inline | `GovernanceRules:365` |
-| 19 | 🔴 | `/intent/route` signs `AUTH_PASS` for scopes the caller declares; secret is a committed literal — inert until something verifies the token, then an auth bypass | §2.6 · `IntentController.resolveGate`, `GateService.java:60` · deferred by M1.5 |
+| 19 | ✅ | ~~`/intent/route` signs a decision for scopes the caller declares~~ — **closed**: the route and its signer were removed (no caller) | §2.6 · `IntentRouteSecurityTest` |
 | 20 | ✅ | ~~Video composition bills the **intended** duration~~ — **closed** by ADR-063: frames counted and rate read on the written file (constant 30 fps forced so a frame count means seconds); the divergence contract now covers video with the 2 s-voiceover fixture that billed 9.00 for 2.02 s, seen failing on the old composer | `composer.py` `_measure` · `TestCompositionDivergenceContract` · ADR-063 §7 |
 | 21 | ✅ | ~~A chat turn whose prompt carries inline media skips the whole interceptor pipeline~~ — **closed** by ADR-063. **Exposure: the chat API itself** — `Base64MediaExtractor` reads the prompt string, so any caller who puts a `[posterBase64: …]` marker in the text skipped the crisis guard, the scope guard, entitlement and credit hold, and `disable-ai` (ADR-062 §2.3's "not established" was wrong). Media chat turns were **never billed** (billing defect D6) | `EnginePipelineBridge.compileContext` · `MediaTurnControlsTest`, five tests each seen failing · ADR-063 §1–§6 |
 | 22 | ✅ | ~~Audio has never been billed~~ — and it was FOUR capabilities, not one: audio analysis, speech synthesis, image analysis and video analysis all carried `billable_unit NULL`. **Closed** by ADR-066: each declares a unit chosen from what its executor can measure (KILOCHAR, AUDIO_MINUTE, KILOTOKEN, AUDIO_MINUTE) and each now reports it — the transcription provider's duration travels out of `ProcessedAudioPayload`, TTS reports the characters it sent. `SeedBootstrapIT` asserts every declared unit is priced by a current pricebook row | `AudioAnalysisStrategy`, `SpeechSynthesisStrategy`, `VisionAnalysisStrategy`, `VideoAnalysisStrategy` · ADR-066 §4 |

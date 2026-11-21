@@ -1,10 +1,5 @@
 package com.krizaka.sovkora.conversation.infrastructure.adapter.rest;
 
-import com.krizaka.sovkora.conversation.application.service.GateService;
-import com.krizaka.sovkora.conversation.domain.model.gate.AuthGate;
-import com.krizaka.sovkora.conversation.domain.model.gate.StaticGate;
-import com.krizaka.sovkora.conversation.domain.model.intent.IntentEnvelope;
-import com.krizaka.sovkora.conversation.domain.model.intent.IntentToken;
 import com.krizaka.sovkora.conversation.infrastructure.adapter.rest.dto.IntentionRequest;
 import com.krizaka.sovkora.engine.business.api.*;
 import com.krizaka.sovkora.engine.core.domain.model.Context;
@@ -28,9 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * REST controller for the {@code intent} resource.
  *
- * <p>Consolidates the Sovereign Intent Router (M2M, Level-0 gate evaluation at {@code /route}) and
- * the App-Factory ingress (authenticated intention dispatch at the collection root). The M2M {@code
- * /route} endpoint is permitted via SecurityConfig; the dispatch endpoint is authenticated.
+ * <p>The App-Factory ingress: an authenticated intention, dispatched at the collection root.
  */
 @RestController
 @RequestMapping("/api/v1/intent")
@@ -38,20 +31,10 @@ public class IntentController {
 
   private static final Logger logger = LoggerFactory.getLogger(IntentController.class);
 
-  private final GateService gateEvaluator;
   private final UseCaseDispatcher dispatcher;
 
-  public IntentController(GateService gateEvaluator, UseCaseDispatcher dispatcher) {
-    this.gateEvaluator = Objects.requireNonNull(gateEvaluator, "GateService must not be null");
+  public IntentController(UseCaseDispatcher dispatcher) {
     this.dispatcher = Objects.requireNonNull(dispatcher, "UseCaseDispatcher must not be null");
-  }
-
-  /** M2M Level-0 gate routing: verifies the envelope and returns a signed intent token. */
-  @PostMapping("/route")
-  public ResponseEntity<IntentToken> routeIntent(@RequestBody IntentEnvelope envelope) {
-    StaticGate gate = resolveGate(envelope);
-    IntentToken token = gateEvaluator.evaluate(gate);
-    return ResponseEntity.ok(token);
   }
 
   /** Dispatches a synchronous user intention through the App Factory and returns the result. */
@@ -68,17 +51,6 @@ public class IntentController {
       throw new ResponseStatusException(
           denied ? HttpStatus.FORBIDDEN : HttpStatus.NOT_FOUND, e.getMessage());
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private static StaticGate resolveGate(IntentEnvelope envelope) {
-    Object scopesRaw = envelope.metadata().get("scopes");
-    List<String> scopes =
-        scopesRaw instanceof List<?> list
-            ? list.stream().map(Object::toString).toList()
-            : List.of();
-    boolean verified = Boolean.TRUE.equals(envelope.metadata().get("verified"));
-    return new AuthGate(envelope.userId(), scopes, verified);
   }
 
   private static Intention toIntention(IntentionRequest request, User user) {
