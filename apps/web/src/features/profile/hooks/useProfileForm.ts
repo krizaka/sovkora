@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useQuery } from "@krizaka/query";
-import { getSession } from "next-auth/react";
 import { useSettings } from "@/core/hooks/useSettings";
 import { type Appearance, toAppearance, useAppearance } from "@/core/hooks/useAppearance";
 import { useTranslation, type Locale } from "@/core/context/LocaleContext";
@@ -74,10 +73,7 @@ export function useProfileForm() {
   const catalog = useQuery({
     queryKey: ["models-catalog", "theme"],
     queryFn: async () => {
-      const session = await getSession();
-      const res = await fetch("/api/v1/models/catalog", {
-        headers: session?.user?.id ? { Authorization: `Bearer ${session.user.id}` } : {},
-      });
+      const res = await fetch("/api/v1/models/catalog");
       if (!res.ok) throw new Error("catalog unavailable");
       return ((await res.json()) as { category: string; modelName: string; modelLabel: string }[])
         .filter((m) => m.category === "theme")

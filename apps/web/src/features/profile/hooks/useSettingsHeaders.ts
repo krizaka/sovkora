@@ -1,13 +1,6 @@
 import * as React from "react";
-import { getSession } from "next-auth/react";
 
-/** The authenticated JSON headers the integrations' BFF calls carry. */
+/** The JSON headers the integrations' BFF calls carry; the BFF adds the session's Bearer token server-side. */
 export function useSettingsHeaders() {
-  return React.useCallback(async (): Promise<Record<string, string>> => {
-    const session = await getSession();
-    return {
-      "Content-Type": "application/json",
-      ...(session?.user?.id ? { Authorization: `Bearer ${session.user.id}` } : {}),
-    };
-  }, []);
+  return React.useCallback(async (): Promise<Record<string, string>> => ({ "Content-Type": "application/json" }), []);
 }

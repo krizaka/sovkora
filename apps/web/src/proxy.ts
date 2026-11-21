@@ -28,6 +28,7 @@ import { LOCALE_HEADER, splitLocalePrefix } from "@/core/i18n/locale-negotiation
 import { SITE_URL } from "@/app/_seo/seo";
 import { consoleResponse } from "@/console/core/edge";
 import { inConsoleTree, isAdminHost, routeFor } from "@/console/core/config/host";
+import { contentSecurityPolicy, NONCE_HEADER, newNonce } from "@/core/config/security-headers";
 /** The next-auth cookie of the session, by the name this deployment uses (`__Secure-` on https); it is only read, as a hint, never trusted (krizaka-ui#827). */
 const SESSION_COOKIES = ["__Secure-next-auth.session-token", "next-auth.session-token"] as const;
 const sessionCookieOf = (request: NextRequest) =>
@@ -46,7 +47,7 @@ function isPublicPath(pathname: string): boolean {
 }
 
 /** Handle dev host routing for robots and redirects. */
-function handleDevHost(request: NextRequest, pathname: string): NextResponse | null {
+function handleDevHost(request: NextRequest, pathname: string, forward: Headers): NextResponse | null {
   const closed = (r: NextResponse) => {
     r.headers.set("x-robots-tag", NOINDEX_HEADER);
     return r;
@@ -61,7 +62,7 @@ function handleDevHost(request: NextRequest, pathname: string): NextResponse | n
   if (inConsoleTree(pathname)) {
     return closed(new NextResponse("Not found", { status: 404 }));
   }
-  if (pathname !== HEALTH_PATH) return closed(route(request));
+  if (pathname !== HEALTH_PATH) return closed(route(request, forward));
   return closed(NextResponse.next());
 }
 
@@ -79,17 +80,18 @@ function handleRobotsRequest(host: string | null, pathname: string): NextRespons
   return null;
 }
 
-function route(request: NextRequest) {
+/** `forward` is the request as the page renders it: with the nonce and the policy Next.js puts on its scripts. */
+function route(request: NextRequest, forward: Headers) {
   // `/fr/…` and `/en/…` are the same pages with the language named by the address (Loi 96): they are gated and served as `/…`.
   const { locale, path: pathname } = splitLocalePrefix(request.nextUrl.pathname);
   const next = () => {
     if (!locale) {
-      return NextResponse.next();
+      return NextResponse.next({ request: { headers: forward } });
     }
     const target = request.nextUrl.clone();
     target.pathname = pathname;
     // The page's `<title>` and Open Graph are written in the address's language (app/layout.tsx reads this header).
-    const headers = new Headers(request.headers);
+    const headers = new Headers(forward);
     headers.set(LOCALE_HEADER, locale);
     return NextResponse.rewrite(target, { request: { headers } });
   };
@@ -128,12 +130,25 @@ function route(request: NextRequest) {
  * response — pages, redirects, the BFF.
  */
 export function proxy(request: NextRequest) {
+  // One nonce per request: the page's scripts carry it (Next.js reads the policy of the request it renders), and the
+  // browser runs no other script (krizaka-restricted#347).
+  const nonce = newNonce();
+  const policy = contentSecurityPolicy(nonce, process.env.NODE_ENV === "development");
+  const forward = new Headers(request.headers);
+  forward.set(NONCE_HEADER, nonce);
+  forward.set("content-security-policy", policy);
+  const response = answer(request, forward);
+  response.headers.set("content-security-policy", policy);
+  return response;
+}
+
+function answer(request: NextRequest, forward: Headers): NextResponse {
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host");
   // dev.orazaka.com (APP_DEV_HOST): robots.txt closes everything, a page goes to www (308); the BFF, auth and
   // /.well-known keep serving - all noindex (src/core/config/indexing.ts).
   if (isDevHost(host)) {
-    const devResponse = handleDevHost(request, pathname);
+    const devResponse = handleDevHost(request, pathname, forward);
     if (devResponse) return devResponse;
   }
   let response: NextResponse;
@@ -149,9 +164,9 @@ export function proxy(request: NextRequest) {
         if (isAdminHost(host)) response.headers.set("x-robots-tag", NOINDEX_HEADER);
         break;
       case "rewrite":
-        return consoleResponse(request, hostRoute.path);
+        return consoleResponse(request, hostRoute.path, forward);
       default:
-        response = route(request);
+        response = route(request, forward);
     }
   }
   if (!indexable() || neverIndexed(host)) response.headers.set("x-robots-tag", NOINDEX_HEADER);

@@ -23,7 +23,7 @@ export default function AdminDashboardPage() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const { t } = useTranslation();
   const { threads } = useThreadManagement();
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
 
   const {
     models,

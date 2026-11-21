@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/core/auth/auth-options";
+import { backendToken } from "@/core/auth/backend-token";
 
 export interface SseProxy {
   /** Gateway path after the base URL, e.g. `/api/v1/code`. */
@@ -17,7 +16,7 @@ export interface SseProxy {
 
 /**
  * The BFF proxy of a token-streaming request, shared by the chat and code routes: validates the JSON and the prompt, requires the
- * session, forwards to the gateway with the user id as the bearer, and pipes the Server-Sent Events back without buffering.
+ * session, forwards to the gateway with the session JWT as the bearer, and pipes the Server-Sent Events back without buffering.
  * Runs strictly server-side.
  */
 export async function proxyEventStream(req: NextRequest, { path, payload, log }: SseProxy): Promise<Response> {
@@ -34,21 +33,20 @@ export async function proxyEventStream(req: NextRequest, { path, payload, log }:
     return new Response("Missing prompt parameter", { status: 400 });
   }
 
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const token = await backendToken(req);
+  if (!token) {
     return new Response("Unauthorized: Missing active security context", {
       status: 401,
     });
   }
 
-  const userId = session.user.id;
   const gatewayUrl = process.env.ROUTER_URL || process.env.GATEWAY_URL || "http://localhost:8080";
 
   try {
     const response = await fetch(`${gatewayUrl}${path}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${userId}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
         Accept: "text/event-stream",
       },

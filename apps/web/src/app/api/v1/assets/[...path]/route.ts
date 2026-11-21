@@ -16,8 +16,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/core/auth/auth-options";
+import type { NextRequest } from "next/server";
+import { backendToken } from "@/core/auth/backend-token";
 
 const ROUTER_URL = process.env.ROUTER_URL || process.env.GATEWAY_URL || "http://localhost:8080";
 
@@ -32,10 +32,8 @@ const FORWARDED_HEADERS = [
   "cache-control",
 ];
 
-async function proxyAsset(req: Request, segments: string[], method: "GET" | "HEAD") {
-  const session = await getServerSession(authOptions);
-  // `session.user.id` carries the signed HS256 session JWT, not a user id — see auth-options.ts.
-  const sessionToken = session?.user?.id;
+async function proxyAsset(req: NextRequest, segments: string[], method: "GET" | "HEAD") {
+  const sessionToken = await backendToken(req);
   if (!sessionToken) {
     return NextResponse.json({ error: "Unauthorized: Missing active security context" }, { status: 401 });
   }
@@ -78,12 +76,12 @@ async function proxyAsset(req: Request, segments: string[], method: "GET" | "HEA
   }
 }
 
-export async function GET(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   return proxyAsset(req, path, "GET");
 }
 
-export async function HEAD(req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+export async function HEAD(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   return proxyAsset(req, path, "HEAD");
 }

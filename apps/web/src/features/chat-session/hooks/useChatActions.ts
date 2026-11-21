@@ -31,7 +31,7 @@ export function useChatActions({ activeConversationId }: UseChatActionsProps) {
   const { setActiveConversationId, chatInput, setChatInput } = useJobStream();
   const queryClient = useQueryClient();
 
-  const userId = user?.id || user?.email || "anonymous";
+  const userId = user?.email || "anonymous";
   const { trackRun } = useComposerRunReconciler(userId, activeConversationId);
 
   const [selectedStudio, setSelectedStudio] = useState<ComposerStudio | null>(null);
