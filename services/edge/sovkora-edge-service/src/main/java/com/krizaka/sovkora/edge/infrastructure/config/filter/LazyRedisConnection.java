@@ -3,6 +3,7 @@ package com.krizaka.sovkora.edge.infrastructure.config.filter;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -13,7 +14,8 @@ import java.util.function.Supplier;
 final class LazyRedisConnection {
 
   private final Supplier<StatefulRedisConnection<String, String>> connections;
-  private volatile StatefulRedisConnection<String, String> connection;
+  private final AtomicReference<StatefulRedisConnection<String, String>> connection =
+      new AtomicReference<>();
 
   /**
    * A connection that is already open.
@@ -22,7 +24,7 @@ final class LazyRedisConnection {
    */
   LazyRedisConnection(StatefulRedisConnection<String, String> open) {
     Objects.requireNonNull(open, "connection cannot be null");
-    this.connection = open;
+    this.connection.set(open);
     this.connections = () -> open;
   }
 
@@ -42,13 +44,14 @@ final class LazyRedisConnection {
    * @return the open connection
    */
   StatefulRedisConnection<String, String> get() {
-    StatefulRedisConnection<String, String> current = connection;
+    StatefulRedisConnection<String, String> current = connection.get();
     if (current == null) {
       synchronized (this) {
-        if (connection == null) {
-          connection = connections.get();
+        current = connection.get();
+        if (current == null) {
+          current = connections.get();
+          connection.set(current);
         }
-        current = connection;
       }
     }
     return current;

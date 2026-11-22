@@ -35,8 +35,7 @@ class JobQueuePublisherServiceTest {
   private com.krizaka.sovkora.jobs.api.domain.port.CapabilityRoutingClient capabilityRoutingClient;
 
   /** Seeds the routes these tests publish against, as the registry would hold them. */
-  @BeforeEach
-  void seedRoutes() {
+  private void seedRoutes() {
     routes("feature", MessagingContract.JOB_TEXT_PROCESS);
     routes("IMAGE_GEN", MessagingContract.JOB_MEDIA_GENERATE);
     routes("orazaka.core.media.video", MessagingContract.JOB_VIDEO_GENERATE);
@@ -55,6 +54,7 @@ class JobQueuePublisherServiceTest {
 
   @BeforeEach
   void setUp() {
+    seedRoutes();
     service =
         new JobQueuePublisherService(
             outboxStore,
