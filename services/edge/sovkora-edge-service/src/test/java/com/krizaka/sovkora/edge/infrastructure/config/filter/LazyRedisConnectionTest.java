@@ -35,4 +35,34 @@ class LazyRedisConnectionTest {
     assertThrows(NullPointerException.class, () -> new LazyRedisConnection((RedisClient) null));
     assertNotNull(open());
   }
+
+  @Test
+  void aClientConnectionIsOpenedOnceAcrossThreads() throws Exception {
+    java.util.concurrent.atomic.AtomicInteger opened =
+        new java.util.concurrent.atomic.AtomicInteger();
+    StatefulRedisConnection<String, String> connection = open();
+    RedisClient client =
+        org.mockito.Mockito.mock(
+            RedisClient.class,
+            invocation -> {
+              opened.incrementAndGet();
+              return connection;
+            });
+    LazyRedisConnection lazy = new LazyRedisConnection(client);
+    java.util.concurrent.ExecutorService pool =
+        java.util.concurrent.Executors.newFixedThreadPool(8);
+    try {
+      java.util.List<java.util.concurrent.Future<StatefulRedisConnection<String, String>>> gets =
+          new java.util.ArrayList<>();
+      for (int i = 0; i < 16; i++) {
+        gets.add(pool.submit(lazy::get));
+      }
+      for (var get : gets) {
+        assertSame(connection, get.get());
+      }
+    } finally {
+      pool.shutdownNow();
+    }
+    org.junit.jupiter.api.Assertions.assertEquals(1, opened.get());
+  }
 }
