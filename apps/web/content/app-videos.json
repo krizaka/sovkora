@@ -5,23 +5,23 @@
     {
       "platform": "web",
       "flow": "chat",
-      "seconds": 13.8,
-      "capturedAt": "2026-11-21T13:36:28.398Z",
+      "seconds": 13.6,
+      "capturedAt": "2026-11-22T13:31:35.032Z",
       "files": {
-        "webm": "sites/orazaka/download/web-chat.5b619eedbb.webm",
-        "mp4": "sites/orazaka/download/web-chat.a6294da70b.mp4",
-        "poster": "sites/orazaka/download/web-chat.6ebfd92dc6.jpg"
+        "webm": "sites/orazaka/download/web-chat.db5b4f4047.webm",
+        "mp4": "sites/orazaka/download/web-chat.9642eba4ab.mp4",
+        "poster": "sites/orazaka/download/web-chat.5036b3262b.jpg"
       }
     },
     {
       "platform": "web",
       "flow": "studio",
-      "seconds": 20.3,
-      "capturedAt": "2026-11-21T13:36:41.670Z",
+      "seconds": 18.8,
+      "capturedAt": "2026-11-22T13:31:44.799Z",
       "files": {
-        "webm": "sites/orazaka/download/web-studio.422252e602.webm",
-        "mp4": "sites/orazaka/download/web-studio.65810d2630.mp4",
-        "poster": "sites/orazaka/download/web-studio.f493ed197c.jpg"
+        "webm": "sites/orazaka/download/web-studio.f4f7f1cd87.webm",
+        "mp4": "sites/orazaka/download/web-studio.7c146fa01d.mp4",
+        "poster": "sites/orazaka/download/web-studio.6a51fef451.jpg"
       }
     }
   ]
