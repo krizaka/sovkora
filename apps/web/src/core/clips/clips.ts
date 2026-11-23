@@ -6,7 +6,7 @@
  */
 import { mediaUrl } from "@/core/media/cdn";
 
-export const CLIP_IDS = ["take", "workspace", "studio", "results", "phone-studio", "phone-ask"] as const;
+export const CLIP_IDS = ["take", "workspace", "studio", "results", "phone-studio", "phone-ask", "phone-jobs"] as const;
 export type ClipId = (typeof CLIP_IDS)[number];
 
 export const LANGS = ["en", "fr"] as const;
@@ -40,7 +40,7 @@ export const CLIPS: Readonly<Record<ClipId, ClipSpec>> = {
     aspect: "aspect-[1080/1920]",
     seconds: 19,
     perLang: false,
-    base: "sites/orazaka/mobile/studio-run",
+    base: "sites/sovkora/mobile/studio-run",
   },
   "phone-ask": {
     width: 1080,
@@ -48,18 +48,26 @@ export const CLIPS: Readonly<Record<ClipId, ClipSpec>> = {
     aspect: "aspect-[1080/1920]",
     seconds: 11,
     perLang: false,
-    base: "sites/orazaka/mobile/ask",
+    base: "sites/sovkora/mobile/ask",
+  },
+  "phone-jobs": {
+    width: 1080,
+    height: 1920,
+    aspect: "aspect-[1080/1920]",
+    seconds: 10,
+    perLang: false,
+    base: "sites/sovkora/mobile/jobs",
   },
 };
 
 export const isClipId = (id: string): id is ClipId => (CLIP_IDS as readonly string[]).includes(id);
 export const isLang = (lang: string): lang is Lang => (LANGS as readonly string[]).includes(lang);
 
-/** `sites/orazaka/home/take-fr-dark` or `sites/orazaka/web/step-studio-light`: the CDN path without extension. */
+/** `sites/sovkora/home/take-fr-dark` or `sites/sovkora/web/step-studio-light`: the CDN path without extension. */
 export function clipBase(id: ClipId, lang: Lang, look: Look): string {
   const { base } = CLIPS[id];
   if (base) return `${base}-${look}-916`;
-  return CLIPS[id].perLang ? `sites/orazaka/home/${id}-${lang}-${look}` : `sites/orazaka/web/step-${id}-${look}`;
+  return CLIPS[id].perLang ? `sites/sovkora/home/${id}-${lang}-${look}` : `sites/sovkora/web/step-${id}-${look}`;
 }
 
 export function clipFiles(id: ClipId, lang: Lang, look: Look) {

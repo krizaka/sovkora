@@ -27,13 +27,13 @@ describe("the demo clips", () => {
 
   it("only the chat take is recorded per language", () => {
     expect(CLIP_IDS.filter((id) => CLIPS[id].perLang)).toEqual(["take"]);
-    expect(clipBase("take", "fr", "dark")).toBe("sites/orazaka/home/take-fr-dark");
+    expect(clipBase("take", "fr", "dark")).toBe("sites/sovkora/home/take-fr-dark");
     expect(clipBase("studio", "fr", "dark")).toBe(clipBase("studio", "en", "dark"));
   });
 
   it("the phone clips are the demo persona's framed 9:16 recordings of the app, one table, no second one", () => {
-    expect(clipBase("phone-studio", "fr", "light")).toBe("sites/orazaka/mobile/studio-run-light-916");
-    expect(clipBase("phone-ask", "en", "dark")).toBe("sites/orazaka/mobile/ask-dark-916");
+    expect(clipBase("phone-studio", "fr", "light")).toBe("sites/sovkora/mobile/studio-run-light-916");
+    expect(clipBase("phone-ask", "en", "dark")).toBe("sites/sovkora/mobile/ask-dark-916");
     for (const id of ["phone-studio", "phone-ask"] as const) {
       expect(CLIPS[id].width / CLIPS[id].height).toBeCloseTo(9 / 16, 3);
       expect(CLIPS[id].perLang).toBe(false);

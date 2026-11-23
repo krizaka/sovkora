@@ -22,6 +22,11 @@ const manifest = JSON.parse(fs.readFileSync(path.join(site, "lib/cdn-manifest.js
 /** Every product's clips: products/<product>/{gallery-video,video}/<clip>.{mp4,webm}, <clip>-poster.webp. */
 const VIDEO = /^sites\/[a-z]+\/(?:gallery-video|video)\/|^sites\/orazaka\/compare\//;
 const AREAS = [
+  // The recordings under the product's name (krizaka-internal#4635): the same files as their sites/orazaka/ twins, which the
+  // public export cannot name (the retired code name).
+  "sites/sovkora/home/",
+  "sites/sovkora/web/",
+  "sites/sovkora/mobile/",
   "sites/orazaka/mobile/",
   "sites/orazaka/web/",
   "sites/orazaka/gallery/",

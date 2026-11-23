@@ -60,33 +60,31 @@ describe("ProductLanding", () => {
     expect(document.body.textContent).not.toMatch(/sovereign AI platform|next-gen/i);
   });
 
-  it("shows the real product in the hero: the recorded chat of the page's language and theme, poster first, never a mock chat", () => {
+  it("shows the real product in the hero: the media the registry gives the hero, a test recording under the product's name, never a mock", () => {
     renderLanding("en", <ProductLanding measured={MEASURED} />);
     const look = document.documentElement.classList.contains("light") ? "light" : "dark";
-    const take = screen.getByTestId("clip-take") as HTMLVideoElement;
-    expect(take.muted).toBe(true);
-    expect(take.loop).toBe(true);
-    expect(take).not.toHaveAttribute("controls");
-    expect(take).toHaveAttribute(
+    const clip = within(screen.getByTestId("media-home-hero")).getByTestId("clip-phone-studio") as HTMLVideoElement;
+    expect(clip.muted).toBe(true);
+    expect(clip.loop).toBe(true);
+    expect(clip).not.toHaveAttribute("controls");
+    expect(clip).toHaveAttribute(
       "poster",
-      expect.stringMatching(new RegExp(`sites/orazaka/home/take-en-${look}-poster\\.[0-9a-f]{10}\\.webp$`)),
+      expect.stringMatching(new RegExp(`sites/sovkora/mobile/studio-run-${look}-916-poster\\.[0-9a-f]{10}\\.webp$`)),
     );
-    expect(take.querySelector("source[type='video/webm']")).toHaveAttribute(
+    expect(clip.querySelector("source[type='video/webm']")).toHaveAttribute(
       "src",
-      expect.stringMatching(new RegExp(`take-en-${look}\\.[0-9a-f]{10}\\.webm$`)),
+      expect.stringMatching(new RegExp(`studio-run-${look}-916\\.[0-9a-f]{10}\\.webm$`)),
     );
-    expect(take.querySelector("source[type='video/mp4']")).toHaveAttribute(
-      "src",
-      expect.stringMatching(new RegExp(`take-en-${look}\\.[0-9a-f]{10}\\.mp4$`)),
-    );
-    expect(screen.getByText(translations.en.clips.take.caption)).toBeInTheDocument();
+    expect(screen.getByText(translations.en.clips["phone-studio"].caption)).toBeInTheDocument();
+    // The recordings that show the retired code name on screen are never on the page (content/media-registry.json).
+    expect(document.querySelector("[data-testid='clip-take'], [data-testid='clip-phone-ask']")).toBeNull();
   });
 
-  it("follows the language: the French page films the French take", () => {
+  it("follows the language: the French page describes its recording in French", () => {
     renderLanding("fr", <ProductLanding measured={MEASURED} />);
-    expect(screen.getByTestId("clip-take")).toHaveAttribute(
-      "poster",
-      expect.stringMatching(/take-fr-(dark|light)-poster/),
+    expect(screen.getByTestId("clip-phone-studio")).toHaveAttribute(
+      "aria-label",
+      translations.fr.clips["phone-studio"].alt,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(translations.fr.landing.hero.title);
   });
@@ -110,22 +108,19 @@ describe("ProductLanding", () => {
     expect(order).toEqual([...order].sort((a, b) => a - b));
   });
 
-  it("has three capabilities, each a captioned clip of the real app (never a fake chat)", () => {
+  it("has three capabilities, each with the media its role has in the registry (never a fake chat, never the retired name)", () => {
     renderLanding("en", <ProductLanding measured={MEASURED} />);
     const features = sectionOf("features");
     const tiles = features.querySelectorAll("ul > li");
     expect(tiles).toHaveLength(3);
     // The real outputs of the film (StudioOutputs) are videos too, but not screen recordings: they have no captions to check.
     const clips = [...features.querySelectorAll<HTMLVideoElement>("video[data-testid^=clip-]")];
-    expect(clips.map((v) => v.getAttribute("data-testid"))).toEqual(["clip-studio", "clip-results", "clip-workspace"]);
-    clips.forEach((v) => {
-      expect(v.getAttribute("poster")).toMatch(
-        /sites\/orazaka\/web\/step-(studio|results|workspace)-(dark|light)-poster\.[0-9a-f]{10}\.webp$/,
-      );
-      expect(v.muted).toBe(true);
-      expect(v.loop).toBe(true);
-      expect(v.querySelectorAll("track[kind='captions']")).toHaveLength(2);
-    });
+    expect(clips.map((v) => v.getAttribute("data-testid"))).toEqual(["clip-phone-jobs"]);
+    expect(within(features).getByTestId("media-home-records")).toContainElement(clips[0]);
+    expect(clips[0].getAttribute("poster")).toMatch(
+      /sites\/sovkora\/mobile\/jobs-(dark|light)-916-poster\.[0-9a-f]{10}\.webp$/,
+    );
+    expect(clips[0].querySelectorAll("track[kind='captions']")).toHaveLength(2);
   });
 
   it("proves it with three run records — model, where it ran, time, cost and the run id — read from the comparison's data", () => {

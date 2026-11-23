@@ -11,3 +11,5 @@ out
 package-lock.json
 pnpm-lock.yaml
 CHANGELOG.md
+.public-build
+out-public

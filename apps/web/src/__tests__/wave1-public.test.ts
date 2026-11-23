@@ -35,11 +35,15 @@ describe("French elision: a brand is never glued to an apostrophe", () => {
 });
 
 describe("the hero says the product's one line, and no host", () => {
-  it("L'IA qui reste chez vous / The AI that stays home", () => {
-    expect(landing.fr.hero.title).toBe("L'IA qui reste chez vous.");
-    expect(landing.fr.hero.lead).toBe("Vos modèles, vos machines : vos données ne sortent pas.");
-    expect(landing.en.hero.title).toBe("The AI that stays home.");
-    expect(landing.en.hero.lead).toBe("Your models, your machines: your data stays in.");
+  it("says what it is and where the work runs, with no absolute claim (krizaka-internal#4635)", () => {
+    expect(landing.fr.hero.title).toBe("Une plateforme d'IA qui tourne sur vos machines.");
+    expect(landing.en.hero.title).toBe("An AI platform that runs on your machines.");
+    // A hosted model sends the requests to its provider: the lead says so, never « your data stays in ».
+    expect(landing.fr.hero.lead).toContain("vos requêtes partent alors chez son fournisseur");
+    expect(landing.en.hero.lead).toContain("your requests then go to its provider");
+    for (const text of [landing.fr.hero.lead, landing.en.hero.lead, landing.fr.cta.title, landing.en.cta.title]) {
+      expect(text).not.toMatch(/ne sortent pas|stays in|sans faire sortir|not your data out/i);
+    }
   });
 
   it("the mock-up label is the product's, not the old code-name host", () => {
