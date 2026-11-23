@@ -8,8 +8,18 @@
       "location": "sites/sovkora/mobile/studio-run",
       "reason": "One action and its result: a sentence typed, the run followed, the image with its model and generation time.",
       "uses": [
-        { "page": "home", "role": "hero" },
-        { "page": "docs", "role": "lead" }
+        {
+          "page": "home",
+          "role": "hero"
+        },
+        {
+          "page": "docs",
+          "role": "lead"
+        },
+        {
+          "page": "home",
+          "role": "scene"
+        }
       ]
     },
     {
@@ -18,7 +28,16 @@
       "owner": "sovkora",
       "location": "sites/sovkora/mobile/jobs",
       "reason": "Every result is kept: the jobs of the last days, by kind, each with its state.",
-      "uses": [{ "page": "home", "role": "records" }]
+      "uses": [
+        {
+          "page": "home",
+          "role": "records"
+        },
+        {
+          "page": "home",
+          "role": "scene"
+        }
+      ]
     },
     {
       "id": "take",
