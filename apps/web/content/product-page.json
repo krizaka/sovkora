@@ -1,0 +1,15 @@
+{
+  "$comment": "The public product page template of Sovkora (krizaka-internal#4635, #4692): structure only, no words (they are in src/core/context/translations.productPage.ts). The scenes are the media the registry lists for `page`/`sceneRole`, in its order; the budget is the most words each section may say, held by src/features/landing/__tests__/product-page.test.ts.",
+  "page": "home",
+  "sceneRole": "scene",
+  "limits": ["hosted", "agent", "accounts"],
+  "budget": {
+    "hero.title": 8,
+    "hero.lead": 14,
+    "scene.title": 6,
+    "scene.line": 12,
+    "limit": 12,
+    "closing.title": 6
+  },
+  "bird": "duck"
+}

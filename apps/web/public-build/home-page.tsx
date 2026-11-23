@@ -1,17 +1,9 @@
-import fs from "node:fs";
-import path from "node:path";
-import { ProductLanding } from "@/features/landing/components/ProductLanding";
-import filmRecords from "@/features/landing/utils/film.records.json";
-import { filmFacts } from "@/features/landing/utils/film-records";
-import { measuredRuns } from "@/features/landing/utils/measured-runs";
+import { ProductHome } from "@/features/landing/components/ProductHome";
 
 /**
- * `/fr` and `/en` of the public export: the landing page of the dev app's `/`, without the dashboard branch (that one reads the
- * session cookie, which a static page cannot).
+ * `/fr` and `/en` of the public export: the product page (the template of @krizaka/ui) with Sovkora's own words, colour and media.
+ * Static: the dev app's home reads the session cookie and carries the figures and the film, which an export has no place for.
  */
 export default function HomePage() {
-  const measured = measuredRuns(
-    fs.readFileSync(path.join(process.cwd(), "content", "docs", "measured-runs.md"), "utf8"),
-  );
-  return <ProductLanding measured={measured} film={filmFacts(filmRecords)} quickstartHref={null} />;
+  return <ProductHome />;
 }
