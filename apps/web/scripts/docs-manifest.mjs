@@ -66,7 +66,8 @@ export const DOCS = [
     title: "Run a Studio",
     intro: "Install a Studio, run it from the web app or the terminal, read its result and its run record.",
     audience: "everyone",
-    clip: "studio",
+    // A Studio run recorded by the tests under the product's name (content/media-registry.json; the web recording shows the retired name).
+    clip: "phone-studio",
   },
   {
     slug: "content-policy",

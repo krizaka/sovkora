@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -7,6 +7,10 @@ import { fileURLToPath } from "node:url";
  * no proxy and no API: the pages are rendered once, here, and the result is plain files.
  */
 const packageVersion = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version;
+/** Every installed @krizaka package is transpiled, so the list names no package of the retired code name (docs/NAMING.md K3). */
+const installedKrizakaPackages = readdirSync(new URL("./node_modules/@krizaka/", import.meta.url)).map(
+  (name) => `@krizaka/${name}`,
+);
 const appVersion = process.env.APP_VERSION?.trim() || packageVersion;
 /** The language this build is written in (`scripts/build-public.mjs` builds one project per language): its base path, `/fr` or `/en`. */
 const locale = process.env.NEXT_PUBLIC_LOCALE === "en" ? "en" : "fr";
@@ -20,14 +24,13 @@ const nextConfig = {
   basePath: `/${locale}`,
   // The monorepo root: the linked files resolve outside the staged folder.
   // The modules that differ wholesale from the dev app are swapped here and nowhere else: the language (the build's, there is no
-  // proxy), the editions on offer, the language switch, the recordings (see NoMedia.tsx); the one-line differences read `src/core/config/build-target.ts`.
+  // proxy), the editions on offer, the language switch, the film and the run records (see NoMedia.tsx; a recording is shown when content/media-registry.json allows it); the one-line differences read `src/core/config/build-target.ts`.
   turbopack: {
     root: fileURLToPath(new URL("../..", import.meta.url)),
     resolveAlias: {
       "@/core/context/LocaleContext": "./public-build/LocaleContext.tsx",
       "@/components/LocaleSwitch": "./public-build/LocaleSwitch.tsx",
       "@/features/landing/components/PricingEditions": "./public-build/PricingEditions.tsx",
-      "@/core/clips/Clip": "./public-build/NoMedia.tsx",
       "@/features/landing/components/StudioOutputs": "./public-build/NoMedia.tsx",
       "@/features/landing/components/LandingFilm": "./public-build/NoMedia.tsx",
       "@/features/landing/components/LandingRecords": "./public-build/NoMedia.tsx",
@@ -35,8 +38,7 @@ const nextConfig = {
     },
   },
   transpilePackages: [
-    "@krizaka/orazaka-design-system",
-    "@krizaka/orazaka-shared",
+    ...installedKrizakaPackages,
     "@krizaka/org",
     "@krizaka/ui",
     "@krizaka/query",

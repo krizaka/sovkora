@@ -61,7 +61,10 @@ export const TERMS_CONTENT = legal(TERMS_WORDS);
 
 const PRIVACY_WORDS = {
   title: w("Privacy policy", "Politique de confidentialité"),
-  subtitle: w("Your data stays on your machine. Always.", "Vos données restent sur votre machine. Toujours."),
+  subtitle: w(
+    "What Sovkora keeps on your machine, and what leaves it when you connect a provider.",
+    "Ce que Sovkora garde sur votre machine, et ce qui en sort quand vous branchez un fournisseur.",
+  ),
   lastUpdated: w("Last updated: November 5, 2026", "Dernière mise à jour : 5 novembre 2026"),
   intro: w(
     "Sovkora is designed with a strict local-first architecture. We believe that your private intelligence should remain completely yours. This Privacy Policy details how data is managed within the Sovkora client interface.",

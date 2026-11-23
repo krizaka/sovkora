@@ -1,0 +1,64 @@
+{
+  "$comment": "Which recording a page section shows, by ROLE (krizaka-internal#4635, the pattern of verikora#914; fields of the asset registry of krizaka-internal#4482: location, owner, origin, uses). `id` is a clip of src/core/clips/clips.ts (its words: translations.clips.ts). A page asks « the media of role R on page P » and gets the entries listed here that may be shown: a test recording, or anything else only with `founderYes`. An entry with `blocked` is never shown on the public export, and says why. Adding a use shows it, with no code change. Read by src/features/landing/utils/section-media.ts.",
+  "media": [
+    {
+      "id": "phone-studio",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/mobile/studio-run",
+      "reason": "One action and its result: a sentence typed, the run followed, the image with its model and generation time.",
+      "uses": [
+        { "page": "home", "role": "hero" },
+        { "page": "docs", "role": "lead" }
+      ]
+    },
+    {
+      "id": "phone-jobs",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/mobile/jobs",
+      "reason": "Every result is kept: the jobs of the last days, by kind, each with its state.",
+      "uses": [{ "page": "home", "role": "records" }]
+    },
+    {
+      "id": "take",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/home/take",
+      "blocked": "The recording shows the retired code name in the app bar: to record again on the current app.",
+      "uses": []
+    },
+    {
+      "id": "workspace",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/web/step-workspace",
+      "blocked": "The recording shows the retired code name in the app bar: to record again on the current app.",
+      "uses": []
+    },
+    {
+      "id": "studio",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/web/step-studio",
+      "blocked": "The recording shows the retired code name and a plan with credits: to record again on the current app.",
+      "uses": []
+    },
+    {
+      "id": "results",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/web/step-results",
+      "blocked": "The recording shows the retired code name in the app bar: to record again on the current app.",
+      "uses": []
+    },
+    {
+      "id": "phone-ask",
+      "origin": "test",
+      "owner": "sovkora",
+      "location": "sites/sovkora/mobile/ask",
+      "blocked": "The chat's placeholder says the retired code name: to record again on the current app.",
+      "uses": []
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import { useTranslation } from "@/core/context/LocaleContext";
 import { contactUrl } from "@/core/config/contact";
 import { APP_ENV, APP_VERSION } from "@/core/config/version";
 import { NAV_DOCS, NAV_GROUPS, entryHref } from "@/features/landing/utils/site-nav";
+import { publicFooter } from "@/features/landing/utils/public-footer";
 
 /**
  * The footer of the public pages (NAV-SYS) is @krizaka/ui's SiteFooter: the bar's groups as columns (`site-nav.ts`:
@@ -19,6 +20,18 @@ import { NAV_DOCS, NAV_GROUPS, entryHref } from "@/features/landing/utils/site-n
 export function LandingFooter({ withLanguage = false }: Readonly<{ withLanguage?: boolean }>) {
   const { t, locale } = useTranslation();
   const f = t.landing.footer;
+  // The public export's footer is data (content/public-footer.json): grouped columns of the pages it holds, the legal line, no version.
+  if (publicBuild) {
+    return (
+      <SiteFooter
+        current="sovkora"
+        labels={familyLabels[locale]}
+        config={publicFooter(locale, f)}
+        linkAs={Link}
+        controls={withLanguage ? <LocaleSwitch variant="inline" /> : undefined}
+      />
+    );
+  }
 
   return (
     <SiteFooter

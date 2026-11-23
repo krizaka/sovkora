@@ -48,6 +48,11 @@ export const clips = {
       caption: "The same chat as on the web, in your hand.",
       cues: ["Mira asks a question.", "The answer streams in."],
     },
+    "phone-jobs": {
+      alt: "The {brand} phone app's jobs: the jobs per day, their kinds, then each job with its state.",
+      caption: "Every job is kept, with its state.",
+      cues: ["The jobs of the last days, by outcome and by kind.", "Each job, with its state."],
+    },
   },
   fr: {
     take: {
@@ -83,6 +88,11 @@ export const clips = {
       alt: "Le chat de l'app mobile de {brand} : une question tapée, la réponse qui arrive en continu.",
       caption: "Le même chat que sur le web, dans votre main.",
       cues: ["Mira pose une question.", "La réponse arrive en continu."],
+    },
+    "phone-jobs": {
+      alt: "Les tâches dans l'app mobile de {brand} : les tâches par jour, leurs types, puis chaque tâche avec son état.",
+      caption: "Chaque tâche est gardée, avec son état.",
+      cues: ["Les tâches des derniers jours, par résultat et par type.", "Chaque tâche, avec son état."],
     },
   },
 } as const satisfies Record<"en" | "fr", ClipsDictionary>;

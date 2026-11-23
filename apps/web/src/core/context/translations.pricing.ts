@@ -123,8 +123,8 @@ const WORDS = {
       {
         question: w("Is Community limited?", "Community est-elle limitée ?"),
         answer: w(
-          "No. It is the same platform as the repository, under its FSL-1.1-ALv2 licence. What you run is yours to run, change and host.",
-          "Non. C'est la même plateforme que le dépôt, sous sa licence FSL-1.1-ALv2. Ce que vous faites tourner, vous le gérez, le modifiez et l'hébergez.",
+          "It is the same platform as the repository, under FSL-1.1-ALv2: any use except a competing use. The repository's NOTICE file says which licence covers each folder.",
+          "C'est la même plateforme que le dépôt, sous FSL-1.1-ALv2 : tout usage sauf un usage concurrent. Le fichier NOTICE du dépôt dit quelle licence couvre chaque dossier.",
         ),
       },
       {

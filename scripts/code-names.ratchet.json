@@ -2,10 +2,10 @@
   "counts": {
     ".": 79,
     ".github": 28,
-    "apps": 1516,
+    "apps": 1508,
     "build": 72,
     "contracts": 47,
-    "docs": 844,
+    "docs": 841,
     "e2e": 56,
     "engine": 295,
     "infra": 223,
