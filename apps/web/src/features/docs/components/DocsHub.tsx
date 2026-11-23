@@ -22,11 +22,14 @@ export function DocsHub({
   journeys,
   quickstart,
   popular,
+  packs = true,
 }: Readonly<{
   index: SearchEntry[];
   journeys: HubJourney[];
   quickstart: string;
   popular: { href: string; title: string; journey: JourneyId }[];
+  /** The packs page is published: its entry block follows the quickstart (the public export publishes a part of the pages). */
+  packs?: boolean;
 }>) {
   const { t } = useTranslation();
   const d = t.docs;
@@ -40,7 +43,7 @@ export function DocsHub({
       collectionsTitle={d.journeysTitle}
       collections={journeys.map((j) => ({
         id: j.id,
-        brand: "orazaka",
+        brand: "sovkora",
         mark: <SovkoraLogo size={28} />,
         title: d.journeys[j.id].title,
         href: j.href,
@@ -58,14 +61,16 @@ export function DocsHub({
               copyLabel={d.copy}
               copiedLabel={d.copied}
             />
-            <LinkCard
-              linkAs={Link}
-              href={pageHref(PACKS_SLUG)}
-              icon={<PackIcon size={24} />}
-              title={d.packsEntry.title}
-              description={d.packsEntry.line}
-              cta={d.packsEntry.cta}
-            />
+            {packs && (
+              <LinkCard
+                linkAs={Link}
+                href={pageHref(PACKS_SLUG)}
+                icon={<PackIcon size={24} />}
+                title={d.packsEntry.title}
+                description={d.packsEntry.line}
+                cta={d.packsEntry.cta}
+              />
+            )}
           </>
         ),
       }}

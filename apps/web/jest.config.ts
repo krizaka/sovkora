@@ -71,6 +71,8 @@ const config = {
   testPathIgnorePatterns: [
     "<rootDir>/node_modules/",
     "<rootDir>/.next/",
+    "<rootDir>/.public-build/",
+    "<rootDir>/out-public/",
     "<rootDir>/src/__tests__/helpers/",
     "<rootDir>/e2e/",
     "<rootDir>/scripts/",

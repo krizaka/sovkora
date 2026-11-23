@@ -8,6 +8,7 @@
  */
 import type { ComponentType } from "react";
 import { LocalIcon, PlayIcon, type IconProps } from "@krizaka/icons";
+import { publicBuild } from "@/core/config/build-target";
 
 /** The words of an entry live in `t.landing.nav[id]` and its line in `t.landing.nav.menu[id]`. */
 export const NavEntryId = {
@@ -39,7 +40,8 @@ const PRODUCT: NavGroup = {
   id: NavGroupId.Product,
   entries: [
     { id: NavEntryId.How, anchor: "features", Icon: PlayIcon },
-    { id: NavEntryId.Download, path: "/desktop", Icon: LocalIcon, current: ["/desktop"] },
+    // The Mac download page is not part of the public export.
+    ...(publicBuild ? [] : [{ id: NavEntryId.Download, path: "/desktop", Icon: LocalIcon, current: ["/desktop"] }]),
   ],
 };
 
@@ -49,11 +51,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [PRODUCT];
 export const NAV_DOCS = { path: "/docs" } as const;
 
 /** Pricing and Open source — direct links after Docs (the words are `t.landing.nav[id]`). */
-export const NAV_PAGES = [
+const PAGES = [
   { id: "pricing", path: "/pricing" },
   { id: "openSource", path: "/open-source" },
 ] as const;
-export type NavPageId = (typeof NAV_PAGES)[number]["id"];
+export type NavPageId = (typeof PAGES)[number]["id"];
+/** The open-source page is not part of the public export. */
+export const NAV_PAGES: readonly (typeof PAGES)[number][] = PAGES.filter((p) => !publicBuild || p.id !== "openSource");
 
 const under = (pathname: string, base: string) => pathname === base || pathname.startsWith(`${base}/`);
 

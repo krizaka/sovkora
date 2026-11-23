@@ -19,7 +19,8 @@ interface Edition {
 }
 
 export interface PricingDictionary {
-  meta: { title: string; description: string };
+  /** `publicDescription`: the description of the public export, where only what is on offer is named (no « soon »). */
+  meta: { title: string; description: string; publicDescription: string };
   eyebrow: string;
   title: string;
   lead: string;
@@ -40,6 +41,10 @@ const WORDS = {
     description: w(
       "{brand}'s editions: Community, the platform you run on your own machines; Business, coming soon; and Krizaka's Enterprise offer for anything custom.",
       "Les éditions de {brand} : Community, la plateforme que vous faites tourner sur vos machines ; Business, bientôt ; et l'offre Entreprise de Krizaka pour tout sur mesure.",
+    ),
+    publicDescription: w(
+      "{brand}'s editions: Community, the platform you run on your own machines, and Krizaka's Enterprise offer for anything custom.",
+      "Les éditions de {brand} : Community, la plateforme que vous faites tourner sur vos machines, et l'offre Entreprise de Krizaka pour tout sur mesure.",
     ),
   },
   eyebrow: w("Pricing and editions", "Tarifs et éditions"),

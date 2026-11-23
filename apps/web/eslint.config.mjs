@@ -143,6 +143,9 @@ const eslintConfig = defineConfig([
   globalIgnores([
     ".next/**",
     "out/**",
+    // The public export (pnpm build:public): the staged projects and the files they produce.
+    ".public-build/**",
+    "out-public/**",
     "build/**",
     "next-env.d.ts",
     "coverage/**",

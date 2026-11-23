@@ -2,6 +2,7 @@
 "use client";
 
 import { LandingFooter } from "./LandingFooter";
+import { publicBuild } from "@/core/config/build-target";
 import Link from "next/link";
 import { useTranslation } from "@/core/context/LocaleContext";
 import type { Locale } from "@/core/context/translations.types";
@@ -25,17 +26,23 @@ export function LegalDocument({ content }: Readonly<{ content: Record<Locale, Le
       <main className="min-h-screen flex flex-col items-center p-6 bg-surface-0 ambient-grid w-full overflow-y-auto">
         {/* Navbar header */}
         <header className="w-full max-w-4xl flex items-center justify-between py-4 mb-6 border-b border-border-subtle">
-          <Link href="/login" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          {/* The mark leads to the sign-in screen; the public export has none, so it leads home and there is no « back » link. */}
+          <Link
+            href={publicBuild ? "/" : "/login"}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
             <img src="/logo.svg" alt="Sovkora Logo" width={24} height={24} className="w-6 h-6" />
             <span className="text-lg font-bold tracking-tight text-fg">Sovkora</span>
           </Link>
 
-          <Link
-            href="/login"
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-default hover:border-accent transition-colors hover:text-accent text-fg-secondary"
-          >
-            {c.backToLogin}
-          </Link>
+          {!publicBuild && (
+            <Link
+              href="/login"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-border-default hover:border-accent transition-colors hover:text-accent text-fg-secondary"
+            >
+              {c.backToLogin}
+            </Link>
+          )}
         </header>
 
         {/* Main Glass Card container */}

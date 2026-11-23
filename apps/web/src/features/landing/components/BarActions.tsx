@@ -8,6 +8,7 @@ import { Button } from "@krizaka/ui/button";
 import { ProductBarActions, useSessionHint } from "@krizaka/ui/nav-bar";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useAuthFlags } from "@/core/context/AuthFlagsContext";
+import { publicBuild } from "@/core/config/build-target";
 
 /**
  * The one action of the public bar: using the app. A visitor sees « Sign in » while sign-up is closed and « Try
@@ -15,7 +16,12 @@ import { useAuthFlags } from "@/core/context/AuthFlagsContext";
  * session is read in the browser (next-auth's `/api/auth/session`), so every public page stays static; it is only a
  * display hint — the app and the API check the real session on every request.
  */
-export function BarActions({ placement }: Readonly<{ placement: "bar" | "panel" }>) {
+export function BarActions(props: Readonly<{ placement: "bar" | "panel" }>) {
+  // The public export has no account, no session and no API call: no action in the bar.
+  return publicBuild ? null : <SessionActions {...props} />;
+}
+
+function SessionActions({ placement }: Readonly<{ placement: "bar" | "panel" }>) {
   const { t } = useTranslation();
   const n = t.landing.nav;
   const flags = useAuthFlags();

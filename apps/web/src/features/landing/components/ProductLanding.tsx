@@ -44,7 +44,13 @@ const NO_RUNS: MeasuredRuns = { ok: 0, all: 0, models: 0, day: null };
 export function ProductLanding({
   measured = NO_RUNS,
   film = NO_FILM_FACTS,
-}: Readonly<{ measured?: MeasuredRuns; film?: FilmFacts }>) {
+  quickstartHref = QUICKSTART_HREF,
+}: Readonly<{
+  measured?: MeasuredRuns;
+  film?: FilmFacts;
+  /** The closing call's page; `null` when the quickstart is not published (the public export publishes a part of the docs). */
+  quickstartHref?: string | null;
+}>) {
   const { t, locale } = useTranslation();
   const h = t.landing.hero;
   const f = t.landing.features;
@@ -99,12 +105,10 @@ export function ProductLanding({
           closing={{
             title: t.landing.cta.title,
             body: t.landing.cta.body,
-            actions: (
-              <>
-                <Button asChild variant="primary" size="lg">
-                  <Link href={QUICKSTART_HREF}>{t.landing.cta.quickstart}</Link>
-                </Button>
-              </>
+            actions: quickstartHref && (
+              <Button asChild variant="primary" size="lg">
+                <Link href={quickstartHref}>{t.landing.cta.quickstart}</Link>
+              </Button>
             ),
           }}
         >
