@@ -102,7 +102,7 @@ test("sync writes the pages, the index, the model slice and the source map from 
   assert.equal(index.find((d) => d.slug === "mobile").file, null);
   assert.equal(JSON.parse(fs.readFileSync(path.join(out, "sources.json"), "utf8"))["docs/CONCEPTS.md"], "concepts");
   assert.ok(fs.readFileSync(path.join(out, "concepts.md"), "utf8").startsWith("# concepts"));
-  assert.equal(index.find((d) => d.slug === "studio-guide").clip, "studio");
+  assert.equal(index.find((d) => d.slug === "studio-guide").clip, "phone-studio");
   assert.equal(index.find((d) => d.slug === "api").clip, null);
 });
 
@@ -184,7 +184,7 @@ test("a page's clip is one of the recordings of src/core/clips/clips.ts", () => 
     ...fs
       .readFileSync(new URL("../src/core/clips/clips.ts", import.meta.url), "utf8")
       .match(/CLIP_IDS = \[([^\]]*)\]/)[1]
-      .matchAll(/"(\w+)"/g),
+      .matchAll(/"([\w-]+)"/g),
   ].map((m) => m[1]);
   for (const d of DOCS.filter((d) => d.clip)) assert.ok(ids.includes(d.clip), `${d.slug}: unknown clip ${d.clip}`);
 });
