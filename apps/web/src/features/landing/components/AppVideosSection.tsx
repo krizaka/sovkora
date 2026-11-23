@@ -3,7 +3,7 @@
 import { useTranslation } from "@/core/context/LocaleContext";
 import { fill } from "@/core/context/fill";
 import { AppVideoPlayer } from "@/features/landing/components/AppVideoPlayer";
-import { LandingSectionHeading } from "@/features/landing/components/LandingSectionHeading";
+import { LandingSectionHeading } from "@/core/components/LandingSectionHeading";
 import { APP_VIDEOS, captionTracks, macVideo, videoId, videoUrl } from "@/features/landing/utils/app-videos";
 
 /** The recording's shape: the web at 16:10 (the journeys are filmed at 1280×800). */

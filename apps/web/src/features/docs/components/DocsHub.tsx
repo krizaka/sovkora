@@ -9,8 +9,8 @@ import { PackIcon } from "@krizaka/icons";
 import { publicBuild } from "@/core/config/build-target";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { sectionMedia } from "@/core/clips/media-registry";
-import { LandingSectionHeading } from "@/features/landing/components/LandingSectionHeading";
-import { SectionMedia } from "@/features/landing/components/SectionMedia";
+import { LandingSectionHeading } from "@/core/components/LandingSectionHeading";
+import { SectionMedia } from "@/core/components/SectionMedia";
 import { DocsSearch } from "@/features/docs/components/DocsSearch";
 import { PACKS_SLUG, pageHref, type JourneyId, type SearchEntry } from "@/features/docs/utils/docs-shared";
 

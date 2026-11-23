@@ -10,7 +10,7 @@ import { publicBuild } from "@/core/config/build-target";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { LandingFooter } from "@/features/landing/components/LandingFooter";
 import { LandingNav } from "@/features/landing/components/LandingNav";
-import { SectionMedia } from "@/features/landing/components/SectionMedia";
+import { SectionMedia } from "@/core/components/SectionMedia";
 import { LandingCapabilities } from "@/features/landing/components/LandingCapabilities";
 import { LandingFilm } from "@/features/landing/components/LandingFilm";
 import { StudioOutputs } from "@/features/landing/components/StudioOutputs";
