@@ -76,6 +76,10 @@ export interface DocsDictionary {
   eyebrow: string;
   title: string;
   lead: string;
+  /** The lead of the public export's hub, which publishes a part of the pages (no quickstart, no reference). */
+  publicLead: string;
+  /** The hub's recording (content/media-registry.json, page `docs`, role `lead`): its heading, its line and the guide it leads to. */
+  media: { title: string; lead: string; cta: string };
   searchLabel: string;
   searchPlaceholder: string;
   searchEmpty: string;
@@ -116,6 +120,13 @@ export const docs: Record<Locale, DocsDictionary> = {
     eyebrow: "Documentation",
     title: "Quickstart, concepts, guides.",
     lead: "Read the first two sections and you can run {brand}. The reference is generated from the code, so it cannot drift from what runs.",
+    publicLead:
+      "The guides published here describe what runs today. {brand} is in development: other pages join once they are reviewed.",
+    media: {
+      title: "A Studio, from start to finish",
+      lead: "Recorded by our tests on the phone app, with demo data: a sentence typed, the run followed, the image with its model.",
+      cta: "Read the Studio guide",
+    },
     searchLabel: "Search the documentation",
     searchPlaceholder: "Search: install, packs, API, backup…",
     searchEmpty: "Nothing matches. Try a shorter word, or pick a journey below.",
@@ -235,6 +246,13 @@ export const docs: Record<Locale, DocsDictionary> = {
     eyebrow: "Documentation",
     title: "Démarrage, concepts, guides.",
     lead: "Lisez les deux premières sections et vous pouvez faire tourner {brand}. La référence est générée depuis le code : elle ne peut pas s'éloigner de ce qui tourne.",
+    publicLead:
+      "Les guides publiés ici décrivent ce qui tourne aujourd'hui. {brand} est en développement : d'autres pages s'ajoutent une fois relues.",
+    media: {
+      title: "Un Studio, du début à la fin",
+      lead: "Enregistré par nos tests sur l'app mobile, avec des données de démonstration : une phrase tapée, l'exécution suivie, l'image avec son modèle.",
+      cta: "Lire le guide des Studios",
+    },
     searchLabel: "Rechercher dans la documentation",
     searchPlaceholder: "Rechercher : installer, packs, API, sauvegarde…",
     searchEmpty: "Aucun résultat. Essayez un mot plus court, ou choisissez un parcours ci-dessous.",

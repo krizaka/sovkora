@@ -93,24 +93,24 @@ export function publicPaths(): string[] {
 
 const ORG = { "@type": "Organization", "@id": ORG_ID, name: "Krizaka", url: KRIZAKA_URL };
 
-/** The site and the product it presents, both published by the Krizaka Organization. */
-export function siteJsonLd() {
+/** The site and the product it presents, both published by the Krizaka Organization — for an origin (the dev app's own by default; the public export passes `WWW_URL`). */
+export function siteJsonLd(origin: string = SITE_URL) {
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": `${SITE_URL}/#website`,
-        url: `${SITE_URL}/`,
+        "@id": `${origin}/#website`,
+        url: `${origin}/`,
         name: SITE_NAME,
         inLanguage: ["en", "fr"],
         publisher: ORG,
       },
       {
         "@type": "SoftwareApplication",
-        "@id": `${SITE_URL}/#software`,
+        "@id": `${origin}/#software`,
         name: SITE_NAME,
-        url: `${SITE_URL}/`,
+        url: `${origin}/`,
         description: SITE_DESCRIPTION,
         applicationCategory: "BusinessApplication",
         operatingSystem: "Linux, macOS",
@@ -120,7 +120,7 @@ export function siteJsonLd() {
         codeRepository: REPO_URL,
         sameAs: [REPO_URL],
         publisher: ORG,
-        isPartOf: { "@id": `${SITE_URL}/#website` },
+        isPartOf: { "@id": `${origin}/#website` },
       },
     ],
   };

@@ -5,7 +5,22 @@ import { cn } from "@krizaka/ui/cn";
 import { useTranslation } from "@/core/context/LocaleContext";
 import { useLook } from "@/core/clips/useLook";
 import { VideoSources } from "@/core/clips/VideoSources";
-import { CLIPS, LANGS, clipFiles, type ClipId } from "@/core/clips/clips";
+import { CLIPS, LANGS, captionsVtt, clipFiles, type ClipId } from "@/core/clips/clips";
+import { clipPublishable } from "@/core/clips/media-registry";
+import { publicBuild } from "@/core/config/build-target";
+
+type ClipProps = Readonly<{ id: ClipId; priority?: boolean; className?: string }>;
+
+/**
+ * A demo recording. The public export shows only the clips the media registry allows (`content/media-registry.json`: a test
+ * recording, never one that shows the retired code name, anything else only with the founder's yes); the dev app shows them all.
+ */
+export function Clip(props: ClipProps) {
+  if (publicBuild && !clipPublishable(props.id)) {
+    return null;
+  }
+  return <ClipVideo {...props} />;
+}
 
 /**
  * A demo recording in place of a paragraph: muted, looping, captioned (`<track>` in both languages, off until the viewer turns one on: a default track is drawn over the screen),
@@ -13,11 +28,7 @@ import { CLIPS, LANGS, clipFiles, type ClipId } from "@/core/clips/clips";
  * on it; under reduced motion or Save-Data the poster — the finished state — stands in.
  * Stand-in for the captioned loop block krizaka-ui#489 will ship: swap it there, then delete this file.
  */
-export function Clip({
-  id,
-  priority = false,
-  className,
-}: Readonly<{ id: ClipId; priority?: boolean; className?: string }>) {
+function ClipVideo({ id, priority = false, className }: ClipProps) {
   const { t, locale } = useTranslation();
   const look = useLook();
   const video = React.useRef<HTMLVideoElement>(null);
@@ -28,7 +39,9 @@ export function Clip({
   React.useEffect(() => {
     const el = video.current;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (!el || saveData || globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!el || saveData || globalThis.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
     const io = new IntersectionObserver(
       ([entry]) => (entry.isIntersecting ? void el.play().catch(() => {}) : el.pause()),
       { threshold: 0.3 },
@@ -54,13 +67,18 @@ export function Clip({
         data-testid={`clip-${id}`}
       >
         <VideoSources webm={files.webm} mp4={files.mp4} />
-        {[locale, ...LANGS.filter((l) => l !== locale)].map((lang) => (
+        {/* The public export has no server for /captions: it is one language, its captions written into the page. */}
+        {(publicBuild ? [locale] : [locale, ...LANGS.filter((l) => l !== locale)]).map((lang) => (
           <track
             key={lang}
             kind="captions"
             srcLang={lang}
             label={lang === "fr" ? "Français" : "English"}
-            src={`/captions/${id}/${lang}`}
+            src={
+              publicBuild
+                ? `data:text/vtt;charset=utf-8,${encodeURIComponent(captionsVtt(id, copy.cues))}`
+                : `/captions/${id}/${lang}`
+            }
           />
         ))}
       </video>

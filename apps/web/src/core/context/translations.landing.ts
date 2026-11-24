@@ -35,18 +35,18 @@ const WORDS = {
     repo: w("{brand} web client on GitHub", "Client web {brand} sur GitHub"),
   },
   hero: {
-    title: w("The AI that stays home.", "L'IA qui reste chez vous."),
+    title: w("An AI platform that runs on your machines.", "Une plateforme d'IA qui tourne sur vos machines."),
     lead: w(
-      "Your models, your machines: your data stays in.",
-      "Vos modèles, vos machines : vos données ne sortent pas.",
+      "Chat, documents, images and video, with the models you choose. With a local model, the work is done on your machine; a hosted model is used only if you connect it, and your requests then go to its provider.",
+      "Clavardage, documents, images et vidéo, avec les modèles que vous choisissez. Avec un modèle local, le travail se fait sur votre machine ; un modèle hébergé ne sert que si vous le branchez, et vos requêtes partent alors chez son fournisseur.",
     ),
     secondary: w("See it run", "Le voir tourner"),
     visualLabel: w("{brand} · chat", "{brand} · chat"),
   },
   status: {
     development: w(
-      "In development: still being tested, not ready for the public.",
-      "En développement : encore en test, pas prête pour le public.",
+      "In development: accounts are not open and nothing is for sale.",
+      "En développement : les comptes ne sont pas ouverts et rien n'est en vente.",
     ),
   },
   figures: {
@@ -55,25 +55,28 @@ const WORDS = {
       "runs mesurés sur du vrai matériel, chacun avec sa fiche",
     ),
     models: w("models measured, on a Mac or hosted", "modèles mesurés, sur un Mac ou hébergés"),
-    telemetry: w("telemetry calls — nothing phones home", "appels de télémétrie — rien ne sort"),
+    telemetry: w("telemetry calls: the app makes none", "appel de télémétrie : l'app n'en fait aucun"),
   },
   features: {
     eyebrow: w("What it does", "Ce qu'il fait"),
     title: w("Three things, done on your side.", "Trois choses, faites de votre côté."),
-    lead: w("Every screen below is the real app.", "Chaque écran ci-dessous est la vraie app."),
+    lead: w(
+      "The recordings come from our tests, on the phone app, with demo data.",
+      "Les enregistrements viennent de nos tests, sur l'app mobile, avec des données de démonstration.",
+    ),
     items: {
       studios: {
-        title: w("Studios, priced before they run", "Des Studios au prix connu d'avance"),
+        title: w("A sentence in, a result out", "Une phrase, un résultat"),
         text: w(
-          "A Studio turns a sentence or a file into an image, a video or a checked document. Its estimated cost shows before it starts.",
-          "Un Studio change une phrase ou un fichier en image, en vidéo ou en document vérifié. Son coût estimé s'affiche avant de lancer.",
+          "A Studio turns a sentence or a file into an image, a video or a checked document. You follow the run, then open the result.",
+          "Un Studio change une phrase ou un fichier en image, en vidéo ou en document vérifié. Vous suivez l'exécution, puis vous ouvrez le résultat.",
         ),
       },
       records: {
-        title: w("Every result keeps its run", "Chaque résultat garde son run"),
+        title: w("Every result keeps its run", "Chaque résultat garde son exécution"),
         text: w(
-          "The output, its steps, its input and its run id stay together — so any result can be checked again.",
-          "La sortie, ses étapes, son entrée et son identifiant de run restent ensemble — tout résultat peut être revérifié.",
+          "The output, its steps, its input and its run id stay together, so a result can be checked again. The jobs list shows the state of each one.",
+          "La sortie, ses étapes, son entrée et son identifiant d'exécution restent ensemble : un résultat peut être revérifié. La liste des tâches montre l'état de chacune.",
         ),
       },
       home: {
@@ -225,10 +228,10 @@ const WORDS = {
     ),
   },
   cta: {
-    title: w("Bring AI in-house — not your data out.", "Faites entrer l'IA — sans faire sortir vos données."),
+    title: w("See what runs today.", "Voyez ce qui tourne aujourd'hui."),
     body: w(
-      "On your Mac, your servers or your phone. Tell us what you want to run on your own machines; a person answers.",
-      "Sur votre Mac, vos serveurs ou votre téléphone. Dites-nous ce que vous voulez faire tourner sur vos propres machines ; une personne répond.",
+      "{brand} is in development: the documentation describes what runs today, and nothing more. For a custom project, write to us; a person answers.",
+      "{brand} est en développement : la documentation décrit ce qui tourne aujourd'hui, rien de plus. Pour un projet sur mesure, écrivez-nous ; une personne vous répond.",
     ),
     primary: w("Create your workspace", "Créer mon espace"),
     quickstart: w("Run it in five minutes", "L'essayer en cinq minutes"),
@@ -271,6 +274,12 @@ const WORDS = {
     api: w("API reference", "Référence de l'API"),
     cli: w("CLI", "CLI"),
     legal: w("Legal", "Légal"),
+    label: w("Footer", "Pied de page"),
+    home: w("Home", "Accueil"),
+    code: w("Code", "Code"),
+    licences: w("Licences, folder by folder", "Licences, dossier par dossier"),
+    publisher: w("Publisher", "Éditeur"),
+    publisherSite: w("Krizaka", "Krizaka"),
   },
 } as const;
 

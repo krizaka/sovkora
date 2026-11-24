@@ -1,0 +1,37 @@
+{
+  "$comment": "The footer of the public export (krizaka-internal#4635, the pattern of verikora#914): grouped columns of the pages the export holds, the legal line, no version. Words are keys of `t.landing.footer`; a link names a page of the export (`page`, a folder of scripts/public-routes.mjs, \"\" is the home) or one of the site's addresses (`site`), never a typed URL. The product column carries the product's status from @krizaka/org. Read by src/features/landing/utils/public-footer.ts.",
+  "labelKey": "label",
+  "columns": [
+    {
+      "id": "product",
+      "titleKey": "product",
+      "status": true,
+      "links": [
+        { "labelKey": "home", "page": "" },
+        { "labelKey": "docs", "page": "docs" },
+        { "labelKey": "pricing", "page": "pricing" }
+      ]
+    },
+    {
+      "id": "code",
+      "titleKey": "code",
+      "links": [
+        { "labelKey": "openSource", "site": "repo" },
+        { "labelKey": "licences", "site": "licences" }
+      ]
+    },
+    {
+      "id": "publisher",
+      "titleKey": "publisher",
+      "links": [
+        { "labelKey": "contact", "site": "contact" },
+        { "labelKey": "publisherSite", "site": "publisher" }
+      ]
+    }
+  ],
+  "legal": {
+    "showVersion": false,
+    "links": [{ "labelKey": "privacy", "page": "privacy" }]
+  },
+  "social": ["instagram", "youtube", "linkedin"]
+}

@@ -1,7 +1,7 @@
 import { Clip } from "@/core/clips/Clip";
 import type { ClipId } from "@/core/clips/clips";
 import type { PhoneWords } from "@/core/context/translations.landing.types";
-import { LandingSectionHeading } from "@/features/landing/components/LandingSectionHeading";
+import { LandingSectionHeading } from "@/core/components/LandingSectionHeading";
 
 /**
  * The phone app, one recording beside its words: used by the home and the Download page so both say it the same way. The

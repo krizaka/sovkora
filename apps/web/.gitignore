@@ -50,3 +50,7 @@ package-lock.json
 
 # the faces of @krizaka/fonts, copied for next/font/local by scripts/link-fonts.mjs
 src/app/_fonts/
+
+# The public export (pnpm build:public): the staged project and the folder it produces
+.public-build/
+out-public/

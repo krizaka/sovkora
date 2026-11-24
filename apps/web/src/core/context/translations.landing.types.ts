@@ -133,5 +133,12 @@ export interface LandingDictionary {
     api: string;
     cli: string;
     legal: string;
+    /** The public export's footer (content/public-footer.json): its navigation's name, its columns and their links. */
+    label: string;
+    home: string;
+    code: string;
+    licences: string;
+    publisher: string;
+    publisherSite: string;
   };
 }

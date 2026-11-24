@@ -12,7 +12,7 @@ import { LandingFooter } from "@/features/landing/components/LandingFooter";
 import { AppVideosSection, MacVideo } from "@/features/landing/components/AppVideosSection";
 import { DesktopCapture } from "@/features/landing/components/DesktopCapture";
 import { PhoneSection } from "@/features/landing/components/PhoneSection";
-import { LandingSectionHeading } from "@/features/landing/components/LandingSectionHeading";
+import { LandingSectionHeading } from "@/core/components/LandingSectionHeading";
 import { DownloadBlock } from "@/features/landing/components/DesktopDownloadBlock";
 import type { DesktopDownload } from "@/features/landing/components/DesktopDownloadBlock";
 import { macVideo } from "@/features/landing/utils/app-videos";
