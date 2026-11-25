@@ -27,23 +27,23 @@ concurrency:
 jobs:
   # ── what changed ────────────────────────────────────────────────────────────────────────────────────────────────
   java-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       full-on-default-push: true # main is always analysed in full: Sonar reads the classes and coverage of every part (krizaka-internal#4650)
       # packs/ too: the studio's bundle tests read the shipped packs.
       relevant: '^(pom\.xml|\.mvn/|mvnw(\.cmd)?$|build/|contracts/|engine/|services/|e2e/|packs/|infra/(initdb|migrations|users|brokers-infra|docker-compose)|modules\.json$|scripts/(ci-plan|check-skipped-tests|check-krizaka-versions)\.mjs$|scripts/lib/(skipped-tests|krizaka-versions)\.mjs$|scripts/skipped-tests-allowlist\.json$|\.github/workflows/ci\.yml$)'
   web-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       full-on-default-push: true # main is always analysed in full: Sonar reads the classes and coverage of every part (krizaka-internal#4650)
       relevant: '^(apps/web/|packs/|docs/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   mobile-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       full-on-default-push: true # main is always analysed in full: Sonar reads the classes and coverage of every part (krizaka-internal#4650)
       relevant: '^(apps/mobile/|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
   cli-changes:
-    uses: krizaka/.github/.github/workflows/changes.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/changes.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       full-on-default-push: true # main is always analysed in full: Sonar reads the classes and coverage of every part (krizaka-internal#4650)
       relevant: '^(apps/cli/|packs/pack\.schema\.json$|pnpm-workspace\.yaml$|\.github/workflows/ci\.yml$)'
@@ -246,7 +246,7 @@ jobs:
     name: Media worker
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       relevant: '^(workers/media/|scripts/gpu-pod-broker\.py$|apps/cli/src/services/image-model-recipes\.json$|\.github/workflows/ci\.yml$)'
       working-directory: workers/media
@@ -272,7 +272,7 @@ jobs:
     name: Document-reader worker
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       relevant: '^(workers/reader/|\.github/workflows/ci\.yml$)'
       working-directory: workers/reader
@@ -355,7 +355,7 @@ jobs:
             tests: test_rules.py test_faces.py test_worker.py
     permissions:
       contents: read
-    uses: krizaka/.github/.github/workflows/python-ci.yml@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+    uses: krizaka/.github/.github/workflows/python-ci.yml@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
     with:
       relevant: '^(packs/|\.github/workflows/ci\.yml$)'
       working-directory: packs/${{ matrix.worker }}
@@ -434,7 +434,7 @@ jobs:
         with:
           node-version: "22"
       - name: Repository layout
-        uses: krizaka/.github/actions/repo-layout@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+        uses: krizaka/.github/actions/repo-layout@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
       # The tests and the generated docs read krizaka-java at the release sovkora-parent imports (billing migrations, building blocks).
       - name: krizaka-java at the release sovkora-parent imports (a tag of a public repository, no credential)
         run: |
@@ -521,7 +521,7 @@ jobs:
         with:
           pattern: coverage-*
           merge-multiple: true
-      - uses: krizaka/.github/actions/sonar-scan@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+      - uses: krizaka/.github/actions/sonar-scan@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
         with:
           token: ${{ secrets.SONAR_TOKEN }}
           args: -Dsonar.qualitygate.wait=true
@@ -562,7 +562,7 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           echo "CI failed on main at ${SHA:0:7}: ${RUN_URL}" > "$RUNNER_TEMP/body.md"
-      - uses: krizaka/.github/actions/alert-issue@a6e5270354f053e7d225c35ea45c5aa429ba5878 # main
+      - uses: krizaka/.github/actions/alert-issue@1a355396d57377d16274ec3f10cc83aa0ccf3d0c # main
         with:
           app-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
