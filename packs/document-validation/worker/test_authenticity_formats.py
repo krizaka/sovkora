@@ -128,7 +128,17 @@ def _pdf_rewritten_with_history():
     writer._ID = ArrayObject([ByteStringObject(b"first-writing-id"), ByteStringObject(b"later-writing-id")])
     out = io.BytesIO()
     writer.write(out)
-    return out.getvalue()
+    return _with_trailer_ids(out.getvalue(), b"first-writing-id", b"later-writing-id")
+
+
+def _with_trailer_ids(pdf: bytes, first: bytes, second: bytes) -> bytes:
+    """Force the trailer /ID pair: pypdf 7.2.0 writes one id twice (#5158).
+
+    The trailer follows the xref table, so no offset a reader uses moves.
+    """
+    head, _, tail = pdf.rpartition(b"/ID [")
+    pair = b"/ID [ <%s> <%s> ]" % (first.hex().encode(), second.hex().encode())
+    return head + pair + tail.partition(b"]")[2]
 
 
 def _clean():

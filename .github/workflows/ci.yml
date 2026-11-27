@@ -325,7 +325,7 @@ jobs:
       matrix:
         include:
           - worker: document-validation/worker
-            packages: pypdf pika pyyaml pikepdf reportlab Pillow pytest
+            packages: pypdf==7.2.0 pika pyyaml pikepdf==10.18.3 reportlab Pillow pytest
             tests: test_rules.py test_golden.py test_authenticity.py test_authenticity_formats.py test_forensics.py test_screening.py test_identify.py test_check.py test_regex_safety.py test_derivation.py test_lecture.py test_failure_answer.py quality/test_measure_lease.py
           - worker: message-authenticity/worker
             packages: pika pyyaml pytest
@@ -404,7 +404,7 @@ jobs:
       - name: Pack workers
         if: ${{ matrix.part == 'packs' }}
         run: |
-          pip install --only-binary :all: pypdf pika pyyaml pikepdf reportlab Pillow pytest coverage
+          pip install --only-binary :all: pypdf==7.2.0 pika pyyaml pikepdf==10.18.3 reportlab Pillow pytest coverage
           rm -f .coverage.*
           for dir in document-validation message-authenticity media-safety echo-toolkit data-analytics tenant-screening-qc identity-document-check; do
             (cd "packs/$dir/worker" && python -m coverage run --data-file="$GITHUB_WORKSPACE/.coverage.$dir" -m pytest -q || true)
