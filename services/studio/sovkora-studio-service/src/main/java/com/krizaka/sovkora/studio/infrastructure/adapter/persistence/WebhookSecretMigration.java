@@ -56,33 +56,31 @@ public class WebhookSecretMigration implements SmartInitializingSingleton {
    */
   public int run() {
     widenColumns();
-    Integer done =
-        transaction.execute(
-            status -> {
-              List<Row> rows =
-                  jdbc.query(
-                      "SELECT id, secret, previous_secret FROM studio_webhook_endpoint"
-                          + " WHERE secret NOT LIKE 'v1.%'"
-                          + " OR (previous_secret IS NOT NULL AND previous_secret NOT LIKE 'v1.%')"
-                          + " FOR UPDATE",
-                      (rs, rowNum) ->
-                          new Row(
-                              rs.getObject("id", UUID.class),
-                              rs.getString("secret"),
-                              rs.getString("previous_secret")));
-              for (Row row : rows) {
-                jdbc.update(
-                    "UPDATE studio_webhook_endpoint SET secret = ?, previous_secret = ?"
-                        + " WHERE id = ?",
-                    sealIfClear(row.id(), row.secret()),
-                    row.previousSecret() == null
-                        ? null
-                        : sealIfClear(row.id(), row.previousSecret()),
-                    row.id());
-              }
-              return rows.size();
-            });
-    return done == null ? 0 : done;
+    int[] converted = new int[1];
+    transaction.executeWithoutResult(
+        status -> {
+          List<Row> rows =
+              jdbc.query(
+                  "SELECT id, secret, previous_secret FROM studio_webhook_endpoint"
+                      + " WHERE secret NOT LIKE 'v1.%'"
+                      + " OR (previous_secret IS NOT NULL AND previous_secret NOT LIKE 'v1.%')"
+                      + " FOR UPDATE",
+                  (rs, rowNum) ->
+                      new Row(
+                          rs.getObject("id", UUID.class),
+                          rs.getString("secret"),
+                          rs.getString("previous_secret")));
+          for (Row row : rows) {
+            jdbc.update(
+                "UPDATE studio_webhook_endpoint SET secret = ?, previous_secret = ?"
+                    + " WHERE id = ?",
+                sealIfClear(row.id(), row.secret()),
+                row.previousSecret() == null ? null : sealIfClear(row.id(), row.previousSecret()),
+                row.id());
+          }
+          converted[0] = rows.size();
+        });
+    return converted[0];
   }
 
   private String sealIfClear(UUID id, String stored) {

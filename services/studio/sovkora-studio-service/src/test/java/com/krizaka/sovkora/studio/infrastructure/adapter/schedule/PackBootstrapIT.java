@@ -59,11 +59,8 @@ import tools.jackson.databind.ObjectMapper;
  */
 class PackBootstrapIT {
 
-  /** These suites install the shipped bundles: they need sovkora-packs, i.e. the workspace. */
-  @org.junit.jupiter.api.BeforeAll
-  static void requireShippedPacks() {
-    com.krizaka.sovkora.test.support.architecture.Workspace.packs(
-        java.nio.file.Path.of(System.getProperty("user.dir")));
+  static {
+    StudioSchema.requireShippedPacks();
   }
 
   private static final String STUDIO_DB = "orazaka_studio_db";
