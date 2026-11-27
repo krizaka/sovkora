@@ -15,6 +15,15 @@ public final class StudioSchema {
   private StudioSchema() {}
 
   /**
+   * Fails the class at load when the workspace's packs are absent: the suites that install the
+   * shipped bundles need {@code sovkora-packs}, so they stop before any container starts.
+   */
+  public static void requireShippedPacks() {
+    com.krizaka.sovkora.test.support.architecture.Workspace.packs(
+        java.nio.file.Path.of(System.getProperty("user.dir")));
+  }
+
+  /**
    * Migrates {@code orazaka_studio_db} of the container.
    *
    * @param postgres the started container, its initdb file run and the role's password set

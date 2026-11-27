@@ -66,6 +66,10 @@ import tools.jackson.databind.ObjectMapper;
  */
 class DoorOneControlsIT {
 
+  static {
+    StudioSchema.requireShippedPacks();
+  }
+
   private static final String STUDIO_DB = "orazaka_studio_db";
   private static final String STUDIO_ROLE = "orazaka_studio";
   private static final String STUDIO_PASSWORD = "orazaka_studio_pass";
@@ -103,11 +107,6 @@ class DoorOneControlsIT {
 
   @BeforeAll
   static void startContainer() {
-    // These suites install the shipped bundles: they need sovkora-packs, i.e. the workspace.
-    // Checked first, in the one @BeforeAll, so a missing workspace fails before the container
-    // starts.
-    com.krizaka.sovkora.test.support.architecture.Workspace.packs(
-        java.nio.file.Path.of(System.getProperty("user.dir")));
     if (System.getProperty("api.version") == null && System.getenv("DOCKER_API_VERSION") == null) {
       System.setProperty("api.version", "1.43");
     }
